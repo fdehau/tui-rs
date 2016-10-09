@@ -1,0 +1,9 @@
+[package]
+name = "tui"
+version = "0.1.0"
+authors = ["Florian Dehau <florian.dehau@telecomnancy.net>"]
+
+[dependencies]
+termion = "1.1.1"
+bitflags = "0.7"
+cassowary = "0.2.0"
