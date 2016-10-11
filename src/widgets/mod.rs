@@ -1,9 +1,13 @@
 mod block;
+mod list;
 
 pub use self::block::Block;
+pub use self::list::List;
+use std::hash::{Hash, SipHasher, Hasher};
 
+use util::hash;
 use buffer::{Buffer, Cell};
-use layout::Rect;
+use layout::{Rect, Tree, Leaf};
 use style::Color;
 
 enum Line {
@@ -77,6 +81,23 @@ fn vline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
                    })
 }
 
-pub trait Widget {
-    fn render(&self, area: &Rect) -> Buffer;
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+pub enum WidgetType {
+    Block,
+    List,
+}
+
+pub trait Widget: Hash {
+    fn buffer(&self, area: &Rect) -> Buffer;
+    fn widget_type(&self) -> WidgetType;
+    fn render(&self, area: &Rect) -> Tree {
+        let widget_type = self.widget_type();
+        let hash = hash(&self);
+        let buffer = self.buffer(area);
+        Tree::Leaf(Leaf {
+            widget_type: widget_type,
+            hash: hash,
+            buffer: buffer,
+        })
+    }
 }

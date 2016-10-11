@@ -7,3 +7,5 @@ authors = ["Florian Dehau <florian.dehau@telecomnancy.net>"]
 termion = "1.1.1"
 bitflags = "0.7"
 cassowary = "0.2.0"
+log = "0.3"
+log4rs = "*"

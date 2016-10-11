@@ -5,8 +5,11 @@ use cassowary::{Solver, Variable, Constraint};
 use cassowary::WeightedRelation::*;
 use cassowary::strength::{WEAK, MEDIUM, STRONG, REQUIRED};
 
+use util::hash;
 use buffer::Buffer;
+use widgets::WidgetType;
 
+#[derive(Hash)]
 pub enum Alignment {
     Top,
     Left,
@@ -15,12 +18,13 @@ pub enum Alignment {
     Right,
 }
 
+#[derive(Hash)]
 pub enum Direction {
     Horizontal,
     Vertical,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -98,10 +102,10 @@ impl Rect {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Size {
-    Fixed(f64),
-    Percent(f64),
+    Fixed(u16),
+    Percent(u16),
 }
 
 /// # Examples
@@ -153,9 +157,9 @@ pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) ->
                 let cs = [elements[i].y | EQ(REQUIRED) | area.y as f64,
                           elements[i].height | EQ(REQUIRED) | area.height as f64,
                           match *size {
-                              Size::Fixed(f) => elements[i].width | EQ(REQUIRED) | f,
+                              Size::Fixed(f) => elements[i].width | EQ(REQUIRED) | f as f64,
                               Size::Percent(p) => {
-                                  elements[i].width | EQ(WEAK) | area.width as f64 * p / 100.0
+                                  elements[i].width | EQ(WEAK) | (area.width * p) as f64 / 100.0
                               }
                           }];
                 constraints.extend_from_slice(&cs);
@@ -169,9 +173,9 @@ pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) ->
                 let cs = [elements[i].x | EQ(REQUIRED) | area.x as f64,
                           elements[i].width | EQ(REQUIRED) | area.width as f64,
                           match *size {
-                              Size::Fixed(f) => elements[i].height | EQ(REQUIRED) | f,
+                              Size::Fixed(f) => elements[i].height | EQ(REQUIRED) | f as f64,
                               Size::Percent(p) => {
-                                  elements[i].height | EQ(WEAK) | area.height as f64 * p / 100.0
+                                  elements[i].height | EQ(WEAK) | (area.height * p) as f64 / 100.0
                               }
                           }];
                 constraints.extend_from_slice(&cs);
@@ -218,6 +222,67 @@ impl Element {
     }
 }
 
+pub enum Tree {
+    Node(Node),
+    Leaf(Leaf),
+}
+
+impl IntoIterator for Tree {
+    type Item = Leaf;
+    type IntoIter = WidgetIterator;
+
+    fn into_iter(self) -> WidgetIterator {
+        WidgetIterator::new(self)
+    }
+}
+
+pub struct WidgetIterator {
+    stack: Vec<Tree>,
+}
+
+impl WidgetIterator {
+    fn new(tree: Tree) -> WidgetIterator {
+        WidgetIterator { stack: vec![tree] }
+    }
+}
+
+impl Iterator for WidgetIterator {
+    type Item = Leaf;
+    fn next(&mut self) -> Option<Leaf> {
+        match self.stack.pop() {
+            Some(t) => {
+                match t {
+                    Tree::Node(n) => {
+                        let index = self.stack.len();
+                        for c in n.children {
+                            self.stack.insert(index, c);
+                        }
+                        self.next()
+                    }
+                    Tree::Leaf(l) => Some(l),
+                }
+            }
+            None => None,
+        }
+    }
+}
+
+pub struct Node {
+    pub children: Vec<Tree>,
+}
+
+impl Node {
+    pub fn add(&mut self, node: Tree) {
+        self.children.push(node);
+    }
+}
+
+pub struct Leaf {
+    pub widget_type: WidgetType,
+    pub hash: u64,
+    pub buffer: Buffer,
+}
+
 pub struct Group {
     direction: Direction,
     alignment: Alignment,
@@ -249,15 +314,12 @@ impl Group {
         self.chunks = Vec::from(chunks);
         self
     }
-    pub fn render<F>(&self, area: &Rect, f: F) -> Buffer
-        where F: Fn(&[Rect]) -> Vec<Buffer>
+    pub fn render<F>(&self, area: &Rect, f: F) -> Tree
+        where F: Fn(&[Rect], &mut Node)
     {
         let chunks = split(area, &self.direction, &self.alignment, &self.chunks);
-        let results = f(&chunks);
-        let mut result = results[0].clone();
-        for r in results.iter().skip(1) {
-            result.merge(&r);
-        }
-        result
+        let mut node = Node { children: Vec::new() };
+        let results = f(&chunks, &mut node);
+        Tree::Node(node)
     }
 }

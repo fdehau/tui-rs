@@ -2,8 +2,9 @@
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
-use widgets::{Widget, Border, Line, vline, hline};
+use widgets::{Widget, WidgetType, Border, Line, vline, hline};
 
+#[derive(Hash)]
 pub struct Block<'a> {
     title: Option<&'a str>,
     borders: Border::Flags,
@@ -35,7 +36,7 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn render(&self, area: &Rect) -> Buffer {
+    fn buffer(&self, area: &Rect) -> Buffer {
 
         let mut buf = Buffer::empty(*area);
 
@@ -90,5 +91,9 @@ impl<'a> Widget for Block<'a> {
             buf.set_string(1, 0, &format!(" {} ", title));
         }
         buf
+    }
+
+    fn widget_type(&self) -> WidgetType {
+        WidgetType::Block
     }
 }

@@ -1,17 +1,20 @@
 use std::iter;
 use std::io;
 use std::io::Write;
+use std::collections::HashMap;
 
 use termion;
 use termion::raw::{IntoRawMode, RawTerminal};
 
 use buffer::Buffer;
-use layout::Rect;
+use widgets::WidgetType;
+use layout::{Rect, Tree, Node, Leaf};
 
 pub struct Terminal {
-    stdout: RawTerminal<io::Stdout>,
     width: u16,
     height: u16,
+    stdout: RawTerminal<io::Stdout>,
+    previous: HashMap<(WidgetType, u64), Rect>,
 }
 
 impl Terminal {
@@ -19,9 +22,10 @@ impl Terminal {
         let terminal = try!(termion::terminal_size());
         let stdout = try!(io::stdout().into_raw_mode());
         Ok(Terminal {
-            stdout: stdout,
             width: terminal.0,
             height: terminal.1,
+            stdout: stdout,
+            previous: HashMap::new(),
         })
     }
 
@@ -34,7 +38,31 @@ impl Terminal {
         }
     }
 
-    pub fn render(&mut self, buffer: &Buffer) {
+    pub fn render(&mut self, ui: Tree) {
+        let mut buffers: Vec<Buffer> = Vec::new();
+        let mut previous: HashMap<(WidgetType, u64), Rect> = HashMap::new();
+        for node in ui.into_iter() {
+            let area = *node.buffer.area();
+            match self.previous.remove(&(node.widget_type, node.hash)) {
+                Some(r) => {
+                    if r != area {
+                        buffers.push(node.buffer);
+                    }
+                }
+                None => {
+                    buffers.push(node.buffer);
+                }
+            }
+            previous.insert((node.widget_type, node.hash), area);
+        }
+        for buf in buffers {
+            self.render_buffer(&buf);
+            info!("{:?}", buf.area());
+        }
+        self.previous = previous;
+    }
+
+    pub fn render_buffer(&mut self, buffer: &Buffer) {
         for (i, cell) in buffer.content().iter().enumerate() {
             let (lx, ly) = buffer.pos_of(i);
             let (x, y) = (lx + buffer.area().x, ly + buffer.area().y);
@@ -50,6 +78,7 @@ impl Terminal {
     }
     pub fn clear(&mut self) {
         write!(self.stdout, "{}", termion::clear::All).unwrap();
+        write!(self.stdout, "{}", termion::cursor::Goto(1, 1)).unwrap();
         self.stdout.flush().unwrap();
     }
     pub fn hide_cursor(&mut self) {
