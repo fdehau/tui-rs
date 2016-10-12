@@ -1,9 +1,12 @@
 mod block;
 mod list;
+mod gauge;
 
 pub use self::block::Block;
 pub use self::list::List;
-use std::hash::{Hash, SipHasher, Hasher};
+pub use self::gauge::Gauge;
+
+use std::hash::Hash;
 
 use util::hash;
 use buffer::{Buffer, Cell};
@@ -23,7 +26,7 @@ enum Line {
     HorizontalUp,
 }
 
-pub mod Border {
+pub mod border {
     bitflags! {
         pub flags Flags: u32 {
             const NONE  = 0b00000001,
@@ -52,7 +55,6 @@ impl Line {
         }
     }
 }
-
 
 fn hline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
     Buffer::filled(Rect {
@@ -85,14 +87,21 @@ fn vline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
 pub enum WidgetType {
     Block,
     List,
+    Gauge,
 }
 
 pub trait Widget: Hash {
-    fn buffer(&self, area: &Rect) -> Buffer;
+    fn _buffer(&self, area: &Rect) -> Buffer;
+    fn buffer(&self, area: &Rect) -> Buffer {
+        match area.area() {
+            0 => Buffer::empty(*area),
+            _ => self._buffer(area),
+        }
+    }
     fn widget_type(&self) -> WidgetType;
     fn render(&self, area: &Rect) -> Tree {
         let widget_type = self.widget_type();
-        let hash = hash(&self);
+        let hash = hash(&self, area);
         let buffer = self.buffer(area);
         Tree::Leaf(Leaf {
             widget_type: widget_type,

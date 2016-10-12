@@ -1,10 +1,9 @@
-use std::cmp::{min, max};
+use std::cmp::min;
 use std::fmt::Display;
 use std::hash::{Hash, Hasher};
 
 use buffer::Buffer;
 use widgets::{Widget, WidgetType, Block};
-use style::Color;
 use layout::Rect;
 
 pub struct List<'a, T> {
@@ -29,7 +28,7 @@ impl<'a, T> Default for List<'a, T> {
         List {
             block: Block::default(),
             selected: 0,
-            formatter: Box::new(|e: &T, selected: bool| String::from("")),
+            formatter: Box::new(|_, _| String::from("")),
             items: Vec::new(),
         }
     }
@@ -66,7 +65,7 @@ impl<'a, T> List<'a, T>
 impl<'a, T> Widget for List<'a, T>
     where T: Display + Hash
 {
-    fn buffer(&self, area: &Rect) -> Buffer {
+    fn _buffer(&self, area: &Rect) -> Buffer {
         let mut buf = self.block.buffer(area);
         if area.area() == 0 {
             return buf;

@@ -94,6 +94,15 @@ impl Buffer {
         self.content[i].symbol = symbol;
     }
 
+    pub fn set_fg(&mut self, x: u16, y: u16, color: Color) {
+        let i = self.index_of(x, y);
+        self.content[i].fg = color;
+    }
+    pub fn set_bg(&mut self, x: u16, y: u16, color: Color) {
+        let i = self.index_of(x, y);
+        self.content[i].bg = color;
+    }
+
     pub fn set_string(&mut self, x: u16, y: u16, string: &str) {
         let mut cursor = (x, y);
         for c in string.chars() {

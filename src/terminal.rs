@@ -1,4 +1,3 @@
-use std::iter;
 use std::io;
 use std::io::Write;
 use std::collections::HashMap;
@@ -8,13 +7,13 @@ use termion::raw::{IntoRawMode, RawTerminal};
 
 use buffer::Buffer;
 use widgets::WidgetType;
-use layout::{Rect, Tree, Node, Leaf};
+use layout::{Rect, Tree};
 
 pub struct Terminal {
     width: u16,
     height: u16,
     stdout: RawTerminal<io::Stdout>,
-    previous: HashMap<(WidgetType, u64), Rect>,
+    previous: HashMap<(WidgetType, Rect), u64>,
 }
 
 impl Terminal {
@@ -39,29 +38,33 @@ impl Terminal {
     }
 
     pub fn render(&mut self, ui: Tree) {
-        info!("Render");
+        debug!("Render Pass");
         let mut buffers: Vec<Buffer> = Vec::new();
-        let mut previous: HashMap<(WidgetType, u64), Rect> = HashMap::new();
+        let mut previous: HashMap<(WidgetType, Rect), u64> = HashMap::new();
         for node in ui.into_iter() {
             let area = *node.buffer.area();
-            match self.previous.remove(&(node.widget_type, node.hash)) {
-                Some(r) => {
-                    if r != area {
+            match self.previous.remove(&(node.widget_type, area)) {
+                Some(h) => {
+                    if h == node.hash {
+                        debug!("Skip {:?} at {:?}", node.widget_type, area);
+                    } else {
+                        debug!("Update {:?} at {:?}", node.widget_type, area);
                         buffers.push(node.buffer);
                     }
                 }
                 None => {
                     buffers.push(node.buffer);
+                    debug!("Render {:?} at {:?}", node.widget_type, area);
                 }
             }
-            previous.insert((node.widget_type, node.hash), area);
+            previous.insert((node.widget_type, area), node.hash);
         }
-        for (_, area) in &self.previous {
-            buffers.insert(0, Buffer::empty(*area));
+        for (&(t, a), h) in &self.previous {
+            buffers.insert(0, Buffer::empty(a));
+            debug!("Erased {:?} at {:?}", t, a);
         }
         for buf in buffers {
             self.render_buffer(&buf);
-            info!("{:?}", buf.area());
         }
         self.previous = previous;
     }

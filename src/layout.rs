@@ -3,9 +3,8 @@ use std::collections::HashMap;
 
 use cassowary::{Solver, Variable, Constraint};
 use cassowary::WeightedRelation::*;
-use cassowary::strength::{WEAK, MEDIUM, STRONG, REQUIRED};
+use cassowary::strength::{WEAK, MEDIUM, REQUIRED};
 
-use util::hash;
 use buffer::Buffer;
 use widgets::WidgetType;
 
@@ -24,7 +23,7 @@ pub enum Direction {
     Vertical,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Hash, Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -46,10 +45,10 @@ impl Default for Rect {
 impl Rect {
     pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
         Rect {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
+            x: x,
+            y: y,
+            width: width,
+            height: height,
         }
     }
 
@@ -57,15 +56,15 @@ impl Rect {
         self.width * self.height
     }
 
-    pub fn inner(&self, spacing: u16) -> Rect {
-        if self.width - spacing < 0 || self.height - spacing < 0 {
+    pub fn inner(&self, margin: u16) -> Rect {
+        if self.width < 2 * margin || self.height < 2 * margin {
             Rect::default()
         } else {
             Rect {
-                x: self.x + spacing,
-                y: self.y + spacing,
-                width: self.width - 2 * spacing,
-                height: self.height - 2 * spacing,
+                x: self.x + margin,
+                y: self.y + margin,
+                width: self.width - 2 * margin,
+                height: self.height - 2 * margin,
             }
         }
     }
@@ -114,16 +113,25 @@ pub enum Size {
 /// use tui::layout::{Rect, Size, Alignment, Direction, split};
 ///
 /// fn main() {
-///     let chunks = split(&Rect{x: 2, y: 2, width: 10, height: 10}, Direction::Vertical,
-///     Alignment::Left, &[Size::Fixed(5.0), Size::Percent(80.0)]);
+///     let chunks = split(&Rect{x: 2, y: 2, width: 10, height: 10},
+///                        &Direction::Vertical,
+///                        &Alignment::Left,
+///                        0,
+///                        &[Size::Fixed(5), Size::Percent(80)]);
 /// }
 ///
 /// ```
-pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) -> Vec<Rect> {
+pub fn split(area: &Rect,
+             dir: &Direction,
+             align: &Alignment,
+             margin: u16,
+             sizes: &[Size])
+             -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
-    let elements = sizes.iter().map(|e| Element::new()).collect::<Vec<Element>>();
-    let mut results = sizes.iter().map(|e| Rect::default()).collect::<Vec<Rect>>();
+    let elements = sizes.iter().map(|_| Element::new()).collect::<Vec<Element>>();
+    let mut results = sizes.iter().map(|_| Rect::default()).collect::<Vec<Rect>>();
+    let dest_area = area.inner(margin);
     for (i, e) in elements.iter().enumerate() {
         vars.insert(e.x, (i, 0));
         vars.insert(e.y, (i, 1));
@@ -131,20 +139,19 @@ pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) ->
         vars.insert(e.height, (i, 3));
     }
     let mut constraints: Vec<Constraint> = Vec::new();
-    if let Some(size) = sizes.first() {
+    if let Some(first) = elements.first() {
         constraints.push(match *dir {
-            Direction::Horizontal => elements[0].x | EQ(REQUIRED) | area.x as f64,
-            Direction::Vertical => elements[0].y | EQ(REQUIRED) | area.y as f64,
+            Direction::Horizontal => first.x | EQ(REQUIRED) | dest_area.x as f64,
+            Direction::Vertical => first.y | EQ(REQUIRED) | dest_area.y as f64,
         })
     }
-    if let Some(size) = sizes.last() {
-        let last = elements.last().unwrap();
+    if let Some(last) = elements.last() {
         constraints.push(match *dir {
             Direction::Horizontal => {
-                last.x + last.width | EQ(REQUIRED) | (area.x + area.width) as f64
+                last.x + last.width | EQ(REQUIRED) | (dest_area.x + dest_area.width) as f64
             }
             Direction::Vertical => {
-                last.y + last.height | EQ(REQUIRED) | (area.y + area.height) as f64
+                last.y + last.height | EQ(REQUIRED) | (dest_area.y + dest_area.height) as f64
             }
         })
     }
@@ -154,12 +161,13 @@ pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) ->
                 constraints.push(pair[0].x + pair[0].width | LE(REQUIRED) | pair[1].x);
             }
             for (i, size) in sizes.iter().enumerate() {
-                let cs = [elements[i].y | EQ(REQUIRED) | area.y as f64,
-                          elements[i].height | EQ(REQUIRED) | area.height as f64,
+                let cs = [elements[i].y | EQ(REQUIRED) | dest_area.y as f64,
+                          elements[i].height | EQ(REQUIRED) | dest_area.height as f64,
                           match *size {
-                              Size::Fixed(f) => elements[i].width | EQ(REQUIRED) | f as f64,
+                              Size::Fixed(f) => elements[i].width | EQ(MEDIUM) | f as f64,
                               Size::Percent(p) => {
-                                  elements[i].width | EQ(WEAK) | (area.width * p) as f64 / 100.0
+                                  elements[i].width | EQ(WEAK) |
+                                  (dest_area.width * p) as f64 / 100.0
                               }
                           }];
                 constraints.extend_from_slice(&cs);
@@ -170,12 +178,13 @@ pub fn split(area: &Rect, dir: &Direction, align: &Alignment, sizes: &[Size]) ->
                 constraints.push(pair[0].y + pair[0].height | LE(REQUIRED) | pair[1].y);
             }
             for (i, size) in sizes.iter().enumerate() {
-                let cs = [elements[i].x | EQ(REQUIRED) | area.x as f64,
-                          elements[i].width | EQ(REQUIRED) | area.width as f64,
+                let cs = [elements[i].x | EQ(REQUIRED) | dest_area.x as f64,
+                          elements[i].width | EQ(REQUIRED) | dest_area.width as f64,
                           match *size {
                               Size::Fixed(f) => elements[i].height | EQ(REQUIRED) | f as f64,
                               Size::Percent(p) => {
-                                  elements[i].height | EQ(WEAK) | (area.height * p) as f64 / 100.0
+                                  elements[i].height | EQ(WEAK) |
+                                  (dest_area.height * p) as f64 / 100.0
                               }
                           }];
                 constraints.extend_from_slice(&cs);
@@ -286,6 +295,7 @@ pub struct Leaf {
 pub struct Group {
     direction: Direction,
     alignment: Alignment,
+    margin: u16,
     chunks: Vec<Size>,
 }
 
@@ -294,6 +304,7 @@ impl Default for Group {
         Group {
             direction: Direction::Horizontal,
             alignment: Alignment::Left,
+            margin: 0,
             chunks: Vec::new(),
         }
     }
@@ -310,6 +321,11 @@ impl Group {
         self
     }
 
+    pub fn margin(&mut self, margin: u16) -> &mut Group {
+        self.margin = margin;
+        self
+    }
+
     pub fn chunks(&mut self, chunks: &[Size]) -> &mut Group {
         self.chunks = Vec::from(chunks);
         self
@@ -317,9 +333,13 @@ impl Group {
     pub fn render<F>(&self, area: &Rect, f: F) -> Tree
         where F: Fn(&[Rect], &mut Node)
     {
-        let chunks = split(area, &self.direction, &self.alignment, &self.chunks);
+        let chunks = split(area,
+                           &self.direction,
+                           &self.alignment,
+                           self.margin,
+                           &self.chunks);
         let mut node = Node { children: Vec::new() };
-        let results = f(&chunks, &mut node);
+        f(&chunks, &mut node);
         Tree::Node(node)
     }
 }
