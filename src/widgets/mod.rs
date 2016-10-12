@@ -1,10 +1,12 @@
 mod block;
 mod list;
 mod gauge;
+mod sparkline;
 
 pub use self::block::Block;
 pub use self::list::List;
 pub use self::gauge::Gauge;
+pub use self::sparkline::Sparkline;
 
 use std::hash::Hash;
 
@@ -13,6 +15,7 @@ use buffer::{Buffer, Cell};
 use layout::{Rect, Tree, Leaf};
 use style::Color;
 
+#[allow(dead_code)]
 enum Line {
     Horizontal,
     Vertical,
@@ -88,16 +91,11 @@ pub enum WidgetType {
     Block,
     List,
     Gauge,
+    Sparkline,
 }
 
 pub trait Widget: Hash {
-    fn _buffer(&self, area: &Rect) -> Buffer;
-    fn buffer(&self, area: &Rect) -> Buffer {
-        match area.area() {
-            0 => Buffer::empty(*area),
-            _ => self._buffer(area),
-        }
-    }
+    fn buffer(&self, area: &Rect) -> Buffer;
     fn widget_type(&self) -> WidgetType;
     fn render(&self, area: &Rect) -> Tree {
         let widget_type = self.widget_type();

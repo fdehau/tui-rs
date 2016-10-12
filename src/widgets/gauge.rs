@@ -47,9 +47,9 @@ impl<'a> Gauge<'a> {
 }
 
 impl<'a> Widget for Gauge<'a> {
-    fn _buffer(&self, area: &Rect) -> Buffer {
+    fn buffer(&self, area: &Rect) -> Buffer {
         let (mut buf, gauge_area) = match self.block {
-            Some(ref b) => (b._buffer(area), area.inner(1)),
+            Some(ref b) => (b.buffer(area), area.inner(1)),
             None => (Buffer::empty(*area), *area),
         };
         if gauge_area.height < 1 {

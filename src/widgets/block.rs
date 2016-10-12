@@ -36,7 +36,7 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn _buffer(&self, area: &Rect) -> Buffer {
+    fn buffer(&self, area: &Rect) -> Buffer {
 
         let mut buf = Buffer::empty(*area);
 

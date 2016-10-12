@@ -7,7 +7,7 @@ use widgets::{Widget, WidgetType, Block};
 use layout::Rect;
 
 pub struct List<'a, T> {
-    block: Block<'a>,
+    block: Option<Block<'a>>,
     selected: usize,
     formatter: Box<Fn(&T, bool) -> String>,
     items: Vec<T>,
@@ -26,7 +26,7 @@ impl<'a, T> Hash for List<'a, T>
 impl<'a, T> Default for List<'a, T> {
     fn default() -> List<'a, T> {
         List {
-            block: Block::default(),
+            block: None,
             selected: 0,
             formatter: Box::new(|_, _| String::from("")),
             items: Vec::new(),
@@ -37,10 +37,8 @@ impl<'a, T> Default for List<'a, T> {
 impl<'a, T> List<'a, T>
     where T: Clone
 {
-    pub fn block<F>(&'a mut self, f: F) -> &mut List<'a, T>
-        where F: Fn(&mut Block)
-    {
-        f(&mut self.block);
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a, T> {
+        self.block = Some(block);
         self
     }
 
@@ -65,14 +63,14 @@ impl<'a, T> List<'a, T>
 impl<'a, T> Widget for List<'a, T>
     where T: Display + Hash
 {
-    fn _buffer(&self, area: &Rect) -> Buffer {
-        let mut buf = self.block.buffer(area);
-        if area.area() == 0 {
-            return buf;
-        }
+    fn buffer(&self, area: &Rect) -> Buffer {
+
+        let (mut buf, list_area) = match self.block {
+            Some(ref b) => (b.buffer(area), area.inner(1)),
+            None => (Buffer::empty(*area), *area),
+        };
 
         let list_length = self.items.len();
-        let list_area = area.inner(1);
         let list_height = list_area.height as usize;
         let bound = min(list_height, list_length);
         let offset = if self.selected > list_height {

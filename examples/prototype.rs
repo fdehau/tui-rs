@@ -3,23 +3,23 @@ extern crate tui;
 extern crate log;
 extern crate log4rs;
 extern crate termion;
+extern crate rand;
 
 use std::thread;
 use std::time;
 use std::sync::mpsc;
-use std::io::{Write, stdin};
+use std::io::stdin;
 
 use termion::event;
 use termion::input::TermRead;
 
 use log::LogLevelFilter;
-use log4rs::append::console::ConsoleAppender;
 use log4rs::append::file::FileAppender;
 use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Logger, Root};
 
 use tui::Terminal;
-use tui::widgets::{Widget, Block, List, Gauge, border};
+use tui::widgets::{Widget, Block, List, Gauge, Sparkline, border};
 use tui::layout::{Group, Direction, Alignment, Size};
 
 struct App {
@@ -29,6 +29,7 @@ struct App {
     selected: usize,
     show_episodes: bool,
     progress: u16,
+    data: Vec<u64>,
 }
 
 enum Event {
@@ -58,6 +59,7 @@ fn main() {
         selected: 0,
         show_episodes: false,
         progress: 0,
+        data: (0..100).map(|_| rand::random::<u8>() as u64).collect(),
     };
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
@@ -115,6 +117,8 @@ fn main() {
                 if app.progress > 100 {
                     app.progress = 0;
                 }
+                app.data.insert(0, rand::random::<u8>() as u64);
+                app.data.pop();
             }
         }
     }
@@ -128,6 +132,7 @@ fn draw(terminal: &mut Terminal, app: &App) {
         .alignment(Alignment::Left)
         .chunks(&[Size::Fixed(5), Size::Percent(80), Size::Fixed(10)])
         .render(&terminal.area(), |chunks, tree| {
+            info!("{:?}", terminal.area());
             tree.add(Block::default().borders(border::ALL).title("Gauges").render(&chunks[0]));
             tree.add(Group::default()
                 .direction(Direction::Vertical)
@@ -138,14 +143,14 @@ fn draw(terminal: &mut Terminal, app: &App) {
                     tree.add(Gauge::new()
                         .percent(app.progress)
                         .render(&chunks[0]));
-                    tree.add(Gauge::new()
-                        .percent(app.progress)
+                    tree.add(Sparkline::new()
+                        .data(&app.data)
                         .render(&chunks[2]));
                 }));
             let sizes = if app.show_episodes {
                 vec![Size::Percent(50), Size::Percent(50)]
             } else {
-                vec![Size::Percent(50), Size::Percent(50)]
+                vec![Size::Percent(100)]
             };
             tree.add(Group::default()
                 .direction(Direction::Horizontal)
@@ -153,9 +158,7 @@ fn draw(terminal: &mut Terminal, app: &App) {
                 .chunks(&sizes)
                 .render(&chunks[1], |chunks, tree| {
                     tree.add(List::default()
-                        .block(|b| {
-                            b.borders(border::ALL).title("Podcasts");
-                        })
+                        .block(*Block::default().borders(border::ALL).title("Podcasts"))
                         .items(&app.items)
                         .select(app.selected)
                         .formatter(|i, s| {

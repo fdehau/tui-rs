@@ -121,6 +121,7 @@ pub enum Size {
 /// }
 ///
 /// ```
+#[allow(unused_variables)]
 pub fn split(area: &Rect,
              dir: &Direction,
              align: &Alignment,

@@ -59,7 +59,7 @@ impl Terminal {
             }
             previous.insert((node.widget_type, area), node.hash);
         }
-        for (&(t, a), h) in &self.previous {
+        for (&(t, a), _h) in &self.previous {
             buffers.insert(0, Buffer::empty(a));
             debug!("Erased {:?} at {:?}", t, a);
         }
