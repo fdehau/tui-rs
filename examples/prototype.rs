@@ -26,6 +26,7 @@ struct App {
     fetching: bool,
     items: Vec<String>,
     selected: usize,
+    show_episodes: bool,
 }
 
 enum Event {
@@ -56,6 +57,7 @@ fn main() {
         fetching: false,
         items: ["1", "2", "3"].into_iter().map(|e| String::from(*e)).collect(),
         selected: 0,
+        show_episodes: false,
     };
     let (tx, rx) = mpsc::channel();
 
@@ -94,6 +96,9 @@ fn main() {
                             app.selected += 1;
                         }
                     }
+                    event::Key::Char('t') => {
+                        app.show_episodes = !app.show_episodes;
+                    }
                     _ => {}
                 }
             }
@@ -113,10 +118,15 @@ fn draw(terminal: &mut Terminal, app: &App) {
                 .borders(Border::ALL)
                 .title("Header")
                 .render(&chunks[0]));
+            let sizes = if app.show_episodes {
+                vec![Size::Percent(50), Size::Percent(50)]
+            } else {
+                vec![Size::Percent(50), Size::Percent(50)]
+            };
             tree.add(Group::default()
                 .direction(Direction::Horizontal)
                 .alignment(Alignment::Left)
-                .chunks(&[Size::Percent(50), Size::Percent(50)])
+                .chunks(&sizes)
                 .render(&chunks[1], |chunks, tree| {
                     tree.add(List::default()
                         .block(|b| {
@@ -129,10 +139,12 @@ fn draw(terminal: &mut Terminal, app: &App) {
                             format!("{} {}", prefix, i)
                         })
                         .render(&chunks[0]));
-                    tree.add(Block::default()
-                        .borders(Border::ALL)
-                        .title("Episodes")
-                        .render(&chunks[1]));
+                    if app.show_episodes {
+                        tree.add(Block::default()
+                            .borders(Border::ALL)
+                            .title("Episodes")
+                            .render(&chunks[1]));
+                    }
                 }));
             tree.add(Block::default().borders(Border::ALL).title("Footer").render(&chunks[2]));
         });

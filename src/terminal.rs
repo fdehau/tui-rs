@@ -39,6 +39,7 @@ impl Terminal {
     }
 
     pub fn render(&mut self, ui: Tree) {
+        info!("Render");
         let mut buffers: Vec<Buffer> = Vec::new();
         let mut previous: HashMap<(WidgetType, u64), Rect> = HashMap::new();
         for node in ui.into_iter() {
@@ -54,6 +55,9 @@ impl Terminal {
                 }
             }
             previous.insert((node.widget_type, node.hash), area);
+        }
+        for (_, area) in &self.previous {
+            buffers.insert(0, Buffer::empty(*area));
         }
         for buf in buffers {
             self.render_buffer(&buf);
