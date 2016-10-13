@@ -113,7 +113,7 @@ impl Buffer {
                     cursor = c;
                 }
                 None => {
-                    break;
+                    warn!("Failed to set all string");
                 }
             }
         }

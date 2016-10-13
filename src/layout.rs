@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use cassowary::{Solver, Variable, Constraint};
 use cassowary::WeightedRelation::*;
-use cassowary::strength::{WEAK, MEDIUM, REQUIRED};
+use cassowary::strength::{WEAK, REQUIRED};
 
 use buffer::Buffer;
 use widgets::WidgetType;
@@ -118,7 +118,7 @@ pub enum Size {
 ///                        &Direction::Vertical,
 ///                        &Alignment::Left,
 ///                        0,
-///                        &[Size::Fixed(5), Size::Percent(80)]);
+///                        &[Size::Fixed(5), Size::Min(5)]);
 /// }
 ///
 /// ```

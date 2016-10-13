@@ -33,16 +33,34 @@ impl<'a> Block<'a> {
         self.borders = flag;
         self
     }
+
+    pub fn inner(&self, area: Rect) -> Rect {
+        if area.width < 2 || area.height < 2 {
+            return Rect::default();
+        }
+        let mut inner = area;
+        if self.borders.intersects(border::LEFT) {
+            inner.x += 1;
+            inner.width -= 1;
+        }
+        if self.borders.intersects(border::TOP) || self.title.is_some() {
+            inner.y += 1;
+            inner.height -= 1;
+        }
+        if self.borders.intersects(border::RIGHT) {
+            inner.width -= 1;
+        }
+        if self.borders.intersects(border::BOTTOM) {
+            inner.height -= 1;
+        }
+        inner
+    }
 }
 
 impl<'a> Widget for Block<'a> {
     fn buffer(&self, area: &Rect) -> Buffer {
 
         let mut buf = Buffer::empty(*area);
-
-        if self.borders == border::NONE {
-            return buf;
-        }
 
         if area.width < 2 || area.height < 2 {
             return buf;
@@ -88,7 +106,12 @@ impl<'a> Widget for Block<'a> {
             buf.set_symbol(area.width - 1, area.height - 1, Line::BottomRight.get());
         }
         if let Some(ref title) = self.title {
-            buf.set_string(1, 0, &format!(" {} ", title));
+            let (margin_x, string) = if self.borders.intersects(border::LEFT) {
+                (1, format!(" {} ", title))
+            } else {
+                (0, format!("{}", title))
+            };
+            buf.set_string(margin_x, 0, &string);
         }
         buf
     }

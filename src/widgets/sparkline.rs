@@ -41,13 +41,14 @@ impl<'a> Sparkline<'a> {
 impl<'a> Widget for Sparkline<'a> {
     fn buffer(&self, area: &Rect) -> Buffer {
         let (mut buf, spark_area) = match self.block {
-            Some(ref b) => (b.buffer(area), area.inner(1)),
+            Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
         };
         if spark_area.height < 1 {
             return buf;
         } else {
-            let margin = spark_area.x - area.x;
+            let margin_x = spark_area.x - area.x;
+            let margin_y = spark_area.y - area.y;
             match self.data.iter().max() {
                 Some(max_value) => {
                     let max_index = min(spark_area.width as usize, self.data.len());
@@ -70,7 +71,7 @@ impl<'a> Widget for Sparkline<'a> {
                             }
                         })
                         .collect::<String>();
-                    buf.set_string(margin, margin, &line);
+                    buf.set_string(margin_x, margin_y, &line);
                 }
                 None => {}
             }

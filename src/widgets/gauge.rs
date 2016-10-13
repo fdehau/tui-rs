@@ -49,22 +49,24 @@ impl<'a> Gauge<'a> {
 impl<'a> Widget for Gauge<'a> {
     fn buffer(&self, area: &Rect) -> Buffer {
         let (mut buf, gauge_area) = match self.block {
-            Some(ref b) => (b.buffer(area), area.inner(1)),
+            Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
         };
         if gauge_area.height < 1 {
             return buf;
         } else {
-            let margin = gauge_area.x - area.x;
+            info!("{:?}{:?}", area, gauge_area);
+            let margin_x = gauge_area.x - area.x;
+            let margin_y = gauge_area.y - area.y;
             let width = (gauge_area.width * self.percent) / 100;
             for i in 0..width {
-                buf.set_bg(margin + i, margin, self.bg);
-                buf.set_fg(margin + i, margin, self.fg);
+                buf.set_bg(margin_x + i, margin_y, self.bg);
+                buf.set_fg(margin_x + i, margin_y, self.fg);
             }
             let percent_string = format!("{}%", self.percent);
             let len = percent_string.len() as u16;
             let middle = gauge_area.width / 2 - len / 2;
-            buf.set_string(middle, margin, &percent_string);
+            buf.set_string(middle, margin_y, &percent_string);
         }
         buf
     }

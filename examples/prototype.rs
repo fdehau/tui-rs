@@ -130,25 +130,27 @@ fn draw(terminal: &mut Terminal, app: &App) {
     let ui = Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(5), Size::Min(5), Size::Fixed(3)])
+        .chunks(&[Size::Fixed(6), Size::Min(5), Size::Fixed(3)])
         .render(&terminal.area(), |chunks, tree| {
             info!("{:?}", terminal.area());
-            tree.add(Block::default().borders(border::ALL).title("Gauges").render(&chunks[0]));
+            tree.add(Block::default().borders(border::ALL).title("Graphs").render(&chunks[0]));
             tree.add(Group::default()
                 .direction(Direction::Vertical)
                 .alignment(Alignment::Left)
                 .margin(1)
-                .chunks(&[Size::Fixed(1), Size::Fixed(1), Size::Fixed(1)])
+                .chunks(&[Size::Fixed(2), Size::Fixed(2)])
                 .render(&chunks[0], |chunks, tree| {
                     tree.add(Gauge::new()
+                        .block(*Block::default().title("Gauge:"))
                         .percent(app.progress)
                         .render(&chunks[0]));
                     tree.add(Sparkline::new()
+                        .block(*Block::default().title("Sparkline:"))
                         .data(&app.data)
-                        .render(&chunks[2]));
+                        .render(&chunks[1]));
                 }));
             let sizes = if app.show_episodes {
-                vec![Size::Min(20), Size::Min(20)]
+                vec![Size::Min(20), Size::Max(40)]
             } else {
                 vec![Size::Min(20)]
             };
