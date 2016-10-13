@@ -7,6 +7,8 @@ use widgets::{Widget, WidgetType, border, Line, vline, hline};
 #[derive(Hash, Clone, Copy)]
 pub struct Block<'a> {
     title: Option<&'a str>,
+    title_fg: Color,
+    title_bg: Color,
     borders: border::Flags,
     border_fg: Color,
     border_bg: Color,
@@ -16,6 +18,8 @@ impl<'a> Default for Block<'a> {
     fn default() -> Block<'a> {
         Block {
             title: None,
+            title_fg: Color::White,
+            title_bg: Color::Black,
             borders: border::NONE,
             border_fg: Color::White,
             border_bg: Color::Black,
@@ -26,6 +30,16 @@ impl<'a> Default for Block<'a> {
 impl<'a> Block<'a> {
     pub fn title(&mut self, title: &'a str) -> &mut Block<'a> {
         self.title = Some(title);
+        self
+    }
+
+    pub fn title_fg(&mut self, color: Color) -> &mut Block<'a> {
+        self.title_fg = color;
+        self
+    }
+
+    pub fn title_bg(&mut self, color: Color) -> &mut Block<'a> {
+        self.title_bg = color;
         self
     }
 
@@ -111,7 +125,7 @@ impl<'a> Widget for Block<'a> {
             } else {
                 (0, format!("{}", title))
             };
-            buf.set_string(margin_x, 0, &string);
+            buf.set_string(margin_x, 0, &string, self.title_fg, self.title_bg);
         }
         buf
     }

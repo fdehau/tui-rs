@@ -9,7 +9,8 @@ use symbols::bar;
 #[derive(Hash)]
 pub struct Sparkline<'a> {
     block: Option<Block<'a>>,
-    color: Color,
+    fg: Color,
+    bg: Color,
     data: Vec<u64>,
     max: Option<u64>,
 }
@@ -18,7 +19,8 @@ impl<'a> Sparkline<'a> {
     pub fn new() -> Sparkline<'a> {
         Sparkline {
             block: None,
-            color: Color::White,
+            fg: Color::White,
+            bg: Color::Black,
             data: Vec::new(),
             max: None,
         }
@@ -29,10 +31,16 @@ impl<'a> Sparkline<'a> {
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Sparkline<'a> {
-        self.color = color;
+    pub fn fg(&mut self, fg: Color) -> &mut Sparkline<'a> {
+        self.fg = fg;
         self
     }
+
+    pub fn bg(&mut self, bg: Color) -> &mut Sparkline<'a> {
+        self.bg = bg;
+        self
+    }
+
 
     pub fn data(&mut self, data: &[u64]) -> &mut Sparkline<'a> {
         self.data = data.to_vec();
@@ -85,7 +93,7 @@ impl<'a> Widget for Sparkline<'a> {
                         data[i] = 0;
                     }
                 }
-                buf.set_string(margin_x, margin_y + j, &line);
+                buf.set_string(margin_x, margin_y + j, &line, self.fg, self.bg);
             }
         }
         buf

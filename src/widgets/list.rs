@@ -5,11 +5,12 @@ use std::hash::{Hash, Hasher};
 use buffer::Buffer;
 use widgets::{Widget, WidgetType, Block};
 use layout::Rect;
+use style::Color;
 
 pub struct List<'a, T> {
     block: Option<Block<'a>>,
     selected: usize,
-    formatter: Box<Fn(&T, bool) -> String>,
+    formatter: Box<Fn(&T, bool) -> (String, Color, Color)>,
     items: Vec<T>,
 }
 
@@ -28,7 +29,7 @@ impl<'a, T> Default for List<'a, T> {
         List {
             block: None,
             selected: 0,
-            formatter: Box::new(|_, _| String::from("")),
+            formatter: Box::new(|_, _| (String::from(""), Color::White, Color::Black)),
             items: Vec::new(),
         }
     }
@@ -43,7 +44,7 @@ impl<'a, T> List<'a, T>
     }
 
     pub fn formatter<F>(&'a mut self, f: F) -> &mut List<'a, T>
-        where F: 'static + Fn(&T, bool) -> String
+        where F: 'static + Fn(&T, bool) -> (String, Color, Color)
     {
         self.formatter = Box::new(f);
         self
@@ -82,9 +83,9 @@ impl<'a, T> Widget for List<'a, T>
             let index = i + offset;
             let ref item = self.items[index];
             let ref formatter = self.formatter;
-            let mut string = formatter(item, self.selected == index);
+            let (mut string, fg, bg) = formatter(item, self.selected == index);
             string.truncate(list_area.width as usize);
-            buf.set_string(1, 1 + i as u16, &string);
+            buf.set_string(1, 1 + i as u16, &string, fg, bg);
         }
         buf
     }

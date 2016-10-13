@@ -103,11 +103,13 @@ impl Buffer {
         self.content[i].bg = color;
     }
 
-    pub fn set_string(&mut self, x: u16, y: u16, string: &str) {
+    pub fn set_string(&mut self, x: u16, y: u16, string: &str, fg: Color, bg: Color) {
         let mut cursor = (x, y);
         for c in string.chars() {
             let index = self.index_of(cursor.0, cursor.1);
             self.content[index].symbol = c;
+            self.content[index].fg = fg;
+            self.content[index].bg = bg;
             match self.next_pos(cursor.0, cursor.1) {
                 Some(c) => {
                     cursor = c;
