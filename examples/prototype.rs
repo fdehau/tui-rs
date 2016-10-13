@@ -21,6 +21,7 @@ use log4rs::config::{Appender, Config, Logger, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, border};
 use tui::layout::{Group, Direction, Alignment, Size};
+use tui::style::Color;
 
 struct App {
     name: String,
@@ -130,18 +131,18 @@ fn draw(terminal: &mut Terminal, app: &App) {
     let ui = Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(6), Size::Min(5), Size::Fixed(3)])
+        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
         .render(&terminal.area(), |chunks, tree| {
-            info!("{:?}", terminal.area());
             tree.add(Block::default().borders(border::ALL).title("Graphs").render(&chunks[0]));
             tree.add(Group::default()
                 .direction(Direction::Vertical)
                 .alignment(Alignment::Left)
                 .margin(1)
-                .chunks(&[Size::Fixed(2), Size::Fixed(2)])
+                .chunks(&[Size::Fixed(2), Size::Fixed(3)])
                 .render(&chunks[0], |chunks, tree| {
                     tree.add(Gauge::new()
                         .block(*Block::default().title("Gauge:"))
+                        .bg(Color::Yellow)
                         .percent(app.progress)
                         .render(&chunks[0]));
                     tree.add(Sparkline::new()

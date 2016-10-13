@@ -44,6 +44,16 @@ impl<'a> Gauge<'a> {
         self.percent = percent;
         self
     }
+
+    pub fn bg(&mut self, bg: Color) -> &mut Gauge<'a> {
+        self.bg = bg;
+        self
+    }
+
+    pub fn fg(&mut self, fg: Color) -> &mut Gauge<'a> {
+        self.fg = fg;
+        self
+    }
 }
 
 impl<'a> Widget for Gauge<'a> {
