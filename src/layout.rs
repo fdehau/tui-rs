@@ -104,7 +104,8 @@ impl Rect {
 #[derive(Debug, Clone, Hash)]
 pub enum Size {
     Fixed(u16),
-    Percent(u16),
+    Max(u16),
+    Min(u16),
 }
 
 /// # Examples
@@ -149,50 +150,47 @@ pub fn split(area: &Rect,
     if let Some(last) = elements.last() {
         constraints.push(match *dir {
             Direction::Horizontal => {
-                last.x + last.width | EQ(REQUIRED) | (dest_area.x + dest_area.width) as f64
+                last.x + last.width | EQ(WEAK) | (dest_area.x + dest_area.width) as f64
             }
             Direction::Vertical => {
-                last.y + last.height | EQ(REQUIRED) | (dest_area.y + dest_area.height) as f64
+                last.y + last.height | EQ(WEAK) | (dest_area.y + dest_area.height) as f64
             }
         })
     }
     match *dir {
         Direction::Horizontal => {
             for pair in elements.windows(2) {
-                constraints.push(pair[0].x + pair[0].width | LE(REQUIRED) | pair[1].x);
+                constraints.push(pair[0].x + pair[0].width | EQ(REQUIRED) | pair[1].x);
             }
             for (i, size) in sizes.iter().enumerate() {
                 let cs = [elements[i].y | EQ(REQUIRED) | dest_area.y as f64,
                           elements[i].height | EQ(REQUIRED) | dest_area.height as f64,
                           match *size {
-                              Size::Fixed(f) => elements[i].width | EQ(MEDIUM) | f as f64,
-                              Size::Percent(p) => {
-                                  elements[i].width | EQ(WEAK) |
-                                  (dest_area.width * p) as f64 / 100.0
-                              }
+                              Size::Fixed(v) => elements[i].width | EQ(REQUIRED) | v as f64,
+                              Size::Min(v) => elements[i].width | GE(REQUIRED) | v as f64,
+                              Size::Max(v) => elements[i].width | LE(REQUIRED) | v as f64,
                           }];
                 constraints.extend_from_slice(&cs);
             }
         }
         Direction::Vertical => {
             for pair in elements.windows(2) {
-                constraints.push(pair[0].y + pair[0].height | LE(REQUIRED) | pair[1].y);
+                constraints.push(pair[0].y + pair[0].height | EQ(REQUIRED) | pair[1].y);
             }
             for (i, size) in sizes.iter().enumerate() {
                 let cs = [elements[i].x | EQ(REQUIRED) | dest_area.x as f64,
                           elements[i].width | EQ(REQUIRED) | dest_area.width as f64,
                           match *size {
-                              Size::Fixed(f) => elements[i].height | EQ(REQUIRED) | f as f64,
-                              Size::Percent(p) => {
-                                  elements[i].height | EQ(WEAK) |
-                                  (dest_area.height * p) as f64 / 100.0
-                              }
+                              Size::Fixed(v) => elements[i].height | EQ(REQUIRED) | v as f64,
+                              Size::Min(v) => elements[i].height | GE(REQUIRED) | v as f64,
+                              Size::Max(v) => elements[i].height | LE(REQUIRED) | v as f64,
                           }];
                 constraints.extend_from_slice(&cs);
             }
         }
     }
     solver.add_constraints(&constraints).unwrap();
+    // TODO: Find a better way to handle overflow error
     for &(var, value) in solver.fetch_changes() {
         let (index, attr) = vars[&var];
         match attr {
@@ -203,10 +201,18 @@ pub fn split(area: &Rect,
                 results[index].y = value as u16;
             }
             2 => {
-                results[index].width = value as u16;
+                let mut v = value as u16;
+                if v > area.width {
+                    v = 0;
+                }
+                results[index].width = v;
             }
             3 => {
-                results[index].height = value as u16;
+                let mut v = value as u16;
+                if v > area.height {
+                    v = 0;
+                }
+                results[index].height = v;
             }
             _ => {}
         }

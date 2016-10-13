@@ -44,6 +44,10 @@ impl<'a> Widget for Block<'a> {
             return buf;
         }
 
+        if area.width < 2 || area.height < 2 {
+            return buf;
+        }
+
         // Sides
         if self.borders.intersects(border::LEFT) {
             let line = vline(area.x, area.y, area.height, self.border_fg, self.border_bg);

@@ -130,7 +130,7 @@ fn draw(terminal: &mut Terminal, app: &App) {
     let ui = Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(5), Size::Percent(80), Size::Fixed(10)])
+        .chunks(&[Size::Fixed(5), Size::Min(5), Size::Fixed(3)])
         .render(&terminal.area(), |chunks, tree| {
             info!("{:?}", terminal.area());
             tree.add(Block::default().borders(border::ALL).title("Gauges").render(&chunks[0]));
@@ -148,9 +148,9 @@ fn draw(terminal: &mut Terminal, app: &App) {
                         .render(&chunks[2]));
                 }));
             let sizes = if app.show_episodes {
-                vec![Size::Percent(50), Size::Percent(50)]
+                vec![Size::Min(20), Size::Min(20)]
             } else {
-                vec![Size::Percent(100)]
+                vec![Size::Min(20)]
             };
             tree.add(Group::default()
                 .direction(Direction::Horizontal)
