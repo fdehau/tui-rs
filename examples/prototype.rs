@@ -120,6 +120,10 @@ fn main() {
                 }
                 app.data.insert(0, rand::random::<u8>() as u64);
                 app.data.pop();
+                app.selected += 1;
+                if app.selected >= app.items.len() {
+                    app.selected = 0;
+                }
             }
         }
     }
@@ -147,6 +151,7 @@ fn draw(terminal: &mut Terminal, app: &App) {
                         .render(&chunks[0]));
                     tree.add(Sparkline::new()
                         .block(*Block::default().title("Sparkline:"))
+                        .fg(Color::Green)
                         .data(&app.data)
                         .render(&chunks[1]));
                 }));
@@ -165,8 +170,12 @@ fn draw(terminal: &mut Terminal, app: &App) {
                         .items(&app.items)
                         .select(app.selected)
                         .formatter(|i, s| {
-                            let prefix = if s { ">" } else { "*" };
-                            format!("{} {}", prefix, i)
+                            let (prefix, fg) = if s {
+                                (">", Color::Cyan)
+                            } else {
+                                ("*", Color::White)
+                            };
+                            (format!("{} {}", prefix, i), fg, Color::Black)
                         })
                         .render(&chunks[0]));
                     if app.show_episodes {
