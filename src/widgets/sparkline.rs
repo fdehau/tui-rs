@@ -11,6 +11,7 @@ pub struct Sparkline<'a> {
     block: Option<Block<'a>>,
     color: Color,
     data: Vec<u64>,
+    max: Option<u64>,
 }
 
 impl<'a> Sparkline<'a> {
@@ -19,6 +20,7 @@ impl<'a> Sparkline<'a> {
             block: None,
             color: Color::White,
             data: Vec::new(),
+            max: None,
         }
     }
 
@@ -36,6 +38,11 @@ impl<'a> Sparkline<'a> {
         self.data = data.to_vec();
         self
     }
+
+    pub fn max(&mut self, max: u64) -> &mut Sparkline<'a> {
+        self.max = Some(max);
+        self
+    }
 }
 
 impl<'a> Widget for Sparkline<'a> {
@@ -49,31 +56,36 @@ impl<'a> Widget for Sparkline<'a> {
         } else {
             let margin_x = spark_area.x - area.x;
             let margin_y = spark_area.y - area.y;
-            match self.data.iter().max() {
-                Some(max_value) => {
-                    let max_index = min(spark_area.width as usize, self.data.len());
-                    let line = self.data
-                        .iter()
-                        .take(max_index)
-                        .filter_map(|e| {
-                            let value = e * 8 / max_value;
-                            match value {
-                                0 => Some(' '),
-                                1 => Some(bar::ONE_EIGHTH),
-                                2 => Some(bar::ONE_QUATER),
-                                3 => Some(bar::THREE_EIGHTHS),
-                                4 => Some(bar::HALF),
-                                5 => Some(bar::FIVE_EIGHTHS),
-                                6 => Some(bar::THREE_EIGHTHS),
-                                7 => Some(bar::THREE_QUATERS),
-                                8 => Some(bar::FULL),
-                                _ => None,
-                            }
-                        })
-                        .collect::<String>();
-                    buf.set_string(margin_x, margin_y, &line);
+            let max = match self.max {
+                Some(v) => v,
+                None => *self.data.iter().max().unwrap_or(&1u64),
+            };
+            let max_index = min(spark_area.width as usize, self.data.len());
+            let mut data = self.data
+                .iter()
+                .map(|e| e * spark_area.height as u64 * 8 / max)
+                .collect::<Vec<u64>>();
+            for j in (0..spark_area.height).rev() {
+                let mut line = String::with_capacity(max_index);
+                for i in 0..max_index {
+                    line.push(match data[i] {
+                        0 => ' ',
+                        1 => bar::ONE_EIGHTH,
+                        2 => bar::ONE_QUATER,
+                        3 => bar::THREE_EIGHTHS,
+                        4 => bar::HALF,
+                        5 => bar::FIVE_EIGHTHS,
+                        6 => bar::THREE_EIGHTHS,
+                        7 => bar::THREE_QUATERS,
+                        _ => bar::FULL,
+                    });
+                    if data[i] > 8 {
+                        data[i] -= 8;
+                    } else {
+                        data[i] = 0;
+                    }
                 }
-                None => {}
+                buf.set_string(margin_x, margin_y + j, &line);
             }
         }
         buf
