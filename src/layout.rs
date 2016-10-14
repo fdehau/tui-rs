@@ -150,17 +150,17 @@ pub fn split(area: &Rect,
     if let Some(last) = elements.last() {
         constraints.push(match *dir {
             Direction::Horizontal => {
-                last.x + last.width | EQ(WEAK) | (dest_area.x + dest_area.width) as f64
+                (last.x + last.width) | EQ(WEAK) | (dest_area.x + dest_area.width) as f64
             }
             Direction::Vertical => {
-                last.y + last.height | EQ(WEAK) | (dest_area.y + dest_area.height) as f64
+                (last.y + last.height) | EQ(WEAK) | (dest_area.y + dest_area.height) as f64
             }
         })
     }
     match *dir {
         Direction::Horizontal => {
             for pair in elements.windows(2) {
-                constraints.push(pair[0].x + pair[0].width | EQ(REQUIRED) | pair[1].x);
+                constraints.push((pair[0].x + pair[0].width) | EQ(REQUIRED) | pair[1].x);
             }
             for (i, size) in sizes.iter().enumerate() {
                 let cs = [elements[i].y | EQ(REQUIRED) | dest_area.y as f64,
@@ -175,7 +175,7 @@ pub fn split(area: &Rect,
         }
         Direction::Vertical => {
             for pair in elements.windows(2) {
-                constraints.push(pair[0].y + pair[0].height | EQ(REQUIRED) | pair[1].y);
+                constraints.push((pair[0].y + pair[0].height) | EQ(REQUIRED) | pair[1].y);
             }
             for (i, size) in sizes.iter().enumerate() {
                 let cs = [elements[i].x | EQ(REQUIRED) | dest_area.x as f64,
@@ -345,7 +345,7 @@ impl Group {
                            &self.alignment,
                            self.margin,
                            &self.chunks);
-        let mut node = Node { children: Vec::new() };
+        let mut node = Node { children: Vec::with_capacity(chunks.len()) };
         f(&chunks, &mut node);
         Tree::Node(node)
     }

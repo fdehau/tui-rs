@@ -43,6 +43,17 @@ impl<'a> Block<'a> {
         self
     }
 
+    pub fn border_fg(&mut self, color: Color) -> &mut Block<'a> {
+        self.border_fg = color;
+        self
+    }
+
+    pub fn border_bg(&mut self, color: Color) -> &mut Block<'a> {
+        self.border_bg = color;
+        self
+    }
+
+
     pub fn borders(&mut self, flag: border::Flags) -> &mut Block<'a> {
         self.borders = flag;
         self
@@ -119,11 +130,11 @@ impl<'a> Widget for Block<'a> {
         if self.borders.contains(border::BOTTOM | border::RIGHT) {
             buf.set_symbol(area.width - 1, area.height - 1, Line::BottomRight.get());
         }
-        if let Some(ref title) = self.title {
+        if let Some(title) = self.title {
             let (margin_x, string) = if self.borders.intersects(border::LEFT) {
                 (1, format!(" {} ", title))
             } else {
-                (0, format!("{}", title))
+                (0, String::from(title))
             };
             buf.set_string(margin_x, 0, &string, self.title_fg, self.title_bg);
         }

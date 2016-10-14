@@ -10,40 +10,36 @@ use widgets::WidgetType;
 use layout::{Rect, Tree};
 
 pub struct Terminal {
-    width: u16,
-    height: u16,
     stdout: RawTerminal<io::Stdout>,
-    previous: HashMap<(WidgetType, Rect), u64>,
+    cache: HashMap<(WidgetType, Rect), u64>,
 }
 
 impl Terminal {
     pub fn new() -> Result<Terminal, io::Error> {
-        let terminal = try!(termion::terminal_size());
         let stdout = try!(io::stdout().into_raw_mode());
         Ok(Terminal {
-            width: terminal.0,
-            height: terminal.1,
             stdout: stdout,
-            previous: HashMap::new(),
+            cache: HashMap::new(),
         })
     }
 
-    pub fn area(&self) -> Rect {
-        Rect {
+    pub fn size() -> Result<Rect, io::Error> {
+        let terminal = try!(termion::terminal_size());
+        Ok(Rect {
             x: 0,
             y: 0,
-            width: self.width,
-            height: self.height,
-        }
+            width: terminal.0,
+            height: terminal.1,
+        })
     }
 
     pub fn render(&mut self, ui: Tree) {
         debug!("Render Pass");
         let mut buffers: Vec<Buffer> = Vec::new();
-        let mut previous: HashMap<(WidgetType, Rect), u64> = HashMap::new();
-        for node in ui.into_iter() {
+        let mut cache: HashMap<(WidgetType, Rect), u64> = HashMap::new();
+        for node in ui {
             let area = *node.buffer.area();
-            match self.previous.remove(&(node.widget_type, area)) {
+            match self.cache.remove(&(node.widget_type, area)) {
                 Some(h) => {
                     if h == node.hash {
                         debug!("Skip {:?} at {:?}", node.widget_type, area);
@@ -57,16 +53,16 @@ impl Terminal {
                     debug!("Render {:?} at {:?}", node.widget_type, area);
                 }
             }
-            previous.insert((node.widget_type, area), node.hash);
+            cache.insert((node.widget_type, area), node.hash);
         }
-        for (&(t, a), _h) in &self.previous {
+        for &(t, a) in self.cache.keys() {
             buffers.insert(0, Buffer::empty(a));
             debug!("Erased {:?} at {:?}", t, a);
         }
         for buf in buffers {
             self.render_buffer(&buf);
         }
-        self.previous = previous;
+        self.cache = cache;
     }
 
     pub fn render_buffer(&mut self, buffer: &Buffer) {

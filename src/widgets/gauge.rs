@@ -25,8 +25,8 @@ pub struct Gauge<'a> {
     bg: Color,
 }
 
-impl<'a> Gauge<'a> {
-    pub fn new() -> Gauge<'a> {
+impl<'a> Default for Gauge<'a> {
+    fn default() -> Gauge<'a> {
         Gauge {
             block: None,
             percent: 0,
@@ -34,7 +34,9 @@ impl<'a> Gauge<'a> {
             fg: Color::Black,
         }
     }
+}
 
+impl<'a> Gauge<'a> {
     pub fn block(&'a mut self, block: Block<'a>) -> &mut Gauge<'a> {
         self.block = Some(block);
         self

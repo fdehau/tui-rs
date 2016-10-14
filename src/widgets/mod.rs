@@ -1,12 +1,16 @@
 mod block;
+mod text;
 mod list;
 mod gauge;
 mod sparkline;
+mod chart;
 
 pub use self::block::Block;
+pub use self::text::Text;
 pub use self::list::List;
 pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
+pub use self::chart::Chart;
 
 use std::hash::Hash;
 
@@ -43,7 +47,7 @@ pub mod border {
 }
 
 impl Line {
-    fn get<'a>(&self) -> char {
+    fn get(&self) -> char {
         match *self {
             Line::TopRight => '┐',
             Line::Vertical => '│',
@@ -59,7 +63,7 @@ impl Line {
     }
 }
 
-fn hline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
+fn hline(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
     Buffer::filled(Rect {
                        x: x,
                        y: y,
@@ -72,7 +76,7 @@ fn hline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
                        bg: bg,
                    })
 }
-fn vline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
+fn vline(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
     Buffer::filled(Rect {
                        x: x,
                        y: y,
@@ -89,9 +93,11 @@ fn vline<'a>(x: u16, y: u16, len: u16, fg: Color, bg: Color) -> Buffer {
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub enum WidgetType {
     Block,
+    Text,
     List,
     Gauge,
     Sparkline,
+    Chart,
 }
 
 pub trait Widget: Hash {

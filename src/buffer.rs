@@ -71,12 +71,11 @@ impl Buffer {
     }
 
     pub fn next_pos(&self, x: u16, y: u16) -> Option<(u16, u16)> {
-        let mut nx = x + 1;
-        let mut ny = y;
-        if nx >= self.area.width {
-            nx = 0;
-            ny = y + 1;
-        }
+        let (nx, ny) = if x + 1 > self.area.width {
+            (0, y + 1)
+        } else {
+            (x + 1, y)
+        };
         if ny >= self.area.height {
             None
         } else {
@@ -119,6 +118,13 @@ impl Buffer {
                 }
             }
         }
+    }
+
+    pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
+        where F: Fn(&mut Cell)
+    {
+        let i = self.index_of(x, y);
+        f(&mut self.content[i]);
     }
 
     pub fn get(&self, x: u16, y: u16) -> &Cell {

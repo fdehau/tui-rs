@@ -1,5 +1,4 @@
 use std::cmp::min;
-use std::fmt::Display;
 use std::hash::{Hash, Hasher};
 
 use buffer::Buffer;
@@ -62,7 +61,7 @@ impl<'a, T> List<'a, T>
 }
 
 impl<'a, T> Widget for List<'a, T>
-    where T: Display + Hash
+    where T: Hash
 {
     fn buffer(&self, area: &Rect) -> Buffer {
 
@@ -81,8 +80,8 @@ impl<'a, T> Widget for List<'a, T>
         };
         for i in 0..bound {
             let index = i + offset;
-            let ref item = self.items[index];
-            let ref formatter = self.formatter;
+            let item = &self.items[index];
+            let formatter = &self.formatter;
             let (mut string, fg, bg) = formatter(item, self.selected == index);
             string.truncate(list_area.width as usize);
             buf.set_string(1, 1 + i as u16, &string, fg, bg);

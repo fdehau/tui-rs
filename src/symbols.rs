@@ -19,3 +19,5 @@ pub mod bar {
     pub const ONE_QUATER: char = '▂';
     pub const ONE_EIGHTH: char = '▁';
 }
+
+pub const DOT: char = '•';
