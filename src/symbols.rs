@@ -1,23 +1,36 @@
 pub mod block {
-    pub const FULL: char = '█';
-    pub const SEVEN_EIGHTHS: char = '▉';
-    pub const THREE_QUATERS: char = '▊';
-    pub const FIVE_EIGHTHS: char = '▋';
-    pub const HALF: char = '▌';
-    pub const THREE_EIGHTHS: char = '▍';
-    pub const ONE_QUATER: char = '▎';
-    pub const ONE_EIGHTH: char = '▏';
+    pub const FULL: &'static str = "█";
+    pub const SEVEN_EIGHTHS: &'static str = "▉";
+    pub const THREE_QUATERS: &'static str = "▊";
+    pub const FIVE_EIGHTHS: &'static str = "▋";
+    pub const HALF: &'static str = "▌";
+    pub const THREE_EIGHTHS: &'static str = "▍";
+    pub const ONE_QUATER: &'static str = "▎";
+    pub const ONE_EIGHTH: &'static str = "▏";
 }
 
 pub mod bar {
-    pub const FULL: char = '█';
-    pub const SEVEN_EIGHTHS: char = '▇';
-    pub const THREE_QUATERS: char = '▆';
-    pub const FIVE_EIGHTHS: char = '▅';
-    pub const HALF: char = '▄';
-    pub const THREE_EIGHTHS: char = '▃';
-    pub const ONE_QUATER: char = '▂';
-    pub const ONE_EIGHTH: char = '▁';
+    pub const FULL: &'static str = "█";
+    pub const SEVEN_EIGHTHS: &'static str = "▇";
+    pub const THREE_QUATERS: &'static str = "▆";
+    pub const FIVE_EIGHTHS: &'static str = "▅";
+    pub const HALF: &'static str = "▄";
+    pub const THREE_EIGHTHS: &'static str = "▃";
+    pub const ONE_QUATER: &'static str = "▂";
+    pub const ONE_EIGHTH: &'static str = "▁";
 }
 
-pub const DOT: char = '•';
+pub mod line {
+    pub const TOP_RIGHT: &'static str = "┐";
+    pub const VERTICAL: &'static str = "│";
+    pub const HORIZONTAL: &'static str = "─";
+    pub const TOP_LEFT: &'static str = "┌";
+    pub const BOTTOM_RIGHT: &'static str = "┘";
+    pub const BOTTOM_LEFT: &'static str = "└";
+    pub const VERTICAL_LEFT: &'static str = "┤";
+    pub const VERTICAL_RIGHT: &'static str = "├";
+    pub const HORIZONTAL_DOWN: &'static str = "┬";
+    pub const HORIZONTAL_UP: &'static str = "┴";
+}
+
+pub const DOT: &'static str = "•";

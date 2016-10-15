@@ -1,12 +1,12 @@
 use std::cmp::min;
 
-use widgets::{Widget, WidgetType, Block};
+use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
+use util::hash;
 use symbols;
 
-#[derive(Hash)]
 pub struct Chart<'a> {
     block: Option<Block<'a>>,
     fg: Color,
@@ -55,8 +55,8 @@ impl<'a> Chart<'a> {
     }
 }
 
-impl<'a> Widget for Chart<'a> {
-    fn buffer(&self, area: &Rect) -> Buffer {
+impl<'a> Widget<'a> for Chart<'a> {
+    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
         let (mut buf, chart_area) = match self.block {
             Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
@@ -81,8 +81,5 @@ impl<'a> Widget for Chart<'a> {
             }
         }
         buf
-    }
-    fn widget_type(&self) -> WidgetType {
-        WidgetType::Chart
     }
 }

@@ -2,11 +2,10 @@ use std::cmp::min;
 
 use layout::Rect;
 use buffer::Buffer;
-use widgets::{Widget, WidgetType, Block};
+use widgets::{Widget, Block};
 use style::Color;
 use symbols::bar;
 
-#[derive(Hash)]
 pub struct Sparkline<'a> {
     block: Option<Block<'a>>,
     fg: Color,
@@ -55,8 +54,8 @@ impl<'a> Sparkline<'a> {
     }
 }
 
-impl<'a> Widget for Sparkline<'a> {
-    fn buffer(&self, area: &Rect) -> Buffer {
+impl<'a> Widget<'a> for Sparkline<'a> {
+    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
         let (mut buf, spark_area) = match self.block {
             Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
@@ -76,18 +75,21 @@ impl<'a> Widget for Sparkline<'a> {
                 .map(|e| e * spark_area.height as u64 * 8 / max)
                 .collect::<Vec<u64>>();
             for j in (0..spark_area.height).rev() {
-                let mut line = String::with_capacity(max_index);
-                for d in data.iter_mut().take(max_index) {
-                    line.push(match *d {
-                        0 => ' ',
-                        1 => bar::ONE_EIGHTH,
-                        2 => bar::ONE_QUATER,
-                        3 => bar::THREE_EIGHTHS,
-                        4 => bar::HALF,
-                        5 => bar::FIVE_EIGHTHS,
-                        6 => bar::THREE_QUATERS,
-                        7 => bar::SEVEN_EIGHTHS,
-                        _ => bar::FULL,
+                for (i, d) in data.iter_mut().take(max_index).enumerate() {
+                    buf.update_cell(margin_x + i as u16, margin_y + j, |c| {
+                        c.symbol = &match *d {
+                            0 => " ",
+                            1 => bar::ONE_EIGHTH,
+                            2 => bar::ONE_QUATER,
+                            3 => bar::THREE_EIGHTHS,
+                            4 => bar::HALF,
+                            5 => bar::FIVE_EIGHTHS,
+                            6 => bar::THREE_QUATERS,
+                            7 => bar::SEVEN_EIGHTHS,
+                            _ => bar::FULL,
+                        };
+                        c.fg = self.fg;
+                        c.bg = self.bg;
                     });
                     if *d > 8 {
                         *d -= 8;
@@ -95,13 +97,8 @@ impl<'a> Widget for Sparkline<'a> {
                         *d = 0;
                     }
                 }
-                buf.set_string(margin_x, margin_y + j, &line, self.fg, self.bg);
             }
         }
         buf
-    }
-
-    fn widget_type(&self) -> WidgetType {
-        WidgetType::Sparkline
     }
 }

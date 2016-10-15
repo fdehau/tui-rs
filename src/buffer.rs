@@ -1,17 +1,19 @@
+use unicode_segmentation::UnicodeSegmentation;
+
 use layout::Rect;
 use style::Color;
 
 #[derive(Debug, Clone)]
-pub struct Cell {
-    pub symbol: char,
+pub struct Cell<'a> {
+    pub symbol: &'a str,
     pub fg: Color,
     pub bg: Color,
 }
 
-impl Default for Cell {
-    fn default() -> Cell {
+impl<'a> Default for Cell<'a> {
+    fn default() -> Cell<'a> {
         Cell {
-            symbol: ' ',
+            symbol: "",
             fg: Color::White,
             bg: Color::Black,
         }
@@ -19,13 +21,13 @@ impl Default for Cell {
 }
 
 #[derive(Debug, Clone)]
-pub struct Buffer {
+pub struct Buffer<'a> {
     area: Rect,
-    content: Vec<Cell>,
+    content: Vec<Cell<'a>>,
 }
 
-impl Default for Buffer {
-    fn default() -> Buffer {
+impl<'a> Default for Buffer<'a> {
+    fn default() -> Buffer<'a> {
         Buffer {
             area: Default::default(),
             content: Vec::new(),
@@ -33,13 +35,13 @@ impl Default for Buffer {
     }
 }
 
-impl Buffer {
-    pub fn empty(area: Rect) -> Buffer {
+impl<'a> Buffer<'a> {
+    pub fn empty(area: Rect) -> Buffer<'a> {
         let cell: Cell = Default::default();
         Buffer::filled(area, cell)
     }
 
-    pub fn filled(area: Rect, cell: Cell) -> Buffer {
+    pub fn filled(area: Rect, cell: Cell<'a>) -> Buffer<'a> {
         let size = area.area() as usize;
         let mut content = Vec::with_capacity(size);
         for _ in 0..size {
@@ -51,7 +53,7 @@ impl Buffer {
         }
     }
 
-    pub fn content(&self) -> &[Cell] {
+    pub fn content(&'a self) -> &'a [Cell<'a>] {
         &self.content
     }
 
@@ -83,12 +85,12 @@ impl Buffer {
         }
     }
 
-    pub fn set(&mut self, x: u16, y: u16, cell: Cell) {
+    pub fn set(&mut self, x: u16, y: u16, cell: Cell<'a>) {
         let i = self.index_of(x, y);
         self.content[i] = cell;
     }
 
-    pub fn set_symbol(&mut self, x: u16, y: u16, symbol: char) {
+    pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &'a str) {
         let i = self.index_of(x, y);
         self.content[i].symbol = symbol;
     }
@@ -102,11 +104,12 @@ impl Buffer {
         self.content[i].bg = color;
     }
 
-    pub fn set_string(&mut self, x: u16, y: u16, string: &str, fg: Color, bg: Color) {
+    pub fn set_string(&mut self, x: u16, y: u16, string: &'a str, fg: Color, bg: Color) {
         let mut cursor = (x, y);
-        for c in string.chars() {
+        for s in UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>() {
+            info!("{}", s);
             let index = self.index_of(cursor.0, cursor.1);
-            self.content[index].symbol = c;
+            self.content[index].symbol = s;
             self.content[index].fg = fg;
             self.content[index].bg = bg;
             match self.next_pos(cursor.0, cursor.1) {
@@ -127,12 +130,7 @@ impl Buffer {
         f(&mut self.content[i]);
     }
 
-    pub fn get(&self, x: u16, y: u16) -> &Cell {
-        let i = self.index_of(x, y);
-        &self.content[i]
-    }
-
-    pub fn merge(&mut self, other: &Buffer) {
+    pub fn merge(&'a mut self, other: Buffer<'a>) {
         let area = self.area.union(&other.area);
         let cell: Cell = Default::default();
         self.content.resize(area.area() as usize, cell.clone());

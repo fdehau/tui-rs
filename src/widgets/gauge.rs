@@ -1,7 +1,8 @@
-use widgets::{Widget, WidgetType, Block};
+use widgets::{Widget, Block};
 use buffer::Buffer;
 use style::Color;
 use layout::Rect;
+use util::hash;
 
 /// Progress bar widget
 ///
@@ -17,10 +18,10 @@ use layout::Rect;
 ///         .percent(20);
 /// }
 /// ```
-#[derive(Hash)]
 pub struct Gauge<'a> {
     block: Option<Block<'a>>,
     percent: u16,
+    percent_string: String,
     fg: Color,
     bg: Color,
 }
@@ -30,6 +31,7 @@ impl<'a> Default for Gauge<'a> {
         Gauge {
             block: None,
             percent: 0,
+            percent_string: String::from("0%"),
             bg: Color::White,
             fg: Color::Black,
         }
@@ -44,6 +46,7 @@ impl<'a> Gauge<'a> {
 
     pub fn percent(&mut self, percent: u16) -> &mut Gauge<'a> {
         self.percent = percent;
+        self.percent_string = format!("{}%", percent);
         self
     }
 
@@ -58,8 +61,8 @@ impl<'a> Gauge<'a> {
     }
 }
 
-impl<'a> Widget for Gauge<'a> {
-    fn buffer(&self, area: &Rect) -> Buffer {
+impl<'a> Widget<'a> for Gauge<'a> {
+    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
         let (mut buf, gauge_area) = match self.block {
             Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
@@ -69,22 +72,23 @@ impl<'a> Widget for Gauge<'a> {
         } else {
             let margin_x = gauge_area.x - area.x;
             let margin_y = gauge_area.y - area.y;
-            // Label
-            let percent_string = format!("{}%", self.percent);
-            let len = percent_string.len() as u16;
-            let middle = gauge_area.width / 2 - len / 2;
-            buf.set_string(middle, margin_y, &percent_string, self.bg, self.fg);
             // Gauge
             let width = (gauge_area.width * self.percent) / 100;
+            info!("{}", width);
+            // Label
+            let len = self.percent_string.len() as u16;
+            let middle = gauge_area.width / 2 - len / 2;
+            buf.set_string(middle, margin_y, &self.percent_string, self.bg, self.fg);
             for i in 0..width {
-                buf.set_bg(margin_x + i, margin_y, self.bg);
-                buf.set_fg(margin_x + i, margin_y, self.fg);
+                buf.update_cell(margin_x + i, margin_y, |c| {
+                    if c.symbol == "" {
+                        c.symbol = " "
+                    };
+                    c.fg = self.fg;
+                    c.bg = self.bg;
+                })
             }
         }
         buf
-    }
-
-    fn widget_type(&self) -> WidgetType {
-        WidgetType::Gauge
     }
 }

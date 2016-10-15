@@ -148,6 +148,7 @@ fn main() {
     terminal.hide_cursor();
 
     loop {
+        terminal.clear();
         draw(&mut terminal, &app);
         let evt = rx.recv().unwrap();
         match evt {
@@ -195,70 +196,59 @@ fn main() {
     terminal.show_cursor();
 }
 
-fn draw(terminal: &mut Terminal, app: &App) {
+fn draw(t: &mut Terminal, app: &App) {
 
-    let ui = Group::default()
+    Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
         .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
-        .render(&Terminal::size().unwrap(), |chunks, tree| {
-            tree.add(Block::default().borders(border::ALL).title("Graphs").render(&chunks[0]));
-            tree.add(Group::default()
+        .render(&Terminal::size().unwrap(), |chunks| {
+            Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
+            Group::default()
                 .direction(Direction::Vertical)
                 .alignment(Alignment::Left)
                 .margin(1)
                 .chunks(&[Size::Fixed(2), Size::Fixed(3)])
-                .render(&chunks[0], |chunks, tree| {
-                    tree.add(Gauge::default()
+                .render(&chunks[0], |chunks| {
+                    Gauge::default()
                         .block(*Block::default().title("Gauge:"))
                         .bg(Color::Yellow)
                         .percent(app.progress)
-                        .render(&chunks[0]));
-                    tree.add(Sparkline::default()
+                        .render(&chunks[0], t);
+                    Sparkline::default()
                         .block(*Block::default().title("Sparkline:"))
                         .fg(Color::Green)
                         .data(&app.data)
-                        .render(&chunks[1]));
-                }));
+                        .render(&chunks[1], t);
+                });
             let sizes = if app.show_chart {
                 vec![Size::Max(40), Size::Min(20)]
             } else {
                 vec![Size::Max(40)]
             };
-            tree.add(Group::default()
+            Group::default()
                 .direction(Direction::Horizontal)
                 .alignment(Alignment::Left)
                 .chunks(&sizes)
-                .render(&chunks[1], |chunks, tree| {
-                    tree.add(List::default()
+                .render(&chunks[1], |chunks| {
+                    List::default()
                         .block(*Block::default().borders(border::ALL).title("List"))
-                        .items(&app.items)
-                        .select(app.selected)
-                        .formatter(|i, s| {
-                            let (prefix, fg) = if s {
-                                (">", Color::Cyan)
-                            } else {
-                                ("*", Color::White)
-                            };
-                            (format!("{} {}", prefix, i), fg, Color::Black)
-                        })
-                        .render(&chunks[0]));
+                        .render(&chunks[0], t);
                     if app.show_chart {
-                        tree.add(Chart::default()
+                        Chart::default()
                             .block(*Block::default()
                                 .borders(border::ALL)
                                 .title("Chart"))
                             .fg(Color::Cyan)
                             .axis([0, 40])
                             .data(&app.data2)
-                            .render(&chunks[1]));
+                            .render(&chunks[1], t);
                     }
-                }));
-            tree.add(Text::default()
+                });
+            Text::default()
                 .block(*Block::default().borders(border::ALL).title("Footer"))
                 .fg(app.colors[app.color_index])
-                .text("This is a footer")
-                .render(&chunks[2]));
+                .text("This żółw is a footer")
+                .render(&chunks[2], t);
         });
-    terminal.render(ui);
 }

@@ -1,16 +1,16 @@
 use std::cmp::min;
 
-use widgets::{Widget, WidgetType, Block};
+use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
 
-#[derive(Hash)]
 pub struct Text<'a> {
     block: Option<Block<'a>>,
     fg: Color,
     bg: Color,
     text: &'a str,
+    colors: &'a [(u16, u16, u16, Color, Color)],
 }
 
 impl<'a> Default for Text<'a> {
@@ -20,6 +20,7 @@ impl<'a> Default for Text<'a> {
             fg: Color::White,
             bg: Color::Black,
             text: "",
+            colors: &[],
         }
     }
 }
@@ -44,26 +45,35 @@ impl<'a> Text<'a> {
         self.fg = fg;
         self
     }
+
+    pub fn colors(&mut self, colors: &'a [(u16, u16, u16, Color, Color)]) -> &mut Text<'a> {
+        self.colors = colors;
+        self
+    }
 }
 
-impl<'a> Widget for Text<'a> {
-    fn buffer(&self, area: &Rect) -> Buffer {
+impl<'a> Widget<'a> for Text<'a> {
+    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
         let (mut buf, text_area) = match self.block {
-            Some(b) => (b.buffer(area), b.inner(*area)),
+            Some(ref b) => (b.buffer(area), b.inner(*area)),
             None => (Buffer::empty(*area), *area),
         };
-        let mut lines = self.text.lines().map(String::from).collect::<Vec<String>>();
+        let mut lines = self.text.lines().collect::<Vec<&str>>();
         let margin_x = text_area.x - area.x;
         let margin_y = text_area.y - area.y;
         let height = min(lines.len(), text_area.height as usize);
         let width = text_area.width as usize;
         for line in lines.iter_mut().take(height) {
-            line.truncate(width);
-            buf.set_string(margin_x, margin_y, line, self.fg, self.bg);
+            buf.set_string(margin_x, margin_y, &line, self.fg, self.bg);
+        }
+        for &(x, y, width, fg, bg) in self.colors {
+            for i in 0..width {
+                buf.update_cell(x + i, y + margin_y, |c| {
+                    c.fg = fg;
+                    c.bg = bg;
+                })
+            }
         }
         buf
-    }
-    fn widget_type(&self) -> WidgetType {
-        WidgetType::Text
     }
 }

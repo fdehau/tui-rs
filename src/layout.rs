@@ -6,9 +6,7 @@ use cassowary::WeightedRelation::*;
 use cassowary::strength::{WEAK, REQUIRED};
 
 use buffer::Buffer;
-use widgets::WidgetType;
 
-#[derive(Hash)]
 pub enum Alignment {
     Top,
     Left,
@@ -17,13 +15,12 @@ pub enum Alignment {
     Right,
 }
 
-#[derive(Hash)]
 pub enum Direction {
     Horizontal,
     Vertical,
 }
 
-#[derive(Hash, Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -238,67 +235,6 @@ impl Element {
     }
 }
 
-pub enum Tree {
-    Node(Node),
-    Leaf(Leaf),
-}
-
-impl IntoIterator for Tree {
-    type Item = Leaf;
-    type IntoIter = WidgetIterator;
-
-    fn into_iter(self) -> WidgetIterator {
-        WidgetIterator::new(self)
-    }
-}
-
-pub struct WidgetIterator {
-    stack: Vec<Tree>,
-}
-
-impl WidgetIterator {
-    fn new(tree: Tree) -> WidgetIterator {
-        WidgetIterator { stack: vec![tree] }
-    }
-}
-
-impl Iterator for WidgetIterator {
-    type Item = Leaf;
-    fn next(&mut self) -> Option<Leaf> {
-        match self.stack.pop() {
-            Some(t) => {
-                match t {
-                    Tree::Node(n) => {
-                        let index = self.stack.len();
-                        for c in n.children {
-                            self.stack.insert(index, c);
-                        }
-                        self.next()
-                    }
-                    Tree::Leaf(l) => Some(l),
-                }
-            }
-            None => None,
-        }
-    }
-}
-
-pub struct Node {
-    pub children: Vec<Tree>,
-}
-
-impl Node {
-    pub fn add(&mut self, node: Tree) {
-        self.children.push(node);
-    }
-}
-
-pub struct Leaf {
-    pub widget_type: WidgetType,
-    pub hash: u64,
-    pub buffer: Buffer,
-}
-
 pub struct Group {
     direction: Direction,
     alignment: Alignment,
@@ -337,16 +273,14 @@ impl Group {
         self.chunks = Vec::from(chunks);
         self
     }
-    pub fn render<F>(&self, area: &Rect, f: F) -> Tree
-        where F: Fn(&[Rect], &mut Node)
+    pub fn render<F>(&self, area: &Rect, mut f: F)
+        where F: FnMut(&[Rect])
     {
         let chunks = split(area,
                            &self.direction,
                            &self.alignment,
                            self.margin,
                            &self.chunks);
-        let mut node = Node { children: Vec::with_capacity(chunks.len()) };
-        f(&chunks, &mut node);
-        Tree::Node(node)
+        f(&chunks);
     }
 }
