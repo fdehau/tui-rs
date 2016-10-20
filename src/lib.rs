@@ -5,6 +5,7 @@ extern crate bitflags;
 extern crate log;
 extern crate cassowary;
 extern crate unicode_segmentation;
+extern crate unicode_width;
 
 mod buffer;
 mod util;

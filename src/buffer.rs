@@ -61,15 +61,21 @@ impl<'a> Buffer<'a> {
         &self.area
     }
 
-    pub fn index_of(&self, x: u16, y: u16) -> usize {
+    pub fn index_of(&self, x: u16, y: u16) -> Option<usize> {
         let index = (y * self.area.width + x) as usize;
-        debug_assert!(index < self.content.len());
-        index
+        if index < self.content.len() {
+            Some(index)
+        } else {
+            None
+        }
     }
 
-    pub fn pos_of(&self, i: usize) -> (u16, u16) {
-        debug_assert!(self.area.width != 0);
-        (i as u16 % self.area.width, i as u16 / self.area.width)
+    pub fn pos_of(&self, i: usize) -> Option<(u16, u16)> {
+        if self.area.width > 0 {
+            Some((i as u16 % self.area.width, i as u16 / self.area.width))
+        } else {
+            None
+        }
     }
 
     pub fn next_pos(&self, x: u16, y: u16) -> Option<(u16, u16)> {
@@ -86,48 +92,50 @@ impl<'a> Buffer<'a> {
     }
 
     pub fn set(&mut self, x: u16, y: u16, cell: Cell<'a>) {
-        let i = self.index_of(x, y);
-        self.content[i] = cell;
+        if let Some(i) = self.index_of(x, y) {
+            self.content[i] = cell;
+        }
     }
 
     pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &'a str) {
-        let i = self.index_of(x, y);
-        self.content[i].symbol = symbol;
+        if let Some(i) = self.index_of(x, y) {
+            self.content[i].symbol = symbol;
+        }
     }
 
     pub fn set_fg(&mut self, x: u16, y: u16, color: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].fg = color;
+        if let Some(i) = self.index_of(x, y) {
+            self.content[i].fg = color;
+        }
     }
     pub fn set_bg(&mut self, x: u16, y: u16, color: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].bg = color;
+        if let Some(i) = self.index_of(x, y) {
+            self.content[i].bg = color;
+        }
     }
 
     pub fn set_string(&mut self, x: u16, y: u16, string: &'a str, fg: Color, bg: Color) {
-        let mut cursor = (x, y);
-        for s in UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>() {
-            info!("{}", s);
-            let index = self.index_of(cursor.0, cursor.1);
+        let index = self.index_of(x, y);
+        if index.is_none() {
+            return;
+        }
+        let mut index = index.unwrap();
+        let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
+        let max_index = (self.area.width - x) as usize;
+        for s in graphemes.iter().take(max_index) {
             self.content[index].symbol = s;
             self.content[index].fg = fg;
             self.content[index].bg = bg;
-            match self.next_pos(cursor.0, cursor.1) {
-                Some(c) => {
-                    cursor = c;
-                }
-                None => {
-                    warn!("Failed to set all string");
-                }
-            }
+            index += 1;
         }
     }
 
     pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
         where F: Fn(&mut Cell)
     {
-        let i = self.index_of(x, y);
-        f(&mut self.content[i]);
+        if let Some(i) = self.index_of(x, y) {
+            f(&mut self.content[i]);
+        }
     }
 
     pub fn merge(&'a mut self, other: Buffer<'a>) {
@@ -140,7 +148,7 @@ impl<'a> Buffer<'a> {
         let offset_y = self.area.y - area.y;
         let size = self.area.area() as usize;
         for i in (0..size).rev() {
-            let (x, y) = self.pos_of(i);
+            let (x, y) = self.pos_of(i).unwrap();
             // New index in content
             let k = ((y + offset_y) * area.width + (x + offset_x)) as usize;
             self.content[k] = self.content[i].clone();
@@ -155,7 +163,7 @@ impl<'a> Buffer<'a> {
         let offset_y = other.area.y - area.y;
         let size = other.area.area() as usize;
         for i in 0..size {
-            let (x, y) = other.pos_of(i);
+            let (x, y) = other.pos_of(i).unwrap();
             // New index in content
             let k = ((y + offset_y) * area.width + (x + offset_x)) as usize;
             self.content[k] = other.content[i].clone();

@@ -10,7 +10,7 @@ pub use self::text::Text;
 pub use self::list::List;
 pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
-pub use self::chart::Chart;
+pub use self::chart::{Chart, Axis, Dataset};
 
 use std::hash::Hash;
 

@@ -32,7 +32,7 @@ impl Terminal {
 
     pub fn render_buffer(&mut self, buffer: Buffer) {
         for (i, cell) in buffer.content().iter().enumerate() {
-            let (lx, ly) = buffer.pos_of(i);
+            let (lx, ly) = buffer.pos_of(i).unwrap();
             let (x, y) = (lx + buffer.area().x, ly + buffer.area().y);
             if cell.symbol != "" {
                 write!(self.stdout,

@@ -22,7 +22,7 @@ use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Logger, Root};
 
 use tui::Terminal;
-use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart};
+use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset};
 use tui::layout::{Group, Direction, Alignment, Size};
 use tui::style::Color;
 
@@ -66,10 +66,10 @@ impl SinSignal {
 }
 
 impl Iterator for SinSignal {
-    type Item = f64;
-    fn next(&mut self) -> Option<f64> {
+    type Item = (f64, f64);
+    fn next(&mut self) -> Option<(f64, f64)> {
         self.x += 1.0;
-        Some(((self.x * 1.0 / self.period).sin() + 1.0) * self.scale)
+        Some((self.x, ((self.x * 1.0 / self.period).sin() + 1.0) * self.scale))
     }
 }
 
@@ -81,7 +81,8 @@ struct App {
     show_chart: bool,
     progress: u16,
     data: Vec<u64>,
-    data2: Vec<u64>,
+    data2: Vec<(f64, f64)>,
+    window: [f64; 2],
     colors: [Color; 2],
     color_index: usize,
 }
@@ -117,7 +118,8 @@ fn main() {
         show_chart: true,
         progress: 0,
         data: rand_signal.clone().take(100).collect(),
-        data2: sin_signal.clone().take(100).map(|i| i as u64).collect(),
+        data2: sin_signal.clone().take(100).collect(),
+        window: [0.0, 100.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
     };
@@ -181,7 +183,9 @@ fn main() {
                 app.data.insert(0, rand_signal.next().unwrap());
                 app.data.pop();
                 app.data2.remove(0);
-                app.data2.push(sin_signal.next().unwrap() as u64);
+                app.data2.push(sin_signal.next().unwrap());
+                app.window[0] += 1.0;
+                app.window[1] += 1.0;
                 app.selected += 1;
                 if app.selected >= app.items.len() {
                     app.selected = 0;
@@ -211,12 +215,12 @@ fn draw(t: &mut Terminal, app: &App) {
                 .chunks(&[Size::Fixed(2), Size::Fixed(3)])
                 .render(&chunks[0], |chunks| {
                     Gauge::default()
-                        .block(*Block::default().title("Gauge:"))
+                        .block(Block::default().title("Gauge:"))
                         .bg(Color::Yellow)
                         .percent(app.progress)
                         .render(&chunks[0], t);
                     Sparkline::default()
-                        .block(*Block::default().title("Sparkline:"))
+                        .block(Block::default().title("Sparkline:"))
                         .fg(Color::Green)
                         .data(&app.data)
                         .render(&chunks[1], t);
@@ -232,21 +236,21 @@ fn draw(t: &mut Terminal, app: &App) {
                 .chunks(&sizes)
                 .render(&chunks[1], |chunks| {
                     List::default()
-                        .block(*Block::default().borders(border::ALL).title("List"))
+                        .block(Block::default().borders(border::ALL).title("List"))
                         .render(&chunks[0], t);
                     if app.show_chart {
                         Chart::default()
-                            .block(*Block::default()
+                            .block(Block::default()
                                 .borders(border::ALL)
                                 .title("Chart"))
-                            .fg(Color::Cyan)
-                            .axis([0, 40])
-                            .data(&app.data2)
+                            .x_axis(Axis::default().title("X").bounds(app.window))
+                            .y_axis(Axis::default().title("Y").bounds([0.0, 40.0]))
+                            .datasets(&[Dataset::default().color(Color::Cyan).data(&app.data2)])
                             .render(&chunks[1], t);
                     }
                 });
             Text::default()
-                .block(*Block::default().borders(border::ALL).title("Footer"))
+                .block(Block::default().borders(border::ALL).title("Footer"))
                 .fg(app.colors[app.color_index])
                 .text("This żółw is a footer")
                 .render(&chunks[2], t);

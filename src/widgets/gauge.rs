@@ -74,7 +74,6 @@ impl<'a> Widget<'a> for Gauge<'a> {
             let margin_y = gauge_area.y - area.y;
             // Gauge
             let width = (gauge_area.width * self.percent) / 100;
-            info!("{}", width);
             // Label
             let len = self.percent_string.len() as u16;
             let middle = gauge_area.width / 2 - len / 2;

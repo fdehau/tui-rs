@@ -29,33 +29,33 @@ impl<'a> Default for Block<'a> {
 }
 
 impl<'a> Block<'a> {
-    pub fn title(&mut self, title: &'a str) -> &mut Block<'a> {
+    pub fn title(mut self, title: &'a str) -> Block<'a> {
         self.title = Some(title);
         self
     }
 
-    pub fn title_fg(&mut self, color: Color) -> &mut Block<'a> {
+    pub fn title_fg(mut self, color: Color) -> Block<'a> {
         self.title_fg = color;
         self
     }
 
-    pub fn title_bg(&mut self, color: Color) -> &mut Block<'a> {
+    pub fn title_bg(mut self, color: Color) -> Block<'a> {
         self.title_bg = color;
         self
     }
 
-    pub fn border_fg(&mut self, color: Color) -> &mut Block<'a> {
+    pub fn border_fg(mut self, color: Color) -> Block<'a> {
         self.border_fg = color;
         self
     }
 
-    pub fn border_bg(&mut self, color: Color) -> &mut Block<'a> {
+    pub fn border_bg(mut self, color: Color) -> Block<'a> {
         self.border_bg = color;
         self
     }
 
 
-    pub fn borders(&mut self, flag: border::Flags) -> &mut Block<'a> {
+    pub fn borders(mut self, flag: border::Flags) -> Block<'a> {
         self.borders = flag;
         self
     }
