@@ -138,7 +138,6 @@ impl<'a> Widget<'a> for Chart<'a> {
 
         let margin_x = chart_area.x - area.x;
         let margin_y = chart_area.y - area.y;
-        // info!("{:?}", self.datasets[0].data[0]);
 
         for dataset in self.datasets {
             for &(x, y) in dataset.data.iter() {
@@ -150,7 +149,6 @@ impl<'a> Widget<'a> for Chart<'a> {
                          (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
                 let dx = (self.x_axis.bounds[1] - x) * (chart_area.width - 1) as f64 /
                          (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
-                info!("{} {}", dx, dy);
                 buf.update_cell(dx as u16 + margin_x, dy as u16 + margin_y, |c| {
                     c.symbol = symbols::DOT;
                     c.fg = dataset.color;

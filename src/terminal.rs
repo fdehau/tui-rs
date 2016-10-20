@@ -8,16 +8,19 @@ use termion::raw::{IntoRawMode, RawTerminal};
 use buffer::Buffer;
 use widgets::Widget;
 use layout::Rect;
-use util::hash;
 
 pub struct Terminal {
     stdout: RawTerminal<io::Stdout>,
+    layout_cache: HashMap<u64, Vec<Rect>>,
 }
 
 impl Terminal {
     pub fn new() -> Result<Terminal, io::Error> {
         let stdout = try!(io::stdout().into_raw_mode());
-        Ok(Terminal { stdout: stdout })
+        Ok(Terminal {
+            stdout: stdout,
+            layout_cache: HashMap::new(),
+        })
     }
 
     pub fn size() -> Result<Rect, io::Error> {
@@ -30,20 +33,29 @@ impl Terminal {
         })
     }
 
+    // FIXME: Clean cache to prevent memory leak
+    pub fn get_layout(&self, hash: u64) -> Option<&Vec<Rect>> {
+        self.layout_cache.get(&hash)
+    }
+
+    pub fn set_layout(&mut self, hash: u64, chunks: Vec<Rect>) {
+        self.layout_cache.insert(hash, chunks);
+    }
+
     pub fn render_buffer(&mut self, buffer: Buffer) {
+        let mut string = String::with_capacity(buffer.area().area() as usize);
         for (i, cell) in buffer.content().iter().enumerate() {
             let (lx, ly) = buffer.pos_of(i).unwrap();
             let (x, y) = (lx + buffer.area().x, ly + buffer.area().y);
             if cell.symbol != "" {
-                write!(self.stdout,
-                       "{}{}{}{}",
-                       termion::cursor::Goto(x + 1, y + 1),
-                       cell.fg.fg(),
-                       cell.bg.bg(),
-                       cell.symbol)
-                    .unwrap();
+                string.push_str(&format!("{}{}{}{}",
+                                         termion::cursor::Goto(x + 1, y + 1),
+                                         cell.fg.fg(),
+                                         cell.bg.bg(),
+                                         cell.symbol))
             }
         }
+        write!(self.stdout, "{}", string);
         self.stdout.flush().unwrap();
     }
     pub fn clear(&mut self) {

@@ -82,7 +82,7 @@ struct App {
     progress: u16,
     data: Vec<u64>,
     data2: Vec<(f64, f64)>,
-    window: [f64; 2],
+    data3: Vec<(f64, f64)>,
     colors: [Color; 2],
     color_index: usize,
 }
@@ -109,6 +109,7 @@ fn main() {
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
     let mut sin_signal = SinSignal::new(4.0, 20.0);
+    let mut sin_signal2 = SinSignal::new(2.0, 10.0);
 
     let mut app = App {
         name: String::from("Test app"),
@@ -119,7 +120,7 @@ fn main() {
         progress: 0,
         data: rand_signal.clone().take(100).collect(),
         data2: sin_signal.clone().take(100).collect(),
-        window: [0.0, 100.0],
+        data3: sin_signal2.clone().take(100).collect(),
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
     };
@@ -141,7 +142,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
+            thread::sleep(time::Duration::from_millis(1000));
         }
     });
 
@@ -184,8 +185,8 @@ fn main() {
                 app.data.pop();
                 app.data2.remove(0);
                 app.data2.push(sin_signal.next().unwrap());
-                app.window[0] += 1.0;
-                app.window[1] += 1.0;
+                app.data3.remove(0);
+                app.data3.push(sin_signal2.next().unwrap());
                 app.selected += 1;
                 if app.selected >= app.items.len() {
                     app.selected = 0;
@@ -206,14 +207,14 @@ fn draw(t: &mut Terminal, app: &App) {
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
         .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
-        .render(&Terminal::size().unwrap(), |chunks| {
+        .render(t, &Terminal::size().unwrap(), |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
                 .alignment(Alignment::Left)
                 .margin(1)
                 .chunks(&[Size::Fixed(2), Size::Fixed(3)])
-                .render(&chunks[0], |chunks| {
+                .render(t, &chunks[0], |t, chunks| {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
                         .bg(Color::Yellow)
@@ -234,7 +235,7 @@ fn draw(t: &mut Terminal, app: &App) {
                 .direction(Direction::Horizontal)
                 .alignment(Alignment::Left)
                 .chunks(&sizes)
-                .render(&chunks[1], |chunks| {
+                .render(t, &chunks[1], |t, chunks| {
                     List::default()
                         .block(Block::default().borders(border::ALL).title("List"))
                         .render(&chunks[0], t);
@@ -243,9 +244,10 @@ fn draw(t: &mut Terminal, app: &App) {
                             .block(Block::default()
                                 .borders(border::ALL)
                                 .title("Chart"))
-                            .x_axis(Axis::default().title("X").bounds(app.window))
+                            .x_axis(Axis::default().title("X").bounds([0.0, 100.0]))
                             .y_axis(Axis::default().title("Y").bounds([0.0, 40.0]))
-                            .datasets(&[Dataset::default().color(Color::Cyan).data(&app.data2)])
+                            .datasets(&[Dataset::default().color(Color::Cyan).data(&app.data2),
+                                        Dataset::default().color(Color::Yellow).data(&app.data3)])
                             .render(&chunks[1], t);
                     }
                 });

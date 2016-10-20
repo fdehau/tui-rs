@@ -6,7 +6,10 @@ use cassowary::WeightedRelation::*;
 use cassowary::strength::{WEAK, REQUIRED};
 
 use buffer::Buffer;
+use terminal::Terminal;
+use util::hash;
 
+#[derive(Hash)]
 pub enum Alignment {
     Top,
     Left,
@@ -15,12 +18,13 @@ pub enum Alignment {
     Right,
 }
 
+#[derive(Hash)]
 pub enum Direction {
     Horizontal,
     Vertical,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -235,6 +239,7 @@ impl Element {
     }
 }
 
+#[derive(Hash)]
 pub struct Group {
     direction: Direction,
     alignment: Alignment,
@@ -273,14 +278,26 @@ impl Group {
         self.chunks = Vec::from(chunks);
         self
     }
-    pub fn render<F>(&self, area: &Rect, mut f: F)
-        where F: FnMut(&[Rect])
+    pub fn render<F>(&self, t: &mut Terminal, area: &Rect, mut f: F)
+        where F: FnMut(&mut Terminal, &[Rect])
     {
-        let chunks = split(area,
-                           &self.direction,
-                           &self.alignment,
-                           self.margin,
-                           &self.chunks);
-        f(&chunks);
+        let hash = hash(self, area);
+        let (cache_update, chunks) = match t.get_layout(hash) {
+            Some(chs) => (false, chs.to_vec()),
+            None => {
+                (true,
+                 split(area,
+                       &self.direction,
+                       &self.alignment,
+                       self.margin,
+                       &self.chunks))
+            }
+        };
+
+        f(t, &chunks);
+
+        if cache_update {
+            t.set_layout(hash, chunks);
+        }
     }
 }
