@@ -12,12 +12,8 @@ pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
 pub use self::chart::{Chart, Axis, Dataset};
 
-use std::hash::Hash;
-
-use util::hash;
-use buffer::{Buffer, Cell};
+use buffer::Buffer;
 use layout::Rect;
-use style::Color;
 use terminal::Terminal;
 
 pub mod border {

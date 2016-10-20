@@ -6,7 +6,6 @@ use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
-use util::hash;
 use symbols;
 
 pub struct Axis<'a> {

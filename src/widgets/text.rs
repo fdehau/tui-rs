@@ -62,9 +62,8 @@ impl<'a> Widget<'a> for Text<'a> {
         let margin_x = text_area.x - area.x;
         let margin_y = text_area.y - area.y;
         let height = min(lines.len(), text_area.height as usize);
-        let width = text_area.width as usize;
         for line in lines.iter_mut().take(height) {
-            buf.set_string(margin_x, margin_y, &line, self.fg, self.bg);
+            buf.set_string(margin_x, margin_y, line, self.fg, self.bg);
         }
         for &(x, y, width, fg, bg) in self.colors {
             for i in 0..width {

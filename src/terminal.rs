@@ -6,7 +6,6 @@ use termion;
 use termion::raw::{IntoRawMode, RawTerminal};
 
 use buffer::Buffer;
-use widgets::Widget;
 use layout::Rect;
 
 pub struct Terminal {
@@ -55,7 +54,7 @@ impl Terminal {
                                          cell.symbol))
             }
         }
-        write!(self.stdout, "{}", string);
+        write!(self.stdout, "{}", string).unwrap();
         self.stdout.flush().unwrap();
     }
     pub fn clear(&mut self) {

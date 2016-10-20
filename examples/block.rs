@@ -30,14 +30,14 @@ fn draw(t: &mut Terminal) {
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
         .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
-        .render(&Terminal::size().unwrap(), |chunks| {
-            t.render(chunks[0], Block::default().title("Block"));
+        .render(t, &Terminal::size().unwrap(), |t, chunks| {
+            Block::default().title("Block").render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
                 .alignment(Alignment::Left)
                 .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
-                .render(&chunks[1], |chunks| {
-                    t.render(chunks[0], Block::default().title("Block"));
+                .render(t, &chunks[1], |t, chunks| {
+                    Block::default().title("Block").render(&chunks[0], t);
                 });
         });
 }

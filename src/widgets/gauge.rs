@@ -2,7 +2,6 @@ use widgets::{Widget, Block};
 use buffer::Buffer;
 use style::Color;
 use layout::Rect;
-use util::hash;
 
 /// Progress bar widget
 ///

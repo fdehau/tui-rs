@@ -95,7 +95,7 @@ impl<'a> Widget<'a> for Block<'a> {
         // Sides
         if self.borders.intersects(border::LEFT) {
             for y in 0..area.height {
-                let c = buf.update_cell(0, y, |c| {
+                buf.update_cell(0, y, |c| {
                     c.symbol = line::VERTICAL;
                     c.fg = self.border_fg;
                     c.bg = self.border_bg;
@@ -104,7 +104,7 @@ impl<'a> Widget<'a> for Block<'a> {
         }
         if self.borders.intersects(border::TOP) {
             for x in 0..area.width {
-                let c = buf.update_cell(x, 0, |c| {
+                buf.update_cell(x, 0, |c| {
                     c.symbol = line::HORIZONTAL;
                     c.fg = self.border_fg;
                     c.bg = self.border_bg;
@@ -151,7 +151,7 @@ impl<'a> Widget<'a> for Block<'a> {
             } else {
                 0
             };
-            buf.set_string(margin_x, 0, &title, self.title_fg, self.title_bg);
+            buf.set_string(margin_x, 0, title, self.title_fg, self.title_bg);
         }
         buf
     }

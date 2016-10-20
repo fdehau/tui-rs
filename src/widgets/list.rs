@@ -1,11 +1,9 @@
 use std::cmp::min;
-use std::hash::{Hash, Hasher};
 
 use buffer::Buffer;
 use widgets::{Widget, Block};
 use layout::Rect;
 use style::Color;
-use util::hash;
 
 pub struct List<'a> {
     block: Option<Block<'a>>,

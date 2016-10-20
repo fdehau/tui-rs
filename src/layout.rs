@@ -5,7 +5,6 @@ use cassowary::{Solver, Variable, Constraint};
 use cassowary::WeightedRelation::*;
 use cassowary::strength::{WEAK, REQUIRED};
 
-use buffer::Buffer;
 use terminal::Terminal;
 use util::hash;
 

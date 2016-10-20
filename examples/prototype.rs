@@ -9,7 +9,6 @@ use std::thread;
 use std::time;
 use std::sync::mpsc;
 use std::io::stdin;
-use std::cmp::min;
 
 use rand::distributions::{IndependentSample, Range};
 
@@ -19,7 +18,7 @@ use termion::input::TermRead;
 use log::LogLevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::encode::pattern::PatternEncoder;
-use log4rs::config::{Appender, Config, Logger, Root};
+use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset};
@@ -75,7 +74,6 @@ impl Iterator for SinSignal {
 
 struct App {
     name: String,
-    fetching: bool,
     items: Vec<String>,
     selected: usize,
     show_chart: bool,
@@ -104,7 +102,7 @@ fn main() {
         .build(Root::builder().appender("log").build(LogLevelFilter::Debug))
         .unwrap();
 
-    let handle = log4rs::init_config(config).unwrap();
+    log4rs::init_config(config).unwrap();
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
@@ -113,7 +111,6 @@ fn main() {
 
     let mut app = App {
         name: String::from("Test app"),
-        fetching: false,
         items: ["1", "2", "3"].into_iter().map(|e| String::from(*e)).collect(),
         selected: 0,
         show_chart: true,
@@ -203,11 +200,19 @@ fn main() {
 
 fn draw(t: &mut Terminal, app: &App) {
 
+    let size = Terminal::size().unwrap();
+
+    Block::default()
+        .borders(border::ALL)
+        .title(&app.name)
+        .render(&size, t);
+
     Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
+        .margin(1)
         .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
-        .render(t, &Terminal::size().unwrap(), |t, chunks| {
+        .render(t, &size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)

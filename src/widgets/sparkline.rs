@@ -77,7 +77,7 @@ impl<'a> Widget<'a> for Sparkline<'a> {
             for j in (0..spark_area.height).rev() {
                 for (i, d) in data.iter_mut().take(max_index).enumerate() {
                     buf.update_cell(margin_x + i as u16, margin_y + j, |c| {
-                        c.symbol = &match *d {
+                        c.symbol = match *d {
                             0 => " ",
                             1 => bar::ONE_EIGHTH,
                             2 => bar::ONE_QUATER,
