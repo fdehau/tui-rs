@@ -2,6 +2,7 @@ use termion;
 
 #[derive(Debug, Clone, Copy, Hash)]
 pub enum Color {
+    Reset,
     Black,
     Red,
     Green,
@@ -22,6 +23,7 @@ pub enum Color {
 impl Color {
     pub fn fg(&self) -> String {
         match *self {
+            Color::Reset => format!("{}", termion::color::Fg(termion::color::Reset)),
             Color::Black => format!("{}", termion::color::Fg(termion::color::Black)),
             Color::Red => format!("{}", termion::color::Fg(termion::color::Red)),
             Color::Green => format!("{}", termion::color::Fg(termion::color::Green)),
@@ -41,6 +43,7 @@ impl Color {
     }
     pub fn bg(&self) -> String {
         match *self {
+            Color::Reset => format!("{}", termion::color::Bg(termion::color::Reset)),
             Color::Black => format!("{}", termion::color::Bg(termion::color::Black)),
             Color::Red => format!("{}", termion::color::Bg(termion::color::Red)),
             Color::Green => format!("{}", termion::color::Bg(termion::color::Green)),

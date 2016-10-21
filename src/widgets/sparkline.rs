@@ -18,8 +18,8 @@ impl<'a> Default for Sparkline<'a> {
     fn default() -> Sparkline<'a> {
         Sparkline {
             block: None,
-            fg: Color::White,
-            bg: Color::Black,
+            fg: Color::Reset,
+            bg: Color::Reset,
             data: Vec::new(),
             max: None,
         }
@@ -76,21 +76,19 @@ impl<'a> Widget<'a> for Sparkline<'a> {
                 .collect::<Vec<u64>>();
             for j in (0..spark_area.height).rev() {
                 for (i, d) in data.iter_mut().take(max_index).enumerate() {
-                    buf.update_cell(margin_x + i as u16, margin_y + j, |c| {
-                        c.symbol = match *d {
-                            0 => " ",
-                            1 => bar::ONE_EIGHTH,
-                            2 => bar::ONE_QUATER,
-                            3 => bar::THREE_EIGHTHS,
-                            4 => bar::HALF,
-                            5 => bar::FIVE_EIGHTHS,
-                            6 => bar::THREE_QUATERS,
-                            7 => bar::SEVEN_EIGHTHS,
-                            _ => bar::FULL,
-                        };
-                        c.fg = self.fg;
-                        c.bg = self.bg;
-                    });
+                    let symbol = match *d {
+                        0 => " ",
+                        1 => bar::ONE_EIGHTH,
+                        2 => bar::ONE_QUATER,
+                        3 => bar::THREE_EIGHTHS,
+                        4 => bar::HALF,
+                        5 => bar::FIVE_EIGHTHS,
+                        6 => bar::THREE_QUATERS,
+                        7 => bar::SEVEN_EIGHTHS,
+                        _ => bar::FULL,
+                    };
+                    buf.update_cell(margin_x + i as u16, margin_y + j, symbol, self.fg, self.bg);
+
                     if *d > 8 {
                         *d -= 8;
                     } else {

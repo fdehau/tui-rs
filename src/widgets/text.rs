@@ -17,8 +17,8 @@ impl<'a> Default for Text<'a> {
     fn default() -> Text<'a> {
         Text {
             block: None,
-            fg: Color::White,
-            bg: Color::Black,
+            fg: Color::Reset,
+            bg: Color::Reset,
             text: "",
             colors: &[],
         }
@@ -67,10 +67,8 @@ impl<'a> Widget<'a> for Text<'a> {
         }
         for &(x, y, width, fg, bg) in self.colors {
             for i in 0..width {
-                buf.update_cell(x + i, y + margin_y, |c| {
-                    c.fg = fg;
-                    c.bg = bg;
-                })
+                buf.set_fg(x + i, y + margin_y, fg);
+                buf.set_bg(x + i, y + margin_y, fg);
             }
         }
         buf

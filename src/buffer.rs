@@ -14,8 +14,8 @@ impl<'a> Default for Cell<'a> {
     fn default() -> Cell<'a> {
         Cell {
             symbol: "",
-            fg: Color::White,
-            bg: Color::Black,
+            fg: Color::Reset,
+            bg: Color::Reset,
         }
     }
 }
@@ -130,11 +130,18 @@ impl<'a> Buffer<'a> {
         }
     }
 
-    pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
-        where F: Fn(&mut Cell)
-    {
+    pub fn update_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
         if let Some(i) = self.index_of(x, y) {
-            f(&mut self.content[i]);
+            self.content[i].fg = fg;
+            self.content[i].bg = bg;
+        }
+    }
+
+    pub fn update_cell(&mut self, x: u16, y: u16, symbol: &'a str, fg: Color, bg: Color) {
+        if let Some(i) = self.index_of(x, y) {
+            self.content[i].symbol = symbol;
+            self.content[i].fg = fg;
+            self.content[i].bg = bg;
         }
     }
 

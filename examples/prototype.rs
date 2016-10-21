@@ -81,6 +81,7 @@ struct App {
     data: Vec<u64>,
     data2: Vec<(f64, f64)>,
     data3: Vec<(f64, f64)>,
+    window: [f64; 2],
     colors: [Color; 2],
     color_index: usize,
 }
@@ -115,14 +116,20 @@ fn main() {
         selected: 0,
         show_chart: true,
         progress: 0,
-        data: rand_signal.clone().take(100).collect(),
-        data2: sin_signal.clone().take(100).collect(),
-        data3: sin_signal2.clone().take(100).collect(),
+        data: rand_signal.clone().take(200).collect(),
+        data2: sin_signal.clone().take(20).collect(),
+        data3: sin_signal2.clone().take(20).collect(),
+        window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
     };
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
+
+    for i in 0..20 {
+        sin_signal.next();
+        sin_signal2.next();
+    }
 
     thread::spawn(move || {
         let stdin = stdin();
@@ -139,7 +146,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(1000));
+            thread::sleep(time::Duration::from_millis(200));
         }
     });
 
@@ -184,6 +191,8 @@ fn main() {
                 app.data2.push(sin_signal.next().unwrap());
                 app.data3.remove(0);
                 app.data3.push(sin_signal2.next().unwrap());
+                app.window[0] += 1.0;
+                app.window[1] += 1.0;
                 app.selected += 1;
                 if app.selected >= app.items.len() {
                     app.selected = 0;
@@ -202,15 +211,9 @@ fn draw(t: &mut Terminal, app: &App) {
 
     let size = Terminal::size().unwrap();
 
-    Block::default()
-        .borders(border::ALL)
-        .title(&app.name)
-        .render(&size, t);
-
     Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .margin(1)
         .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
         .render(t, &size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
@@ -222,7 +225,7 @@ fn draw(t: &mut Terminal, app: &App) {
                 .render(t, &chunks[0], |t, chunks| {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
-                        .bg(Color::Yellow)
+                        .bg(Color::Magenta)
                         .percent(app.progress)
                         .render(&chunks[0], t);
                     Sparkline::default()
@@ -246,11 +249,19 @@ fn draw(t: &mut Terminal, app: &App) {
                         .render(&chunks[0], t);
                     if app.show_chart {
                         Chart::default()
-                            .block(Block::default()
-                                .borders(border::ALL)
-                                .title("Chart"))
-                            .x_axis(Axis::default().title("X").bounds([0.0, 100.0]))
-                            .y_axis(Axis::default().title("Y").bounds([0.0, 40.0]))
+                            .block(Block::default().title("Chart"))
+                            .x_axis(Axis::default()
+                                .title("X Axis")
+                                .color(Color::Gray)
+                                .bounds(app.window)
+                                .labels(&[&format!("{}", app.window[0]),
+                                          &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                                          &format!("{}", app.window[1])]))
+                            .y_axis(Axis::default()
+                                .title("Y Axis")
+                                .color(Color::Gray)
+                                .bounds([0.0, 40.0])
+                                .labels(&["0", "20", "40"]))
                             .datasets(&[Dataset::default().color(Color::Cyan).data(&app.data2),
                                         Dataset::default().color(Color::Yellow).data(&app.data3)])
                             .render(&chunks[1], t);
@@ -259,7 +270,7 @@ fn draw(t: &mut Terminal, app: &App) {
             Text::default()
                 .block(Block::default().borders(border::ALL).title("Footer"))
                 .fg(app.colors[app.color_index])
-                .text("This żółw is a footer")
+                .text("日本国 UTF-8 charaters")
                 .render(&chunks[2], t);
         });
 }

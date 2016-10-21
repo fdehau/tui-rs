@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use widgets::{Widget, Block};
 use buffer::Buffer;
 use style::Color;
@@ -31,8 +33,8 @@ impl<'a> Default for Gauge<'a> {
             block: None,
             percent: 0,
             percent_string: String::from("0%"),
-            bg: Color::White,
-            fg: Color::Black,
+            bg: Color::Reset,
+            fg: Color::Reset,
         }
     }
 }
@@ -73,18 +75,16 @@ impl<'a> Widget<'a> for Gauge<'a> {
             let margin_y = gauge_area.y - area.y;
             // Gauge
             let width = (gauge_area.width * self.percent) / 100;
+            for i in 0..width {
+                buf.update_cell(margin_x + i, margin_y, " ", self.fg, self.bg);
+            }
             // Label
             let len = self.percent_string.len() as u16;
             let middle = gauge_area.width / 2 - len / 2;
             buf.set_string(middle, margin_y, &self.percent_string, self.bg, self.fg);
-            for i in 0..width {
-                buf.update_cell(margin_x + i, margin_y, |c| {
-                    if c.symbol == "" {
-                        c.symbol = " "
-                    };
-                    c.fg = self.fg;
-                    c.bg = self.bg;
-                })
+            let bound = max(middle, min(middle + len, width));
+            for i in middle..bound {
+                buf.update_colors(margin_x + i, margin_y, self.fg, self.bg);
             }
         }
         buf
