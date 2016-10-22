@@ -40,7 +40,7 @@ impl<'a> BarChart<'a> {
     pub fn data(&'a mut self, data: &'a [(&'a str, u64)]) -> &mut BarChart<'a> {
         self.data = data;
         self.values = Vec::with_capacity(self.data.len());
-        for &(l, v) in self.data {
+        for &(_, v) in self.data {
             self.values.push(format!("{}", v));
         }
         self

@@ -214,7 +214,7 @@ impl<'a> Widget<'a> for Chart<'a> {
             None => (Buffer::empty(*area), *area),
         };
 
-        let layout = self.layout(&chart_area, &area);
+        let layout = self.layout(&chart_area, area);
         let width = layout.graph_area.width;
         let height = layout.graph_area.height;
         let margin_x = layout.graph_area.x - area.x;
