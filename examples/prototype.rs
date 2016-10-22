@@ -72,9 +72,10 @@ impl Iterator for SinSignal {
     }
 }
 
-struct App {
+struct App<'a> {
     name: String,
-    items: Vec<String>,
+    items: Vec<&'a str>,
+    items2: Vec<&'a str>,
     selected: usize,
     show_chart: bool,
     progress: u16,
@@ -112,7 +113,11 @@ fn main() {
 
     let mut app = App {
         name: String::from("Test app"),
-        items: ["1", "2", "3"].into_iter().map(|e| String::from(*e)).collect(),
+        items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
+                    "Item9", "Item10"],
+        items2: vec!["Event1", "Event2", "Event3", "Event4", "Event5", "Event6", "Event7",
+                     "Event8", "Event9", "Event10", "Event11", "Event12", "Event13", "Event14",
+                     "Event15", "Event16", "Event17"],
         selected: 0,
         show_chart: true,
         progress: 0,
@@ -197,6 +202,8 @@ fn main() {
                 if app.selected >= app.items.len() {
                     app.selected = 0;
                 }
+                let i = app.items2.pop().unwrap();
+                app.items2.insert(0, i);
                 app.color_index += 1;
                 if app.color_index >= app.colors.len() {
                     app.color_index = 0;
@@ -214,7 +221,7 @@ fn draw(t: &mut Terminal, app: &App) {
     Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
+        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(5)])
         .render(t, &size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
@@ -244,9 +251,27 @@ fn draw(t: &mut Terminal, app: &App) {
                 .alignment(Alignment::Left)
                 .chunks(&sizes)
                 .render(t, &chunks[1], |t, chunks| {
-                    List::default()
-                        .block(Block::default().borders(border::ALL).title("List"))
-                        .render(&chunks[0], t);
+                    Group::default()
+                        .direction(Direction::Vertical)
+                        .chunks(&[Size::Min(20), Size::Max(40)])
+                        .render(t, &chunks[0], |t, chunks| {
+                            Group::default()
+                                .direction(Direction::Horizontal)
+                                .chunks(&[Size::Max(20), Size::Min(0)])
+                                .render(t, &chunks[0], |t, chunks| {
+                                    List::default()
+                                        .block(Block::default().borders(border::ALL).title("List"))
+                                        .items(&app.items)
+                                        .select(app.selected)
+                                        .selection_color(Color::LightYellow)
+                                        .selection_symbol(">")
+                                        .render(&chunks[0], t);
+                                    List::default()
+                                        .block(Block::default().borders(border::ALL).title("List"))
+                                        .items(&app.items2)
+                                        .render(&chunks[1], t);
+                                })
+                        });
                     if app.show_chart {
                         Chart::default()
                             .block(Block::default().title("Chart"))
