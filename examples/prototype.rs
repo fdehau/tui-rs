@@ -74,7 +74,6 @@ impl Iterator for SinSignal {
 }
 
 struct App<'a> {
-    name: String,
     items: Vec<&'a str>,
     items2: Vec<&'a str>,
     selected: usize,
@@ -114,7 +113,6 @@ fn main() {
     let mut sin_signal2 = SinSignal::new(2.0, 10.0);
 
     let mut app = App {
-        name: String::from("Test app"),
         items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
                     "Item9", "Item10"],
         items2: vec!["Event1", "Event2", "Event3", "Event4", "Event5", "Event6", "Event7",
@@ -145,7 +143,7 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
 
-    for i in 0..20 {
+    for _ in 0..20 {
         sin_signal.next();
         sin_signal2.next();
     }
@@ -165,7 +163,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
+            thread::sleep(time::Duration::from_millis(1000));
         }
     });
 
@@ -237,7 +235,7 @@ fn draw(t: &mut Terminal, app: &App) {
     Group::default()
         .direction(Direction::Vertical)
         .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(5)])
+        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(7)])
         .render(t, &size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
@@ -319,8 +317,14 @@ fn draw(t: &mut Terminal, app: &App) {
                 });
             Text::default()
                 .block(Block::default().borders(border::ALL).title("Footer"))
+                .wrap(true)
                 .fg(app.colors[app.color_index])
-                .text("日本国 UTF-8 charaters")
+                .text("This a paragraph with several lines.\nYou can change the color.\nUse \
+                       \\{[color] [text]} to highlight the text with the color. For example, \
+                       {red u}{green n}{yellow d}{magenta e}{cyan r} {gray t}{light_gray \
+                       h}{light_red e} {light_green r}{light_yellow a}{light_magenta \
+                       i}{light_cyan n}{white b}{red o}{green w}.\nOh, and if you didn't notice \
+                       you can automatically wrap your text =).")
                 .render(&chunks[2], t);
         });
 }
