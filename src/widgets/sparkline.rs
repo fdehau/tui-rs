@@ -72,10 +72,11 @@ impl<'a> Widget<'a> for Sparkline<'a> {
             let max_index = min(spark_area.width as usize, self.data.len());
             let mut data = self.data
                 .iter()
+                .take(max_index)
                 .map(|e| e * spark_area.height as u64 * 8 / max)
                 .collect::<Vec<u64>>();
             for j in (0..spark_area.height).rev() {
-                for (i, d) in data.iter_mut().take(max_index).enumerate() {
+                for (i, d) in data.iter_mut().enumerate() {
                     let symbol = match *d {
                         0 => " ",
                         1 => bar::ONE_EIGHTH,

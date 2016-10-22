@@ -1,3 +1,6 @@
+use std::cmp::min;
+use std::usize;
+
 use unicode_segmentation::UnicodeSegmentation;
 
 use layout::Rect;
@@ -115,13 +118,23 @@ impl<'a> Buffer<'a> {
     }
 
     pub fn set_string(&mut self, x: u16, y: u16, string: &'a str, fg: Color, bg: Color) {
+        self.set_characters(x, y, string, usize::MAX, fg, bg);
+    }
+
+    pub fn set_characters(&mut self,
+                          x: u16,
+                          y: u16,
+                          string: &'a str,
+                          limit: usize,
+                          fg: Color,
+                          bg: Color) {
         let index = self.index_of(x, y);
         if index.is_none() {
             return;
         }
         let mut index = index.unwrap();
         let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
-        let max_index = (self.area.width - x) as usize;
+        let max_index = min((self.area.width - x) as usize, limit);
         for s in graphemes.iter().take(max_index) {
             self.content[index].symbol = s;
             self.content[index].fg = fg;
@@ -129,6 +142,7 @@ impl<'a> Buffer<'a> {
             index += 1;
         }
     }
+
 
     pub fn update_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
         if let Some(i) = self.index_of(x, y) {

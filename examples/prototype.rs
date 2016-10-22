@@ -21,7 +21,8 @@ use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
-use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset};
+use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
+                   BarChart};
 use tui::layout::{Group, Direction, Alignment, Size};
 use tui::style::Color;
 
@@ -82,6 +83,7 @@ struct App<'a> {
     data: Vec<u64>,
     data2: Vec<(f64, f64)>,
     data3: Vec<(f64, f64)>,
+    data4: Vec<(&'a str, u64)>,
     window: [f64; 2],
     colors: [Color; 2],
     color_index: usize,
@@ -124,6 +126,18 @@ fn main() {
         data: rand_signal.clone().take(200).collect(),
         data2: sin_signal.clone().take(20).collect(),
         data3: sin_signal2.clone().take(20).collect(),
+        data4: vec![("B1", 9),
+                    ("B2", 12),
+                    ("B3", 5),
+                    ("B4", 8),
+                    ("B5", 2),
+                    ("B6", 4),
+                    ("B7", 5),
+                    ("B8", 9),
+                    ("B9", 14),
+                    ("B10", 15),
+                    ("B11", 1),
+                    ("B12", 0)],
         window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
@@ -151,7 +165,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(200));
+            thread::sleep(time::Duration::from_millis(500));
         }
     });
 
@@ -196,6 +210,8 @@ fn main() {
                 app.data2.push(sin_signal.next().unwrap());
                 app.data3.remove(0);
                 app.data3.push(sin_signal2.next().unwrap());
+                let i = app.data4.pop().unwrap();
+                app.data4.insert(0, i);
                 app.window[0] += 1.0;
                 app.window[1] += 1.0;
                 app.selected += 1;
@@ -270,7 +286,16 @@ fn draw(t: &mut Terminal, app: &App) {
                                         .block(Block::default().borders(border::ALL).title("List"))
                                         .items(&app.items2)
                                         .render(&chunks[1], t);
-                                })
+                                });
+                            BarChart::default()
+                                .block(Block::default().borders(border::ALL).title("Bar chart"))
+                                .data(&app.data4)
+                                .bar_width(3)
+                                .bar_gap(2)
+                                .bar_color(Color::LightGreen)
+                                .value_color(Color::Black)
+                                .label_color(Color::LightYellow)
+                                .render(&chunks[1], t);
                         });
                     if app.show_chart {
                         Chart::default()
