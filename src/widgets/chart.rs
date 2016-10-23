@@ -160,8 +160,11 @@ impl<'a> Chart<'a> {
 
     fn layout(&self, inner: &Rect, outer: &Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
+        if inner.height == 0 || inner.width == 0 {
+            return layout;
+        }
         let mut x = inner.x - outer.x;
-        let mut y = inner.height - 1 + (inner.y - outer.y);
+        let mut y = inner.height + (inner.y - outer.y) - 1;
 
         if self.x_axis.labels.is_some() && y > 1 {
             layout.label_x = Some(y);
@@ -215,6 +218,9 @@ impl<'a> Widget<'a> for Chart<'a> {
         };
 
         let layout = self.layout(&chart_area, area);
+        if layout.graph_area.width == 0 || layout.graph_area.height == 0 {
+            return buf;
+        }
         let width = layout.graph_area.width;
         let height = layout.graph_area.height;
         let margin_x = layout.graph_area.x - area.x;

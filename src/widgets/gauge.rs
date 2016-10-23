@@ -23,8 +23,8 @@ pub struct Gauge<'a> {
     block: Option<Block<'a>>,
     percent: u16,
     percent_string: String,
-    fg: Color,
-    bg: Color,
+    color: Color,
+    background_color: Color,
 }
 
 impl<'a> Default for Gauge<'a> {
@@ -33,8 +33,8 @@ impl<'a> Default for Gauge<'a> {
             block: None,
             percent: 0,
             percent_string: String::from("0%"),
-            bg: Color::Reset,
-            fg: Color::Reset,
+            color: Color::Reset,
+            background_color: Color::Reset,
         }
     }
 }
@@ -51,13 +51,13 @@ impl<'a> Gauge<'a> {
         self
     }
 
-    pub fn bg(&mut self, bg: Color) -> &mut Gauge<'a> {
-        self.bg = bg;
+    pub fn color(&mut self, color: Color) -> &mut Gauge<'a> {
+        self.color = color;
         self
     }
 
-    pub fn fg(&mut self, fg: Color) -> &mut Gauge<'a> {
-        self.fg = fg;
+    pub fn background_color(&mut self, color: Color) -> &mut Gauge<'a> {
+        self.background_color = color;
         self
     }
 }
@@ -76,15 +76,23 @@ impl<'a> Widget<'a> for Gauge<'a> {
             // Gauge
             let width = (gauge_area.width * self.percent) / 100;
             for i in 0..width {
-                buf.update_cell(margin_x + i, margin_y, " ", self.fg, self.bg);
+                buf.update_cell(margin_x + i,
+                                margin_y,
+                                " ",
+                                self.color,
+                                self.background_color);
             }
             // Label
             let len = self.percent_string.len() as u16;
             let middle = gauge_area.width / 2 - len / 2;
-            buf.set_string(middle, margin_y, &self.percent_string, self.bg, self.fg);
+            buf.set_string(middle,
+                           margin_y,
+                           &self.percent_string,
+                           self.background_color,
+                           self.color);
             let bound = max(middle, min(middle + len, width));
             for i in middle..bound {
-                buf.update_colors(margin_x + i, margin_y, self.fg, self.bg);
+                buf.update_colors(margin_x + i, margin_y, self.color, self.background_color);
             }
         }
         buf

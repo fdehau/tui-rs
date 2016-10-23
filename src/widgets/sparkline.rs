@@ -8,9 +8,9 @@ use symbols::bar;
 
 pub struct Sparkline<'a> {
     block: Option<Block<'a>>,
-    fg: Color,
-    bg: Color,
-    data: Vec<u64>,
+    color: Color,
+    background_color: Color,
+    data: &'a [u64],
     max: Option<u64>,
 }
 
@@ -18,9 +18,9 @@ impl<'a> Default for Sparkline<'a> {
     fn default() -> Sparkline<'a> {
         Sparkline {
             block: None,
-            fg: Color::Reset,
-            bg: Color::Reset,
-            data: Vec::new(),
+            color: Color::Reset,
+            background_color: Color::Reset,
+            data: &[],
             max: None,
         }
     }
@@ -32,19 +32,19 @@ impl<'a> Sparkline<'a> {
         self
     }
 
-    pub fn fg(&mut self, fg: Color) -> &mut Sparkline<'a> {
-        self.fg = fg;
+    pub fn color(&mut self, color: Color) -> &mut Sparkline<'a> {
+        self.color = color;
         self
     }
 
-    pub fn bg(&mut self, bg: Color) -> &mut Sparkline<'a> {
-        self.bg = bg;
+    pub fn background_color(&mut self, color: Color) -> &mut Sparkline<'a> {
+        self.background_color = color;
         self
     }
 
 
-    pub fn data(&mut self, data: &[u64]) -> &mut Sparkline<'a> {
-        self.data = data.to_vec();
+    pub fn data(&mut self, data: &'a [u64]) -> &mut Sparkline<'a> {
+        self.data = data;
         self
     }
 
@@ -88,7 +88,11 @@ impl<'a> Widget<'a> for Sparkline<'a> {
                         7 => bar::SEVEN_EIGHTHS,
                         _ => bar::FULL,
                     };
-                    buf.update_cell(margin_x + i as u16, margin_y + j, symbol, self.fg, self.bg);
+                    buf.update_cell(margin_x + i as u16,
+                                    margin_y + j,
+                                    symbol,
+                                    self.color,
+                                    self.background_color);
 
                     if *d > 8 {
                         *d -= 8;

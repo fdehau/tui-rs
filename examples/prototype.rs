@@ -23,7 +23,7 @@ use log4rs::config::{Appender, Config, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart};
-use tui::layout::{Group, Direction, Alignment, Size};
+use tui::layout::{Group, Direction, Size};
 use tui::style::Color;
 
 #[derive(Clone)]
@@ -234,44 +234,41 @@ fn draw(t: &mut Terminal, app: &App) {
 
     Group::default()
         .direction(Direction::Vertical)
-        .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(7)])
+        .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
         .render(t, &size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
-                .alignment(Alignment::Left)
                 .margin(1)
-                .chunks(&[Size::Fixed(2), Size::Fixed(3)])
+                .sizes(&[Size::Fixed(2), Size::Fixed(3)])
                 .render(t, &chunks[0], |t, chunks| {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
-                        .bg(Color::Magenta)
+                        .background_color(Color::Magenta)
                         .percent(app.progress)
                         .render(&chunks[0], t);
                     Sparkline::default()
                         .block(Block::default().title("Sparkline:"))
-                        .fg(Color::Green)
+                        .color(Color::Green)
                         .data(&app.data)
                         .render(&chunks[1], t);
                 });
             let sizes = if app.show_chart {
-                vec![Size::Max(40), Size::Min(20)]
+                vec![Size::Percent(50), Size::Percent(50)]
             } else {
-                vec![Size::Max(40)]
+                vec![Size::Percent(100)]
             };
             Group::default()
                 .direction(Direction::Horizontal)
-                .alignment(Alignment::Left)
-                .chunks(&sizes)
+                .sizes(&sizes)
                 .render(t, &chunks[1], |t, chunks| {
                     Group::default()
                         .direction(Direction::Vertical)
-                        .chunks(&[Size::Min(20), Size::Max(40)])
+                        .sizes(&[Size::Percent(50), Size::Percent(50)])
                         .render(t, &chunks[0], |t, chunks| {
                             Group::default()
                                 .direction(Direction::Horizontal)
-                                .chunks(&[Size::Max(20), Size::Min(0)])
+                                .sizes(&[Size::Percent(50), Size::Percent(50)])
                                 .render(t, &chunks[0], |t, chunks| {
                                     List::default()
                                         .block(Block::default().borders(border::ALL).title("List"))
