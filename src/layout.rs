@@ -6,7 +6,6 @@ use cassowary::WeightedRelation::*;
 use cassowary::strength::{REQUIRED, WEAK};
 
 use terminal::Terminal;
-use util::hash;
 
 #[derive(Hash, PartialEq)]
 pub enum Direction {
@@ -45,6 +44,22 @@ impl Rect {
 
     pub fn area(&self) -> u16 {
         self.width * self.height
+    }
+
+    pub fn left(&self) -> u16 {
+        self.x
+    }
+
+    pub fn right(&self) -> u16 {
+        self.x + self.width
+    }
+
+    pub fn top(&self) -> u16 {
+        self.y
+    }
+
+    pub fn bottom(&self) -> u16 {
+        self.y + self.height
     }
 
     pub fn inner(&self, margin: u16) -> Rect {
@@ -209,7 +224,6 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
             _ => {}
         }
     }
-    info!("{:?}, {:?}", results, dest_area);
     results
 }
 
@@ -233,9 +247,9 @@ impl Element {
 
 #[derive(Hash)]
 pub struct Group {
-    direction: Direction,
-    margin: u16,
-    sizes: Vec<Size>,
+    pub direction: Direction,
+    pub margin: u16,
+    pub sizes: Vec<Size>,
 }
 
 impl Default for Group {
@@ -266,16 +280,7 @@ impl Group {
     pub fn render<F>(&self, t: &mut Terminal, area: &Rect, mut f: F)
         where F: FnMut(&mut Terminal, &[Rect])
     {
-        let hash = hash(self, area);
-        let (cache_update, chunks) = match t.get_layout(hash) {
-            Some(chs) => (false, chs.to_vec()),
-            None => (true, split(area, &self.direction, self.margin, &self.sizes)),
-        };
-
+        let chunks = t.compute_layout(self, area);
         f(t, &chunks);
-
-        if cache_update {
-            t.set_layout(hash, chunks);
-        }
     }
 }

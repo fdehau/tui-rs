@@ -54,17 +54,18 @@ impl<'a> Sparkline<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Sparkline<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
-        let (mut buf, spark_area) = match self.block {
-            Some(ref b) => (b.buffer(area), b.inner(*area)),
-            None => (Buffer::empty(*area), *area),
+impl<'a> Widget for Sparkline<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+        let spark_area = match self.block {
+            Some(ref b) => {
+                b.buffer(area, buf);
+                b.inner(area)
+            }
+            None => *area,
         };
         if spark_area.height < 1 {
-            return buf;
+            return;
         } else {
-            let margin_x = spark_area.x - area.x;
-            let margin_y = spark_area.y - area.y;
             let max = match self.max {
                 Some(v) => v,
                 None => *self.data.iter().max().unwrap_or(&1u64),
@@ -88,8 +89,8 @@ impl<'a> Widget<'a> for Sparkline<'a> {
                         7 => bar::SEVEN_EIGHTHS,
                         _ => bar::FULL,
                     };
-                    buf.update_cell(margin_x + i as u16,
-                                    margin_y + j,
+                    buf.update_cell(spark_area.left() + i as u16,
+                                    spark_area.top() + j,
                                     symbol,
                                     self.color,
                                     self.background_color);
@@ -102,6 +103,5 @@ impl<'a> Widget<'a> for Sparkline<'a> {
                 }
             }
         }
-        buf
     }
 }

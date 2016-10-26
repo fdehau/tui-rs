@@ -31,9 +31,11 @@ pub mod border {
     }
 }
 
-pub trait Widget<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a>;
-    fn render(&'a self, area: &Rect, t: &mut Terminal) {
-        t.render_buffer(self.buffer(area));
+pub trait Widget {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer);
+    fn render(&self, area: &Rect, t: &mut Terminal)
+        where Self: Sized
+    {
+        t.render(self, area);
     }
 }

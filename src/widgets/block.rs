@@ -52,11 +52,11 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn inner(&self, area: Rect) -> Rect {
+    pub fn inner(&self, area: &Rect) -> Rect {
         if area.width < 2 || area.height < 2 {
             return Rect::default();
         }
-        let mut inner = area;
+        let mut inner = *area;
         if self.borders.intersects(border::LEFT) {
             inner.x += 1;
             inner.width -= 1;
@@ -75,60 +75,61 @@ impl<'a> Block<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Block<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
-
-        let mut buf = Buffer::empty(*area);
+impl<'a> Widget for Block<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
 
         if area.width < 2 || area.height < 2 {
-            return buf;
+            return;
         }
 
         // Sides
         if self.borders.intersects(border::LEFT) {
-            for y in 0..area.height {
-                buf.update_cell(0, y, line::VERTICAL, self.border_color, self.bg);
+            for y in area.top()..area.bottom() {
+                buf.update_cell(area.left(), y, line::VERTICAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::TOP) {
-            for x in 0..area.width {
-                buf.update_cell(x, 0, line::HORIZONTAL, self.border_color, self.bg);
+            for x in area.left()..area.right() {
+                buf.update_cell(x, area.top(), line::HORIZONTAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::RIGHT) {
-            let x = area.width - 1;
-            for y in 0..area.height {
+            let x = area.right() - 1;
+            for y in area.top()..area.bottom() {
                 buf.update_cell(x, y, line::VERTICAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::BOTTOM) {
-            let y = area.height - 1;
-            for x in 0..area.width {
+            let y = area.bottom() - 1;
+            for x in area.left()..area.right() {
                 buf.update_cell(x, y, line::HORIZONTAL, self.border_color, self.bg);
             }
         }
 
         // Corners
         if self.borders.contains(border::LEFT | border::TOP) {
-            buf.set_symbol(0, 0, line::TOP_LEFT);
+            buf.set_symbol(area.left(), area.top(), line::TOP_LEFT);
         }
         if self.borders.contains(border::RIGHT | border::TOP) {
-            buf.set_symbol(area.width - 1, 0, line::TOP_RIGHT);
+            buf.set_symbol(area.right() - 1, area.top(), line::TOP_RIGHT);
         }
-        if self.borders.contains(border::BOTTOM | border::LEFT) {
-            buf.set_symbol(0, area.height - 1, line::BOTTOM_LEFT);
+        if self.borders.contains(border::LEFT | border::BOTTOM) {
+            buf.set_symbol(area.left(), area.bottom() - 1, line::BOTTOM_LEFT);
         }
-        if self.borders.contains(border::BOTTOM | border::RIGHT) {
-            buf.set_symbol(area.width - 1, area.height - 1, line::BOTTOM_RIGHT);
+        if self.borders.contains(border::RIGHT | border::BOTTOM) {
+            buf.set_symbol(area.right() - 1, area.bottom() - 1, line::BOTTOM_RIGHT);
         }
         if let Some(title) = self.title {
-            let margin_x = if self.borders.intersects(border::LEFT) {
+            let dx = if self.borders.intersects(border::LEFT) {
                 1
             } else {
                 0
             };
-            buf.set_string(margin_x, 0, title, self.title_color, self.bg);
+            buf.set_string(area.left() + dx,
+                           area.top(),
+                           title,
+                           self.title_color,
+                           self.bg);
         }
-        buf
     }
 }

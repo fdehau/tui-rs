@@ -108,6 +108,7 @@ impl<'a> Default for Chart<'a> {
     }
 }
 
+#[derive(Debug)]
 struct ChartLayout {
     legend_x: Option<(u16, u16)>,
     legend_y: Option<(u16, u16)>,
@@ -158,39 +159,39 @@ impl<'a> Chart<'a> {
         self
     }
 
-    fn layout(&self, inner: &Rect, outer: &Rect) -> ChartLayout {
+    fn layout(&self, area: &Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
-        if inner.height == 0 || inner.width == 0 {
+        if area.height == 0 || area.width == 0 {
             return layout;
         }
-        let mut x = inner.x - outer.x;
-        let mut y = inner.height + (inner.y - outer.y) - 1;
+        let mut x = area.left();
+        let mut y = area.bottom() - 1;
 
-        if self.x_axis.labels.is_some() && y > 1 {
+        if self.x_axis.labels.is_some() && y > area.top() {
             layout.label_x = Some(y);
             y -= 1;
         }
 
         if let Some(labels) = self.y_axis.labels {
             let max_width = labels.iter().fold(0, |acc, l| max(l.width(), acc)) as u16;
-            if x + max_width < inner.width {
+            if x + max_width < area.right() {
                 layout.label_y = Some(x);
                 x += max_width;
             }
         }
 
-        if self.x_axis.labels.is_some() && y > 1 {
+        if self.x_axis.labels.is_some() && y > area.top() {
             layout.axis_x = Some(y);
             y -= 1;
         }
 
-        if self.y_axis.labels.is_some() && x + 1 < inner.width {
+        if self.y_axis.labels.is_some() && x + 1 < area.right() {
             layout.axis_y = Some(x);
             x += 1;
         }
 
-        if x < inner.width && y > 1 {
-            layout.graph_area = Rect::new(outer.x + x, inner.y, inner.width - x, y);
+        if x < area.right() && y > 1 {
+            layout.graph_area = Rect::new(x, area.top(), area.right() - x, y - area.top() + 1);
         }
 
         if let Some(title) = self.x_axis.title {
@@ -203,28 +204,28 @@ impl<'a> Chart<'a> {
         if let Some(title) = self.y_axis.title {
             let w = title.width() as u16;
             if w + 1 < layout.graph_area.width && layout.graph_area.height > 2 {
-                layout.legend_y = Some((x + 1, inner.y - outer.y));
+                layout.legend_y = Some((x + 1, area.top()));
             }
         }
         layout
     }
 }
 
-impl<'a> Widget<'a> for Chart<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
-        let (mut buf, chart_area) = match self.block {
-            Some(ref b) => (b.buffer(area), b.inner(*area)),
-            None => (Buffer::empty(*area), *area),
+impl<'a> Widget for Chart<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+        let chart_area = match self.block {
+            Some(ref b) => {
+                b.buffer(area, buf);
+                b.inner(area)
+            }
+            None => *area,
         };
 
-        let layout = self.layout(&chart_area, area);
-        if layout.graph_area.width == 0 || layout.graph_area.height == 0 {
-            return buf;
+        let layout = self.layout(&chart_area);
+        let graph_area = layout.graph_area;
+        if graph_area.width == 0 || graph_area.height == 0 {
+            return;
         }
-        let width = layout.graph_area.width;
-        let height = layout.graph_area.height;
-        let margin_x = layout.graph_area.x - area.x;
-        let margin_y = layout.graph_area.y - area.y;
 
         if let Some((x, y)) = layout.legend_x {
             let title = self.x_axis.title.unwrap();
@@ -240,9 +241,10 @@ impl<'a> Widget<'a> for Chart<'a> {
             let labels = self.x_axis.labels.unwrap();
             let total_width = labels.iter().fold(0, |acc, l| l.width() + acc) as u16;
             let labels_len = labels.len() as u16;
-            if total_width < width && labels_len > 1 {
+            if total_width < graph_area.width && labels_len > 1 {
                 for (i, label) in labels.iter().enumerate() {
-                    buf.set_string(margin_x + i as u16 * (width - 1) / (labels_len - 1) -
+                    buf.set_string(graph_area.left() +
+                                   i as u16 * (graph_area.width - 1) / (labels_len - 1) -
                                    label.width() as u16,
                                    y,
                                    label,
@@ -256,9 +258,10 @@ impl<'a> Widget<'a> for Chart<'a> {
             let labels = self.y_axis.labels.unwrap();
             let labels_len = labels.len() as u16;
             if labels_len > 1 {
-                for (i, label) in labels.iter().rev().enumerate() {
+                for (i, label) in labels.iter().enumerate() {
                     buf.set_string(x,
-                                   margin_y + i as u16 * (height - 1) / (labels_len - 1),
+                                   graph_area.bottom() -
+                                   i as u16 * (graph_area.height - 1) / (labels_len - 1),
                                    label,
                                    self.y_axis.labels_color,
                                    self.bg);
@@ -267,22 +270,14 @@ impl<'a> Widget<'a> for Chart<'a> {
         }
 
         if let Some(y) = layout.axis_x {
-            for x in 0..width {
-                buf.update_cell(margin_x + x,
-                                y,
-                                symbols::line::HORIZONTAL,
-                                self.x_axis.color,
-                                self.bg);
+            for x in graph_area.left()..graph_area.right() {
+                buf.update_cell(x, y, symbols::line::HORIZONTAL, self.x_axis.color, self.bg);
             }
         }
 
         if let Some(x) = layout.axis_y {
-            for y in 0..height {
-                buf.update_cell(x,
-                                margin_y + y,
-                                symbols::line::VERTICAL,
-                                self.y_axis.color,
-                                self.bg);
+            for y in graph_area.top()..graph_area.bottom() {
+                buf.update_cell(x, y, symbols::line::VERTICAL, self.y_axis.color, self.bg);
             }
         }
 
@@ -298,17 +293,16 @@ impl<'a> Widget<'a> for Chart<'a> {
                    y < self.y_axis.bounds[0] || y > self.y_axis.bounds[1] {
                     continue;
                 }
-                let dy = (self.y_axis.bounds[1] - y) * height as f64 /
+                let dy = (self.y_axis.bounds[1] - y) * graph_area.height as f64 /
                          (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
-                let dx = (self.x_axis.bounds[1] - x) * width as f64 /
+                let dx = (self.x_axis.bounds[1] - x) * graph_area.width as f64 /
                          (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
-                buf.update_cell(dx as u16 + margin_x,
-                                dy as u16 + margin_y,
+                buf.update_cell(dx as u16 + graph_area.left(),
+                                dy as u16 + graph_area.top(),
                                 symbols::BLACK_CIRCLE,
                                 dataset.color,
                                 self.bg);
             }
         }
-        buf
     }
 }

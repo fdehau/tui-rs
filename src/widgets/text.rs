@@ -148,19 +148,20 @@ impl<'a> Iterator for Parser<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Text<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
-        let (mut buf, text_area) = match self.block {
-            Some(ref b) => (b.buffer(area), b.inner(*area)),
-            None => (Buffer::empty(*area), *area),
+impl<'a> Widget for Text<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+        let text_area = match self.block {
+            Some(ref b) => {
+                b.buffer(area, buf);
+                b.inner(area)
+            }
+            None => *area,
         };
 
         if text_area.height < 1 {
-            return buf;
+            return;
         }
 
-        let margin_x = text_area.x - area.x;
-        let margin_y = text_area.y - area.y;
         let mut x = 0;
         let mut y = 0;
         for (s, c) in Parser::new(self.text) {
@@ -181,16 +182,15 @@ impl<'a> Widget<'a> for Text<'a> {
                 break;
             }
 
-            buf.update_cell(margin_x + x, margin_y + y, s, c, self.bg);
+            buf.update_cell(text_area.left() + x, text_area.top() + y, s, c, self.bg);
             x += 1;
         }
 
         for &(x, y, width, fg, bg) in self.colors {
             for i in 0..width {
-                buf.set_fg(x + i, y + margin_y, fg);
-                buf.set_bg(x + i, y + margin_y, bg);
+                buf.set_fg(x + i, y + text_area.top(), fg);
+                buf.set_bg(x + i, y + text_area.top(), bg);
             }
         }
-        buf
     }
 }

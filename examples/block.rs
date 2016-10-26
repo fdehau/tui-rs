@@ -6,8 +6,9 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::Terminal;
-use tui::widgets::{Widget, Block};
-use tui::layout::{Group, Direction, Alignment, Size};
+use tui::widgets::{Widget, Block, border};
+use tui::layout::{Group, Direction, Size};
+use tui::style::Color;
 
 fn main() {
     let mut terminal = Terminal::new().unwrap();
@@ -28,14 +29,16 @@ fn draw(t: &mut Terminal) {
 
     Group::default()
         .direction(Direction::Vertical)
-        .alignment(Alignment::Left)
-        .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
+        .sizes(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
         .render(t, &Terminal::size().unwrap(), |t, chunks| {
-            Block::default().title("Block").render(&chunks[0], t);
+            Block::default()
+                .title("Block")
+                .title_color(Color::Red)
+                .borders(border::ALL)
+                .render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
-                .alignment(Alignment::Left)
-                .chunks(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
+                .sizes(&[Size::Fixed(7), Size::Min(5), Size::Fixed(3)])
                 .render(t, &chunks[1], |t, chunks| {
                     Block::default().title("Block").render(&chunks[0], t);
                 });

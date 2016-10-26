@@ -1,6 +1,6 @@
 use termion;
 
-#[derive(Debug, Clone, Copy, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {
     Reset,
     Black,

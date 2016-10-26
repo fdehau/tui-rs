@@ -77,19 +77,20 @@ impl<'a> BarChart<'a> {
     }
 }
 
-impl<'a> Widget<'a> for BarChart<'a> {
-    fn buffer(&'a self, area: &Rect) -> Buffer<'a> {
-        let (mut buf, chart_area) = match self.block {
-            Some(ref b) => (b.buffer(area), b.inner(*area)),
-            None => (Buffer::empty(*area), *area),
+impl<'a> Widget for BarChart<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+        let chart_area = match self.block {
+            Some(ref b) => {
+                b.buffer(area, buf);
+                b.inner(area)
+            }
+            None => *area,
         };
 
         if chart_area.height < 1 {
-            return buf;
+            return;
         }
 
-        let margin_x = chart_area.x - area.x;
-        let margin_y = chart_area.y - area.y;
         let max = self.max.unwrap_or(self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
         let max_index = min((chart_area.width / (self.bar_width + self.bar_gap)) as usize,
                             self.data.len());
@@ -113,8 +114,9 @@ impl<'a> Widget<'a> for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.update_cell(margin_x + i as u16 * (self.bar_width + self.bar_gap) + x,
-                                    margin_y + j,
+                    buf.update_cell(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
+                                    x,
+                                    chart_area.top() + j,
                                     symbol,
                                     self.bar_color,
                                     Color::Reset);
@@ -134,22 +136,20 @@ impl<'a> Widget<'a> for BarChart<'a> {
                 let value_label = &self.values[i];
                 let width = value_label.width() as u16;
                 if width < self.bar_width {
-                    buf.set_string(margin_x + i as u16 * (self.bar_width + self.bar_gap) +
+                    buf.set_string(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
                                    (self.bar_width - width) / 2,
-                                   chart_area.height - 1,
+                                   chart_area.bottom() - 2,
                                    value_label,
                                    self.value_color,
                                    self.bar_color);
                 }
             }
-            buf.set_characters(margin_x + i as u16 * (self.bar_width + self.bar_gap),
-                               chart_area.height,
+            buf.set_characters(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap),
+                               chart_area.bottom() - 1,
                                label,
                                self.bar_width as usize,
                                self.label_color,
                                Color::Reset);
         }
-
-        buf
     }
 }

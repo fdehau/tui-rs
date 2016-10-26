@@ -23,7 +23,7 @@ use log4rs::config::{Appender, Config, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
 #[derive(Clone)]
@@ -74,6 +74,7 @@ impl Iterator for SinSignal {
 }
 
 struct App<'a> {
+    size: Rect,
     items: Vec<&'a str>,
     items2: Vec<&'a str>,
     selected: usize,
@@ -113,11 +114,12 @@ fn main() {
     let mut sin_signal2 = SinSignal::new(2.0, 10.0);
 
     let mut app = App {
+        size: Rect::default(),
         items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
                     "Item9", "Item10"],
         items2: vec!["Event1", "Event2", "Event3", "Event4", "Event5", "Event6", "Event7",
                      "Event8", "Event9", "Event10", "Event11", "Event12", "Event13", "Event14",
-                     "Event15", "Event16", "Event17"],
+                     "Event15", "Event16", "Event17", "Event18", "Event19"],
         selected: 0,
         show_chart: true,
         progress: 0,
@@ -135,7 +137,10 @@ fn main() {
                     ("B9", 14),
                     ("B10", 15),
                     ("B11", 1),
-                    ("B12", 0)],
+                    ("B12", 0),
+                    ("B13", 4),
+                    ("B14", 6),
+                    ("B15", 4)],
         window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
@@ -163,7 +168,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(1000));
+            thread::sleep(time::Duration::from_millis(100));
         }
     });
 
@@ -172,7 +177,11 @@ fn main() {
     terminal.hide_cursor();
 
     loop {
-        terminal.clear();
+        let size = Terminal::size().unwrap();
+        if size != app.size {
+            terminal.resize(size);
+            app.size = size;
+        }
         draw(&mut terminal, &app);
         let evt = rx.recv().unwrap();
         match evt {
@@ -212,10 +221,6 @@ fn main() {
                 app.data4.insert(0, i);
                 app.window[0] += 1.0;
                 app.window[1] += 1.0;
-                app.selected += 1;
-                if app.selected >= app.items.len() {
-                    app.selected = 0;
-                }
                 let i = app.items2.pop().unwrap();
                 app.items2.insert(0, i);
                 app.color_index += 1;
@@ -230,12 +235,11 @@ fn main() {
 
 fn draw(t: &mut Terminal, app: &App) {
 
-    let size = Terminal::size().unwrap();
 
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
@@ -244,7 +248,7 @@ fn draw(t: &mut Terminal, app: &App) {
                 .render(t, &chunks[0], |t, chunks| {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
-                        .background_color(Color::Magenta)
+                        .color(Color::Magenta)
                         .percent(app.progress)
                         .render(&chunks[0], t);
                     Sparkline::default()
@@ -274,7 +278,7 @@ fn draw(t: &mut Terminal, app: &App) {
                                         .block(Block::default().borders(border::ALL).title("List"))
                                         .items(&app.items)
                                         .select(app.selected)
-                                        .selection_color(Color::LightYellow)
+                                        .selection_color(Color::Yellow)
                                         .selection_symbol(">")
                                         .render(&chunks[0], t);
                                     List::default()
@@ -287,9 +291,9 @@ fn draw(t: &mut Terminal, app: &App) {
                                 .data(&app.data4)
                                 .bar_width(3)
                                 .bar_gap(2)
-                                .bar_color(Color::LightGreen)
+                                .bar_color(Color::Green)
                                 .value_color(Color::Black)
-                                .label_color(Color::LightYellow)
+                                .label_color(Color::Yellow)
                                 .render(&chunks[1], t);
                         });
                     if app.show_chart {
@@ -324,4 +328,5 @@ fn draw(t: &mut Terminal, app: &App) {
                        you can automatically wrap your text =).")
                 .render(&chunks[2], t);
         });
+    t.finish();
 }
