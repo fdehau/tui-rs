@@ -11,12 +11,16 @@ use widgets::Widget;
 use style::Color;
 use util::hash;
 
+pub struct LayoutEntry {
+    chunks: Vec<Rect>,
+    hot: bool,
+}
+
 pub struct Terminal {
     stdout: RawTerminal<io::Stdout>,
-    layout_cache: HashMap<u64, Vec<Rect>>,
-    layout_queue: Vec<(u64, Vec<Rect>)>,
-    previous: Buffer,
-    current: Buffer,
+    layout_cache: HashMap<u64, LayoutEntry>,
+    buffers: [Buffer; 2],
+    current: usize,
 }
 
 impl Terminal {
@@ -26,9 +30,8 @@ impl Terminal {
         Ok(Terminal {
             stdout: stdout,
             layout_cache: HashMap::new(),
-            layout_queue: Vec::new(),
-            previous: Buffer::empty(size),
-            current: Buffer::empty(size),
+            buffers: [Buffer::empty(size), Buffer::empty(size)],
+            current: 0,
         })
     }
 
@@ -44,23 +47,30 @@ impl Terminal {
 
     pub fn compute_layout(&mut self, group: &Group, area: &Rect) -> Vec<Rect> {
         let hash = hash(group, area);
-        let chunks = match self.layout_cache.get(&hash) {
-            Some(chunks) => chunks.clone(),
-            None => split(area, &group.direction, group.margin, &group.sizes),
-        };
-        self.layout_queue.push((hash, chunks.clone()));
-        chunks
+        let entry = self.layout_cache
+            .entry(hash)
+            .or_insert({
+                let chunks = split(area, &group.direction, group.margin, &group.sizes);
+                LayoutEntry {
+                    chunks: chunks,
+                    hot: true,
+                }
+            });
+        entry.hot = true;
+        entry.chunks.clone()
     }
 
     pub fn draw(&mut self) {
-        let width = self.current.area.width;
-        let mut string = String::with_capacity(self.current.content.len());
+        let width = self.buffers[self.current].area.width;
+        let mut string = String::with_capacity(self.buffers[self.current].content.len());
         let mut fg = Color::Reset;
         let mut bg = Color::Reset;
-        let content = self.current
+        let mut last_y = 0;
+        let mut last_x = 0;
+        let content = self.buffers[self.current]
             .content
             .iter()
-            .zip(self.previous.content.iter())
+            .zip(self.buffers[1 - self.current].content.iter())
             .enumerate()
             .filter_map(|(i, (c, p))| if c != p {
                 let i = i as u16;
@@ -70,33 +80,42 @@ impl Terminal {
             } else {
                 None
             });
+        let mut inst = 0;
         for (x, y, cell) in content {
-            string.push_str(&format!("{}", termion::cursor::Goto(x + 1, y + 1)));
+            if y != last_y || x != last_x + 1 {
+                string.push_str(&format!("{}", termion::cursor::Goto(x + 1, y + 1)));
+                inst += 1;
+            }
+            last_x = x;
+            last_y = y;
             if cell.fg != fg {
                 string.push_str(&cell.fg.fg());
                 fg = cell.fg;
+                inst += 1;
             }
             if cell.bg != bg {
                 string.push_str(&cell.bg.bg());
                 bg = cell.bg;
+                inst += 1;
             }
             string.push_str(&format!("{}", cell.symbol));
+            inst += 1;
         }
         string.push_str(&format!("{}{}", Color::Reset.fg(), Color::Reset.bg()));
-        info!("{}", string.len());
+        info!("{}", inst);
         write!(self.stdout, "{}", string).unwrap();
     }
 
     pub fn render<W>(&mut self, widget: &W, area: &Rect)
         where W: Widget
     {
-        widget.buffer(area, &mut self.current);
+        widget.buffer(area, &mut self.buffers[self.current]);
     }
 
     pub fn resize(&mut self, area: Rect) {
-        self.current.resize(area);
-        self.previous.resize(area);
-        self.previous.reset();
+        self.buffers[self.current].resize(area);
+        self.buffers[1 - self.current].resize(area);
+        self.buffers[1 - self.current].reset();
         self.clear();
     }
 
@@ -105,17 +124,18 @@ impl Terminal {
         // Draw to stdout
         self.draw();
 
-        // Update layout cache
-        self.layout_cache.clear();
-        for (hash, chunks) in self.layout_queue.drain(..) {
-            self.layout_cache.insert(hash, chunks);
+        // Clean layout cache
+        let to_remove = self.layout_cache
+            .iter()
+            .filter_map(|(h, e)| if !e.hot { Some(*h) } else { None })
+            .collect::<Vec<u64>>();
+        for h in to_remove {
+            self.layout_cache.remove(&h);
         }
 
         // Swap buffers
-        for (i, c) in self.current.content.iter().enumerate() {
-            self.previous.content[i] = c.clone();
-        }
-        self.current.reset();
+        self.buffers[1 - self.current].reset();
+        self.current = 1 - self.current;
 
         // Flush
         self.stdout.flush().unwrap();

@@ -8,14 +8,15 @@ use style::Color;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
-    pub symbol: String,
     pub fg: Color,
     pub bg: Color,
+    pub symbol: String,
 }
 
 impl Cell {
     pub fn reset(&mut self) {
-        self.symbol = " ".into();
+        self.symbol.clear();
+        self.symbol.push(' ');
         self.fg = Color::Reset;
         self.bg = Color::Reset;
     }
@@ -93,11 +94,10 @@ impl Buffer {
         self.content[i] = cell;
     }
 
-    pub fn set_symbol<S>(&mut self, x: u16, y: u16, symbol: S)
-        where S: Into<String>
-    {
+    pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &str) {
         let i = self.index_of(x, y);
-        self.content[i].symbol = symbol.into();
+        self.content[i].symbol.clear();
+        self.content[i].symbol.push_str(symbol);
     }
 
     pub fn set_fg(&mut self, x: u16, y: u16, color: Color) {
@@ -124,7 +124,8 @@ impl Buffer {
         let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
         let max_index = min((self.area.width - x) as usize, limit);
         for s in graphemes.into_iter().take(max_index) {
-            self.content[index].symbol = s.into();
+            self.content[index].symbol.clear();
+            self.content[index].symbol.push_str(s);
             self.content[index].fg = fg;
             self.content[index].bg = bg;
             index += 1;
@@ -138,11 +139,10 @@ impl Buffer {
         self.content[i].bg = bg;
     }
 
-    pub fn update_cell<S>(&mut self, x: u16, y: u16, symbol: S, fg: Color, bg: Color)
-        where S: Into<String>
-    {
+    pub fn update_cell(&mut self, x: u16, y: u16, symbol: &str, fg: Color, bg: Color) {
         let i = self.index_of(x, y);
-        self.content[i].symbol = symbol.into();
+        self.content[i].symbol.clear();
+        self.content[i].symbol.push_str(symbol);
         self.content[i].fg = fg;
         self.content[i].bg = bg;
     }
