@@ -83,12 +83,14 @@ impl<'a> Widget for Canvas<'a> {
         let width = canvas_area.width as usize;
         let height = canvas_area.height as usize;
         let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
+        let mut x_bounds = self.x_bounds.clone();
+        x_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let mut y_bounds = self.y_bounds.clone();
+        y_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
         for shape in self.shapes {
-            for &(x, y) in shape.data.iter() {
-                if x < self.x_bounds[0] || x > self.x_bounds[1] || y < self.y_bounds[0] ||
-                   y > self.y_bounds[1] {
-                    continue;
-                }
+            for &(x, y) in shape.data.iter().filter(|&&(x, y)| {
+                !(x < x_bounds[0] || x > x_bounds[1] || y < y_bounds[0] || y > y_bounds[1])
+            }) {
                 let dy = ((self.y_bounds[1] - y) * canvas_area.height as f64 * 4.0 /
                           (self.y_bounds[1] - self.y_bounds[0])) as usize;
                 let dx = ((self.x_bounds[1] - x) * canvas_area.width as f64 * 2.0 /

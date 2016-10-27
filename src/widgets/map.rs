@@ -1,3 +1,41 @@
+use widgets::{Widget, Block, Canvas, Shape};
+use buffer::Buffer;
+use layout::Rect;
+
+pub struct Map<'a> {
+    block: Option<Block<'a>>,
+}
+
+impl<'a> Default for Map<'a> {
+    fn default() -> Map<'a> {
+        Map { block: None }
+    }
+}
+
+impl<'a> Map<'a> {
+    pub fn block(&mut self, block: Block<'a>) -> &mut Map<'a> {
+        self.block = Some(block);
+        self
+    }
+}
+
+impl<'a> Widget for Map<'a> {
+    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+        let map_area = match self.block {
+            Some(b) => {
+                b.buffer(area, buf);
+                b.inner(area)
+            }
+            None => *area,
+        };
+
+        Canvas::default()
+            .x_bounds([180.0, -180.0])
+            .y_bounds([-90.0, 90.0])
+            .shapes(&[Shape::default().data(&WORLD)])
+            .buffer(&map_area, buf);
+    }
+}
 
 const WORLD: [(f64, f64); 1166] = [(-92.32, 48.24),
                                    (-88.13, 48.92),

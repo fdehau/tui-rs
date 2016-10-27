@@ -313,6 +313,7 @@ impl<'a> Widget for Chart<'a> {
                                  (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
                         let dx = (self.x_axis.bounds[1] - x) * graph_area.width as f64 /
                                  (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
+
                         buf.set_cell(dx as u16 + graph_area.left(),
                                      dy as u16 + graph_area.top(),
                                      symbols::BLACK_CIRCLE,
