@@ -114,12 +114,12 @@ impl<'a> Widget for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.update_cell(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
-                                    x,
-                                    chart_area.top() + j,
-                                    symbol,
-                                    self.bar_color,
-                                    Color::Reset);
+                    buf.set_cell(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
+                                 x,
+                                 chart_area.top() + j,
+                                 symbol,
+                                 self.bar_color,
+                                 Color::Reset);
                 }
 
                 if d.1 > 8 {

@@ -182,7 +182,7 @@ impl<'a> Widget for Text<'a> {
                 break;
             }
 
-            buf.update_cell(text_area.left() + x, text_area.top() + y, s, c, self.bg);
+            buf.set_cell(text_area.left() + x, text_area.top() + y, s, c, self.bg);
             x += 1;
         }
 

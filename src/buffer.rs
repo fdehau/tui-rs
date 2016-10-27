@@ -89,11 +89,6 @@ impl Buffer {
         (i as u16 % self.area.width, i as u16 / self.area.width)
     }
 
-    pub fn set(&mut self, x: u16, y: u16, cell: Cell) {
-        let i = self.index_of(x, y);
-        self.content[i] = cell;
-    }
-
     pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &str) {
         let i = self.index_of(x, y);
         self.content[i].symbol.clear();
@@ -133,18 +128,25 @@ impl Buffer {
     }
 
 
-    pub fn update_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
+    pub fn set_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
         let i = self.index_of(x, y);
         self.content[i].fg = fg;
         self.content[i].bg = bg;
     }
 
-    pub fn update_cell(&mut self, x: u16, y: u16, symbol: &str, fg: Color, bg: Color) {
+    pub fn set_cell(&mut self, x: u16, y: u16, symbol: &str, fg: Color, bg: Color) {
         let i = self.index_of(x, y);
         self.content[i].symbol.clear();
         self.content[i].symbol.push_str(symbol);
         self.content[i].fg = fg;
         self.content[i].bg = bg;
+    }
+
+    pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
+        where F: Fn(&mut Cell)
+    {
+        let i = self.index_of(x, y);
+        f(&mut self.content[i]);
     }
 
     pub fn resize(&mut self, area: Rect) {

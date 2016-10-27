@@ -89,11 +89,11 @@ impl<'a> Widget for Sparkline<'a> {
                         7 => bar::SEVEN_EIGHTHS,
                         _ => bar::FULL,
                     };
-                    buf.update_cell(spark_area.left() + i as u16,
-                                    spark_area.top() + j,
-                                    symbol,
-                                    self.color,
-                                    self.background_color);
+                    buf.set_cell(spark_area.left() + i as u16,
+                                 spark_area.top() + j,
+                                 symbol,
+                                 self.color,
+                                 self.background_color);
 
                     if *d > 8 {
                         *d -= 8;

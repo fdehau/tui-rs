@@ -85,24 +85,24 @@ impl<'a> Widget for Block<'a> {
         // Sides
         if self.borders.intersects(border::LEFT) {
             for y in area.top()..area.bottom() {
-                buf.update_cell(area.left(), y, line::VERTICAL, self.border_color, self.bg);
+                buf.set_cell(area.left(), y, line::VERTICAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::TOP) {
             for x in area.left()..area.right() {
-                buf.update_cell(x, area.top(), line::HORIZONTAL, self.border_color, self.bg);
+                buf.set_cell(x, area.top(), line::HORIZONTAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
-                buf.update_cell(x, y, line::VERTICAL, self.border_color, self.bg);
+                buf.set_cell(x, y, line::VERTICAL, self.border_color, self.bg);
             }
         }
         if self.borders.intersects(border::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
-                buf.update_cell(x, y, line::HORIZONTAL, self.border_color, self.bg);
+                buf.set_cell(x, y, line::HORIZONTAL, self.border_color, self.bg);
             }
         }
 

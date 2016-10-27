@@ -90,7 +90,7 @@ impl<'a> Widget for Gauge<'a> {
                            self.background_color);
 
             for x in gauge_area.left()..end {
-                buf.update_colors(x, gauge_area.top(), self.background_color, self.color);
+                buf.set_colors(x, gauge_area.top(), self.background_color, self.color);
             }
         }
     }
