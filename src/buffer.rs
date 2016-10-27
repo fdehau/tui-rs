@@ -105,16 +105,16 @@ impl Buffer {
     }
 
     pub fn set_string(&mut self, x: u16, y: u16, string: &str, fg: Color, bg: Color) {
-        self.set_characters(x, y, string, usize::MAX, fg, bg);
+        self.set_stringn(x, y, string, usize::MAX, fg, bg);
     }
 
-    pub fn set_characters(&mut self,
-                          x: u16,
-                          y: u16,
-                          string: &str,
-                          limit: usize,
-                          fg: Color,
-                          bg: Color) {
+    pub fn set_stringn(&mut self,
+                       x: u16,
+                       y: u16,
+                       string: &str,
+                       limit: usize,
+                       fg: Color,
+                       bg: Color) {
         let mut index = self.index_of(x, y);
         let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
         let max_index = min((self.area.width - x) as usize, limit);
