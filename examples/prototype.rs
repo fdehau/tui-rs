@@ -22,7 +22,7 @@ use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
-                   BarChart, Marker};
+                   BarChart, Marker, Tabs};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -75,11 +75,29 @@ impl Iterator for SinSignal {
     }
 }
 
+struct MyTabs {
+    titles: [&'static str; 2],
+    selection: usize,
+}
+
+impl MyTabs {
+    fn next(&mut self) {
+        self.selection = (self.selection + 1) % self.titles.len();
+    }
+
+    fn previous(&mut self) {
+        if self.selection > 0 {
+            self.selection -= 1;
+        }
+    }
+}
+
 struct App<'a> {
     size: Rect,
     items: Vec<&'a str>,
     items2: Vec<&'a str>,
     selected: usize,
+    tabs: MyTabs,
     show_chart: bool,
     progress: u16,
     data: Vec<u64>,
@@ -123,6 +141,10 @@ fn main() {
                      "Event8", "Event9", "Event10", "Event11", "Event12", "Event13", "Event14",
                      "Event15", "Event16", "Event17", "Event18", "Event19"],
         selected: 0,
+        tabs: MyTabs {
+            titles: ["Main", "Map"],
+            selection: 0,
+        },
         show_chart: true,
         progress: 0,
         data: rand_signal.clone().take(200).collect(),
@@ -204,6 +226,12 @@ fn main() {
                             app.selected += 1;
                         }
                     }
+                    event::Key::Left => {
+                        app.tabs.previous();
+                    }
+                    event::Key::Right => {
+                        app.tabs.next();
+                    }
                     event::Key::Char('t') => {
                         app.show_chart = !app.show_chart;
                     }
@@ -243,12 +271,36 @@ fn main() {
 
 fn draw(t: &mut Terminal, app: &App) {
 
+    Group::default()
+        .direction(Direction::Vertical)
+        .sizes(&[Size::Fixed(3), Size::Min(0)])
+        .render(t, &app.size, |t, chunks| {
+            Tabs::default()
+                .block(Block::default().borders(border::ALL).title("Tabs"))
+                .titles(&app.tabs.titles)
+                .highlight_color(Color::Yellow)
+                .select(app.tabs.selection)
+                .render(&chunks[0], t);
+            match app.tabs.selection {
+                0 => {
+                    draw_main(t, app, &chunks[1]);
+                }
+                1 => {}
+                _ => {}
+            };
+        });
+    t.finish();
+}
 
+fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
-        .render(t, &app.size, |t, chunks| {
-            Block::default().borders(border::ALL).title("Graphs").render(&chunks[0], t);
+        .render(t, area, |t, chunks| {
+            Block::default()
+                .borders(border::ALL)
+                .title("Graphs")
+                .render(&chunks[0], t);
             Group::default()
                 .direction(Direction::Vertical)
                 .margin(1)
@@ -283,19 +335,25 @@ fn draw(t: &mut Terminal, app: &App) {
                                 .sizes(&[Size::Percent(50), Size::Percent(50)])
                                 .render(t, &chunks[0], |t, chunks| {
                                     List::default()
-                                        .block(Block::default().borders(border::ALL).title("List"))
+                                        .block(Block::default()
+                                            .borders(border::ALL)
+                                            .title("List"))
                                         .items(&app.items)
                                         .select(app.selected)
                                         .selection_color(Color::Yellow)
                                         .selection_symbol(">")
                                         .render(&chunks[0], t);
                                     List::default()
-                                        .block(Block::default().borders(border::ALL).title("List"))
+                                        .block(Block::default()
+                                            .borders(border::ALL)
+                                            .title("List"))
                                         .items(&app.items2)
                                         .render(&chunks[1], t);
                                 });
                             BarChart::default()
-                                .block(Block::default().borders(border::ALL).title("Bar chart"))
+                                .block(Block::default()
+                                    .borders(border::ALL)
+                                    .title("Bar chart"))
                                 .data(&app.data4)
                                 .bar_width(3)
                                 .bar_gap(2)
@@ -334,13 +392,12 @@ fn draw(t: &mut Terminal, app: &App) {
                 .block(Block::default().borders(border::ALL).title("Footer"))
                 .wrap(true)
                 .fg(app.colors[app.color_index])
-                .text("This a paragraph with several lines.\nYou can change the color.\nUse \
-                       \\{[color] [text]} to highlight the text with the color. For example, \
-                       {red u}{green n}{yellow d}{magenta e}{cyan r} {gray t}{light_gray \
-                       h}{light_red e} {light_green r}{light_yellow a}{light_magenta \
-                       i}{light_cyan n}{white b}{red o}{green w}.\nOh, and if you didn't notice \
-                       you can automatically wrap your text =).")
+                .text("This a paragraph with several lines.\nYou can change the \
+                               color.\nUse \\{[color] [text]} to highlight the text with the \
+                               color. For example, {red u}{green n}{yellow d}{magenta e}{cyan r} \
+                               {gray t}{light_gray h}{light_red e} {light_green r}{light_yellow \
+                               a}{light_magenta i}{light_cyan n}{white b}{red o}{green w}.\nOh, \
+                               and if you didn't notice you can automatically wrap your text =).")
                 .render(&chunks[2], t);
         });
-    t.finish();
 }
