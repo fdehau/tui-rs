@@ -82,8 +82,8 @@ impl<'a> Widget for List<'a> {
         let list_length = self.items.len();
         let list_height = list_area.height as usize;
         let bound = min(list_height, list_length);
-        let offset = if self.selected > list_height {
-            min(self.selected - list_height, list_length - list_height)
+        let offset = if self.selected >= list_height {
+            self.selected - list_height + 1
         } else {
             0
         };
