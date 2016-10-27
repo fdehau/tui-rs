@@ -8,6 +8,12 @@ use layout::Rect;
 use style::Color;
 use symbols;
 
+pub const DOTS: [[u16; 2]; 4] =
+    [[0x0001, 0x0008], [0x0002, 0x0010], [0x0004, 0x0020], [0x0040, 0x0080]];
+pub const BRAILLE_OFFSET: u16 = 0x2800;
+pub const BRAILLE_BLANK: char = '⠀';
+
+
 pub struct Axis<'a> {
     title: Option<&'a str>,
     title_color: Color,
@@ -62,8 +68,14 @@ impl<'a> Axis<'a> {
     }
 }
 
+pub enum Marker {
+    Dot,
+    Braille,
+}
+
 pub struct Dataset<'a> {
     data: &'a [(f64, f64)],
+    marker: Marker,
     color: Color,
 }
 
@@ -71,6 +83,7 @@ impl<'a> Default for Dataset<'a> {
     fn default() -> Dataset<'a> {
         Dataset {
             data: &[],
+            marker: Marker::Dot,
             color: Color::Reset,
         }
     }
@@ -82,29 +95,14 @@ impl<'a> Dataset<'a> {
         self
     }
 
+    pub fn marker(mut self, marker: Marker) -> Dataset<'a> {
+        self.marker = marker;
+        self
+    }
+
     pub fn color(mut self, color: Color) -> Dataset<'a> {
         self.color = color;
         self
-    }
-}
-
-pub struct Chart<'a> {
-    block: Option<Block<'a>>,
-    x_axis: Axis<'a>,
-    y_axis: Axis<'a>,
-    datasets: &'a [Dataset<'a>],
-    bg: Color,
-}
-
-impl<'a> Default for Chart<'a> {
-    fn default() -> Chart<'a> {
-        Chart {
-            block: None,
-            x_axis: Axis::default(),
-            y_axis: Axis::default(),
-            bg: Color::Reset,
-            datasets: &[],
-        }
     }
 }
 
@@ -129,6 +127,26 @@ impl Default for ChartLayout {
             axis_x: None,
             axis_y: None,
             graph_area: Rect::default(),
+        }
+    }
+}
+
+pub struct Chart<'a> {
+    block: Option<Block<'a>>,
+    x_axis: Axis<'a>,
+    y_axis: Axis<'a>,
+    datasets: &'a [Dataset<'a>],
+    bg: Color,
+}
+
+impl<'a> Default for Chart<'a> {
+    fn default() -> Chart<'a> {
+        Chart {
+            block: None,
+            x_axis: Axis::default(),
+            y_axis: Axis::default(),
+            bg: Color::Reset,
+            datasets: &[],
         }
     }
 }
@@ -158,6 +176,7 @@ impl<'a> Chart<'a> {
         self.datasets = datasets;
         self
     }
+
 
     fn layout(&self, area: &Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
@@ -271,37 +290,77 @@ impl<'a> Widget for Chart<'a> {
 
         if let Some(y) = layout.axis_x {
             for x in graph_area.left()..graph_area.right() {
-                buf.update_cell(x, y, symbols::line::HORIZONTAL, self.x_axis.color, self.bg);
+                buf.set_cell(x, y, symbols::line::HORIZONTAL, self.x_axis.color, self.bg);
             }
         }
 
         if let Some(x) = layout.axis_y {
             for y in graph_area.top()..graph_area.bottom() {
-                buf.update_cell(x, y, symbols::line::VERTICAL, self.y_axis.color, self.bg);
+                buf.set_cell(x, y, symbols::line::VERTICAL, self.y_axis.color, self.bg);
             }
         }
 
         if let Some(y) = layout.axis_x {
             if let Some(x) = layout.axis_y {
-                buf.update_cell(x, y, symbols::line::BOTTOM_LEFT, self.x_axis.color, self.bg);
+                buf.set_cell(x, y, symbols::line::BOTTOM_LEFT, self.x_axis.color, self.bg);
             }
         }
 
         for dataset in self.datasets {
-            for &(x, y) in dataset.data.iter() {
-                if x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                   y < self.y_axis.bounds[0] || y > self.y_axis.bounds[1] {
-                    continue;
+            match dataset.marker {
+                Marker::Dot => {
+                    for &(x, y) in dataset.data.iter() {
+                        if x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
+                           y < self.y_axis.bounds[0] ||
+                           y > self.y_axis.bounds[1] {
+                            continue;
+                        }
+                        let dy = (self.y_axis.bounds[1] - y) * graph_area.height as f64 /
+                                 (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
+                        let dx = (self.x_axis.bounds[1] - x) * graph_area.width as f64 /
+                                 (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
+                        buf.set_cell(dx as u16 + graph_area.left(),
+                                     dy as u16 + graph_area.top(),
+                                     symbols::BLACK_CIRCLE,
+                                     dataset.color,
+                                     self.bg);
+                    }
                 }
-                let dy = (self.y_axis.bounds[1] - y) * graph_area.height as f64 /
-                         (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
-                let dx = (self.x_axis.bounds[1] - x) * graph_area.width as f64 /
-                         (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
-                buf.update_cell(dx as u16 + graph_area.left(),
-                                dy as u16 + graph_area.top(),
-                                symbols::BLACK_CIRCLE,
-                                dataset.color,
-                                self.bg);
+                Marker::Braille => {
+                    let width = graph_area.width as usize;
+                    let height = graph_area.height as usize;
+                    let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
+                    for &(x, y) in dataset.data.iter() {
+                        if x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
+                           y < self.y_axis.bounds[0] ||
+                           y > self.y_axis.bounds[1] {
+                            continue;
+                        }
+                        let dy =
+                            ((self.y_axis.bounds[1] - y) * graph_area.height as f64 * 4.0 /
+                             (self.y_axis.bounds[1] -
+                              self.y_axis.bounds[0])) as usize;
+                        let dx =
+                            ((self.x_axis.bounds[1] - x) * graph_area.width as f64 * 2.0 /
+                             (self.x_axis.bounds[1] -
+                              self.x_axis.bounds[0])) as usize;
+                        grid[dy / 4 * width + dx / 2] |= DOTS[dy % 4][dx % 2];
+                    }
+                    let string = String::from_utf16(&grid).unwrap();
+                    for (i, ch) in string.chars().enumerate() {
+                        if ch != BRAILLE_BLANK {
+                            let (x, y) = (i % width, i / width);
+                            buf.update_cell(x as u16 + graph_area.left(),
+                                            y as u16 + graph_area.top(),
+                                            |c| {
+                                                c.symbol.clear();
+                                                c.symbol.push(ch);
+                                                c.fg = dataset.color;
+                                                c.bg = self.bg;
+                                            });
+                        }
+                    }
+                }
             }
         }
     }

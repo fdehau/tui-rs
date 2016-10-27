@@ -22,7 +22,7 @@ use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
-                   BarChart};
+                   BarChart, Marker};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -51,14 +51,16 @@ impl Iterator for RandomSignal {
 #[derive(Clone)]
 struct SinSignal {
     x: f64,
+    interval: f64,
     period: f64,
     scale: f64,
 }
 
 impl SinSignal {
-    fn new(period: f64, scale: f64) -> SinSignal {
+    fn new(interval: f64, period: f64, scale: f64) -> SinSignal {
         SinSignal {
             x: 0.0,
+            interval: interval,
             period: period,
             scale: scale,
         }
@@ -68,7 +70,7 @@ impl SinSignal {
 impl Iterator for SinSignal {
     type Item = (f64, f64);
     fn next(&mut self) -> Option<(f64, f64)> {
-        self.x += 1.0;
+        self.x += self.interval;
         Some((self.x, ((self.x * 1.0 / self.period).sin() + 1.0) * self.scale))
     }
 }
@@ -110,8 +112,8 @@ fn main() {
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
-    let mut sin_signal = SinSignal::new(4.0, 20.0);
-    let mut sin_signal2 = SinSignal::new(2.0, 10.0);
+    let mut sin_signal = SinSignal::new(1.0, 4.0, 20.0);
+    let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
 
     let mut app = App {
         size: Rect::default(),
@@ -125,7 +127,7 @@ fn main() {
         progress: 0,
         data: rand_signal.clone().take(200).collect(),
         data2: sin_signal.clone().take(20).collect(),
-        data3: sin_signal2.clone().take(20).collect(),
+        data3: sin_signal2.clone().take(200).collect(),
         data4: vec![("B1", 9),
                     ("B2", 12),
                     ("B3", 5),
@@ -150,6 +152,8 @@ fn main() {
 
     for _ in 0..20 {
         sin_signal.next();
+    }
+    for _ in 0..200 {
         sin_signal2.next();
     }
 
@@ -215,8 +219,12 @@ fn main() {
                 app.data.pop();
                 app.data2.remove(0);
                 app.data2.push(sin_signal.next().unwrap());
-                app.data3.remove(0);
-                app.data3.push(sin_signal2.next().unwrap());
+                for _ in 0..10 {
+                    app.data3.remove(0);
+                }
+                for _ in 0..10 {
+                    app.data3.push(sin_signal2.next().unwrap());
+                }
                 let i = app.data4.pop().unwrap();
                 app.data4.insert(0, i);
                 app.window[0] += 1.0;
@@ -311,8 +319,14 @@ fn draw(t: &mut Terminal, app: &App) {
                                 .color(Color::Gray)
                                 .bounds([0.0, 40.0])
                                 .labels(&["0", "20", "40"]))
-                            .datasets(&[Dataset::default().color(Color::Cyan).data(&app.data2),
-                                        Dataset::default().color(Color::Yellow).data(&app.data3)])
+                            .datasets(&[Dataset::default()
+                                            .marker(Marker::Dot)
+                                            .color(Color::Cyan)
+                                            .data(&app.data2),
+                                        Dataset::default()
+                                            .marker(Marker::Braille)
+                                            .color(Color::Yellow)
+                                            .data(&app.data3)])
                             .render(&chunks[1], t);
                     }
                 });
