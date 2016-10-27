@@ -2,17 +2,11 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block};
+use widgets::{Widget, Block, Canvas, Shape};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
 use symbols;
-
-pub const DOTS: [[u16; 2]; 4] =
-    [[0x0001, 0x0008], [0x0002, 0x0010], [0x0004, 0x0020], [0x0040, 0x0080]];
-pub const BRAILLE_OFFSET: u16 = 0x2800;
-pub const BRAILLE_BLANK: char = '⠀';
-
 
 pub struct Axis<'a> {
     title: Option<&'a str>,
@@ -327,39 +321,11 @@ impl<'a> Widget for Chart<'a> {
                     }
                 }
                 Marker::Braille => {
-                    let width = graph_area.width as usize;
-                    let height = graph_area.height as usize;
-                    let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
-                    for &(x, y) in dataset.data.iter() {
-                        if x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                           y < self.y_axis.bounds[0] ||
-                           y > self.y_axis.bounds[1] {
-                            continue;
-                        }
-                        let dy =
-                            ((self.y_axis.bounds[1] - y) * graph_area.height as f64 * 4.0 /
-                             (self.y_axis.bounds[1] -
-                              self.y_axis.bounds[0])) as usize;
-                        let dx =
-                            ((self.x_axis.bounds[1] - x) * graph_area.width as f64 * 2.0 /
-                             (self.x_axis.bounds[1] -
-                              self.x_axis.bounds[0])) as usize;
-                        grid[dy / 4 * width + dx / 2] |= DOTS[dy % 4][dx % 2];
-                    }
-                    let string = String::from_utf16(&grid).unwrap();
-                    for (i, ch) in string.chars().enumerate() {
-                        if ch != BRAILLE_BLANK {
-                            let (x, y) = (i % width, i / width);
-                            buf.update_cell(x as u16 + graph_area.left(),
-                                            y as u16 + graph_area.top(),
-                                            |c| {
-                                                c.symbol.clear();
-                                                c.symbol.push(ch);
-                                                c.fg = dataset.color;
-                                                c.bg = self.bg;
-                                            });
-                        }
-                    }
+                    Canvas::default()
+                        .x_bounds(self.x_axis.bounds)
+                        .y_bounds(self.y_axis.bounds)
+                        .shapes(&[Shape::default().data(dataset.data).color(dataset.color)])
+                        .buffer(&graph_area, buf);
                 }
             }
         }
