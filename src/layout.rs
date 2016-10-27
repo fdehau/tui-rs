@@ -202,22 +202,22 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
         let value = value as u16;
         match attr {
             0 => {
-                if value <= area.width {
+                if value <= dest_area.right() {
                     results[index].x = value;
                 }
             }
             1 => {
-                if value <= area.height {
+                if value <= dest_area.bottom() {
                     results[index].y = value;
                 }
             }
             2 => {
-                if value <= area.width {
+                if value <= dest_area.width {
                     results[index].width = value;
                 }
             }
             3 => {
-                if value <= area.height {
+                if value <= dest_area.height {
                     results[index].height = value;
                 }
             }
