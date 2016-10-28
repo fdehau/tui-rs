@@ -17,7 +17,7 @@ pub use self::sparkline::Sparkline;
 pub use self::chart::{Chart, Axis, Dataset, Marker};
 pub use self::barchart::BarChart;
 pub use self::tabs::Tabs;
-pub use self::canvas::{Canvas, Shape};
+pub use self::canvas::{Canvas, Shape, Line, Points};
 pub use self::map::Map;
 
 use buffer::Buffer;

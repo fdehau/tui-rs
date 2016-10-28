@@ -98,7 +98,7 @@ impl Terminal {
                 bg = cell.bg;
                 inst += 1;
             }
-            string.push_str(&format!("{}", cell.symbol));
+            string.push_str(&cell.symbol);
             inst += 1;
         }
         string.push_str(&format!("{}{}", Color::Reset.fg(), Color::Reset.bg()));

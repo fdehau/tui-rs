@@ -1,6 +1,7 @@
-use widgets::{Widget, Block, Canvas, Shape};
+use widgets::{Widget, Block, Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
+use style::Color;
 
 pub struct Map<'a> {
     block: Option<Block<'a>>,
@@ -32,7 +33,10 @@ impl<'a> Widget for Map<'a> {
         Canvas::default()
             .x_bounds([180.0, -180.0])
             .y_bounds([-90.0, 90.0])
-            .shapes(&[Shape::default().data(&WORLD)])
+            .shapes(&[&Points {
+                          coords: &WORLD,
+                          color: Color::Reset,
+                      }])
             .buffer(&map_area, buf);
     }
 }

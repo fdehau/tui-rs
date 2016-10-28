@@ -2,7 +2,7 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block, Canvas, Shape};
+use widgets::{Widget, Block, Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
@@ -325,7 +325,10 @@ impl<'a> Widget for Chart<'a> {
                     Canvas::default()
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .shapes(&[Shape::default().data(dataset.data).color(dataset.color)])
+                        .shapes(&[&Points {
+                                      coords: dataset.data,
+                                      color: dataset.color,
+                                  }])
                         .buffer(&graph_area, buf);
                 }
             }
