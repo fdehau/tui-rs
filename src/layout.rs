@@ -1,13 +1,13 @@
 use std::cmp::{min, max};
 use std::collections::HashMap;
 
-use cassowary::{Solver, Variable, Constraint};
+use cassowary::{Solver, Variable, Expression, Constraint};
 use cassowary::WeightedRelation::*;
 use cassowary::strength::{REQUIRED, WEAK};
 
 use terminal::Terminal;
 
-#[derive(Hash, PartialEq)]
+#[derive(Debug, Hash, PartialEq)]
 pub enum Direction {
     Horizontal,
     Vertical,
@@ -118,12 +118,11 @@ pub enum Size {
 /// # Examples
 /// ```
 /// extern crate tui;
-/// use tui::layout::{Rect, Size, Alignment, Direction, split};
+/// use tui::layout::{Rect, Size, Direction, split};
 ///
 /// fn main() {
 ///     let chunks = split(&Rect{x: 2, y: 2, width: 10, height: 10},
 ///                        &Direction::Vertical,
-///                        &Alignment::Left,
 ///                        0,
 ///                        &[Size::Fixed(5), Size::Min(5)]);
 /// }
@@ -142,22 +141,24 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
         vars.insert(e.width, (i, 2));
         vars.insert(e.height, (i, 3));
     }
-    let mut constraints: Vec<Constraint> = Vec::new();
+    let mut constraints: Vec<Constraint> = Vec::with_capacity(elements.len() * 4 + sizes.len() * 6);
+    for elt in &elements {
+        constraints.push(elt.left() | GE(REQUIRED) | dest_area.left() as f64);
+        constraints.push(elt.top() | GE(REQUIRED) | dest_area.top() as f64);
+        constraints.push(elt.right() | LE(REQUIRED) | dest_area.right() as f64);
+        constraints.push(elt.bottom() | LE(REQUIRED) | dest_area.bottom() as f64);
+    }
     if let Some(first) = elements.first() {
         constraints.push(match *dir {
-            Direction::Horizontal => first.x | EQ(REQUIRED) | dest_area.x as f64,
-            Direction::Vertical => first.y | EQ(REQUIRED) | dest_area.y as f64,
+            Direction::Horizontal => first.left() | EQ(REQUIRED) | dest_area.left() as f64,
+            Direction::Vertical => first.top() | EQ(REQUIRED) | dest_area.top() as f64,
         });
     }
     if let Some(last) = elements.last() {
         constraints.push(match *dir {
-            Direction::Horizontal => {
-                (last.x + last.width) | EQ(REQUIRED) | (dest_area.x + dest_area.width) as f64
-            }
-            Direction::Vertical => {
-                (last.y + last.height) | EQ(REQUIRED) | (dest_area.y + dest_area.height) as f64
-            }
-        })
+            Direction::Horizontal => last.right() | EQ(REQUIRED) | dest_area.right() as f64,
+            Direction::Vertical => last.bottom() | EQ(REQUIRED) | dest_area.bottom() as f64,
+        });
     }
     match *dir {
         Direction::Horizontal => {
@@ -196,30 +197,21 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
         }
     }
     solver.add_constraints(&constraints).unwrap();
-    // TODO: Find a better way to handle overflow error
     for &(var, value) in solver.fetch_changes() {
         let (index, attr) = vars[&var];
         let value = value as u16;
         match attr {
             0 => {
-                if value <= dest_area.right() {
-                    results[index].x = value;
-                }
+                results[index].x = value;
             }
             1 => {
-                if value <= dest_area.bottom() {
-                    results[index].y = value;
-                }
+                results[index].y = value;
             }
             2 => {
-                if value <= dest_area.width {
-                    results[index].width = value;
-                }
+                results[index].width = value;
             }
             3 => {
-                if value <= dest_area.height {
-                    results[index].height = value;
-                }
+                results[index].height = value;
             }
             _ => {}
         }
@@ -243,9 +235,25 @@ impl Element {
             height: Variable::new(),
         }
     }
+
+    fn left(&self) -> Variable {
+        self.x
+    }
+
+    fn top(&self) -> Variable {
+        self.y
+    }
+
+    fn right(&self) -> Expression {
+        self.x + self.width
+    }
+
+    fn bottom(&self) -> Expression {
+        self.y + self.height
+    }
 }
 
-#[derive(Hash)]
+#[derive(Debug, Hash)]
 pub struct Group {
     pub direction: Direction,
     pub margin: u16,

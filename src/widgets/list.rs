@@ -79,6 +79,10 @@ impl<'a> Widget for List<'a> {
             None => *area,
         };
 
+        if list_area.height < 1 {
+            return;
+        }
+
         let list_length = self.items.len();
         let list_height = list_area.height as usize;
         let bound = min(list_height, list_length);

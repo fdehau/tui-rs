@@ -80,7 +80,11 @@ impl Buffer {
 
     pub fn index_of(&self, x: u16, y: u16) -> usize {
         let index = (y * self.area.width + x) as usize;
-        debug_assert!(index < self.content.len());
+        debug_assert!(index < self.content.len(),
+                      "Trying to access position x:{}, y:{} in buffer {:?}",
+                      x,
+                      y,
+                      self.area);
         index
     }
 

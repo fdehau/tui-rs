@@ -11,6 +11,7 @@ use widgets::Widget;
 use style::Color;
 use util::hash;
 
+#[derive(Debug)]
 pub struct LayoutEntry {
     chunks: Vec<Rect>,
     hot: bool,
@@ -49,8 +50,12 @@ impl Terminal {
         let hash = hash(group, area);
         let entry = self.layout_cache
             .entry(hash)
-            .or_insert({
+            .or_insert_with(|| {
                 let chunks = split(area, &group.direction, group.margin, &group.sizes);
+                debug!("New layout computed:\n* Group = {:?}\n* Chunks = {:?}\n* Hash = {}",
+                       group,
+                       chunks,
+                       hash);
                 LayoutEntry {
                     chunks: chunks,
                     hot: true,
@@ -102,7 +107,7 @@ impl Terminal {
             inst += 1;
         }
         string.push_str(&format!("{}{}", Color::Reset.fg(), Color::Reset.bg()));
-        info!("{}", inst);
+        debug!("{} instructions outputed.", inst);
         write!(self.stdout, "{}", string).unwrap();
     }
 
@@ -116,6 +121,7 @@ impl Terminal {
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].resize(area);
         self.buffers[1 - self.current].reset();
+        self.layout_cache.clear();
         self.clear();
     }
 
@@ -129,8 +135,13 @@ impl Terminal {
             .iter()
             .filter_map(|(h, e)| if !e.hot { Some(*h) } else { None })
             .collect::<Vec<u64>>();
+
         for h in to_remove {
             self.layout_cache.remove(&h);
+        }
+
+        for (_, e) in &mut self.layout_cache {
+            e.hot = false;
         }
 
         // Swap buffers

@@ -87,7 +87,7 @@ impl<'a> Widget for BarChart<'a> {
             None => *area,
         };
 
-        if chart_area.height < 1 {
+        if chart_area.height < 2 {
             return;
         }
 
