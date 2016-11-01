@@ -74,13 +74,13 @@ impl<'a> Widget for Canvas<'a> {
         let width = canvas_area.width as usize;
         let height = canvas_area.height as usize;
 
-
         let mut x_bounds = self.x_bounds;
         x_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
         let mut y_bounds = self.y_bounds;
         y_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
         for layer in self.layers {
+
             let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
             let mut colors: Vec<Color> = vec![Color::Reset; width * height + 1];
 
@@ -91,7 +91,7 @@ impl<'a> Widget for Canvas<'a> {
                     let dy = ((self.y_bounds[1] - y) * canvas_area.height as f64 * 4.0 /
                               (self.y_bounds[1] -
                                self.y_bounds[0])) as usize;
-                    let dx = ((self.x_bounds[1] - x) * canvas_area.width as f64 * 2.0 /
+                    let dx = ((x - self.x_bounds[0]) * canvas_area.width as f64 * 2.0 /
                               (self.x_bounds[1] -
                                self.x_bounds[0])) as usize;
                     let index = dy / 4 * width + dx / 2;
@@ -100,16 +100,19 @@ impl<'a> Widget for Canvas<'a> {
                 }
             }
 
-            let string = String::from_utf16(&grid).unwrap();
+            let mut string = String::from_utf16(&grid).unwrap();
+            string.pop();
             for (i, (ch, color)) in string.chars().zip(colors.into_iter()).enumerate() {
                 if ch != BRAILLE_BLANK {
                     let (x, y) = (i % width, i / width);
-                    buf.update_cell(x as u16 + canvas_area.left(), y as u16 + area.top(), |c| {
-                        c.symbol.clear();
-                        c.symbol.push(ch);
-                        c.fg = color;
-                        c.bg = Color::Reset;
-                    });
+                    buf.update_cell(x as u16 + canvas_area.left(),
+                                    y as u16 + canvas_area.top(),
+                                    |c| {
+                                        c.symbol.clear();
+                                        c.symbol.push(ch);
+                                        c.fg = color;
+                                        c.bg = Color::Reset;
+                                    });
                 }
             }
         }

@@ -304,15 +304,14 @@ impl<'a> Widget for Chart<'a> {
         for dataset in self.datasets {
             match dataset.marker {
                 Marker::Dot => {
-                    for &(x, y) in dataset.data.iter() {
-                        if x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                           y < self.y_axis.bounds[0] ||
-                           y > self.y_axis.bounds[1] {
-                            continue;
-                        }
+                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
+                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
+                          y < self.y_axis.bounds[0] ||
+                          y > self.y_axis.bounds[1])
+                    }) {
                         let dy = (self.y_axis.bounds[1] - y) * graph_area.height as f64 /
                                  (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
-                        let dx = (self.x_axis.bounds[1] - x) * graph_area.width as f64 /
+                        let dx = (x - self.x_axis.bounds[0]) * graph_area.width as f64 /
                                  (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
 
                         buf.set_cell(dx as u16 + graph_area.left(),

@@ -149,7 +149,7 @@ fn main() {
         show_chart: true,
         progress: 0,
         data: rand_signal.clone().take(200).collect(),
-        data2: sin_signal.clone().take(20).collect(),
+        data2: sin_signal.clone().take(30).collect(),
         data3: sin_signal2.clone().take(200).collect(),
         data4: vec![("B1", 9),
                     ("B2", 12),
@@ -173,7 +173,7 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
 
-    for _ in 0..20 {
+    for _ in 0..30 {
         sin_signal.next();
     }
     for _ in 0..200 {
@@ -301,7 +301,7 @@ fn draw(t: &mut Terminal, app: &App) {
                             Canvas::default()
                                 .block(Block::default().title("World").borders(border::ALL))
                                 .layers(&[&[Map::default().resolution(MapResolution::High)]])
-                                .x_bounds([180.0, -180.0])
+                                .x_bounds([-180.0, 180.0])
                                 .y_bounds([-90.0, 90.0])
                                 .render(&chunks[1], t);
                         })
