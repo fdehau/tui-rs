@@ -14,8 +14,8 @@ use layout::Rect;
 /// use tui::widgets::{Widget, Gauge, Block, border};
 ///
 /// fn main() {
-///     Gauge::new()
-///         .block(*Block::default().borders(border::ALL).title("Progress"))
+///     Gauge::default()
+///         .block(Block::default().borders(border::ALL).title("Progress"))
 ///         .percent(20);
 /// }
 /// ```

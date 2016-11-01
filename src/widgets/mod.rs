@@ -6,8 +6,7 @@ mod sparkline;
 mod chart;
 mod barchart;
 mod tabs;
-mod canvas;
-mod map;
+pub mod canvas;
 
 pub use self::block::Block;
 pub use self::text::Text;
@@ -17,8 +16,6 @@ pub use self::sparkline::Sparkline;
 pub use self::chart::{Chart, Axis, Dataset, Marker};
 pub use self::barchart::BarChart;
 pub use self::tabs::Tabs;
-pub use self::canvas::{Canvas, Shape, Line, Points};
-pub use self::map::Map;
 
 use buffer::Buffer;
 use layout::Rect;

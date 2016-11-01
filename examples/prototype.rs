@@ -22,7 +22,8 @@ use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
-                   BarChart, Marker, Tabs, Map};
+                   BarChart, Marker, Tabs};
+use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -286,8 +287,18 @@ fn draw(t: &mut Terminal, app: &App) {
                     draw_main(t, app, &chunks[1]);
                 }
                 1 => {
-                    Map::default()
+                    Canvas::default()
                         .block(Block::default().title("World").borders(border::ALL))
+                        .layers(&[&[Map::default().resolution(MapResolution::High)],
+                                  &[&Line {
+                                        x1: 0.0,
+                                        y1: 0.0,
+                                        x2: 10.0,
+                                        y2: 10.0,
+                                        color: Color::Red,
+                                    }]])
+                        .x_bounds([180.0, 0.0])
+                        .y_bounds([0.0, 90.0])
                         .render(&chunks[1], t);
                 }
                 _ => {}

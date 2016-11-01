@@ -1,3 +1,5 @@
+use std::slice;
+
 use super::Shape;
 use style::Color;
 
@@ -28,27 +30,26 @@ impl<'a> IntoIterator for &'a Points<'a> {
     type Item = (f64, f64);
     type IntoIter = PointsIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
-        PointsIterator {
-            coords: self.coords,
-            index: 0,
-        }
+        PointsIterator { iter: self.coords.iter() }
     }
 }
 
 pub struct PointsIterator<'a> {
-    coords: &'a [(f64, f64)],
-    index: usize,
+    iter: slice::Iter<'a, (f64, f64)>,
+}
+
+impl<'a> From<&'a [(f64, f64)]> for PointsIterator<'a> {
+    fn from(data: &'a [(f64, f64)]) -> PointsIterator<'a> {
+        PointsIterator { iter: data.iter() }
+    }
 }
 
 impl<'a> Iterator for PointsIterator<'a> {
     type Item = (f64, f64);
     fn next(&mut self) -> Option<Self::Item> {
-        let point = if self.index < self.coords.len() {
-            Some(self.coords[self.index])
-        } else {
-            None
-        };
-        self.index += 1;
-        point
+        match self.iter.next() {
+            Some(p) => Some(*p),
+            None => None,
+        }
     }
 }

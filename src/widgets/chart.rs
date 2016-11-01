@@ -2,7 +2,8 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block, Canvas, Points};
+use widgets::{Widget, Block};
+use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
@@ -270,11 +271,11 @@ impl<'a> Widget for Chart<'a> {
         if let Some(x) = layout.label_y {
             let labels = self.y_axis.labels.unwrap();
             let labels_len = labels.len() as u16;
-            if labels_len > 1 {
-                for (i, label) in labels.iter().enumerate() {
+            for (i, label) in labels.iter().enumerate() {
+                let dy = i as u16 * (graph_area.height - 1) / (labels_len - 1);
+                if dy < graph_area.bottom() {
                     buf.set_string(x,
-                                   graph_area.bottom() -
-                                   i as u16 * (graph_area.height - 1) / (labels_len - 1),
+                                   graph_area.bottom() - 1 - dy,
                                    label,
                                    self.y_axis.labels_color,
                                    self.bg);
@@ -325,10 +326,10 @@ impl<'a> Widget for Chart<'a> {
                     Canvas::default()
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .shapes(&[&Points {
-                                      coords: dataset.data,
-                                      color: dataset.color,
-                                  }])
+                        .layers(&[&[&Points {
+                                        coords: dataset.data,
+                                        color: dataset.color,
+                                    }]])
                         .buffer(&graph_area, buf);
                 }
             }

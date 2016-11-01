@@ -1,8 +1,13 @@
 mod points;
 mod line;
+mod rectangle;
+mod map;
+mod world;
 
 pub use self::points::Points;
 pub use self::line::Line;
+pub use self::rectangle::Rectangle;
+pub use self::map::{Map, MapResolution};
 
 use style::Color;
 use buffer::Buffer;
@@ -23,7 +28,7 @@ pub struct Canvas<'a> {
     block: Option<Block<'a>>,
     x_bounds: [f64; 2],
     y_bounds: [f64; 2],
-    shapes: &'a [&'a Shape<'a>],
+    layers: &'a [&'a [&'a Shape<'a>]],
 }
 
 impl<'a> Default for Canvas<'a> {
@@ -32,7 +37,7 @@ impl<'a> Default for Canvas<'a> {
             block: None,
             x_bounds: [0.0, 0.0],
             y_bounds: [0.0, 0.0],
-            shapes: &[],
+            layers: &[],
         }
     }
 }
@@ -50,8 +55,8 @@ impl<'a> Canvas<'a> {
         self.y_bounds = bounds;
         self
     }
-    pub fn shapes(&mut self, shapes: &'a [&'a Shape<'a>]) -> &mut Canvas<'a> {
-        self.shapes = shapes;
+    pub fn layers(&mut self, layers: &'a [&'a [&'a Shape<'a>]]) -> &mut Canvas<'a> {
+        self.layers = layers;
         self
     }
 }
@@ -69,38 +74,43 @@ impl<'a> Widget for Canvas<'a> {
         let width = canvas_area.width as usize;
         let height = canvas_area.height as usize;
 
-        let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
-        let mut colors: Vec<Color> = vec![Color::Reset; width * height + 1];
 
         let mut x_bounds = self.x_bounds;
         x_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
         let mut y_bounds = self.y_bounds;
         y_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
-        for shape in self.shapes {
-            for (x, y) in shape.points().filter(|&(x, y)| {
-                !(x < x_bounds[0] || x > x_bounds[1] || y < y_bounds[0] || y > y_bounds[1])
-            }) {
-                let dy = ((self.y_bounds[1] - y) * canvas_area.height as f64 * 4.0 /
-                          (self.y_bounds[1] - self.y_bounds[0])) as usize;
-                let dx = ((self.x_bounds[1] - x) * canvas_area.width as f64 * 2.0 /
-                          (self.x_bounds[1] - self.x_bounds[0])) as usize;
-                let index = dy / 4 * width + dx / 2;
-                grid[index] |= DOTS[dy % 4][dx % 2];
-                colors[index] = shape.color();
-            }
-        }
+        for layer in self.layers {
+            let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height + 1];
+            let mut colors: Vec<Color> = vec![Color::Reset; width * height + 1];
 
-        let string = String::from_utf16(&grid).unwrap();
-        for (i, (ch, color)) in string.chars().zip(colors.into_iter()).enumerate() {
-            if ch != BRAILLE_BLANK {
-                let (x, y) = (i % width, i / width);
-                buf.update_cell(x as u16 + canvas_area.left(), y as u16 + area.top(), |c| {
-                    c.symbol.clear();
-                    c.symbol.push(ch);
-                    c.fg = color;
-                    c.bg = Color::Reset;
-                });
+            for shape in layer.iter() {
+                for (x, y) in shape.points().filter(|&(x, y)| {
+                    !(x < x_bounds[0] || x > x_bounds[1] || y < y_bounds[0] || y > y_bounds[1])
+                }) {
+                    let dy = ((self.y_bounds[1] - y) * canvas_area.height as f64 * 4.0 /
+                              (self.y_bounds[1] -
+                               self.y_bounds[0])) as usize;
+                    let dx = ((self.x_bounds[1] - x) * canvas_area.width as f64 * 2.0 /
+                              (self.x_bounds[1] -
+                               self.x_bounds[0])) as usize;
+                    let index = dy / 4 * width + dx / 2;
+                    grid[index] |= DOTS[dy % 4][dx % 2];
+                    colors[index] = shape.color();
+                }
+            }
+
+            let string = String::from_utf16(&grid).unwrap();
+            for (i, (ch, color)) in string.chars().zip(colors.into_iter()).enumerate() {
+                if ch != BRAILLE_BLANK {
+                    let (x, y) = (i % width, i / width);
+                    buf.update_cell(x as u16 + canvas_area.left(), y as u16 + area.top(), |c| {
+                        c.symbol.clear();
+                        c.symbol.push(ch);
+                        c.fg = color;
+                        c.bg = Color::Reset;
+                    });
+                }
             }
         }
     }
