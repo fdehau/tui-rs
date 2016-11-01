@@ -1,4 +1,3 @@
-
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
@@ -119,17 +118,27 @@ impl<'a> Widget for Block<'a> {
         if self.borders.contains(border::RIGHT | border::BOTTOM) {
             buf.set_symbol(area.right() - 1, area.bottom() - 1, line::BOTTOM_RIGHT);
         }
-        if let Some(title) = self.title {
-            let dx = if self.borders.intersects(border::LEFT) {
-                1
-            } else {
-                0
-            };
-            buf.set_string(area.left() + dx,
-                           area.top(),
-                           title,
-                           self.title_color,
-                           self.bg);
+
+        if area.width > 2 {
+            if let Some(title) = self.title {
+                let lx = if self.borders.intersects(border::LEFT) {
+                    1
+                } else {
+                    0
+                };
+                let rx = if self.borders.intersects(border::RIGHT) {
+                    1
+                } else {
+                    0
+                };
+                let width = area.width - lx - rx;
+                buf.set_stringn(area.left() + lx,
+                                area.top(),
+                                title,
+                                width as usize,
+                                self.title_color,
+                                self.bg);
+            }
         }
     }
 }

@@ -22,8 +22,8 @@ use log4rs::config::{Appender, Config, Root};
 
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
-                   BarChart, Marker, Tabs};
-use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
+                   BarChart, Marker, Tabs, Table};
+use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -287,19 +287,24 @@ fn draw(t: &mut Terminal, app: &App) {
                     draw_main(t, app, &chunks[1]);
                 }
                 1 => {
-                    Canvas::default()
-                        .block(Block::default().title("World").borders(border::ALL))
-                        .layers(&[&[Map::default().resolution(MapResolution::High)],
-                                  &[&Line {
-                                        x1: 0.0,
-                                        y1: 0.0,
-                                        x2: 10.0,
-                                        y2: 10.0,
-                                        color: Color::Red,
-                                    }]])
-                        .x_bounds([180.0, 0.0])
-                        .y_bounds([0.0, 90.0])
-                        .render(&chunks[1], t);
+                    Group::default()
+                        .direction(Direction::Vertical)
+                        .sizes(&[Size::Percent(50), Size::Percent(50)])
+                        .render(t, &chunks[1], |t, chunks| {
+                            Table::default()
+                                .block(Block::default().title("Servers").borders(border::ALL))
+                                .titles(&["Server", "Location", "Status"])
+                                .widths(&[20, 20, 20])
+                                .rows(&[&["Europe#1", "Paris", "Up"],
+                                        &["Europe#2", "Berlin", "Up"]])
+                                .render(&chunks[0], t);
+                            Canvas::default()
+                                .block(Block::default().title("World").borders(border::ALL))
+                                .layers(&[&[Map::default().resolution(MapResolution::High)]])
+                                .x_bounds([180.0, -180.0])
+                                .y_bounds([-90.0, 90.0])
+                                .render(&chunks[1], t);
+                        })
                 }
                 _ => {}
             };

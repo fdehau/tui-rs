@@ -95,19 +95,24 @@ impl<'a> Widget for List<'a> {
             Some(s) => (s.width() + 1) as u16 + list_area.left(),
             None => list_area.left(),
         };
-        for i in 0..bound {
-            let index = i + offset;
-            let item = self.items[index];
-            let color = if index == self.selected {
-                self.selection_color
-            } else {
-                self.color
-            };
-            buf.set_string(x,
-                           list_area.top() + i as u16,
-                           item,
-                           color,
-                           self.background_color);
+
+        if x < list_area.right() {
+            let width = (list_area.right() - x) as usize;
+            for i in 0..bound {
+                let index = i + offset;
+                let item = self.items[index];
+                let color = if index == self.selected {
+                    self.selection_color
+                } else {
+                    self.color
+                };
+                buf.set_stringn(x,
+                                list_area.top() + i as u16,
+                                item,
+                                width,
+                                color,
+                                self.background_color);
+            }
         }
         if let Some(s) = self.selection_symbol {
             buf.set_string(list_area.left(),

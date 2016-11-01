@@ -16,9 +16,3 @@ pub mod style;
 pub mod layout;
 
 pub use self::terminal::Terminal;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {}
-}
