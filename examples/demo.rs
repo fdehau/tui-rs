@@ -6,6 +6,7 @@ extern crate termion;
 extern crate rand;
 
 use std::thread;
+use std::env;
 use std::time;
 use std::sync::mpsc;
 use std::io::stdin;
@@ -118,17 +119,23 @@ enum Event {
 
 fn main() {
 
-    let log = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{l} / {d(%H:%M:%S)} / {M}:{L}{n}{m}{n}{n}")))
-        .build("prototype.log")
-        .unwrap();
 
-    let config = Config::builder()
-        .appender(Appender::builder().build("log", Box::new(log)))
-        .build(Root::builder().appender("log").build(LogLevelFilter::Debug))
-        .unwrap();
+    for argument in env::args() {
+        if argument == "--log" {
+            let log = FileAppender::builder()
+                .encoder(Box::new(PatternEncoder::new("{l} / {d(%H:%M:%S)} / \
+                                                       {M}:{L}{n}{m}{n}{n}")))
+                .build("demo.log")
+                .unwrap();
 
-    log4rs::init_config(config).unwrap();
+            let config = Config::builder()
+                .appender(Appender::builder().build("log", Box::new(log)))
+                .build(Root::builder().appender("log").build(LogLevelFilter::Debug))
+                .unwrap();
+            log4rs::init_config(config).unwrap();
+        }
+    }
+
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
