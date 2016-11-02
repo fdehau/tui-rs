@@ -76,12 +76,12 @@ impl<'a> Table<'a> {
 }
 
 impl<'a> Widget for Table<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
 
         // Render block if necessary and get the drawing area
         let table_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

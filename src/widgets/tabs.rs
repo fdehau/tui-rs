@@ -61,11 +61,11 @@ impl<'a> Tabs<'a> {
 }
 
 impl<'a> Widget for Tabs<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
 
         let tabs_area = match self.block {
             Some(b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

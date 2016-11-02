@@ -55,10 +55,10 @@ impl<'a> Sparkline<'a> {
 }
 
 impl<'a> Widget for Sparkline<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let spark_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

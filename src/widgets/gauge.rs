@@ -60,10 +60,10 @@ impl<'a> Gauge<'a> {
 }
 
 impl<'a> Widget for Gauge<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let gauge_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

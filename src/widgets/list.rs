@@ -69,11 +69,11 @@ impl<'a> List<'a> {
 }
 
 impl<'a> Widget for List<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
 
         let list_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

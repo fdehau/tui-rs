@@ -38,7 +38,7 @@ pub mod border {
 }
 
 pub trait Widget {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer);
+    fn draw(&self, area: &Rect, buf: &mut Buffer);
     fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {

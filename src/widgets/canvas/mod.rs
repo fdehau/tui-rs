@@ -1,12 +1,10 @@
 mod points;
 mod line;
-mod rectangle;
 mod map;
 mod world;
 
 pub use self::points::Points;
 pub use self::line::Line;
-pub use self::rectangle::Rectangle;
 pub use self::map::{Map, MapResolution};
 
 use style::Color;
@@ -69,10 +67,10 @@ impl<'a> Canvas<'a> {
 }
 
 impl<'a> Widget for Canvas<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let canvas_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,
@@ -81,11 +79,6 @@ impl<'a> Widget for Canvas<'a> {
         let width = canvas_area.width as usize;
         let height = canvas_area.height as usize;
 
-        let mut x_bounds = self.x_bounds;
-        x_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let mut y_bounds = self.y_bounds;
-        y_bounds.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
         for layer in self.layers {
 
             let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height];
@@ -93,7 +86,8 @@ impl<'a> Widget for Canvas<'a> {
 
             for shape in layer.iter() {
                 for (x, y) in shape.points().filter(|&(x, y)| {
-                    !(x < x_bounds[0] || x > x_bounds[1] || y < y_bounds[0] || y > y_bounds[1])
+                    !(x < self.x_bounds[0] || x > self.x_bounds[1] || y < self.y_bounds[0] ||
+                      y > self.y_bounds[1])
                 }) {
                     let dy = ((self.y_bounds[1] - y) * (canvas_area.height - 1) as f64 * 4.0 /
                               (self.y_bounds[1] -

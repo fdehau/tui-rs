@@ -65,7 +65,7 @@ impl Terminal {
         entry.chunks.clone()
     }
 
-    pub fn draw(&mut self) {
+    pub fn flush(&mut self) {
         let width = self.buffers[self.current].area.width;
         let mut string = String::with_capacity(self.buffers[self.current].content.len());
         let mut fg = Color::Reset;
@@ -114,7 +114,7 @@ impl Terminal {
     pub fn render<W>(&mut self, widget: &W, area: &Rect)
         where W: Widget
     {
-        widget.buffer(area, &mut self.buffers[self.current]);
+        widget.draw(area, &mut self.buffers[self.current]);
     }
 
     pub fn resize(&mut self, area: Rect) {
@@ -128,7 +128,7 @@ impl Terminal {
     pub fn finish(&mut self) {
 
         // Draw to stdout
-        self.draw();
+        self.flush();
 
         // Clean layout cache
         let to_remove = self.layout_cache

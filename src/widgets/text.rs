@@ -151,10 +151,10 @@ impl<'a> Iterator for Parser<'a> {
 }
 
 impl<'a> Widget for Text<'a> {
-    fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let text_area = match self.block {
             Some(ref b) => {
-                b.buffer(area, buf);
+                b.draw(area, buf);
                 b.inner(area)
             }
             None => *area,

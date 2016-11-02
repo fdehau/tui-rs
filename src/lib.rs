@@ -7,7 +7,7 @@ extern crate cassowary;
 extern crate unicode_segmentation;
 extern crate unicode_width;
 
-mod buffer;
+pub mod buffer;
 mod util;
 pub mod symbols;
 pub mod terminal;
