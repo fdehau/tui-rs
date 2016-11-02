@@ -9,20 +9,26 @@ use style::Color;
 
 pub struct Table<'a> {
     block: Option<Block<'a>>,
-    titles: &'a [&'a str],
+    header: &'a [&'a str],
+    header_color: Color,
     widths: &'a [u16],
     rows: &'a [&'a [&'a str]],
+    color: Color,
     column_spacing: u16,
+    background_color: Color,
 }
 
 impl<'a> Default for Table<'a> {
     fn default() -> Table<'a> {
         Table {
             block: None,
-            titles: &[],
+            header: &[],
+            header_color: Color::Reset,
             widths: &[],
             rows: &[],
+            color: Color::Reset,
             column_spacing: 1,
+            background_color: Color::Reset,
         }
     }
 }
@@ -33,8 +39,13 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn titles(&mut self, titles: &'a [&'a str]) -> &mut Table<'a> {
-        self.titles = titles;
+    pub fn header(&mut self, header: &'a [&'a str]) -> &mut Table<'a> {
+        self.header = header;
+        self
+    }
+
+    pub fn header_color(&mut self, color: Color) -> &mut Table<'a> {
+        self.header_color = color;
         self
     }
 
@@ -48,14 +59,26 @@ impl<'a> Table<'a> {
         self
     }
 
+    pub fn color(&mut self, color: Color) -> &mut Table<'a> {
+        self.color = color;
+        self
+    }
+
     pub fn column_spacing(&mut self, spacing: u16) -> &mut Table<'a> {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn background_color(&mut self, color: Color) -> &mut Table<'a> {
+        self.background_color = color;
         self
     }
 }
 
 impl<'a> Widget for Table<'a> {
     fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+
+        // Render block if necessary and get the drawing area
         let table_area = match self.block {
             Some(ref b) => {
                 b.buffer(area, buf);
@@ -64,9 +87,14 @@ impl<'a> Widget for Table<'a> {
             None => *area,
         };
 
+        // Set the background
+        if self.background_color != Color::Reset {
+            self.background(&table_area, buf, self.background_color);
+        }
+
         let mut x = 0;
         let mut widths = Vec::with_capacity(self.widths.len());
-        for (width, title) in self.widths.iter().zip(self.titles.iter()) {
+        for (width, title) in self.widths.iter().zip(self.header.iter()) {
             let w = max(title.width() as u16, *width);
             if x + w < table_area.width {
                 widths.push(w);
@@ -78,8 +106,8 @@ impl<'a> Widget for Table<'a> {
 
         if y < table_area.bottom() {
             x = table_area.left();
-            for (w, t) in widths.iter().zip(self.titles.iter()) {
-                buf.set_string(x, y, t, Color::Reset, Color::Reset);
+            for (w, t) in widths.iter().zip(self.header.iter()) {
+                buf.set_string(x, y, t, self.header_color, self.background_color);
                 x += *w + self.column_spacing;
             }
         }
@@ -94,8 +122,8 @@ impl<'a> Widget for Table<'a> {
                                     y + i as u16,
                                     elt,
                                     *w as usize,
-                                    Color::Reset,
-                                    Color::Reset);
+                                    self.color,
+                                    self.background_color);
                     x += *w + self.column_spacing;
                 }
             }

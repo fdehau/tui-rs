@@ -9,24 +9,24 @@ use style::Color;
 
 pub struct List<'a> {
     block: Option<Block<'a>>,
+    items: &'a [&'a str],
     selected: usize,
-    selection_symbol: Option<&'a str>,
-    selection_color: Color,
     color: Color,
     background_color: Color,
-    items: &'a [&'a str],
+    highlight_color: Color,
+    highlight_symbol: Option<&'a str>,
 }
 
 impl<'a> Default for List<'a> {
     fn default() -> List<'a> {
         List {
             block: None,
+            items: &[],
             selected: 0,
-            selection_symbol: None,
-            selection_color: Color::Reset,
             color: Color::Reset,
             background_color: Color::Reset,
-            items: &[],
+            highlight_color: Color::Reset,
+            highlight_symbol: None,
         }
     }
 }
@@ -52,13 +52,13 @@ impl<'a> List<'a> {
         self
     }
 
-    pub fn selection_symbol(&'a mut self, selection_symbol: &'a str) -> &mut List<'a> {
-        self.selection_symbol = Some(selection_symbol);
+    pub fn highlight_symbol(&'a mut self, highlight_symbol: &'a str) -> &mut List<'a> {
+        self.highlight_symbol = Some(highlight_symbol);
         self
     }
 
-    pub fn selection_color(&'a mut self, selection_color: Color) -> &mut List<'a> {
-        self.selection_color = selection_color;
+    pub fn highlight_color(&'a mut self, highlight_color: Color) -> &mut List<'a> {
+        self.highlight_color = highlight_color;
         self
     }
 
@@ -79,8 +79,12 @@ impl<'a> Widget for List<'a> {
             None => *area,
         };
 
-        if list_area.height < 1 {
+        if list_area.width < 1 || list_area.height < 1 {
             return;
+        }
+
+        if self.background_color != Color::Reset {
+            self.background(&list_area, buf, self.background_color);
         }
 
         let list_length = self.items.len();
@@ -91,7 +95,8 @@ impl<'a> Widget for List<'a> {
         } else {
             0
         };
-        let x = match self.selection_symbol {
+
+        let x = match self.highlight_symbol {
             Some(s) => (s.width() + 1) as u16 + list_area.left(),
             None => list_area.left(),
         };
@@ -102,7 +107,7 @@ impl<'a> Widget for List<'a> {
                 let index = i + offset;
                 let item = self.items[index];
                 let color = if index == self.selected {
-                    self.selection_color
+                    self.highlight_color
                 } else {
                     self.color
                 };
@@ -113,13 +118,14 @@ impl<'a> Widget for List<'a> {
                                 color,
                                 self.background_color);
             }
-        }
-        if let Some(s) = self.selection_symbol {
-            buf.set_string(list_area.left(),
-                           list_area.top() + (self.selected - offset) as u16,
-                           s,
-                           self.selection_color,
-                           self.background_color);
+
+            if let Some(s) = self.highlight_symbol {
+                buf.set_string(list_area.left(),
+                               list_area.top() + (self.selected - offset) as u16,
+                               s,
+                               self.highlight_color,
+                               self.background_color);
+            }
         }
     }
 }

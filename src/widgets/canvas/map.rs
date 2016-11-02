@@ -19,8 +19,8 @@ impl MapResolution {
 }
 
 pub struct Map {
-    resolution: MapResolution,
-    color: Color,
+    pub resolution: MapResolution,
+    pub color: Color,
 }
 
 impl Default for Map {
@@ -38,13 +38,6 @@ impl<'a> Shape<'a> for Map {
     }
     fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a> {
         Box::new(self.into_iter())
-    }
-}
-
-impl Map {
-    pub fn resolution(&mut self, resolution: MapResolution) -> &mut Map {
-        self.resolution = resolution;
-        self
     }
 }
 

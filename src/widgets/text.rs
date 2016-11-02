@@ -7,8 +7,8 @@ use style::Color;
 
 pub struct Text<'a> {
     block: Option<Block<'a>>,
-    fg: Color,
-    bg: Color,
+    color: Color,
+    background_color: Color,
     wrapping: bool,
     text: &'a str,
     colors: &'a [(u16, u16, u16, Color, Color)],
@@ -18,8 +18,8 @@ impl<'a> Default for Text<'a> {
     fn default() -> Text<'a> {
         Text {
             block: None,
-            fg: Color::Reset,
-            bg: Color::Reset,
+            color: Color::Reset,
+            background_color: Color::Reset,
             wrapping: false,
             text: "",
             colors: &[],
@@ -38,13 +38,13 @@ impl<'a> Text<'a> {
         self
     }
 
-    pub fn bg(&mut self, bg: Color) -> &mut Text<'a> {
-        self.bg = bg;
+    pub fn background_color(&mut self, background_color: Color) -> &mut Text<'a> {
+        self.background_color = background_color;
         self
     }
 
-    pub fn fg(&mut self, fg: Color) -> &mut Text<'a> {
-        self.fg = fg;
+    pub fn color(&mut self, color: Color) -> &mut Text<'a> {
+        self.color = color;
         self
     }
 
@@ -64,17 +64,19 @@ struct Parser<'a> {
     mark: bool,
     color_string: String,
     color: Color,
+    base_color: Color,
     escaping: bool,
     coloring: bool,
 }
 
 impl<'a> Parser<'a> {
-    fn new(text: &'a str) -> Parser<'a> {
+    fn new(text: &'a str, base_color: Color) -> Parser<'a> {
         Parser {
             text: UnicodeSegmentation::graphemes(text, true).rev().collect::<Vec<&str>>(),
             mark: false,
             color_string: String::from(""),
-            color: Color::Reset,
+            color: base_color,
+            base_color: base_color,
             escaping: false,
             coloring: false,
         }
@@ -103,8 +105,8 @@ impl<'a> Parser<'a> {
     fn reset(&mut self) {
         self.coloring = false;
         self.mark = false;
-        self.color = Color::Reset;
-        self.color_string = String::from("");
+        self.color = self.base_color;
+        self.color_string.clear();
     }
 }
 
@@ -125,7 +127,7 @@ impl<'a> Iterator for Parser<'a> {
                         self.escaping = false;
                         Some((s, self.color))
                     } else {
-                        self.color = Color::Reset;
+                        self.color = self.base_color;
                         self.mark = true;
                         self.next()
                     }
@@ -162,9 +164,13 @@ impl<'a> Widget for Text<'a> {
             return;
         }
 
+        if self.background_color != Color::Reset {
+            self.background(&text_area, buf, self.background_color);
+        }
+
         let mut x = 0;
         let mut y = 0;
-        for (s, c) in Parser::new(self.text) {
+        for (s, c) in Parser::new(self.text, self.color) {
             if s == "\n" {
                 x = 0;
                 y += 1;
@@ -182,7 +188,11 @@ impl<'a> Widget for Text<'a> {
                 break;
             }
 
-            buf.set_cell(text_area.left() + x, text_area.top() + y, s, c, self.bg);
+            buf.set_cell(text_area.left() + x,
+                         text_area.top() + y,
+                         s,
+                         c,
+                         self.background_color);
             x += 1;
         }
 

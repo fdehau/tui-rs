@@ -6,11 +6,11 @@ use symbols::line;
 
 #[derive(Clone, Copy)]
 pub struct Block<'a> {
-    title: Option<&'a str>,
-    title_color: Color,
-    borders: border::Flags,
-    border_color: Color,
-    bg: Color,
+    pub title: Option<&'a str>,
+    pub title_color: Color,
+    pub borders: border::Flags,
+    pub border_color: Color,
+    pub background_color: Color,
 }
 
 impl<'a> Default for Block<'a> {
@@ -20,7 +20,7 @@ impl<'a> Default for Block<'a> {
             title_color: Color::Reset,
             borders: border::NONE,
             border_color: Color::Reset,
-            bg: Color::Reset,
+            background_color: Color::Reset,
         }
     }
 }
@@ -41,8 +41,8 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn bg(mut self, color: Color) -> Block<'a> {
-        self.bg = color;
+    pub fn background_color(mut self, color: Color) -> Block<'a> {
+        self.background_color = color;
         self
     }
 
@@ -81,27 +81,47 @@ impl<'a> Widget for Block<'a> {
             return;
         }
 
+        if self.background_color != Color::Reset {
+            self.background(area, buf, self.background_color)
+        }
+
         // Sides
         if self.borders.intersects(border::LEFT) {
             for y in area.top()..area.bottom() {
-                buf.set_cell(area.left(), y, line::VERTICAL, self.border_color, self.bg);
+                buf.set_cell(area.left(),
+                             y,
+                             line::VERTICAL,
+                             self.border_color,
+                             self.background_color);
             }
         }
         if self.borders.intersects(border::TOP) {
             for x in area.left()..area.right() {
-                buf.set_cell(x, area.top(), line::HORIZONTAL, self.border_color, self.bg);
+                buf.set_cell(x,
+                             area.top(),
+                             line::HORIZONTAL,
+                             self.border_color,
+                             self.background_color);
             }
         }
         if self.borders.intersects(border::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
-                buf.set_cell(x, y, line::VERTICAL, self.border_color, self.bg);
+                buf.set_cell(x,
+                             y,
+                             line::VERTICAL,
+                             self.border_color,
+                             self.background_color);
             }
         }
         if self.borders.intersects(border::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
-                buf.set_cell(x, y, line::HORIZONTAL, self.border_color, self.bg);
+                buf.set_cell(x,
+                             y,
+                             line::HORIZONTAL,
+                             self.border_color,
+                             self.background_color);
             }
         }
 
@@ -137,7 +157,7 @@ impl<'a> Widget for Block<'a> {
                                 title,
                                 width as usize,
                                 self.title_color,
-                                self.bg);
+                                self.background_color);
             }
         }
     }

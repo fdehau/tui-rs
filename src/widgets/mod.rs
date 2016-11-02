@@ -22,6 +22,7 @@ pub use self::table::Table;
 use buffer::Buffer;
 use layout::Rect;
 use terminal::Terminal;
+use style::Color;
 
 pub mod border {
     bitflags! {
@@ -38,6 +39,13 @@ pub mod border {
 
 pub trait Widget {
     fn buffer(&self, area: &Rect, buf: &mut Buffer);
+    fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                buf.set_bg(x, y, color);
+            }
+        }
+    }
     fn render(&self, area: &Rect, t: &mut Terminal)
         where Self: Sized
     {

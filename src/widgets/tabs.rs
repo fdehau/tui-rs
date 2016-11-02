@@ -10,8 +10,9 @@ pub struct Tabs<'a> {
     block: Option<Block<'a>>,
     titles: &'a [&'a str],
     selected: usize,
-    highlight_color: Color,
     color: Color,
+    background_color: Color,
+    highlight_color: Color,
 }
 
 impl<'a> Default for Tabs<'a> {
@@ -20,8 +21,9 @@ impl<'a> Default for Tabs<'a> {
             block: None,
             titles: &[],
             selected: 0,
-            highlight_color: Color::Reset,
             color: Color::Reset,
+            background_color: Color::Reset,
+            highlight_color: Color::Reset,
         }
     }
 }
@@ -47,6 +49,11 @@ impl<'a> Tabs<'a> {
         self
     }
 
+    pub fn background_color(&mut self, color: Color) -> &mut Tabs<'a> {
+        self.background_color = color;
+        self
+    }
+
     pub fn highlight_color(&mut self, color: Color) -> &mut Tabs<'a> {
         self.highlight_color = color;
         self
@@ -55,6 +62,7 @@ impl<'a> Tabs<'a> {
 
 impl<'a> Widget for Tabs<'a> {
     fn buffer(&self, area: &Rect, buf: &mut Buffer) {
+
         let tabs_area = match self.block {
             Some(b) => {
                 b.buffer(area, buf);
@@ -62,8 +70,13 @@ impl<'a> Widget for Tabs<'a> {
             }
             None => *area,
         };
+
         if tabs_area.height < 1 {
             return;
+        }
+
+        if self.background_color != Color::Reset {
+            self.background(&tabs_area, buf, self.background_color);
         }
 
         let mut x = tabs_area.left();
@@ -76,16 +89,16 @@ impl<'a> Widget for Tabs<'a> {
             if x > tabs_area.right() {
                 break;
             } else {
-                buf.set_string(x, tabs_area.top(), title, color, Color::Reset);
+                buf.set_string(x, tabs_area.top(), title, color, self.background_color);
                 x += title.width() as u16 + 1;
-                if x > tabs_area.right() {
+                if x >= tabs_area.right() {
                     break;
                 } else {
                     buf.set_cell(x,
                                  tabs_area.top(),
                                  line::VERTICAL,
-                                 Color::Reset,
-                                 Color::Reset);
+                                 self.color,
+                                 self.background_color);
                     x += 1;
                 }
             }

@@ -63,43 +63,44 @@ impl<'a> Widget for Sparkline<'a> {
             }
             None => *area,
         };
+
         if spark_area.height < 1 {
             return;
-        } else {
-            let max = match self.max {
-                Some(v) => v,
-                None => *self.data.iter().max().unwrap_or(&1u64),
-            };
-            let max_index = min(spark_area.width as usize, self.data.len());
-            let mut data = self.data
-                .iter()
-                .take(max_index)
-                .map(|e| e * spark_area.height as u64 * 8 / max)
-                .collect::<Vec<u64>>();
-            for j in (0..spark_area.height).rev() {
-                for (i, d) in data.iter_mut().enumerate() {
-                    let symbol = match *d {
-                        0 => " ",
-                        1 => bar::ONE_EIGHTH,
-                        2 => bar::ONE_QUATER,
-                        3 => bar::THREE_EIGHTHS,
-                        4 => bar::HALF,
-                        5 => bar::FIVE_EIGHTHS,
-                        6 => bar::THREE_QUATERS,
-                        7 => bar::SEVEN_EIGHTHS,
-                        _ => bar::FULL,
-                    };
-                    buf.set_cell(spark_area.left() + i as u16,
-                                 spark_area.top() + j,
-                                 symbol,
-                                 self.color,
-                                 self.background_color);
+        }
 
-                    if *d > 8 {
-                        *d -= 8;
-                    } else {
-                        *d = 0;
-                    }
+        let max = match self.max {
+            Some(v) => v,
+            None => *self.data.iter().max().unwrap_or(&1u64),
+        };
+        let max_index = min(spark_area.width as usize, self.data.len());
+        let mut data = self.data
+            .iter()
+            .take(max_index)
+            .map(|e| e * spark_area.height as u64 * 8 / max)
+            .collect::<Vec<u64>>();
+        for j in (0..spark_area.height).rev() {
+            for (i, d) in data.iter_mut().enumerate() {
+                let symbol = match *d {
+                    0 => " ",
+                    1 => bar::ONE_EIGHTH,
+                    2 => bar::ONE_QUATER,
+                    3 => bar::THREE_EIGHTHS,
+                    4 => bar::HALF,
+                    5 => bar::FIVE_EIGHTHS,
+                    6 => bar::THREE_QUATERS,
+                    7 => bar::SEVEN_EIGHTHS,
+                    _ => bar::FULL,
+                };
+                buf.set_cell(spark_area.left() + i as u16,
+                             spark_area.top() + j,
+                             symbol,
+                             self.color,
+                             self.background_color);
+
+                if *d > 8 {
+                    *d -= 8;
+                } else {
+                    *d = 0;
                 }
             }
         }

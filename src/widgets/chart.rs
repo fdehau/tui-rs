@@ -131,7 +131,7 @@ pub struct Chart<'a> {
     x_axis: Axis<'a>,
     y_axis: Axis<'a>,
     datasets: &'a [Dataset<'a>],
-    bg: Color,
+    background_color: Color,
 }
 
 impl<'a> Default for Chart<'a> {
@@ -140,7 +140,7 @@ impl<'a> Default for Chart<'a> {
             block: None,
             x_axis: Axis::default(),
             y_axis: Axis::default(),
-            bg: Color::Reset,
+            background_color: Color::Reset,
             datasets: &[],
         }
     }
@@ -152,8 +152,8 @@ impl<'a> Chart<'a> {
         self
     }
 
-    pub fn bg(&mut self, bg: Color) -> &mut Chart<'a> {
-        self.bg = bg;
+    pub fn background_color(&mut self, background_color: Color) -> &mut Chart<'a> {
+        self.background_color = background_color;
         self
     }
 
@@ -237,18 +237,22 @@ impl<'a> Widget for Chart<'a> {
 
         let layout = self.layout(&chart_area);
         let graph_area = layout.graph_area;
-        if graph_area.width == 0 || graph_area.height == 0 {
+        if graph_area.width < 1 || graph_area.height < 1 {
             return;
+        }
+
+        if self.background_color != Color::Reset {
+            self.background(&chart_area, buf, self.background_color);
         }
 
         if let Some((x, y)) = layout.legend_x {
             let title = self.x_axis.title.unwrap();
-            buf.set_string(x, y, title, self.x_axis.title_color, self.bg);
+            buf.set_string(x, y, title, self.x_axis.title_color, self.background_color);
         }
 
         if let Some((x, y)) = layout.legend_y {
             let title = self.y_axis.title.unwrap();
-            buf.set_string(x, y, title, self.y_axis.title_color, self.bg);
+            buf.set_string(x, y, title, self.y_axis.title_color, self.background_color);
         }
 
         if let Some(y) = layout.label_x {
@@ -263,7 +267,7 @@ impl<'a> Widget for Chart<'a> {
                                    y,
                                    label,
                                    self.x_axis.labels_color,
-                                   self.bg);
+                                   self.background_color);
                 }
             }
         }
@@ -278,26 +282,38 @@ impl<'a> Widget for Chart<'a> {
                                    graph_area.bottom() - 1 - dy,
                                    label,
                                    self.y_axis.labels_color,
-                                   self.bg);
+                                   self.background_color);
                 }
             }
         }
 
         if let Some(y) = layout.axis_x {
             for x in graph_area.left()..graph_area.right() {
-                buf.set_cell(x, y, symbols::line::HORIZONTAL, self.x_axis.color, self.bg);
+                buf.set_cell(x,
+                             y,
+                             symbols::line::HORIZONTAL,
+                             self.x_axis.color,
+                             self.background_color);
             }
         }
 
         if let Some(x) = layout.axis_y {
             for y in graph_area.top()..graph_area.bottom() {
-                buf.set_cell(x, y, symbols::line::VERTICAL, self.y_axis.color, self.bg);
+                buf.set_cell(x,
+                             y,
+                             symbols::line::VERTICAL,
+                             self.y_axis.color,
+                             self.background_color);
             }
         }
 
         if let Some(y) = layout.axis_x {
             if let Some(x) = layout.axis_y {
-                buf.set_cell(x, y, symbols::line::BOTTOM_LEFT, self.x_axis.color, self.bg);
+                buf.set_cell(x,
+                             y,
+                             symbols::line::BOTTOM_LEFT,
+                             self.x_axis.color,
+                             self.background_color);
             }
         }
 
@@ -309,20 +325,23 @@ impl<'a> Widget for Chart<'a> {
                           y < self.y_axis.bounds[0] ||
                           y > self.y_axis.bounds[1])
                     }) {
-                        let dy = (self.y_axis.bounds[1] - y) * graph_area.height as f64 /
-                                 (self.y_axis.bounds[1] - self.y_axis.bounds[0]);
-                        let dx = (x - self.x_axis.bounds[0]) * graph_area.width as f64 /
-                                 (self.x_axis.bounds[1] - self.x_axis.bounds[0]);
+                        let dy = ((self.y_axis.bounds[1] - y) * (graph_area.height - 1) as f64 /
+                                  (self.y_axis.bounds[1] -
+                                   self.y_axis.bounds[0])) as u16;
+                        let dx = ((x - self.x_axis.bounds[0]) * (graph_area.width - 1) as f64 /
+                                  (self.x_axis.bounds[1] -
+                                   self.x_axis.bounds[0])) as u16;
 
-                        buf.set_cell(dx as u16 + graph_area.left(),
-                                     dy as u16 + graph_area.top(),
+                        buf.set_cell(graph_area.left() + dx,
+                                     graph_area.top() + dy,
                                      symbols::BLACK_CIRCLE,
                                      dataset.color,
-                                     self.bg);
+                                     self.background_color);
                     }
                 }
                 Marker::Braille => {
                     Canvas::default()
+                        .background_color(self.background_color)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
                         .layers(&[&[&Points {

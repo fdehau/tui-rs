@@ -70,9 +70,10 @@ impl SinSignal {
 
 impl Iterator for SinSignal {
     type Item = (f64, f64);
-    fn next(&mut self) -> Option<(f64, f64)> {
+    fn next(&mut self) -> Option<Self::Item> {
+        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale);
         self.x += self.interval;
-        Some((self.x, ((self.x * 1.0 / self.period).sin() + 1.0) * self.scale))
+        Some(point)
     }
 }
 
@@ -131,7 +132,7 @@ fn main() {
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
-    let mut sin_signal = SinSignal::new(1.0, 4.0, 20.0);
+    let mut sin_signal = SinSignal::new(0.2, 5.0, 20.0);
     let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
 
     let mut app = App {
@@ -149,7 +150,7 @@ fn main() {
         show_chart: true,
         progress: 0,
         data: rand_signal.clone().take(200).collect(),
-        data2: sin_signal.clone().take(30).collect(),
+        data2: sin_signal.clone().take(100).collect(),
         data3: sin_signal2.clone().take(200).collect(),
         data4: vec![("B1", 9),
                     ("B2", 12),
@@ -173,7 +174,7 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
 
-    for _ in 0..30 {
+    for _ in 0..100 {
         sin_signal.next();
     }
     for _ in 0..200 {
@@ -246,12 +247,12 @@ fn main() {
                 }
                 app.data.insert(0, rand_signal.next().unwrap());
                 app.data.pop();
-                app.data2.remove(0);
-                app.data2.push(sin_signal.next().unwrap());
-                for _ in 0..10 {
-                    app.data3.remove(0);
+                for _ in 0..5 {
+                    app.data2.remove(0);
+                    app.data2.push(sin_signal.next().unwrap());
                 }
                 for _ in 0..10 {
+                    app.data3.remove(0);
                     app.data3.push(sin_signal2.next().unwrap());
                 }
                 let i = app.data4.pop().unwrap();
@@ -279,6 +280,7 @@ fn draw(t: &mut Terminal, app: &App) {
             Tabs::default()
                 .block(Block::default().borders(border::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)
+                .color(Color::Green)
                 .highlight_color(Color::Yellow)
                 .select(app.tabs.selection)
                 .render(&chunks[0], t);
@@ -292,15 +294,22 @@ fn draw(t: &mut Terminal, app: &App) {
                         .sizes(&[Size::Percent(50), Size::Percent(50)])
                         .render(t, &chunks[1], |t, chunks| {
                             Table::default()
-                                .block(Block::default().title("Servers").borders(border::ALL))
-                                .titles(&["Server", "Location", "Status"])
+                                .block(Block::default()
+                                    .title("Servers")
+                                    .borders(border::ALL))
+                                .header(&["Server", "Location", "Status"])
+                                .header_color(Color::Red)
                                 .widths(&[20, 20, 20])
                                 .rows(&[&["Europe#1", "Paris", "Up"],
                                         &["Europe#2", "Berlin", "Up"]])
+                                .color(Color::Green)
                                 .render(&chunks[0], t);
                             Canvas::default()
                                 .block(Block::default().title("World").borders(border::ALL))
-                                .layers(&[&[Map::default().resolution(MapResolution::High)]])
+                                .layers(&[&[&Map {
+                                                color: Color::Green,
+                                                resolution: MapResolution::High,
+                                            }]])
                                 .x_bounds([-180.0, 180.0])
                                 .y_bounds([-90.0, 90.0])
                                 .render(&chunks[1], t);
@@ -360,8 +369,8 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                                             .title("List"))
                                         .items(&app.items)
                                         .select(app.selected)
-                                        .selection_color(Color::Yellow)
-                                        .selection_symbol(">")
+                                        .highlight_color(Color::Yellow)
+                                        .highlight_symbol(">")
                                         .render(&chunks[0], t);
                                     List::default()
                                         .block(Block::default()
@@ -395,8 +404,8 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                             .y_axis(Axis::default()
                                 .title("Y Axis")
                                 .color(Color::Gray)
-                                .bounds([0.0, 40.0])
-                                .labels(&["0", "20", "40"]))
+                                .bounds([-25.0, 25.0])
+                                .labels(&["-25", "0", "25"]))
                             .datasets(&[Dataset::default()
                                             .marker(Marker::Dot)
                                             .color(Color::Cyan)
@@ -411,9 +420,9 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
             Text::default()
                 .block(Block::default().borders(border::ALL).title("Footer"))
                 .wrap(true)
-                .fg(app.colors[app.color_index])
-                .text("This a paragraph with several lines.\nYou can change the \
-                               color.\nUse \\{[color] [text]} to highlight the text with the \
+                .color(app.colors[app.color_index])
+                .text("This is a paragraph with several lines.\nYou can change the \
+                               color.\nUse \\{[color] [text]} to highlight the text with a \
                                color. For example, {red u}{green n}{yellow d}{magenta e}{cyan r} \
                                {gray t}{light_gray h}{light_red e} {light_green r}{light_yellow \
                                a}{light_magenta i}{light_cyan n}{white b}{red o}{green w}.\nOh, \

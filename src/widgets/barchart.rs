@@ -16,6 +16,7 @@ pub struct BarChart<'a> {
     bar_color: Color,
     value_color: Color,
     label_color: Color,
+    background_color: Color,
     data: &'a [(&'a str, u64)],
     values: Vec<String>,
 }
@@ -25,13 +26,14 @@ impl<'a> Default for BarChart<'a> {
         BarChart {
             block: None,
             max: None,
+            data: &[],
+            values: Vec::new(),
             bar_width: 1,
             bar_gap: 1,
             bar_color: Color::Reset,
             value_color: Color::Reset,
             label_color: Color::Reset,
-            data: &[],
-            values: Vec::new(),
+            background_color: Color::Reset,
         }
     }
 }
@@ -75,6 +77,10 @@ impl<'a> BarChart<'a> {
         self.label_color = color;
         self
     }
+    pub fn background_color(&'a mut self, color: Color) -> &mut BarChart<'a> {
+        self.background_color = color;
+        self
+    }
 }
 
 impl<'a> Widget for BarChart<'a> {
@@ -89,6 +95,10 @@ impl<'a> Widget for BarChart<'a> {
 
         if chart_area.height < 2 {
             return;
+        }
+
+        if self.background_color != Color::Reset {
+            self.background(&chart_area, buf, self.background_color);
         }
 
         let max = self.max.unwrap_or(self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
@@ -119,7 +129,7 @@ impl<'a> Widget for BarChart<'a> {
                                  chart_area.top() + j,
                                  symbol,
                                  self.bar_color,
-                                 Color::Reset);
+                                 self.background_color);
                 }
 
                 if d.1 > 8 {
@@ -149,7 +159,7 @@ impl<'a> Widget for BarChart<'a> {
                             label,
                             self.bar_width as usize,
                             self.label_color,
-                            Color::Reset);
+                            self.background_color);
         }
     }
 }
