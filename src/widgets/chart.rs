@@ -334,7 +334,7 @@ impl<'a> Widget for Chart<'a> {
 
                         buf.set_cell(graph_area.left() + dx,
                                      graph_area.top() + dy,
-                                     symbols::BLACK_CIRCLE,
+                                     symbols::DOT,
                                      dataset.color,
                                      self.background_color);
                     }

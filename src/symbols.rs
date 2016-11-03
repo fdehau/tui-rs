@@ -34,4 +34,3 @@ pub mod line {
 }
 
 pub const DOT: &'static str = "•";
-pub const BLACK_CIRCLE: &'static str = "●";
