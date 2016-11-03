@@ -9,12 +9,19 @@ use layout::Rect;
 use style::Color;
 use symbols;
 
+/// An X or Y axis for the chart widget
 pub struct Axis<'a> {
+    /// Title displayed next to axis end
     title: Option<&'a str>,
+    /// Color of the title
     title_color: Color,
+    /// Bounds for the axis (all data points outside these limits will not be represented)
     bounds: [f64; 2],
+    /// A list of labels to put to the left or below the axis
     labels: Option<&'a [&'a str]>,
+    /// The labels' color
     labels_color: Color,
+    /// The color used to draw the axis itself
     color: Color,
 }
 
@@ -63,15 +70,21 @@ impl<'a> Axis<'a> {
     }
 }
 
+/// Marker to use when plotting data points
 pub enum Marker {
     Dot,
     Braille,
 }
 
+/// A group of data points
 pub struct Dataset<'a> {
+    /// Name of the dataset (used in the legend if shown)
     name: &'a str,
+    /// A reference to the actual data
     data: &'a [(f64, f64)],
+    /// Symbol used for each points of this dataset
     marker: Marker,
+    /// Color of the corresponding points and of the legend entry
     color: Color,
 }
 
@@ -108,6 +121,8 @@ impl<'a> Dataset<'a> {
     }
 }
 
+/// A container that holds all the infos about where to display each elements of the chart (axis,
+/// labels, legend, ...).
 #[derive(Debug)]
 struct ChartLayout {
     title_x: Option<(u16, u16)>,
@@ -135,11 +150,17 @@ impl Default for ChartLayout {
     }
 }
 
+/// A widget to plot one or more dataset in a cartesian coordinate system
 pub struct Chart<'a> {
+    /// A block to display around the widget eventually
     block: Option<Block<'a>>,
+    /// The horizontal axis
     x_axis: Axis<'a>,
+    /// The vertical axis
     y_axis: Axis<'a>,
+    /// A reference to the datasets
     datasets: &'a [Dataset<'a>],
+    /// The background color
     background_color: Color,
 }
 
@@ -182,6 +203,8 @@ impl<'a> Chart<'a> {
     }
 
 
+    /// Compute the internal layout of the chart given the area. If the area is too small some
+    /// elements may be automatically hidden
     fn layout(&self, area: &Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
         if area.height == 0 || area.width == 0 {

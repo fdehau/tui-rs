@@ -5,11 +5,11 @@ extern crate log4rs;
 extern crate termion;
 extern crate rand;
 
+use std::io;
 use std::thread;
 use std::env;
 use std::time;
 use std::sync::mpsc;
-use std::io::stdin;
 
 use rand::distributions::{IndependentSample, Range};
 
@@ -24,7 +24,7 @@ use log4rs::config::{Appender, Config, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart, Marker, Tabs, Table};
-use tui::widgets::canvas::{Canvas, Line, Shape, Map, MapResolution, Label};
+use tui::widgets::canvas::{Canvas, Shape, Map, MapResolution, Label};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -209,7 +209,7 @@ fn main() {
     }
 
     thread::spawn(move || {
-        let stdin = stdin();
+        let stdin = io::stdin();
         for c in stdin.keys() {
             let evt = c.unwrap();
             input_tx.send(Event::Input(evt)).unwrap();
@@ -228,16 +228,16 @@ fn main() {
     });
 
     let mut terminal = Terminal::new().unwrap();
-    terminal.clear();
-    terminal.hide_cursor();
+    terminal.clear().unwrap();
+    terminal.hide_cursor().unwrap();
 
     loop {
         let size = Terminal::size().unwrap();
         if size != app.size {
-            terminal.resize(size);
+            terminal.resize(size).unwrap();
             app.size = size;
         }
-        draw(&mut terminal, &app);
+        draw(&mut terminal, &app).unwrap();
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -295,10 +295,10 @@ fn main() {
             }
         }
     }
-    terminal.show_cursor();
+    terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal, app: &App) {
+fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
 
     Group::default()
         .direction(Direction::Vertical)
@@ -364,7 +364,8 @@ fn draw(t: &mut Terminal, app: &App) {
                 _ => {}
             };
         });
-    t.finish();
+    try!(t.draw());
+    Ok(())
 }
 
 fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
@@ -423,6 +424,7 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                                             .borders(border::ALL)
                                             .title("List"))
                                         .items(&app.items2)
+                                        .color(Color::Gray)
                                         .render(&chunks[1], t);
                                 });
                             BarChart::default()
@@ -469,12 +471,13 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                 .block(Block::default().borders(border::ALL).title("Footer"))
                 .wrap(true)
                 .color(app.colors[app.color_index])
-                .text("This is a paragraph with several lines.\nYou can change the \
-                               color.\nUse \\{[color] [text]} to highlight the text with a \
-                               color. For example, {red u}{green n}{yellow d}{magenta e}{cyan r} \
-                               {gray t}{light_gray h}{light_red e} {light_green r}{light_yellow \
-                               a}{light_magenta i}{light_cyan n}{white b}{red o}{green w}.\nOh, \
-                               and if you didn't notice you can automatically wrap your text =).")
+                .text("This is a paragraph with several lines.\nYou can change the color.\nUse \
+                       \\{[color] [text]} to highlight the text with a color. For example, {red \
+                       u}{green n}{yellow d}{magenta e}{cyan r} {gray t}{light_gray h}{light_red \
+                       e} {light_green r}{light_yellow a}{light_magenta i}{light_cyan n}{white \
+                       b}{red o}{green w}.\nOh, and if you didn't notice you can automatically \
+                       wrap your text =).\nOne more thing is that it should display unicode \
+                       characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ ٩(-̮̮̃•̃).")
                 .render(&chunks[2], t);
         });
 }

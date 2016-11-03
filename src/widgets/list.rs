@@ -7,13 +7,37 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Color;
 
+/// A widget to display several items among which one can be selected (optional)
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, List};
+/// # use tui::style::Color;
+/// # fn main() {
+///     List::default()
+///         .block(Block::default().title("List").borders(border::ALL))
+///         .items(&["Item 1", "Item 2", "Item 3"])
+///         .select(1)
+///         .color(Color::White)
+///         .highlight_color(Color::Yellow)
+///         .highlight_symbol(">>");
+/// # }
+/// ```
 pub struct List<'a> {
     block: Option<Block<'a>>,
+    /// Items to be displayed
     items: &'a [&'a str],
-    selected: usize,
+    /// Index of the one selected
+    selected: Option<usize>,
+    /// Color used to render non selected items
     color: Color,
+    /// Background color of the widget
     background_color: Color,
+    /// Color used to render selected item
     highlight_color: Color,
+    /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'a str>,
 }
 
@@ -22,7 +46,7 @@ impl<'a> Default for List<'a> {
         List {
             block: None,
             items: &[],
-            selected: 0,
+            selected: None,
             color: Color::Reset,
             background_color: Color::Reset,
             highlight_color: Color::Reset,
@@ -63,7 +87,7 @@ impl<'a> List<'a> {
     }
 
     pub fn select(&'a mut self, index: usize) -> &'a mut List<'a> {
-        self.selected = index;
+        self.selected = Some(index);
         self
     }
 }
@@ -90,8 +114,12 @@ impl<'a> Widget for List<'a> {
         let list_length = self.items.len();
         let list_height = list_area.height as usize;
         let bound = min(list_height, list_length);
-        let offset = if self.selected >= list_height {
-            self.selected - list_height + 1
+        let (selected, highlight_color) = match self.selected {
+            Some(i) => (i, self.highlight_color),
+            None => (0, self.color),
+        };
+        let offset = if selected >= list_height {
+            selected - list_height + 1
         } else {
             0
         };
@@ -106,8 +134,8 @@ impl<'a> Widget for List<'a> {
             for i in 0..bound {
                 let index = i + offset;
                 let item = self.items[index];
-                let color = if index == self.selected {
-                    self.highlight_color
+                let color = if index == selected {
+                    highlight_color
                 } else {
                     self.color
                 };
@@ -121,7 +149,7 @@ impl<'a> Widget for List<'a> {
 
             if let Some(s) = self.highlight_symbol {
                 buf.set_string(list_area.left(),
-                               list_area.top() + (self.selected - offset) as u16,
+                               list_area.top() + (selected - offset) as u16,
                                s,
                                self.highlight_color,
                                self.background_color);

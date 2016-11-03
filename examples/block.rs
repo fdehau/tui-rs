@@ -13,8 +13,8 @@ use tui::style::Color;
 fn main() {
     let mut terminal = Terminal::new().unwrap();
     let stdin = io::stdin();
-    terminal.clear();
-    terminal.hide_cursor();
+    terminal.clear().unwrap();
+    terminal.hide_cursor().unwrap();
     draw(&mut terminal);
     for c in stdin.keys() {
         draw(&mut terminal);
@@ -23,7 +23,7 @@ fn main() {
             break;
         }
     }
-    terminal.show_cursor();
+    terminal.show_cursor().unwrap();
 }
 
 fn draw(t: &mut Terminal) {
@@ -63,5 +63,5 @@ fn draw(t: &mut Terminal) {
                 .render(&chunks[2], t);
         });
 
-    t.finish();
+    t.draw().unwrap();
 }

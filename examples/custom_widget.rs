@@ -35,7 +35,7 @@ impl<'a> Label<'a> {
 
 fn main() {
     let mut terminal = Terminal::new().unwrap();
-    terminal.clear();
+    terminal.clear().unwrap();
     Label::default().text("Test").render(&Terminal::size().unwrap(), &mut terminal);
-    terminal.finish();
+    terminal.draw().unwrap();
 }

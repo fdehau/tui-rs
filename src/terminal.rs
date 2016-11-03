@@ -11,20 +11,29 @@ use widgets::Widget;
 use style::Color;
 use util::hash;
 
+/// Holds a computed layout and keeps track of its use between successive draw calls
 #[derive(Debug)]
 pub struct LayoutEntry {
     chunks: Vec<Rect>,
     hot: bool,
 }
 
+/// Interface to the terminal backed by Termion
 pub struct Terminal {
+    /// Raw mode termion terminal
     stdout: RawTerminal<io::Stdout>,
+    /// Cache to prevent the layout to be computed at each draw call
     layout_cache: HashMap<u64, LayoutEntry>,
+    /// Holds the results of the current and previous draw calls. The two are compared at the end
+    /// of each draw pass to output the necessary updates to the terminal
     buffers: [Buffer; 2],
+    /// Index of the current buffer in the previous array
     current: usize,
 }
 
 impl Terminal {
+    /// Wrapper around Termion initialization. Each buffer is initialized with a blank string and
+    /// default colors for the foreground and the background
     pub fn new() -> Result<Terminal, io::Error> {
         let stdout = try!(io::stdout().into_raw_mode());
         let size = try!(Terminal::size());
@@ -36,6 +45,7 @@ impl Terminal {
         })
     }
 
+    /// Return the size of the terminal
     pub fn size() -> Result<Rect, io::Error> {
         let terminal = try!(termion::terminal_size());
         Ok(Rect {
@@ -46,6 +56,9 @@ impl Terminal {
         })
     }
 
+    /// Check if we have already computed a layout for a given group, otherwise it creates one and
+    /// add it to the layout cache. Moreover the function marks the queried entries so that we can
+    /// clean outdated ones at the end of the draw call.
     pub fn compute_layout(&mut self, group: &Group, area: &Rect) -> Vec<Rect> {
         let hash = hash(group, area);
         let entry = self.layout_cache
@@ -65,9 +78,11 @@ impl Terminal {
         entry.chunks.clone()
     }
 
-    pub fn flush(&mut self) {
+    /// Builds a string representing the minimal escape sequences and characters set necessary to
+    /// update the UI and writes it to stdout.
+    pub fn flush(&mut self) -> Result<(), io::Error> {
         let width = self.buffers[self.current].area.width;
-        let mut string = String::with_capacity(self.buffers[self.current].content.len());
+        let mut string = String::with_capacity(self.buffers[self.current].content.len() * 3);
         let mut fg = Color::Reset;
         let mut bg = Color::Reset;
         let mut last_y = 0;
@@ -106,29 +121,38 @@ impl Terminal {
             string.push_str(&cell.symbol);
             inst += 1;
         }
-        string.push_str(&format!("{}{}", Color::Reset.fg(), Color::Reset.bg()));
         debug!("{} instructions outputed.", inst);
-        write!(self.stdout, "{}", string).unwrap();
+        try!(write!(self.stdout,
+                    "{}{}{}",
+                    string,
+                    Color::Reset.fg(),
+                    Color::Reset.bg()));
+        Ok(())
     }
 
+    /// Calls the draw method of a given widget on the current buffer
     pub fn render<W>(&mut self, widget: &W, area: &Rect)
         where W: Widget
     {
         widget.draw(area, &mut self.buffers[self.current]);
     }
 
-    pub fn resize(&mut self, area: Rect) {
+    /// Updates the interface so that internal buffers matches the current size of the terminal.
+    /// This leads to a full redraw of the screen.
+    pub fn resize(&mut self, area: Rect) -> Result<(), io::Error> {
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].resize(area);
         self.buffers[1 - self.current].reset();
         self.layout_cache.clear();
-        self.clear();
+        try!(self.clear());
+        Ok(())
     }
 
-    pub fn finish(&mut self) {
+    /// Flushes the current internal state and prepares the interface for the next draw call
+    pub fn draw(&mut self) -> Result<(), io::Error> {
 
         // Draw to stdout
-        self.flush();
+        try!(self.flush());
 
         // Clean layout cache
         let to_remove = self.layout_cache
@@ -149,21 +173,29 @@ impl Terminal {
         self.current = 1 - self.current;
 
         // Flush
-        self.stdout.flush().unwrap();
+        try!(self.stdout.flush());
+        Ok(())
     }
 
-    pub fn clear(&mut self) {
-        write!(self.stdout, "{}", termion::clear::All).unwrap();
-        write!(self.stdout, "{}", termion::cursor::Goto(1, 1)).unwrap();
-        self.stdout.flush().unwrap();
-    }
-    pub fn hide_cursor(&mut self) {
-        write!(self.stdout, "{}", termion::cursor::Hide).unwrap();
-        self.stdout.flush().unwrap();
+    /// Clears the entire screen and move the cursor to the top left of the screen
+    pub fn clear(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::clear::All));
+        try!(write!(self.stdout, "{}", termion::cursor::Goto(1, 1)));
+        try!(self.stdout.flush());
+        Ok(())
     }
 
-    pub fn show_cursor(&mut self) {
-        write!(self.stdout, "{}", termion::cursor::Show).unwrap();
-        self.stdout.flush().unwrap();
+    /// Hides cursor
+    pub fn hide_cursor(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::cursor::Hide));
+        try!(self.stdout.flush());
+        Ok(())
+    }
+
+    /// Shows cursor
+    pub fn show_cursor(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::cursor::Show));
+        try!(self.stdout.flush());
+        Ok(())
     }
 }

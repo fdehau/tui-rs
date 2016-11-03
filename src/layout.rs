@@ -13,6 +13,8 @@ pub enum Direction {
     Vertical,
 }
 
+/// A simple rectangle used in the computation of the layout and to give widgets an hint about the
+/// area they are supposed to render to.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Rect {
     pub x: u16,
@@ -115,20 +117,24 @@ pub enum Size {
     Min(u16),
 }
 
+/// Wrapper function around the cassowary-rs solver to be able to split a given
+/// area into smaller ones based on the preferred widths or heights and the direction.
+///
 /// # Examples
 /// ```
-/// extern crate tui;
-/// use tui::layout::{Rect, Size, Direction, split};
+/// # extern crate tui;
+/// # use tui::layout::{Rect, Size, Direction, split};
 ///
-/// fn main() {
+/// # fn main() {
 ///     let chunks = split(&Rect{x: 2, y: 2, width: 10, height: 10},
 ///                        &Direction::Vertical,
 ///                        0,
-///                        &[Size::Fixed(5), Size::Min(5)]);
-/// }
+///                        &[Size::Fixed(5), Size::Min(0)]);
+///     assert_eq!(chunks, vec![Rect{x:2, y: 2, width: 10, height: 5},
+///                             Rect{x: 2, y: 7, width: 10, height: 5}])
+/// # }
 ///
 /// ```
-#[allow(unused_variables)]
 pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
@@ -219,6 +225,7 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
     results
 }
 
+/// A container used by the solver inside split
 struct Element {
     x: Variable,
     y: Variable,
@@ -253,6 +260,20 @@ impl Element {
     }
 }
 
+/// Describes a layout and may be used to group widgets in a specific area of the terminal
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// use tui::layout::{Group, Direction, Size};
+/// # fn main() {
+///     Group::default()
+///         .direction(Direction::Vertical)
+///         .margin(0)
+///         .sizes(&[Size::Percent(50), Size::Percent(50)]);
+/// # }
+/// ```
 #[derive(Debug, Hash)]
 pub struct Group {
     pub direction: Direction,

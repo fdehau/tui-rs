@@ -6,6 +6,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use layout::Rect;
 use style::Color;
 
+/// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
     pub fg: Color,
@@ -32,9 +33,40 @@ impl Default for Cell {
     }
 }
 
+/// A buffer that maps to the desired content of the terminal after the draw call
+///
+/// No widget in the library interacts directly with the terminal. Instead each of them is required
+/// to draw their state to an intermediate buffer. It is basically a grid where each cell contains
+/// a grapheme, a foreground color and a background color. This grid will then be used to output
+/// the appropriate escape sequences and characters to draw the UI as the user has defined it.
+///
+/// # Examples:
+///
+/// ```
+/// # extern crate tui;
+/// use tui::buffer::{Buffer, Cell};
+/// use tui::layout::Rect;
+/// use tui::style::Color;
+///
+/// # fn main() {
+/// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
+/// buf.set_symbol(0, 2, "x");
+/// assert_eq!(buf.at(0, 2).symbol, "x");
+/// buf.set_string(3, 0, "string", Color::Red, Color::White);
+/// assert_eq!(buf.at(5, 0), &Cell{symbol: String::from("r"), fg: Color::Red, bg: Color::White});
+/// buf.update_cell(5, 0, |c| {
+///     c.symbol.clear();
+///     c.symbol.push('x');
+/// });
+/// assert_eq!(buf.at(5, 0).symbol, "x");
+/// # }
+/// ```
 #[derive(Debug, Clone)]
 pub struct Buffer {
+    /// The area represented by this buffer
     pub area: Rect,
+    /// The content of the buffer. The length of this Vec should always be equal to area.width *
+    /// area.height
     pub content: Vec<Cell>,
 }
 
@@ -48,11 +80,13 @@ impl Default for Buffer {
 }
 
 impl Buffer {
+    /// Returns a Buffer with all cells set to the default one
     pub fn empty(area: Rect) -> Buffer {
         let cell: Cell = Default::default();
         Buffer::filled(area, cell)
     }
 
+    /// Returns a Buffer with all cells initialized with the attributes of the given Cell
     pub fn filled(area: Rect, cell: Cell) -> Buffer {
         let size = area.area() as usize;
         let mut content = Vec::with_capacity(size);
@@ -65,53 +99,69 @@ impl Buffer {
         }
     }
 
+    /// Returns the content of the buffer as a slice
     pub fn content(&self) -> &[Cell] {
         &self.content
     }
 
+    /// Returns the area covered by this buffer
     pub fn area(&self) -> &Rect {
         &self.area
     }
 
+    /// Returns a reference to Cell at the given coordinates
     pub fn at(&self, x: u16, y: u16) -> &Cell {
         let i = self.index_of(x, y);
         &self.content[i]
     }
 
+    /// Returns the index in the Vec<Cell> for the given (x, y)
     pub fn index_of(&self, x: u16, y: u16) -> usize {
-        let index = (y * self.area.width + x) as usize;
-        debug_assert!(index < self.content.len(),
-                      "Trying to access position x:{}, y:{} in buffer {:?}",
+        debug_assert!(x >= self.area.left() && x < self.area.right() && y >= self.area.top() &&
+                      y < self.area.bottom(),
+                      "Trying to access position outside the buffer: x={}, y={}, area={:?}",
                       x,
                       y,
                       self.area);
+        let index = ((y - self.area.y) * self.area.width + (x - self.area.x)) as usize;
         index
     }
 
+    /// Returns the coordinates of a cell given its index
     pub fn pos_of(&self, i: usize) -> (u16, u16) {
-        debug_assert!(self.area.width > 0);
-        (i as u16 % self.area.width, i as u16 / self.area.width)
+        debug_assert!(i >= self.content.len(),
+                      "Trying to get the coords of a cell outside the buffer: i={} len={}",
+                      i,
+                      self.content.len());
+        (self.area.x + i as u16 % self.area.width, self.area.y + i as u16 / self.area.width)
     }
 
+    /// Update the symbol of a cell at (x, y)
     pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &str) {
         let i = self.index_of(x, y);
         self.content[i].symbol.clear();
         self.content[i].symbol.push_str(symbol);
     }
 
+    /// Update the foreground color of a cell at (x, y)
     pub fn set_fg(&mut self, x: u16, y: u16, color: Color) {
         let i = self.index_of(x, y);
         self.content[i].fg = color;
     }
+
+    /// Update the background color of a cell at (x, y)
     pub fn set_bg(&mut self, x: u16, y: u16, color: Color) {
         let i = self.index_of(x, y);
         self.content[i].bg = color;
     }
 
+    /// Print a string, starting at the position (x, y)
     pub fn set_string(&mut self, x: u16, y: u16, string: &str, fg: Color, bg: Color) {
         self.set_stringn(x, y, string, usize::MAX, fg, bg);
     }
 
+    /// Print at most the first n characters of a string if enough space is available
+    /// until the end of the line
     pub fn set_stringn(&mut self,
                        x: u16,
                        y: u16,
@@ -132,12 +182,14 @@ impl Buffer {
     }
 
 
+    /// Update both the foreground and the background colors in a single method call
     pub fn set_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
         let i = self.index_of(x, y);
         self.content[i].fg = fg;
         self.content[i].bg = bg;
     }
 
+    /// Update all attributes of a cell at the given position
     pub fn set_cell(&mut self, x: u16, y: u16, symbol: &str, fg: Color, bg: Color) {
         let i = self.index_of(x, y);
         self.content[i].symbol.clear();
@@ -146,6 +198,7 @@ impl Buffer {
         self.content[i].bg = bg;
     }
 
+    /// Update a cell using the closure passed as last argument
     pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
         where F: Fn(&mut Cell)
     {
@@ -153,6 +206,8 @@ impl Buffer {
         f(&mut self.content[i]);
     }
 
+    /// Resize the buffer so that the mapped area matches the given area and that the buffer
+    /// length is equal to area.width * area.height
     pub fn resize(&mut self, area: Rect) {
         let length = area.area() as usize;
         if self.content.len() > length {
@@ -163,12 +218,14 @@ impl Buffer {
         self.area = area;
     }
 
+    /// Reset all cells in the buffer
     pub fn reset(&mut self) {
         for c in &mut self.content {
             c.reset();
         }
     }
 
+    /// Merge an other buffer into this one
     pub fn merge(&mut self, other: Buffer) {
         let area = self.area.union(&other.area);
         let cell: Cell = Default::default();

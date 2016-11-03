@@ -24,6 +24,7 @@ use layout::Rect;
 use terminal::Terminal;
 use style::Color;
 
+/// Bitflags that can be composed to set the visible borders essentially on the block widget.
 pub mod border {
     bitflags! {
         pub flags Flags: u32 {
@@ -37,8 +38,12 @@ pub mod border {
     }
 }
 
+/// Base requirements for a Widget
 pub trait Widget {
+    /// Draws the current state of the widget in the given buffer. That the only method required to
+    /// implement a custom widget.
     fn draw(&self, area: &Rect, buf: &mut Buffer);
+    /// Helper method to quickly set the background of all cells inside the specified area.
     fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
@@ -46,6 +51,7 @@ pub trait Widget {
             }
         }
     }
+    /// Helper method that can be chained with a widget's builder methods to render it.
     fn render(&self, area: &Rect, t: &mut Terminal)
         where Self: Sized
     {
