@@ -2,8 +2,8 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block};
-use widgets::canvas::{Canvas, Points};
+use widgets::{Widget, Block, border};
+use widgets::canvas::{Canvas, Shape, Points};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
@@ -69,6 +69,7 @@ pub enum Marker {
 }
 
 pub struct Dataset<'a> {
+    name: &'a str,
     data: &'a [(f64, f64)],
     marker: Marker,
     color: Color,
@@ -77,6 +78,7 @@ pub struct Dataset<'a> {
 impl<'a> Default for Dataset<'a> {
     fn default() -> Dataset<'a> {
         Dataset {
+            name: "",
             data: &[],
             marker: Marker::Dot,
             color: Color::Reset,
@@ -85,6 +87,11 @@ impl<'a> Default for Dataset<'a> {
 }
 
 impl<'a> Dataset<'a> {
+    pub fn name(mut self, name: &'a str) -> Dataset<'a> {
+        self.name = name;
+        self
+    }
+
     pub fn data(mut self, data: &'a [(f64, f64)]) -> Dataset<'a> {
         self.data = data;
         self
@@ -103,24 +110,26 @@ impl<'a> Dataset<'a> {
 
 #[derive(Debug)]
 struct ChartLayout {
-    legend_x: Option<(u16, u16)>,
-    legend_y: Option<(u16, u16)>,
+    title_x: Option<(u16, u16)>,
+    title_y: Option<(u16, u16)>,
     label_x: Option<u16>,
     label_y: Option<u16>,
     axis_x: Option<u16>,
     axis_y: Option<u16>,
+    legend_area: Option<Rect>,
     graph_area: Rect,
 }
 
 impl Default for ChartLayout {
     fn default() -> ChartLayout {
         ChartLayout {
-            legend_x: None,
-            legend_y: None,
+            title_x: None,
+            title_y: None,
             label_x: None,
             label_y: None,
             axis_x: None,
             axis_y: None,
+            legend_area: None,
             graph_area: Rect::default(),
         }
     }
@@ -211,14 +220,26 @@ impl<'a> Chart<'a> {
         if let Some(title) = self.x_axis.title {
             let w = title.width() as u16;
             if w < layout.graph_area.width && layout.graph_area.height > 2 {
-                layout.legend_x = Some((x + layout.graph_area.width - w, y));
+                layout.title_x = Some((x + layout.graph_area.width - w, y));
             }
         }
 
         if let Some(title) = self.y_axis.title {
             let w = title.width() as u16;
             if w + 1 < layout.graph_area.width && layout.graph_area.height > 2 {
-                layout.legend_y = Some((x + 1, area.top()));
+                layout.title_y = Some((x + 1, area.top()));
+            }
+        }
+
+        if let Some(inner_width) = self.datasets.iter().map(|d| d.name.width() as u16).max() {
+            let legend_width = inner_width + 2;
+            let legend_height = self.datasets.len() as u16 + 2;
+            if legend_width < layout.graph_area.width / 3 &&
+               legend_height < layout.graph_area.height / 3 {
+                layout.legend_area = Some(Rect::new(layout.graph_area.right() - legend_width,
+                                                    layout.graph_area.top(),
+                                                    legend_width,
+                                                    legend_height));
             }
         }
         layout
@@ -245,12 +266,12 @@ impl<'a> Widget for Chart<'a> {
             self.background(&chart_area, buf, self.background_color);
         }
 
-        if let Some((x, y)) = layout.legend_x {
+        if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
             buf.set_string(x, y, title, self.x_axis.title_color, self.background_color);
         }
 
-        if let Some((x, y)) = layout.legend_y {
+        if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
             buf.set_string(x, y, title, self.y_axis.title_color, self.background_color);
         }
@@ -344,12 +365,26 @@ impl<'a> Widget for Chart<'a> {
                         .background_color(self.background_color)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .layers(&[&[&Points {
-                                        coords: dataset.data,
-                                        color: dataset.color,
-                                    }]])
+                        .layer([&Points {
+                                    coords: dataset.data,
+                                    color: dataset.color,
+                                } as &Shape]
+                            .as_ref())
                         .draw(&graph_area, buf);
                 }
+            }
+        }
+
+        if let Some(legend_area) = layout.legend_area {
+            Block::default()
+                .borders(border::ALL)
+                .draw(&legend_area, buf);
+            for (i, dataset) in self.datasets.iter().enumerate() {
+                buf.set_string(legend_area.x + 1,
+                               legend_area.y + 1 + i as u16,
+                               dataset.name,
+                               dataset.color,
+                               self.background_color);
             }
         }
     }

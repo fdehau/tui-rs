@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::borrow::Cow;
 
 use unicode_width::UnicodeWidthStr;
 
@@ -12,7 +13,7 @@ pub struct Table<'a> {
     header: &'a [&'a str],
     header_color: Color,
     widths: &'a [u16],
-    rows: &'a [&'a [&'a str]],
+    rows: Vec<Cow<'a, [&'a str]>>,
     color: Color,
     column_spacing: u16,
     background_color: Color,
@@ -25,7 +26,7 @@ impl<'a> Default for Table<'a> {
             header: &[],
             header_color: Color::Reset,
             widths: &[],
-            rows: &[],
+            rows: Vec::new(),
             color: Color::Reset,
             column_spacing: 1,
             background_color: Color::Reset,
@@ -54,8 +55,10 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn rows(&mut self, rows: &'a [&'a [&'a str]]) -> &mut Table<'a> {
-        self.rows = rows;
+    pub fn rows<R>(&mut self, rows: Vec<R>) -> &mut Table<'a>
+        where R: Into<Cow<'a, [&'a str]>>
+    {
+        self.rows = rows.into_iter().map(|r| r.into()).collect::<Vec<Cow<'a, [&'a str]>>>();
         self
     }
 

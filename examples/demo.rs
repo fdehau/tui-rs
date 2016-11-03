@@ -24,7 +24,7 @@ use log4rs::config::{Appender, Config, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart, Marker, Tabs, Table};
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
+use tui::widgets::canvas::{Canvas, Line, Shape, Map, MapResolution, Label};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -78,6 +78,13 @@ impl Iterator for SinSignal {
     }
 }
 
+struct Server<'a> {
+    name: &'a str,
+    location: &'a str,
+    coords: (f64, f64),
+    status: &'a str,
+}
+
 struct MyTabs {
     titles: [&'static str; 2],
     selection: usize,
@@ -110,6 +117,7 @@ struct App<'a> {
     window: [f64; 2],
     colors: [Color; 2],
     color_index: usize,
+    servers: Vec<Server<'a>>,
 }
 
 enum Event {
@@ -151,7 +159,7 @@ fn main() {
                      "Event15", "Event16", "Event17", "Event18", "Event19"],
         selected: 0,
         tabs: MyTabs {
-            titles: ["Main", "Map"],
+            titles: ["Tab0", "Tab1"],
             selection: 0,
         },
         show_chart: true,
@@ -177,6 +185,18 @@ fn main() {
         window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
+        servers: vec![Server {
+                          name: "US-1",
+                          location: "New York City",
+                          coords: (40.71, -74.00),
+                          status: "Up",
+                      },
+                      Server {
+                          name: "Europe-1",
+                          location: "Paris",
+                          coords: (48.85, 2.35),
+                          status: "Failure",
+                      }],
     };
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
@@ -307,16 +327,35 @@ fn draw(t: &mut Terminal, app: &App) {
                                 .header(&["Server", "Location", "Status"])
                                 .header_color(Color::Red)
                                 .widths(&[20, 20, 20])
-                                .rows(&[&["Europe#1", "Paris", "Up"],
-                                        &["Europe#2", "Berlin", "Up"]])
-                                .color(Color::Green)
+                                .rows(app.servers
+                                    .iter()
+                                    .map(|s| vec![s.name, s.location, s.status])
+                                    .collect::<Vec<Vec<&str>>>())
                                 .render(&chunks[0], t);
+
                             Canvas::default()
                                 .block(Block::default().title("World").borders(border::ALL))
-                                .layers(&[&[&Map {
-                                                color: Color::Green,
-                                                resolution: MapResolution::High,
-                                            }]])
+                                .layer([&Map {
+                                            color: Color::White,
+                                            resolution: MapResolution::High,
+                                        } as &Shape]
+                                    .as_ref())
+                                .labels(app.servers
+                                    .iter()
+                                    .map(|s| {
+                                        let color = if s.status == "Up" {
+                                            Color::Green
+                                        } else {
+                                            Color::Red
+                                        };
+                                        Label {
+                                            x: s.coords.1,
+                                            y: s.coords.0,
+                                            text: "X",
+                                            color: color,
+                                        }
+                                    })
+                                    .collect::<Vec<Label>>())
                                 .x_bounds([-180.0, 180.0])
                                 .y_bounds([-90.0, 90.0])
                                 .render(&chunks[1], t);
@@ -414,10 +453,12 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                                 .bounds([-25.0, 25.0])
                                 .labels(&["-25", "0", "25"]))
                             .datasets(&[Dataset::default()
+                                            .name("data2")
                                             .marker(Marker::Dot)
                                             .color(Color::Cyan)
                                             .data(&app.data2),
                                         Dataset::default()
+                                            .name("data3")
                                             .marker(Marker::Braille)
                                             .color(Color::Yellow)
                                             .data(&app.data3)])
