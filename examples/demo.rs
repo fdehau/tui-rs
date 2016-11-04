@@ -24,7 +24,7 @@ use log4rs::config::{Appender, Config, Root};
 use tui::Terminal;
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart, Marker, Tabs, Table};
-use tui::widgets::canvas::{Canvas, Shape, Map, MapResolution, Label};
+use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::Color;
 
@@ -317,8 +317,8 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
                 }
                 1 => {
                     Group::default()
-                        .direction(Direction::Vertical)
-                        .sizes(&[Size::Percent(50), Size::Percent(50)])
+                        .direction(Direction::Horizontal)
+                        .sizes(&[Size::Percent(30), Size::Percent(70)])
                         .render(t, &chunks[1], |t, chunks| {
                             Table::default()
                                 .block(Block::default()
@@ -326,7 +326,7 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
                                     .borders(border::ALL))
                                 .header(&["Server", "Location", "Status"])
                                 .header_color(Color::Red)
-                                .widths(&[20, 20, 20])
+                                .widths(&[10, 15, 10])
                                 .rows(app.servers
                                     .iter()
                                     .map(|s| vec![s.name, s.location, s.status])
@@ -335,27 +335,30 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
 
                             Canvas::default()
                                 .block(Block::default().title("World").borders(border::ALL))
-                                .layer([&Map {
-                                            color: Color::White,
-                                            resolution: MapResolution::High,
-                                        } as &Shape]
-                                    .as_ref())
-                                .labels(app.servers
-                                    .iter()
-                                    .map(|s| {
-                                        let color = if s.status == "Up" {
+                                .paint(|ctx| {
+                                    ctx.draw(&Map {
+                                        color: Color::White,
+                                        resolution: MapResolution::High,
+                                    });
+                                    ctx.layer();
+                                    for pair in app.servers.windows(2) {
+                                        ctx.draw(&Line {
+                                            x1: pair[0].coords.1,
+                                            y1: pair[0].coords.0,
+                                            y2: pair[1].coords.0,
+                                            x2: pair[1].coords.1,
+                                            color: Color::Yellow,
+                                        });
+                                    }
+                                    for server in &app.servers {
+                                        let color = if server.status == "Up" {
                                             Color::Green
                                         } else {
                                             Color::Red
                                         };
-                                        Label {
-                                            x: s.coords.1,
-                                            y: s.coords.0,
-                                            text: "X",
-                                            color: color,
-                                        }
-                                    })
-                                    .collect::<Vec<Label>>())
+                                        ctx.print(server.coords.1, server.coords.0, "X", color);
+                                    }
+                                })
                                 .x_bounds([-180.0, 180.0])
                                 .y_bounds([-90.0, 90.0])
                                 .render(&chunks[1], t);
