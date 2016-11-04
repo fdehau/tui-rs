@@ -6,12 +6,35 @@ use layout::Rect;
 use style::Color;
 use symbols::line;
 
+/// A widget to display available tabs in a multiple panels context.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, Tabs};
+/// # use tui::style::Color;
+/// # fn main() {
+///     Tabs::default()
+///         .block(Block::default().title("Tabs").borders(border::ALL))
+///         .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
+///         .color(Color::White)
+///         .highlight_color(Color::Yellow)
+///         .background_color(Color::Black);
+/// # }
+/// ```
 pub struct Tabs<'a> {
+    /// A block to wrap this widget in if necessary
     block: Option<Block<'a>>,
+    /// One title for each tab
     titles: &'a [&'a str],
+    /// The index of the selected tabs
     selected: usize,
+    /// The color used to draw the text
     color: Color,
+    /// The background color of this widget
     background_color: Color,
+    /// The color used to display the selected item
     highlight_color: Color,
 }
 

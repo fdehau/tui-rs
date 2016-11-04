@@ -1,17 +1,40 @@
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
 
+/// A widget to display some text. You can specify colors using commands embedded in
+/// the text such as "{[color] [text]}".
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, Text};
+/// # use tui::style::Color;
+/// # fn main() {
+/// Text::default()
+///     .block(Block::default().title("Text").borders(border::ALL))
+///     .color(Color::White)
+///     .background_color(Color::Black)
+///     .wrap(true)
+///     .text("First line\nSecond line\n{red Colored text}.");
+/// # }
+/// ```
 pub struct Text<'a> {
+    /// A block to wrap the widget in
     block: Option<Block<'a>>,
+    /// The base color used to render the text
     color: Color,
+    /// Background color of the widget
     background_color: Color,
+    /// Wrap the text or not
     wrapping: bool,
+    /// The text to display
     text: &'a str,
-    colors: &'a [(u16, u16, u16, Color, Color)],
 }
 
 impl<'a> Default for Text<'a> {
@@ -22,7 +45,6 @@ impl<'a> Default for Text<'a> {
             background_color: Color::Reset,
             wrapping: false,
             text: "",
-            colors: &[],
         }
     }
 }
@@ -45,11 +67,6 @@ impl<'a> Text<'a> {
 
     pub fn color(&mut self, color: Color) -> &mut Text<'a> {
         self.color = color;
-        self
-    }
-
-    pub fn colors(&mut self, colors: &'a [(u16, u16, u16, Color, Color)]) -> &mut Text<'a> {
-        self.colors = colors;
         self
     }
 

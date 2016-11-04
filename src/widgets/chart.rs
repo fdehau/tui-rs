@@ -3,7 +3,7 @@ use std::cmp::max;
 use unicode_width::UnicodeWidthStr;
 
 use widgets::{Widget, Block, border};
-use widgets::canvas::{Canvas, Shape, Points};
+use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
@@ -388,11 +388,12 @@ impl<'a> Widget for Chart<'a> {
                         .background_color(self.background_color)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .layer([&Points {
-                                    coords: dataset.data,
-                                    color: dataset.color,
-                                } as &Shape]
-                            .as_ref())
+                        .paint(|ctx| {
+                            ctx.draw(&Points {
+                                coords: dataset.data,
+                                color: dataset.color,
+                            });
+                        })
                         .draw(&graph_area, buf);
                 }
             }

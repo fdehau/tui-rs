@@ -4,13 +4,36 @@ use style::Color;
 use widgets::{Widget, border};
 use symbols::line;
 
+/// Base widget to be used with all upper level ones. It may be used to display a box border around
+/// the widget and/or add a title.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border};
+/// # use tui::style::Color;
+/// # fn main() {
+/// Block::default()
+///     .title("Block")
+///     .title_color(Color::Red)
+///     .borders(border::LEFT | border::RIGHT)
+///     .border_color(Color::White)
+///     .background_color(Color::Black);
+/// # }
+/// ```
 #[derive(Clone, Copy)]
 pub struct Block<'a> {
-    pub title: Option<&'a str>,
-    pub title_color: Color,
-    pub borders: border::Flags,
-    pub border_color: Color,
-    pub background_color: Color,
+    /// Optional title place on the upper left of the block
+    title: Option<&'a str>,
+    /// Title color
+    title_color: Color,
+    /// Visible borders
+    borders: border::Flags,
+    /// Borders color
+    border_color: Color,
+    /// Background color
+    background_color: Color,
 }
 
 impl<'a> Default for Block<'a> {
@@ -51,6 +74,7 @@ impl<'a> Block<'a> {
         self
     }
 
+    /// Compute the inner area of a block based on its border visibility rules.
     pub fn inner(&self, area: &Rect) -> Rect {
         if area.width < 2 || area.height < 2 {
             return Rect::default();
