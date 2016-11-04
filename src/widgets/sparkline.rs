@@ -6,11 +6,34 @@ use widgets::{Widget, Block};
 use style::Color;
 use symbols::bar;
 
+/// Widget to render a sparkline over one or more lines.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, Sparkline};
+/// # use tui::style::Color;
+/// # fn main() {
+/// Sparkline::default()
+///     .block(Block::default().title("Sparkline").borders(border::ALL))
+///     .data(&[0, 2, 3, 4, 1, 4, 10])
+///     .max(5)
+///     .color(Color::Yellow)
+///     .background_color(Color::Red);
+/// # }
+/// ```
 pub struct Sparkline<'a> {
+    /// A block to wrap the widget in
     block: Option<Block<'a>>,
+    /// Color of the bars
     color: Color,
+    /// Background color of the widget
     background_color: Color,
+    /// A slice of the data to display
     data: &'a [u64],
+    /// The maximum value to take to compute the maximum bar height (if nothing is specified, the
+    /// widget uses the max of the dataset)
     max: Option<u64>,
 }
 

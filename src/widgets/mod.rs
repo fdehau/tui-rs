@@ -28,11 +28,17 @@ use style::Color;
 pub mod border {
     bitflags! {
         pub flags Flags: u32 {
+            /// Show no border (default)
             const NONE  = 0b00000001,
+            /// Show the top border
             const TOP   = 0b00000010,
+            /// Show the right border
             const RIGHT = 0b00000100,
+            /// Show the bottom border
             const BOTTOM = 0b0001000,
+            /// Show the left border
             const LEFT = 0b00010000,
+            /// Show all borders
             const ALL = TOP.bits | RIGHT.bits | BOTTOM.bits | LEFT.bits,
         }
     }

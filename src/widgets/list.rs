@@ -16,13 +16,13 @@ use style::Color;
 /// # use tui::widgets::{Block, border, List};
 /// # use tui::style::Color;
 /// # fn main() {
-///     List::default()
-///         .block(Block::default().title("List").borders(border::ALL))
-///         .items(&["Item 1", "Item 2", "Item 3"])
-///         .select(1)
-///         .color(Color::White)
-///         .highlight_color(Color::Yellow)
-///         .highlight_symbol(">>");
+/// List::default()
+///     .block(Block::default().title("List").borders(border::ALL))
+///     .items(&["Item 1", "Item 2", "Item 3"])
+///     .select(1)
+///     .color(Color::White)
+///     .highlight_color(Color::Yellow)
+///     .highlight_symbol(">>");
 /// # }
 /// ```
 pub struct List<'a> {

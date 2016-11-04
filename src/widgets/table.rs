@@ -8,14 +8,44 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Color;
 
+/// A widget to display data in formatted column
+///
+/// # Examples
+///
+/// ```
+/// # use tui::widgets::{Block, border, Table};
+/// # use tui::style::Color;
+/// # fn main() {
+/// Table::default()
+///     .block(Block::default().title("Table"))
+///     .header(&["Col1", "Col2", "Col3"])
+///     .header_color(Color::Yellow)
+///     .widths(&[5, 5, 10])
+///     .column_spacing(1)
+///     .rows(vec![["Row11", "Row12", "Row13"].as_ref(),
+///                ["Row21", "Row22", "Row23"].as_ref(),
+///                ["Row31", "Row32", "Row33"].as_ref()])
+///     .color(Color::White)
+///     .background_color(Color::Black);
+/// # }
+/// ```
 pub struct Table<'a> {
+    /// A block to wrap the widget in
     block: Option<Block<'a>>,
+    /// Header row for all columns
     header: &'a [&'a str],
+    /// Color of the text in the header
     header_color: Color,
+    /// Width of each column (if the total width is greater than the widget width some columns may
+    /// not be displayed)
     widths: &'a [u16],
-    rows: Vec<Cow<'a, [&'a str]>>,
-    color: Color,
+    /// Space between each column
     column_spacing: u16,
+    /// Data to display in each row
+    rows: Vec<Cow<'a, [&'a str]>>,
+    /// Color of the text
+    color: Color,
+    /// Background color for the widget
     background_color: Color,
 }
 

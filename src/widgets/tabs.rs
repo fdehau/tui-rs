@@ -15,12 +15,12 @@ use symbols::line;
 /// # use tui::widgets::{Block, border, Tabs};
 /// # use tui::style::Color;
 /// # fn main() {
-///     Tabs::default()
-///         .block(Block::default().title("Tabs").borders(border::ALL))
-///         .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
-///         .color(Color::White)
-///         .highlight_color(Color::Yellow)
-///         .background_color(Color::Black);
+/// Tabs::default()
+///     .block(Block::default().title("Tabs").borders(border::ALL))
+///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
+///     .color(Color::White)
+///     .highlight_color(Color::Yellow)
+///     .background_color(Color::Black);
 /// # }
 /// ```
 pub struct Tabs<'a> {

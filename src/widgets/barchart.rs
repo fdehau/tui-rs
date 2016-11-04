@@ -8,16 +8,48 @@ use layout::Rect;
 use style::Color;
 use symbols::bar;
 
+/// Display multiple bars in a single widgets
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, BarChart};
+/// # use tui::style::Color;
+/// # fn main() {
+/// BarChart::default()
+///     .block(Block::default().title("BarChart").borders(border::ALL))
+///     .bar_width(3)
+///     .bar_gap(1)
+///     .bar_color(Color::Yellow)
+///     .value_color(Color::Red)
+///     .label_color(Color::White)
+///     .background_color(Color::Black)
+///     .data(&[("B0", 0), ("B1", 2), ("B2", 4), ("B3", 3)])
+///     .max(4);
+/// # }
+/// ```
 pub struct BarChart<'a> {
+    /// Block to wrap the widget in
     block: Option<Block<'a>>,
-    max: Option<u64>,
+    /// The width of each bar
     bar_width: u16,
+    /// The gap between each bar
     bar_gap: u16,
+    /// Color of the bars
     bar_color: Color,
+    /// Color of the values printed at the bottom of each bar
     value_color: Color,
+    /// Color of the labels printed under each bar
     label_color: Color,
+    /// Background color for the widget
     background_color: Color,
+    /// Slice of (label, value) pair to plot on the chart
     data: &'a [(&'a str, u64)],
+    /// Value necessary for a bar to reach the maximum height (if no value is specified,
+    /// the maximum value in the data is taken as reference)
+    max: Option<u64>,
+    /// Values to display on the bar (computed when the data is passed to the widget)
     values: Vec<String>,
 }
 

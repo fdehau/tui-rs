@@ -18,6 +18,7 @@ impl MapResolution {
     }
 }
 
+/// Shape to draw a world map with the given resolution and color
 pub struct Map {
     pub resolution: MapResolution,
     pub color: Color,

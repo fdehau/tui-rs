@@ -68,11 +68,12 @@ impl Grid {
     }
 }
 
+/// Holds the state of the Canvas when painting to it.
 pub struct Context<'a> {
-    x_bounds: [f64; 2],
-    y_bounds: [f64; 2],
     width: u16,
     height: u16,
+    x_bounds: [f64; 2],
+    y_bounds: [f64; 2],
     grid: Grid,
     dirty: bool,
     layers: Vec<Layer>,
@@ -80,7 +81,10 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    pub fn draw<'b>(&mut self, shape: &'b Shape<'b>) {
+    /// Draw any object that may implement the Shape trait
+    pub fn draw<'b, S>(&mut self, shape: &'b S)
+        where S: Shape<'b>
+    {
         self.dirty = true;
         let left = self.x_bounds[0];
         let right = self.x_bounds[1];
@@ -96,12 +100,14 @@ impl<'a> Context<'a> {
         }
     }
 
+    /// Go one layer above in the canvas.
     pub fn layer(&mut self) {
         self.layers.push(self.grid.save());
         self.grid.reset();
         self.dirty = false;
     }
 
+    /// Print a string on the canvas at the given position
     pub fn print(&mut self, x: f64, y: f64, text: &'a str, color: Color) {
         self.labels.push(Label {
             x: x,
@@ -111,6 +117,7 @@ impl<'a> Context<'a> {
         });
     }
 
+    /// Push the last layer if necessary
     fn finish(&mut self) {
         if self.dirty {
             self.layer()
@@ -118,7 +125,8 @@ impl<'a> Context<'a> {
     }
 }
 
-///
+/// The Canvas widget may be used to draw more detailed figures using braille patterns (each
+/// cell can have a braille character in 8 different positions).
 /// # Examples
 ///
 /// ```
@@ -194,6 +202,7 @@ impl<'a, F> Canvas<'a, F>
         self
     }
 
+    /// Store the closure that will be used to draw to the Canvas
     pub fn paint(&mut self, f: F) -> &mut Canvas<'a, F> {
         self.painter = Some(f);
         self
@@ -221,6 +230,8 @@ impl<'a, F> Widget for Canvas<'a, F>
         let height = canvas_area.height as usize;
 
         if let Some(ref painter) = self.painter {
+
+            // Create a blank context that match the size of the terminal
             let mut ctx = Context {
                 x_bounds: self.x_bounds,
                 y_bounds: self.y_bounds,
@@ -231,9 +242,11 @@ impl<'a, F> Widget for Canvas<'a, F>
                 layers: Vec::new(),
                 labels: Vec::new(),
             };
+            // Paint to this context
             painter(&mut ctx);
             ctx.finish();
 
+            // Retreive painted points for each layer
             for layer in ctx.layers {
                 for (i, (ch, color)) in layer.string
                     .chars()
@@ -252,6 +265,8 @@ impl<'a, F> Widget for Canvas<'a, F>
                     }
                 }
             }
+
+            // Finally draw the labels
             for label in ctx.labels.iter().filter(|l| {
                 !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
                   l.y > self.y_bounds[1])

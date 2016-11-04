@@ -13,13 +13,12 @@ use layout::Rect;
 /// # extern crate tui;
 /// # use tui::widgets::{Widget, Gauge, Block, border};
 /// # use tui::style::Color;
-///
 /// # fn main() {
-///     Gauge::default()
-///         .block(Block::default().borders(border::ALL).title("Progress"))
-///         .color(Color::White)
-///         .background_color(Color::Black)
-///         .percent(20);
+/// Gauge::default()
+///     .block(Block::default().borders(border::ALL).title("Progress"))
+///     .color(Color::White)
+///     .background_color(Color::Black)
+///     .percent(20);
 /// # }
 /// ```
 pub struct Gauge<'a> {
