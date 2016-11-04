@@ -193,14 +193,7 @@ impl<'a> Widget for Text<'a> {
                          s,
                          c,
                          self.background_color);
-            x += 1;
-        }
-
-        for &(x, y, width, fg, bg) in self.colors {
-            for i in 0..width {
-                buf.set_fg(x + i, y + text_area.top(), fg);
-                buf.set_bg(x + i, y + text_area.top(), bg);
-            }
+            x += s.width() as u16;
         }
     }
 }
