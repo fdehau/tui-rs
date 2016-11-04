@@ -7,8 +7,6 @@ pub use self::points::Points;
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
 
-use std::borrow::Cow;
-
 use style::Color;
 use buffer::Buffer;
 use widgets::{Block, Widget};
@@ -19,11 +17,15 @@ pub const DOTS: [[u16; 2]; 4] =
 pub const BRAILLE_OFFSET: u16 = 0x2800;
 pub const BRAILLE_BLANK: char = '⠀';
 
+/// Interface for all shapes that may be drawn on a Canvas widget.
 pub trait Shape<'a> {
+    /// Returns the color of the shape
     fn color(&self) -> Color;
+    /// Returns an iterator over all points of the shape
     fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a>;
 }
 
+/// Label to draw some text on the canvas
 pub struct Label<'a> {
     pub x: f64,
     pub y: f64,
@@ -31,70 +33,181 @@ pub struct Label<'a> {
     pub color: Color,
 }
 
-pub struct Canvas<'a> {
+struct Layer {
+    string: String,
+    colors: Vec<Color>,
+}
+
+struct Grid {
+    cells: Vec<u16>,
+    colors: Vec<Color>,
+}
+
+impl Grid {
+    fn new(width: usize, height: usize) -> Grid {
+        Grid {
+            cells: vec![BRAILLE_OFFSET; width * height],
+            colors: vec![Color::Reset; width * height],
+        }
+    }
+
+    fn save(&self) -> Layer {
+        Layer {
+            string: String::from_utf16(&self.cells).unwrap(),
+            colors: self.colors.clone(),
+        }
+    }
+
+    fn reset(&mut self) {
+        for c in &mut self.cells {
+            *c = BRAILLE_OFFSET;
+        }
+        for c in &mut self.colors {
+            *c = Color::Reset;
+        }
+    }
+}
+
+pub struct Context<'a> {
+    x_bounds: [f64; 2],
+    y_bounds: [f64; 2],
+    width: u16,
+    height: u16,
+    grid: Grid,
+    dirty: bool,
+    layers: Vec<Layer>,
+    labels: Vec<Label<'a>>,
+}
+
+impl<'a> Context<'a> {
+    pub fn draw<'b>(&mut self, shape: &'b Shape<'b>) {
+        self.dirty = true;
+        let left = self.x_bounds[0];
+        let right = self.x_bounds[1];
+        let bottom = self.y_bounds[0];
+        let top = self.y_bounds[1];
+        for (x, y) in shape.points()
+            .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top)) {
+            let dy = ((top - y) * (self.height - 1) as f64 * 4.0 / (top - bottom)) as usize;
+            let dx = ((x - left) * (self.width - 1) as f64 * 2.0 / (right - left)) as usize;
+            let index = dy / 4 * self.width as usize + dx / 2;
+            self.grid.cells[index] |= DOTS[dy % 4][dx % 2];
+            self.grid.colors[index] = shape.color();
+        }
+    }
+
+    pub fn layer(&mut self) {
+        self.layers.push(self.grid.save());
+        self.grid.reset();
+        self.dirty = false;
+    }
+
+    pub fn print(&mut self, x: f64, y: f64, text: &'a str, color: Color) {
+        self.labels.push(Label {
+            x: x,
+            y: y,
+            text: text,
+            color: color,
+        });
+    }
+
+    fn finish(&mut self) {
+        if self.dirty {
+            self.layer()
+        }
+    }
+}
+
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border};
+/// # use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
+/// # use tui::style::Color;
+/// # fn main() {
+/// Canvas::default()
+///     .block(Block::default().title("Canvas").borders(border::ALL))
+///     .x_bounds([-180.0, 180.0])
+///     .y_bounds([-90.0, 90.0])
+///     .paint(|ctx| {
+///         ctx.draw(&Map{
+///             resolution: MapResolution::High,
+///             color: Color::White
+///         });
+///         ctx.layer();
+///         ctx.draw(&Line{
+///             x1: 0.0,
+///             y1: 10.0,
+///             x2: 10.0,
+///             y2: 10.0,
+///             color: Color::White,
+///         });
+///         ctx.draw(&Line{
+///             x1: 10.0,
+///             y1: 10.0,
+///             x2: 20.0,
+///             y2: 20.0,
+///             color: Color::Red
+///         });
+///     });
+/// # }
+/// ```
+pub struct Canvas<'a, F>
+    where F: Fn(&mut Context)
+{
     block: Option<Block<'a>>,
     x_bounds: [f64; 2],
     y_bounds: [f64; 2],
-    layers: Vec<Cow<'a, [&'a Shape<'a>]>>,
-    labels: Vec<Label<'a>>,
+    painter: Option<F>,
     background_color: Color,
 }
 
-impl<'a> Default for Canvas<'a> {
-    fn default() -> Canvas<'a> {
+impl<'a, F> Default for Canvas<'a, F>
+    where F: Fn(&mut Context)
+{
+    fn default() -> Canvas<'a, F> {
         Canvas {
             block: None,
             x_bounds: [0.0, 0.0],
             y_bounds: [0.0, 0.0],
-            layers: Vec::new(),
-            labels: Vec::new(),
+            painter: None,
             background_color: Color::Reset,
         }
     }
 }
 
-impl<'a> Canvas<'a> {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Canvas<'a> {
+impl<'a, F> Canvas<'a, F>
+    where F: Fn(&mut Context)
+{
+    pub fn block(&mut self, block: Block<'a>) -> &mut Canvas<'a, F> {
         self.block = Some(block);
         self
     }
-    pub fn x_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a> {
+    pub fn x_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
         self.x_bounds = bounds;
         self
     }
-    pub fn y_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a> {
+    pub fn y_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
         self.y_bounds = bounds;
         self
     }
-    pub fn layers<L>(&mut self, layers: Vec<L>) -> &mut Canvas<'a>
-        where L: Into<Cow<'a, [&'a Shape<'a>]>>
-    {
-        self.layers =
-            layers.into_iter().map(|l| l.into()).collect::<Vec<Cow<'a, [&'a Shape<'a>]>>>();
+
+    pub fn paint(&mut self, f: F) -> &mut Canvas<'a, F> {
+        self.painter = Some(f);
         self
     }
 
-    pub fn layer<L>(&mut self, layer: L) -> &mut Canvas<'a>
-        where L: Into<Cow<'a, [&'a Shape<'a>]>>
-    {
-        self.layers.push(layer.into());
-        self
-    }
-
-    pub fn labels<L>(&mut self, labels: L) -> &mut Canvas<'a>
-        where L: Into<Vec<Label<'a>>>
-    {
-        self.labels = labels.into();
-        self
-    }
-
-    pub fn background_color(&'a mut self, color: Color) -> &mut Canvas<'a> {
+    pub fn background_color(&'a mut self, color: Color) -> &mut Canvas<'a, F> {
         self.background_color = color;
         self
     }
 }
 
-impl<'a> Widget for Canvas<'a> {
+impl<'a, F> Widget for Canvas<'a, F>
+    where F: Fn(&mut Context)
+{
     fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let canvas_area = match self.block {
             Some(ref b) => {
@@ -107,57 +220,52 @@ impl<'a> Widget for Canvas<'a> {
         let width = canvas_area.width as usize;
         let height = canvas_area.height as usize;
 
-        for layer in &self.layers {
+        if let Some(ref painter) = self.painter {
+            let mut ctx = Context {
+                x_bounds: self.x_bounds,
+                y_bounds: self.y_bounds,
+                width: canvas_area.width,
+                height: canvas_area.height,
+                grid: Grid::new(width, height),
+                dirty: false,
+                layers: Vec::new(),
+                labels: Vec::new(),
+            };
+            painter(&mut ctx);
+            ctx.finish();
 
-            let mut grid: Vec<u16> = vec![BRAILLE_OFFSET; width * height];
-            let mut colors: Vec<Color> = vec![Color::Reset; width * height];
-
-            for shape in layer.iter() {
-                for (x, y) in shape.points().filter(|&(x, y)| {
-                    !(x < self.x_bounds[0] || x > self.x_bounds[1] || y < self.y_bounds[0] ||
-                      y > self.y_bounds[1])
-                }) {
-                    let dy = ((self.y_bounds[1] - y) * (canvas_area.height - 1) as f64 * 4.0 /
-                              (self.y_bounds[1] -
-                               self.y_bounds[0])) as usize;
-                    let dx = ((x - self.x_bounds[0]) * (canvas_area.width - 1) as f64 * 2.0 /
-                              (self.x_bounds[1] -
-                               self.x_bounds[0])) as usize;
-                    let index = dy / 4 * width + dx / 2;
-                    grid[index] |= DOTS[dy % 4][dx % 2];
-                    colors[index] = shape.color();
+            for layer in ctx.layers {
+                for (i, (ch, color)) in layer.string
+                    .chars()
+                    .zip(layer.colors.into_iter())
+                    .enumerate() {
+                    if ch != BRAILLE_BLANK {
+                        let (x, y) = (i % width, i / width);
+                        buf.update_cell(x as u16 + canvas_area.left(),
+                                        y as u16 + canvas_area.top(),
+                                        |c| {
+                                            c.symbol.clear();
+                                            c.symbol.push(ch);
+                                            c.fg = color;
+                                            c.bg = self.background_color;
+                                        });
+                    }
                 }
             }
-
-            let string = String::from_utf16(&grid).unwrap();
-            for (i, (ch, color)) in string.chars().zip(colors.into_iter()).enumerate() {
-                if ch != BRAILLE_BLANK {
-                    let (x, y) = (i % width, i / width);
-                    buf.update_cell(x as u16 + canvas_area.left(),
-                                    y as u16 + canvas_area.top(),
-                                    |c| {
-                                        c.symbol.clear();
-                                        c.symbol.push(ch);
-                                        c.fg = color;
-                                        c.bg = self.background_color;
-                                    });
-                }
+            for label in ctx.labels.iter().filter(|l| {
+                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
+                  l.y > self.y_bounds[1])
+            }) {
+                let dy = ((self.y_bounds[1] - label.y) * (canvas_area.height - 1) as f64 /
+                          (self.y_bounds[1] - self.y_bounds[0])) as u16;
+                let dx = ((label.x - self.x_bounds[0]) * (canvas_area.width - 1) as f64 /
+                          (self.x_bounds[1] - self.x_bounds[0])) as u16;
+                buf.set_string(dx + canvas_area.left(),
+                               dy + canvas_area.top(),
+                               label.text,
+                               label.color,
+                               self.background_color);
             }
-        }
-
-        for label in self.labels.iter().filter(|l| {
-            !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
-              l.y > self.y_bounds[1])
-        }) {
-            let dy = ((self.y_bounds[1] - label.y) * (canvas_area.height - 1) as f64 /
-                      (self.y_bounds[1] - self.y_bounds[0])) as u16;
-            let dx = ((label.x - self.x_bounds[0]) * (canvas_area.width - 1) as f64 /
-                      (self.x_bounds[1] - self.x_bounds[0])) as u16;
-            buf.set_string(dx + canvas_area.left(),
-                           dy + canvas_area.top(),
-                           label.text,
-                           label.color,
-                           self.background_color);
         }
     }
 }
