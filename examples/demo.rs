@@ -21,7 +21,7 @@ use log4rs::append::file::FileAppender;
 use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Root};
 
-use tui::Terminal;
+use tui::{Terminal, TermionBackend};
 use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
                    BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
@@ -147,16 +147,18 @@ fn main() {
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(Range::new(0, 100));
-    let mut sin_signal = SinSignal::new(0.2, 5.0, 20.0);
+    let mut sin_signal = SinSignal::new(0.2, 3.0, 18.0);
     let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
 
     let mut app = App {
         size: Rect::default(),
         items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
-                    "Item9", "Item10"],
+                    "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16",
+                    "Item17", "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24"],
         items2: vec!["Event1", "Event2", "Event3", "Event4", "Event5", "Event6", "Event7",
                      "Event8", "Event9", "Event10", "Event11", "Event12", "Event13", "Event14",
-                     "Event15", "Event16", "Event17", "Event18", "Event19"],
+                     "Event15", "Event16", "Event17", "Event18", "Event19", "Event20", "Event21",
+                     "Event22", "Event23", "Event24", "Event25", "Event26"],
         selected: 0,
         tabs: MyTabs {
             titles: ["Tab0", "Tab1"],
@@ -164,7 +166,7 @@ fn main() {
         },
         show_chart: true,
         progress: 0,
-        data: rand_signal.clone().take(200).collect(),
+        data: rand_signal.clone().take(300).collect(),
         data2: sin_signal.clone().take(100).collect(),
         data3: sin_signal2.clone().take(200).collect(),
         data4: vec![("B1", 9),
@@ -181,12 +183,21 @@ fn main() {
                     ("B12", 0),
                     ("B13", 4),
                     ("B14", 6),
-                    ("B15", 4)],
+                    ("B15", 4),
+                    ("B16", 6),
+                    ("B17", 4),
+                    ("B18", 7),
+                    ("B19", 13),
+                    ("B20", 8),
+                    ("B21", 11),
+                    ("B22", 9),
+                    ("B23", 3),
+                    ("B24", 5)],
         window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
         servers: vec![Server {
-                          name: "US-1",
+                          name: "NorthAmerica-1",
                           location: "New York City",
                           coords: (40.71, -74.00),
                           status: "Up",
@@ -196,6 +207,18 @@ fn main() {
                           location: "Paris",
                           coords: (48.85, 2.35),
                           status: "Failure",
+                      },
+                      Server {
+                          name: "SouthAmerica-1",
+                          location: "São Paulo",
+                          coords: (-23.54, -46.62),
+                          status: "Up",
+                      },
+                      Server {
+                          name: "Asia-1",
+                          location: "Singapore",
+                          coords: (1.35, 103.86),
+                          status: "Up",
                       }],
     };
     let (tx, rx) = mpsc::channel();
@@ -223,16 +246,16 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(1000));
+            thread::sleep(time::Duration::from_millis(500));
         }
     });
 
-    let mut terminal = Terminal::new().unwrap();
+    let mut terminal = Terminal::new(TermionBackend::new().unwrap()).unwrap();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
 
     loop {
-        let size = Terminal::size().unwrap();
+        let size = terminal.size().unwrap();
         if size != app.size {
             terminal.resize(size).unwrap();
             app.size = size;
@@ -298,7 +321,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
+fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
 
     Group::default()
         .direction(Direction::Vertical)
@@ -326,7 +349,7 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
                                     .borders(border::ALL))
                                 .header(&["Server", "Location", "Status"])
                                 .header_color(Color::Red)
-                                .widths(&[10, 15, 10])
+                                .widths(&[15, 15, 10])
                                 .rows(app.servers
                                     .iter()
                                     .map(|s| vec![s.name, s.location, s.status])
@@ -341,14 +364,16 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
                                         resolution: MapResolution::High,
                                     });
                                     ctx.layer();
-                                    for pair in app.servers.windows(2) {
-                                        ctx.draw(&Line {
-                                            x1: pair[0].coords.1,
-                                            y1: pair[0].coords.0,
-                                            y2: pair[1].coords.0,
-                                            x2: pair[1].coords.1,
-                                            color: Color::Yellow,
-                                        });
+                                    for (i, s1) in app.servers.iter().enumerate() {
+                                        for s2 in &app.servers[i + 1..] {
+                                            ctx.draw(&Line {
+                                                x1: s1.coords.1,
+                                                y1: s1.coords.0,
+                                                y2: s2.coords.0,
+                                                x2: s2.coords.1,
+                                                color: Color::Yellow,
+                                            });
+                                        }
                                     }
                                     for server in &app.servers {
                                         let color = if server.status == "Up" {
@@ -371,7 +396,7 @@ fn draw(t: &mut Terminal, app: &App) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
+fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
@@ -455,8 +480,8 @@ fn draw_main(t: &mut Terminal, app: &App, area: &Rect) {
                             .y_axis(Axis::default()
                                 .title("Y Axis")
                                 .color(Color::Gray)
-                                .bounds([-25.0, 25.0])
-                                .labels(&["-25", "0", "25"]))
+                                .bounds([-20.0, 20.0])
+                                .labels(&["-20", "0", "20"]))
                             .datasets(&[Dataset::default()
                                             .name("data2")
                                             .marker(Marker::Dot)
