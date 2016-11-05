@@ -1,4 +1,5 @@
 use termion;
+use rustbox;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {
@@ -37,7 +38,7 @@ macro_rules! termion_bg_rgb {
 }
 
 impl Color {
-    pub fn fg(&self) -> String {
+    pub fn termion_fg(&self) -> String {
         match *self {
             Color::Reset => termion_fg!(Reset),
             Color::Black => termion_fg!(Black),
@@ -57,7 +58,7 @@ impl Color {
             Color::Rgb(r, g, b) => termion_fg_rgb!(r, g, b),
         }
     }
-    pub fn bg(&self) -> String {
+    pub fn termion_bg(&self) -> String {
         match *self {
             Color::Reset => termion_bg!(Reset),
             Color::Black => termion_bg!(Black),
@@ -75,6 +76,29 @@ impl Color {
             Color::LightCyan => termion_bg!(LightCyan),
             Color::White => termion_bg!(White),
             Color::Rgb(r, g, b) => termion_bg_rgb!(r, g, b),
+        }
+    }
+}
+
+impl Into<rustbox::Color> for Color {
+    fn into(self) -> rustbox::Color {
+        match self {
+            Color::Reset => rustbox::Color::Default,
+            Color::Black => rustbox::Color::Black,
+            Color::Red => rustbox::Color::Red,
+            Color::Green => rustbox::Color::Green,
+            Color::Yellow => rustbox::Color::Yellow,
+            Color::Magenta => rustbox::Color::Magenta,
+            Color::Cyan => rustbox::Color::Cyan,
+            Color::Gray => rustbox::Color::Black,
+            Color::DarkGray => rustbox::Color::Black,
+            Color::LightRed => rustbox::Color::Red,
+            Color::LightGreen => rustbox::Color::Green,
+            Color::LightYellow => rustbox::Color::Yellow,
+            Color::LightMagenta => rustbox::Color::Magenta,
+            Color::LightCyan => rustbox::Color::Cyan,
+            Color::White => rustbox::Color::White,
+            Color::Rgb(r, g, b) => rustbox::Color::Default,
         }
     }
 }

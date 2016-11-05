@@ -5,11 +5,164 @@ use std::collections::HashMap;
 use termion;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-use buffer::Buffer;
+use rustbox;
+
+use buffer::{Buffer, Cell};
 use layout::{Rect, Group, split};
 use widgets::Widget;
 use style::Color;
 use util::hash;
+
+pub trait Backend {
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+        where I: Iterator<Item = (u16, u16, &'a Cell)>;
+    fn hide_cursor(&mut self) -> Result<(), io::Error>;
+    fn show_cursor(&mut self) -> Result<(), io::Error>;
+    fn clear(&mut self) -> Result<(), io::Error>;
+    fn size(&self) -> Result<Rect, io::Error>;
+    fn flush(&mut self) -> Result<(), io::Error>;
+}
+
+pub struct TermionBackend {
+    stdout: RawTerminal<io::Stdout>,
+}
+
+impl TermionBackend {
+    pub fn new() -> Result<TermionBackend, io::Error> {
+        let stdout = try!(io::stdout().into_raw_mode());
+        Ok(TermionBackend { stdout: stdout })
+    }
+}
+
+impl Backend for TermionBackend {
+    /// Clears the entire screen and move the cursor to the top left of the screen
+    fn clear(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::clear::All));
+        try!(write!(self.stdout, "{}", termion::cursor::Goto(1, 1)));
+        try!(self.stdout.flush());
+        Ok(())
+    }
+
+    /// Hides cursor
+    fn hide_cursor(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::cursor::Hide));
+        try!(self.stdout.flush());
+        Ok(())
+    }
+
+    /// Shows cursor
+    fn show_cursor(&mut self) -> Result<(), io::Error> {
+        try!(write!(self.stdout, "{}", termion::cursor::Show));
+        try!(self.stdout.flush());
+        Ok(())
+    }
+
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+        where I: Iterator<Item = (u16, u16, &'a Cell)>
+    {
+        let mut string = String::with_capacity(content.size_hint().0 * 3);
+        let mut fg = Color::Reset;
+        let mut bg = Color::Reset;
+        let mut last_y = 0;
+        let mut last_x = 0;
+        let mut inst = 0;
+        for (x, y, cell) in content {
+            if y != last_y || x != last_x + 1 {
+                string.push_str(&format!("{}", termion::cursor::Goto(x + 1, y + 1)));
+                inst += 1;
+            }
+            last_x = x;
+            last_y = y;
+            if cell.fg != fg {
+                string.push_str(&cell.fg.termion_fg());
+                fg = cell.fg;
+                inst += 1;
+            }
+            if cell.bg != bg {
+                string.push_str(&cell.bg.termion_bg());
+                bg = cell.bg;
+                inst += 1;
+            }
+            string.push_str(&cell.symbol);
+            inst += 1;
+        }
+        debug!("{} instructions outputed.", inst);
+        try!(write!(self.stdout,
+                    "{}{}{}",
+                    string,
+                    Color::Reset.termion_fg(),
+                    Color::Reset.termion_bg()));
+        Ok(())
+    }
+
+    /// Return the size of the terminal
+    fn size(&self) -> Result<Rect, io::Error> {
+        let terminal = try!(termion::terminal_size());
+        Ok(Rect {
+            x: 0,
+            y: 0,
+            width: terminal.0,
+            height: terminal.1,
+        })
+    }
+
+    fn flush(&mut self) -> Result<(), io::Error> {
+        try!(self.stdout.flush());
+        Ok(())
+    }
+}
+
+pub struct RustboxBackend {
+    rustbox: rustbox::RustBox,
+}
+
+impl RustboxBackend {
+    pub fn new() -> Result<RustboxBackend, rustbox::InitError> {
+        let rustbox = try!(rustbox::RustBox::init(Default::default()));
+        Ok(RustboxBackend { rustbox: rustbox })
+    }
+}
+
+impl Backend for RustboxBackend {
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+        where I: Iterator<Item = (u16, u16, &'a Cell)>
+    {
+        let mut inst = 0;
+        for (x, y, cell) in content {
+            inst += 1;
+            self.rustbox.print(x as usize,
+                               y as usize,
+                               rustbox::RB_NORMAL,
+                               cell.fg.into(),
+                               cell.bg.into(),
+                               &cell.symbol);
+        }
+        debug!("{} instructions outputed", inst);
+        Ok(())
+    }
+    fn hide_cursor(&mut self) -> Result<(), io::Error> {
+        Ok(())
+    }
+    fn show_cursor(&mut self) -> Result<(), io::Error> {
+        Ok(())
+    }
+    fn clear(&mut self) -> Result<(), io::Error> {
+        self.rustbox.clear();
+        Ok(())
+    }
+    fn size(&self) -> Result<Rect, io::Error> {
+        Ok((Rect {
+            x: 0,
+            y: 0,
+            width: self.rustbox.width() as u16,
+            height: self.rustbox.height() as u16,
+        }))
+    }
+    fn flush(&mut self) -> Result<(), io::Error> {
+        self.rustbox.present();
+        Ok(())
+    }
+}
 
 /// Holds a computed layout and keeps track of its use between successive draw calls
 #[derive(Debug)]
@@ -19,9 +172,10 @@ pub struct LayoutEntry {
 }
 
 /// Interface to the terminal backed by Termion
-pub struct Terminal {
-    /// Raw mode termion terminal
-    stdout: RawTerminal<io::Stdout>,
+pub struct Terminal<B>
+    where B: Backend
+{
+    backend: B,
     /// Cache to prevent the layout to be computed at each draw call
     layout_cache: HashMap<u64, LayoutEntry>,
     /// Holds the results of the current and previous draw calls. The two are compared at the end
@@ -31,29 +185,27 @@ pub struct Terminal {
     current: usize,
 }
 
-impl Terminal {
+impl<B> Terminal<B>
+    where B: Backend
+{
     /// Wrapper around Termion initialization. Each buffer is initialized with a blank string and
     /// default colors for the foreground and the background
-    pub fn new() -> Result<Terminal, io::Error> {
-        let stdout = try!(io::stdout().into_raw_mode());
-        let size = try!(Terminal::size());
+    pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
+        let size = try!(backend.size());
         Ok(Terminal {
-            stdout: stdout,
+            backend: backend,
             layout_cache: HashMap::new(),
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
         })
     }
 
-    /// Return the size of the terminal
-    pub fn size() -> Result<Rect, io::Error> {
-        let terminal = try!(termion::terminal_size());
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width: terminal.0,
-            height: terminal.1,
-        })
+    pub fn backend(&self) -> &B {
+        &self.backend
+    }
+
+    pub fn backend_mut(&mut self) -> &mut B {
+        &mut self.backend
     }
 
     /// Check if we have already computed a layout for a given group, otherwise it creates one and
@@ -82,11 +234,6 @@ impl Terminal {
     /// update the UI and writes it to stdout.
     pub fn flush(&mut self) -> Result<(), io::Error> {
         let width = self.buffers[self.current].area.width;
-        let mut string = String::with_capacity(self.buffers[self.current].content.len() * 3);
-        let mut fg = Color::Reset;
-        let mut bg = Color::Reset;
-        let mut last_y = 0;
-        let mut last_x = 0;
         let content = self.buffers[self.current]
             .content
             .iter()
@@ -100,34 +247,7 @@ impl Terminal {
             } else {
                 None
             });
-        let mut inst = 0;
-        for (x, y, cell) in content {
-            if y != last_y || x != last_x + 1 {
-                string.push_str(&format!("{}", termion::cursor::Goto(x + 1, y + 1)));
-                inst += 1;
-            }
-            last_x = x;
-            last_y = y;
-            if cell.fg != fg {
-                string.push_str(&cell.fg.fg());
-                fg = cell.fg;
-                inst += 1;
-            }
-            if cell.bg != bg {
-                string.push_str(&cell.bg.bg());
-                bg = cell.bg;
-                inst += 1;
-            }
-            string.push_str(&cell.symbol);
-            inst += 1;
-        }
-        debug!("{} instructions outputed.", inst);
-        try!(write!(self.stdout,
-                    "{}{}{}",
-                    string,
-                    Color::Reset.fg(),
-                    Color::Reset.bg()));
-        Ok(())
+        self.backend.draw(content)
     }
 
     /// Calls the draw method of a given widget on the current buffer
@@ -144,7 +264,7 @@ impl Terminal {
         self.buffers[1 - self.current].resize(area);
         self.buffers[1 - self.current].reset();
         self.layout_cache.clear();
-        try!(self.clear());
+        try!(self.backend.clear());
         Ok(())
     }
 
@@ -173,29 +293,20 @@ impl Terminal {
         self.current = 1 - self.current;
 
         // Flush
-        try!(self.stdout.flush());
+        try!(self.backend.flush());
         Ok(())
     }
 
-    /// Clears the entire screen and move the cursor to the top left of the screen
-    pub fn clear(&mut self) -> Result<(), io::Error> {
-        try!(write!(self.stdout, "{}", termion::clear::All));
-        try!(write!(self.stdout, "{}", termion::cursor::Goto(1, 1)));
-        try!(self.stdout.flush());
-        Ok(())
-    }
-
-    /// Hides cursor
     pub fn hide_cursor(&mut self) -> Result<(), io::Error> {
-        try!(write!(self.stdout, "{}", termion::cursor::Hide));
-        try!(self.stdout.flush());
-        Ok(())
+        self.backend.hide_cursor()
     }
-
-    /// Shows cursor
     pub fn show_cursor(&mut self) -> Result<(), io::Error> {
-        try!(write!(self.stdout, "{}", termion::cursor::Show));
-        try!(self.stdout.flush());
-        Ok(())
+        self.backend.show_cursor()
+    }
+    pub fn clear(&mut self) -> Result<(), io::Error> {
+        self.backend.clear()
+    }
+    pub fn size(&self) -> Result<Rect, io::Error> {
+        self.backend.size()
     }
 }

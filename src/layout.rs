@@ -5,7 +5,7 @@ use cassowary::{Solver, Variable, Expression, Constraint};
 use cassowary::WeightedRelation::*;
 use cassowary::strength::{REQUIRED, WEAK};
 
-use terminal::Terminal;
+use terminal::{Terminal, Backend};
 
 #[derive(Debug, Hash, PartialEq)]
 pub enum Direction {
@@ -306,8 +306,9 @@ impl Group {
         self.sizes = Vec::from(sizes);
         self
     }
-    pub fn render<F>(&self, t: &mut Terminal, area: &Rect, mut f: F)
-        where F: FnMut(&mut Terminal, &[Rect])
+    pub fn render<F, B>(&self, t: &mut Terminal<B>, area: &Rect, mut f: F)
+        where B: Backend,
+              F: FnMut(&mut Terminal<B>, &[Rect])
     {
         let chunks = t.compute_layout(self, area);
         f(t, &chunks);

@@ -21,7 +21,7 @@ pub use self::table::Table;
 
 use buffer::Buffer;
 use layout::Rect;
-use terminal::Terminal;
+use terminal::{Backend, Terminal};
 use style::Color;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.
@@ -58,8 +58,9 @@ pub trait Widget {
         }
     }
     /// Helper method that can be chained with a widget's builder methods to render it.
-    fn render(&self, area: &Rect, t: &mut Terminal)
-        where Self: Sized
+    fn render<B>(&self, area: &Rect, t: &mut Terminal<B>)
+        where Self: Sized,
+              B: Backend
     {
         t.render(self, area);
     }

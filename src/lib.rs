@@ -1,4 +1,5 @@
 extern crate termion;
+extern crate rustbox;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
@@ -15,4 +16,4 @@ pub mod widgets;
 pub mod style;
 pub mod layout;
 
-pub use self::terminal::Terminal;
+pub use self::terminal::{Terminal, Backend, TermionBackend, RustboxBackend};
