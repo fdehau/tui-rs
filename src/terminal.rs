@@ -10,7 +10,7 @@ use rustbox;
 use buffer::{Buffer, Cell};
 use layout::{Rect, Group, split};
 use widgets::Widget;
-use style::Color;
+use style::{Color, Modifier, Style};
 use util::hash;
 
 pub trait Backend {
@@ -61,8 +61,7 @@ impl Backend for TermionBackend {
         where I: Iterator<Item = (u16, u16, &'a Cell)>
     {
         let mut string = String::with_capacity(content.size_hint().0 * 3);
-        let mut fg = Color::Reset;
-        let mut bg = Color::Reset;
+        let mut style = Style::default();
         let mut last_y = 0;
         let mut last_x = 0;
         let mut inst = 0;
@@ -73,14 +72,23 @@ impl Backend for TermionBackend {
             }
             last_x = x;
             last_y = y;
-            if cell.fg != fg {
-                string.push_str(&cell.fg.termion_fg());
-                fg = cell.fg;
+            if cell.style.modifier != style.modifier {
+                string.push_str(&cell.style.modifier.termion_modifier());
+                style.modifier = cell.style.modifier;
+                if style.modifier == Modifier::Reset {
+                    style.bg = Color::Reset;
+                    style.fg = Color::Reset;
+                }
                 inst += 1;
             }
-            if cell.bg != bg {
-                string.push_str(&cell.bg.termion_bg());
-                bg = cell.bg;
+            if cell.style.fg != style.fg {
+                string.push_str(&cell.style.fg.termion_fg());
+                style.fg = cell.style.fg;
+                inst += 1;
+            }
+            if cell.style.bg != style.bg {
+                string.push_str(&cell.style.bg.termion_bg());
+                style.bg = cell.style.bg;
                 inst += 1;
             }
             string.push_str(&cell.symbol);
@@ -88,10 +96,11 @@ impl Backend for TermionBackend {
         }
         debug!("{} instructions outputed.", inst);
         try!(write!(self.stdout,
-                    "{}{}{}",
+                    "{}{}{}{}",
                     string,
                     Color::Reset.termion_fg(),
-                    Color::Reset.termion_bg()));
+                    Color::Reset.termion_bg(),
+                    Modifier::Reset.termion_modifier()));
         Ok(())
     }
 
@@ -121,6 +130,10 @@ impl RustboxBackend {
         let rustbox = try!(rustbox::RustBox::init(Default::default()));
         Ok(RustboxBackend { rustbox: rustbox })
     }
+
+    pub fn rustbox(&self) -> &rustbox::RustBox {
+        &self.rustbox
+    }
 }
 
 impl Backend for RustboxBackend {
@@ -132,9 +145,9 @@ impl Backend for RustboxBackend {
             inst += 1;
             self.rustbox.print(x as usize,
                                y as usize,
-                               rustbox::RB_NORMAL,
-                               cell.fg.into(),
-                               cell.bg.into(),
+                               cell.style.modifier.into(),
+                               cell.style.fg.into(),
+                               cell.style.bg.into(),
                                &cell.symbol);
         }
         debug!("{} instructions outputed", inst);

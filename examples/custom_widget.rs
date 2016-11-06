@@ -1,6 +1,6 @@
 extern crate tui;
 
-use tui::Terminal;
+use tui::{Terminal, TermionBackend};
 use tui::widgets::Widget;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
@@ -34,8 +34,9 @@ impl<'a> Label<'a> {
 }
 
 fn main() {
-    let mut terminal = Terminal::new().unwrap();
+    let mut terminal = Terminal::new(TermionBackend::new().unwrap()).unwrap();
+    let size = terminal.size().unwrap();
     terminal.clear().unwrap();
-    Label::default().text("Test").render(&Terminal::size().unwrap(), &mut terminal);
+    Label::default().text("Test").render(&mut terminal, &size);
     terminal.draw().unwrap();
 }

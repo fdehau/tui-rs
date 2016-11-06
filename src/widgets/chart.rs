@@ -6,34 +6,34 @@ use widgets::{Widget, Block, border};
 use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::Style;
 use symbols;
 
 /// An X or Y axis for the chart widget
 pub struct Axis<'a> {
     /// Title displayed next to axis end
     title: Option<&'a str>,
-    /// Color of the title
-    title_color: Color,
+    /// Style of the title
+    title_style: Style,
     /// Bounds for the axis (all data points outside these limits will not be represented)
     bounds: [f64; 2],
     /// A list of labels to put to the left or below the axis
     labels: Option<&'a [&'a str]>,
-    /// The labels' color
-    labels_color: Color,
-    /// The color used to draw the axis itself
-    color: Color,
+    /// The labels' style
+    labels_style: Style,
+    /// The style used to draw the axis itself
+    style: Style,
 }
 
 impl<'a> Default for Axis<'a> {
     fn default() -> Axis<'a> {
         Axis {
             title: None,
-            title_color: Color::Reset,
+            title_style: Default::default(),
             bounds: [0.0, 0.0],
             labels: None,
-            labels_color: Color::Reset,
-            color: Color::Reset,
+            labels_style: Default::default(),
+            style: Default::default(),
         }
     }
 }
@@ -44,8 +44,8 @@ impl<'a> Axis<'a> {
         self
     }
 
-    pub fn title_color(mut self, color: Color) -> Axis<'a> {
-        self.title_color = color;
+    pub fn title_style(mut self, style: Style) -> Axis<'a> {
+        self.title_style = style;
         self
     }
 
@@ -59,13 +59,13 @@ impl<'a> Axis<'a> {
         self
     }
 
-    pub fn labels_color(mut self, color: Color) -> Axis<'a> {
-        self.labels_color = color;
+    pub fn labels_style(mut self, style: Style) -> Axis<'a> {
+        self.labels_style = style;
         self
     }
 
-    pub fn color(mut self, color: Color) -> Axis<'a> {
-        self.color = color;
+    pub fn style(mut self, style: Style) -> Axis<'a> {
+        self.style = style;
         self
     }
 }
@@ -86,8 +86,8 @@ pub struct Dataset<'a> {
     data: &'a [(f64, f64)],
     /// Symbol used for each points of this dataset
     marker: Marker,
-    /// Color of the corresponding points and of the legend entry
-    color: Color,
+    /// Style used to plot this dataset
+    style: Style,
 }
 
 impl<'a> Default for Dataset<'a> {
@@ -96,7 +96,7 @@ impl<'a> Default for Dataset<'a> {
             name: "",
             data: &[],
             marker: Marker::Dot,
-            color: Color::Reset,
+            style: Style::default(),
         }
     }
 }
@@ -117,8 +117,8 @@ impl<'a> Dataset<'a> {
         self
     }
 
-    pub fn color(mut self, color: Color) -> Dataset<'a> {
-        self.color = color;
+    pub fn style(mut self, style: Style) -> Dataset<'a> {
+        self.style = style;
         self
     }
 }
@@ -193,8 +193,8 @@ pub struct Chart<'a> {
     y_axis: Axis<'a>,
     /// A reference to the datasets
     datasets: &'a [Dataset<'a>],
-    /// The background color
-    background_color: Color,
+    /// The widget base style
+    style: Style,
 }
 
 impl<'a> Default for Chart<'a> {
@@ -203,7 +203,7 @@ impl<'a> Default for Chart<'a> {
             block: None,
             x_axis: Axis::default(),
             y_axis: Axis::default(),
-            background_color: Color::Reset,
+            style: Default::default(),
             datasets: &[],
         }
     }
@@ -215,8 +215,8 @@ impl<'a> Chart<'a> {
         self
     }
 
-    pub fn background_color(&mut self, background_color: Color) -> &mut Chart<'a> {
-        self.background_color = background_color;
+    pub fn style(&mut self, style: Style) -> &mut Chart<'a> {
+        self.style = style;
         self
     }
 
@@ -318,18 +318,16 @@ impl<'a> Widget for Chart<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&chart_area, buf, self.background_color);
-        }
+        self.background(&chart_area, buf, self.style.bg);
 
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
-            buf.set_string(x, y, title, self.x_axis.title_color, self.background_color);
+            buf.set_string(x, y, title, &self.x_axis.style);
         }
 
         if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
-            buf.set_string(x, y, title, self.y_axis.title_color, self.background_color);
+            buf.set_string(x, y, title, &self.y_axis.style);
         }
 
         if let Some(y) = layout.label_x {
@@ -343,8 +341,7 @@ impl<'a> Widget for Chart<'a> {
                                    label.width() as u16,
                                    y,
                                    label,
-                                   self.x_axis.labels_color,
-                                   self.background_color);
+                                   &self.x_axis.labels_style);
                 }
             }
         }
@@ -358,39 +355,32 @@ impl<'a> Widget for Chart<'a> {
                     buf.set_string(x,
                                    graph_area.bottom() - 1 - dy,
                                    label,
-                                   self.y_axis.labels_color,
-                                   self.background_color);
+                                   &self.y_axis.labels_style);
                 }
             }
         }
 
         if let Some(y) = layout.axis_x {
             for x in graph_area.left()..graph_area.right() {
-                buf.set_cell(x,
-                             y,
-                             symbols::line::HORIZONTAL,
-                             self.x_axis.color,
-                             self.background_color);
+                buf.get_mut(x, y)
+                    .set_symbol(symbols::line::HORIZONTAL)
+                    .set_style(self.x_axis.style);
             }
         }
 
         if let Some(x) = layout.axis_y {
             for y in graph_area.top()..graph_area.bottom() {
-                buf.set_cell(x,
-                             y,
-                             symbols::line::VERTICAL,
-                             self.y_axis.color,
-                             self.background_color);
+                buf.get_mut(x, y)
+                    .set_symbol(symbols::line::VERTICAL)
+                    .set_style(self.y_axis.style);
             }
         }
 
         if let Some(y) = layout.axis_x {
             if let Some(x) = layout.axis_y {
-                buf.set_cell(x,
-                             y,
-                             symbols::line::BOTTOM_LEFT,
-                             self.x_axis.color,
-                             self.background_color);
+                buf.get_mut(x, y)
+                    .set_symbol(symbols::line::BOTTOM_LEFT)
+                    .set_style(self.x_axis.style);
             }
         }
 
@@ -409,22 +399,21 @@ impl<'a> Widget for Chart<'a> {
                                   (self.x_axis.bounds[1] -
                                    self.x_axis.bounds[0])) as u16;
 
-                        buf.set_cell(graph_area.left() + dx,
-                                     graph_area.top() + dy,
-                                     symbols::DOT,
-                                     dataset.color,
-                                     self.background_color);
+                        buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
+                            .set_symbol(symbols::DOT)
+                            .set_fg(dataset.style.fg)
+                            .set_bg(dataset.style.bg);
                     }
                 }
                 Marker::Braille => {
                     Canvas::default()
-                        .background_color(self.background_color)
+                        .background_color(self.style.bg)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
                         .paint(|ctx| {
                             ctx.draw(&Points {
                                 coords: dataset.data,
-                                color: dataset.color,
+                                color: dataset.style.fg,
                             });
                         })
                         .draw(&graph_area, buf);
@@ -440,8 +429,7 @@ impl<'a> Widget for Chart<'a> {
                 buf.set_string(legend_area.x + 1,
                                legend_area.y + 1 + i as u16,
                                dataset.name,
-                               dataset.color,
-                               self.background_color);
+                               &dataset.style);
             }
         }
     }

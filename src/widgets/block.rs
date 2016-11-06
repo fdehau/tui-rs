@@ -1,6 +1,6 @@
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::Style;
 use widgets::{Widget, border};
 use symbols::line;
 
@@ -26,24 +26,24 @@ use symbols::line;
 pub struct Block<'a> {
     /// Optional title place on the upper left of the block
     title: Option<&'a str>,
-    /// Title color
-    title_color: Color,
+    /// Title style
+    title_style: Style,
     /// Visible borders
     borders: border::Flags,
-    /// Borders color
-    border_color: Color,
-    /// Background color
-    background_color: Color,
+    /// Border style
+    border_style: Style,
+    /// Widget style
+    style: Style,
 }
 
 impl<'a> Default for Block<'a> {
     fn default() -> Block<'a> {
         Block {
             title: None,
-            title_color: Color::Reset,
+            title_style: Default::default(),
             borders: border::NONE,
-            border_color: Color::Reset,
-            background_color: Color::Reset,
+            border_style: Default::default(),
+            style: Default::default(),
         }
     }
 }
@@ -54,18 +54,18 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn title_color(mut self, color: Color) -> Block<'a> {
-        self.title_color = color;
+    pub fn title_style(mut self, style: Style) -> Block<'a> {
+        self.title_style = style;
         self
     }
 
-    pub fn border_color(mut self, color: Color) -> Block<'a> {
-        self.border_color = color;
+    pub fn border_style(mut self, style: Style) -> Block<'a> {
+        self.border_style = style;
         self
     }
 
-    pub fn background_color(mut self, color: Color) -> Block<'a> {
-        self.background_color = color;
+    pub fn style(mut self, style: Style) -> Block<'a> {
+        self.style = style;
         self
     }
 
@@ -105,62 +105,60 @@ impl<'a> Widget for Block<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(area, buf, self.background_color)
-        }
+        self.background(area, buf, self.style.bg);
 
         // Sides
         if self.borders.intersects(border::LEFT) {
             for y in area.top()..area.bottom() {
-                buf.set_cell(area.left(),
-                             y,
-                             line::VERTICAL,
-                             self.border_color,
-                             self.background_color);
+                buf.get_mut(area.left(), y)
+                    .set_symbol(line::VERTICAL)
+                    .set_style(self.border_style);
             }
         }
         if self.borders.intersects(border::TOP) {
             for x in area.left()..area.right() {
-                buf.set_cell(x,
-                             area.top(),
-                             line::HORIZONTAL,
-                             self.border_color,
-                             self.background_color);
+                buf.get_mut(x, area.top())
+                    .set_symbol(line::HORIZONTAL)
+                    .set_style(self.border_style);
             }
         }
         if self.borders.intersects(border::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
-                buf.set_cell(x,
-                             y,
-                             line::VERTICAL,
-                             self.border_color,
-                             self.background_color);
+                buf.get_mut(x, y)
+                    .set_symbol(line::VERTICAL)
+                    .set_style(self.border_style);
             }
         }
         if self.borders.intersects(border::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
-                buf.set_cell(x,
-                             y,
-                             line::HORIZONTAL,
-                             self.border_color,
-                             self.background_color);
+                buf.get_mut(x, y)
+                    .set_symbol(line::HORIZONTAL)
+                    .set_style(self.border_style);
             }
         }
 
         // Corners
         if self.borders.contains(border::LEFT | border::TOP) {
-            buf.set_symbol(area.left(), area.top(), line::TOP_LEFT);
+            buf.get_mut(area.left(), area.top())
+                .set_symbol(line::TOP_LEFT)
+                .set_style(self.border_style);
         }
         if self.borders.contains(border::RIGHT | border::TOP) {
-            buf.set_symbol(area.right() - 1, area.top(), line::TOP_RIGHT);
+            buf.get_mut(area.right() - 1, area.top())
+                .set_symbol(line::TOP_RIGHT)
+                .set_style(self.border_style);
         }
         if self.borders.contains(border::LEFT | border::BOTTOM) {
-            buf.set_symbol(area.left(), area.bottom() - 1, line::BOTTOM_LEFT);
+            buf.get_mut(area.left(), area.bottom() - 1)
+                .set_symbol(line::BOTTOM_LEFT)
+                .set_style(self.border_style);
         }
         if self.borders.contains(border::RIGHT | border::BOTTOM) {
-            buf.set_symbol(area.right() - 1, area.bottom() - 1, line::BOTTOM_RIGHT);
+            buf.get_mut(area.right() - 1, area.bottom() - 1)
+                .set_symbol(line::BOTTOM_RIGHT)
+                .set_style(self.border_style);
         }
 
         if area.width > 2 {
@@ -180,8 +178,7 @@ impl<'a> Widget for Block<'a> {
                                 area.top(),
                                 title,
                                 width as usize,
-                                self.title_color,
-                                self.background_color);
+                                &self.title_style);
             }
         }
     }

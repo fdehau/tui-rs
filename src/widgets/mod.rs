@@ -1,5 +1,5 @@
 mod block;
-mod text;
+mod paragraph;
 mod list;
 mod gauge;
 mod sparkline;
@@ -10,7 +10,7 @@ mod table;
 pub mod canvas;
 
 pub use self::block::Block;
-pub use self::text::Text;
+pub use self::paragraph::Paragraph;
 pub use self::list::List;
 pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
@@ -53,12 +53,12 @@ pub trait Widget {
     fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
-                buf.set_bg(x, y, color);
+                buf.get_mut(x, y).set_bg(color);
             }
         }
     }
     /// Helper method that can be chained with a widget's builder methods to render it.
-    fn render<B>(&self, area: &Rect, t: &mut Terminal<B>)
+    fn render<B>(&self, t: &mut Terminal<B>, area: &Rect)
         where Self: Sized,
               B: Backend
     {

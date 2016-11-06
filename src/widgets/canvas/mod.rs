@@ -7,7 +7,7 @@ pub use self::points::Points;
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
 
-use style::Color;
+use style::{Style, Color};
 use buffer::Buffer;
 use widgets::{Block, Widget};
 use layout::Rect;
@@ -254,19 +254,16 @@ impl<'a, F> Widget for Canvas<'a, F>
                     .enumerate() {
                     if ch != BRAILLE_BLANK {
                         let (x, y) = (i % width, i / width);
-                        buf.update_cell(x as u16 + canvas_area.left(),
-                                        y as u16 + canvas_area.top(),
-                                        |c| {
-                                            c.symbol.clear();
-                                            c.symbol.push(ch);
-                                            c.fg = color;
-                                            c.bg = self.background_color;
-                                        });
+                        buf.get_mut(x as u16 + canvas_area.left(), y as u16 + canvas_area.top())
+                            .set_char(ch)
+                            .set_fg(color)
+                            .set_bg(self.background_color);
                     }
                 }
             }
 
             // Finally draw the labels
+            let style = Style::default().bg(self.background_color);
             for label in ctx.labels.iter().filter(|l| {
                 !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
                   l.y > self.y_bounds[1])
@@ -278,8 +275,7 @@ impl<'a, F> Widget for Canvas<'a, F>
                 buf.set_string(dx + canvas_area.left(),
                                dy + canvas_area.top(),
                                label.text,
-                               label.color,
-                               self.background_color);
+                               &style.fg(label.color));
             }
         }
     }

@@ -21,6 +21,64 @@ pub enum Color {
     Rgb(u8, u8, u8),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Modifier {
+    Blink,
+    Bold,
+    CrossedOut,
+    Faint,
+    Framed,
+    Invert,
+    Italic,
+    NoBlink,
+    NoBold,
+    NoCrossedOut,
+    NoFaint,
+    NoInvert,
+    NoItalic,
+    NoUnderline,
+    Reset,
+    Underline,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Style {
+    pub fg: Color,
+    pub bg: Color,
+    pub modifier: Modifier,
+}
+
+impl Default for Style {
+    fn default() -> Style {
+        Style {
+            fg: Color::Reset,
+            bg: Color::Reset,
+            modifier: Modifier::Reset,
+        }
+    }
+}
+
+impl Style {
+    pub fn reset(&mut self) {
+        self.fg = Color::Reset;
+        self.bg = Color::Reset;
+        self.modifier = Modifier::Reset;
+    }
+
+    pub fn fg(mut self, color: Color) -> Style {
+        self.fg = color;
+        self
+    }
+    pub fn bg(mut self, color: Color) -> Style {
+        self.bg = color;
+        self
+    }
+    pub fn modifier(mut self, modifier: Modifier) -> Style {
+        self.modifier = modifier;
+        self
+    }
+}
+
 macro_rules! termion_fg {
     ($color:ident) => (format!("{}", termion::color::Fg(termion::color::$color)));
 }
@@ -35,6 +93,10 @@ macro_rules! termion_bg {
 
 macro_rules! termion_bg_rgb {
     ($r:expr, $g:expr, $b:expr) => (format!("{}", termion::color::Bg(termion::color::Rgb($r, $g, $b))));
+}
+
+macro_rules! termion_modifier {
+    ($style:ident) => (format!("{}", termion::style::$style));
 }
 
 impl Color {
@@ -80,6 +142,10 @@ impl Color {
     }
 }
 
+fn rgb_to_byte(r: u8, g: u8, b: u8) -> u16 {
+    (((r & 255 & 0xC0) + (g & 255 & 0xE0) >> 2 + (b & 0xE0) >> 5) & 0xFF) as u16
+}
+
 impl Into<rustbox::Color> for Color {
     fn into(self) -> rustbox::Color {
         match self {
@@ -98,7 +164,42 @@ impl Into<rustbox::Color> for Color {
             Color::LightMagenta => rustbox::Color::Magenta,
             Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
-            Color::Rgb(r, g, b) => rustbox::Color::Default,
+            Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
+        }
+    }
+}
+
+impl Modifier {
+    pub fn termion_modifier(&self) -> String {
+        match *self {
+            Modifier::Blink => termion_modifier!(Blink),
+            Modifier::Bold => termion_modifier!(Bold),
+            Modifier::CrossedOut => termion_modifier!(CrossedOut),
+            Modifier::Faint => termion_modifier!(Faint),
+            Modifier::Framed => termion_modifier!(Framed),
+            Modifier::Invert => termion_modifier!(Invert),
+            Modifier::Italic => termion_modifier!(Italic),
+            Modifier::NoBlink => termion_modifier!(NoBlink),
+            Modifier::NoBold => termion_modifier!(NoBold),
+            Modifier::NoCrossedOut => termion_modifier!(NoCrossedOut),
+            Modifier::NoFaint => termion_modifier!(NoFaint),
+            Modifier::NoInvert => termion_modifier!(NoInvert),
+            Modifier::NoItalic => termion_modifier!(NoItalic),
+            Modifier::NoUnderline => termion_modifier!(NoUnderline),
+            Modifier::Reset => termion_modifier!(Reset),
+            Modifier::Underline => termion_modifier!(Underline),
+        }
+    }
+}
+
+impl Into<rustbox::Style> for Modifier {
+    fn into(self) -> rustbox::Style {
+        match self {
+            Modifier::Reset => rustbox::RB_NORMAL,
+            Modifier::Bold => rustbox::RB_BOLD,
+            Modifier::Underline => rustbox::RB_UNDERLINE,
+            Modifier::Invert => rustbox::RB_REVERSE,
+            _ => rustbox::RB_NORMAL,
         }
     }
 }

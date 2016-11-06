@@ -22,11 +22,11 @@ use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Root};
 
 use tui::{Terminal, TermionBackend};
-use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Text, border, Chart, Axis, Dataset,
+use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Paragraph, border, Chart, Axis, Dataset,
                    BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::Color;
+use tui::style::{Style, Color, Modifier};
 
 #[derive(Clone)]
 struct RandomSignal {
@@ -330,10 +330,10 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
             Tabs::default()
                 .block(Block::default().borders(border::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)
-                .color(Color::Green)
-                .highlight_color(Color::Yellow)
+                .style(Style::default().fg(Color::Green))
+                .highlight_style(Style::default().fg(Color::Yellow))
                 .select(app.tabs.selection)
-                .render(&chunks[0], t);
+                .render(t, &chunks[0]);
             match app.tabs.selection {
                 0 => {
                     draw_main(t, app, &chunks[1]);
@@ -348,13 +348,13 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
                                     .title("Servers")
                                     .borders(border::ALL))
                                 .header(&["Server", "Location", "Status"])
-                                .header_color(Color::Red)
+                                .header_style(Style::default().fg(Color::Red))
                                 .widths(&[15, 15, 10])
                                 .rows(app.servers
                                     .iter()
                                     .map(|s| vec![s.name, s.location, s.status])
                                     .collect::<Vec<Vec<&str>>>())
-                                .render(&chunks[0], t);
+                                .render(t, &chunks[0]);
 
                             Canvas::default()
                                 .block(Block::default().title("World").borders(border::ALL))
@@ -386,7 +386,7 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
                                 })
                                 .x_bounds([-180.0, 180.0])
                                 .y_bounds([-90.0, 90.0])
-                                .render(&chunks[1], t);
+                                .render(t, &chunks[1]);
                         })
                 }
                 _ => {}
@@ -404,7 +404,7 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
             Block::default()
                 .borders(border::ALL)
                 .title("Graphs")
-                .render(&chunks[0], t);
+                .render(t, &chunks[0]);
             Group::default()
                 .direction(Direction::Vertical)
                 .margin(1)
@@ -412,14 +412,14 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                 .render(t, &chunks[0], |t, chunks| {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
-                        .color(Color::Magenta)
+                        .style(Style::default().fg(Color::Magenta).bg(Color::Black).modifier(Modifier::Italic))
                         .percent(app.progress)
-                        .render(&chunks[0], t);
+                        .render(t, &chunks[0]);
                     Sparkline::default()
                         .block(Block::default().title("Sparkline:"))
-                        .color(Color::Green)
+                        .style(Style::default().fg(Color::Green))
                         .data(&app.data)
-                        .render(&chunks[1], t);
+                        .render(t, &chunks[1]);
                 });
             let sizes = if app.show_chart {
                 vec![Size::Percent(50), Size::Percent(50)]
@@ -444,16 +444,16 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                                             .title("List"))
                                         .items(&app.items)
                                         .select(app.selected)
-                                        .highlight_color(Color::Yellow)
+                                        .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                                         .highlight_symbol(">")
-                                        .render(&chunks[0], t);
+                                        .render(t, &chunks[0]);
                                     List::default()
                                         .block(Block::default()
                                             .borders(border::ALL)
                                             .title("List"))
                                         .items(&app.items2)
-                                        .color(Color::Gray)
-                                        .render(&chunks[1], t);
+                                        .style(Style::default().fg(Color::Gray))
+                                        .render(t, &chunks[1]);
                                 });
                             BarChart::default()
                                 .block(Block::default()
@@ -462,50 +462,52 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                                 .data(&app.data4)
                                 .bar_width(3)
                                 .bar_gap(2)
-                                .bar_color(Color::Green)
-                                .value_color(Color::Black)
-                                .label_color(Color::Yellow)
-                                .render(&chunks[1], t);
+                                .value_style(Style::default().fg(Color::Black).bg(Color::Green).modifier(Modifier::Italic))
+                                .label_style(Style::default().fg(Color::Yellow))
+                                .style(Style::default().fg(Color::Green))
+                                .render(t, &chunks[1]);
                         });
                     if app.show_chart {
                         Chart::default()
-                            .block(Block::default().title("Chart"))
+                            .block(Block::default().title("Chart").borders(border::ALL))
                             .x_axis(Axis::default()
                                 .title("X Axis")
-                                .color(Color::Gray)
+                                .style(Style::default().fg(Color::Gray))
+                                .labels_style(Style::default().modifier(Modifier::Italic))
                                 .bounds(app.window)
                                 .labels(&[&format!("{}", app.window[0]),
                                           &format!("{}", (app.window[0] + app.window[1]) / 2.0),
                                           &format!("{}", app.window[1])]))
                             .y_axis(Axis::default()
                                 .title("Y Axis")
-                                .color(Color::Gray)
+                                .style(Style::default().fg(Color::Gray))
+                                .labels_style(Style::default().modifier(Modifier::Italic))
                                 .bounds([-20.0, 20.0])
                                 .labels(&["-20", "0", "20"]))
                             .datasets(&[Dataset::default()
                                             .name("data2")
                                             .marker(Marker::Dot)
-                                            .color(Color::Cyan)
+                                            .style(Style::default().fg(Color::Cyan))
                                             .data(&app.data2),
                                         Dataset::default()
                                             .name("data3")
                                             .marker(Marker::Braille)
-                                            .color(Color::Yellow)
+                                            .style(Style::default().fg(Color::Yellow))
                                             .data(&app.data3)])
-                            .render(&chunks[1], t);
+                            .render(t, &chunks[1]);
                     }
                 });
-            Text::default()
+            Paragraph::default()
                 .block(Block::default().borders(border::ALL).title("Footer"))
                 .wrap(true)
-                .color(app.colors[app.color_index])
+                .style(Style::default().fg(app.colors[app.color_index]))
                 .text("This is a paragraph with several lines.\nYou can change the color.\nUse \
-                       \\{[color] [text]} to highlight the text with a color. For example, {red \
-                       u}{green n}{yellow d}{magenta e}{cyan r} {gray t}{light_gray h}{light_red \
-                       e} {light_green r}{light_yellow a}{light_magenta i}{light_cyan n}{white \
-                       b}{red o}{green w}.\nOh, and if you didn't notice you can automatically \
-                       wrap your text =).\nOne more thing is that it should display unicode \
+                       \\{fg=[color];bg=[color];mod=[modifier] [text]} to highlight the text with a color. For example, {fg=red \
+                       u}{fg=green n}{fg=yellow d}{fg=magenta e}{fg=cyan r} {fg=gray t}{fg=light_gray h}{fg=light_red \
+                       e} {fg=light_green r}{fg=light_yellow a}{fg=light_magenta i}{fg=light_cyan n}{fg=white \
+                       b}{fg=red o}{fg=green w}.\nOh, and if you didn't {mod=italic notice} you can {mod=bold automatically} \
+                       {mod=invert wrap} your {mod=underline text} =).\nOne more thing is that it should display unicode \
                        characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ ٩(-̮̮̃•̃).")
-                .render(&chunks[2], t);
+                .render(t, &chunks[2]);
         });
 }

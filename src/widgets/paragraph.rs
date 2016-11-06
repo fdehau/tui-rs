@@ -4,7 +4,7 @@ use unicode_width::UnicodeWidthStr;
 use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::{Style, Color, Modifier};
 
 /// A widget to display some text. You can specify colors using commands embedded in
 /// the text such as "{[color] [text]}".
@@ -13,64 +13,56 @@ use style::Color;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, Text};
+/// # use tui::widgets::{Block, border, Paragraph};
 /// # use tui::style::Color;
 /// # fn main() {
-/// Text::default()
-///     .block(Block::default().title("Text").borders(border::ALL))
+/// Paragraph::default()
+///     .block(Block::default().title("Paragraph").borders(border::ALL))
 ///     .color(Color::White)
 ///     .background_color(Color::Black)
 ///     .wrap(true)
 ///     .text("First line\nSecond line\n{red Colored text}.");
 /// # }
 /// ```
-pub struct Text<'a> {
+pub struct Paragraph<'a> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
-    /// The base color used to render the text
-    color: Color,
-    /// Background color of the widget
-    background_color: Color,
+    /// Widget style
+    style: Style,
     /// Wrap the text or not
     wrapping: bool,
     /// The text to display
     text: &'a str,
 }
 
-impl<'a> Default for Text<'a> {
-    fn default() -> Text<'a> {
-        Text {
+impl<'a> Default for Paragraph<'a> {
+    fn default() -> Paragraph<'a> {
+        Paragraph {
             block: None,
-            color: Color::Reset,
-            background_color: Color::Reset,
+            style: Default::default(),
             wrapping: false,
             text: "",
         }
     }
 }
 
-impl<'a> Text<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Text<'a> {
+impl<'a> Paragraph<'a> {
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut Paragraph<'a> {
         self.block = Some(block);
         self
     }
 
-    pub fn text(&mut self, text: &'a str) -> &mut Text<'a> {
+    pub fn text(&mut self, text: &'a str) -> &mut Paragraph<'a> {
         self.text = text;
         self
     }
 
-    pub fn background_color(&mut self, background_color: Color) -> &mut Text<'a> {
-        self.background_color = background_color;
+    pub fn style(&mut self, style: Style) -> &mut Paragraph<'a> {
+        self.style = style;
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Text<'a> {
-        self.color = color;
-        self
-    }
-
-    pub fn wrap(&mut self, flag: bool) -> &mut Text<'a> {
+    pub fn wrap(&mut self, flag: bool) -> &mut Paragraph<'a> {
         self.wrapping = flag;
         self
     }
@@ -79,28 +71,54 @@ impl<'a> Text<'a> {
 struct Parser<'a> {
     text: Vec<&'a str>,
     mark: bool,
-    color_string: String,
-    color: Color,
-    base_color: Color,
+    cmd_string: String,
+    style: Style,
+    base_style: Style,
     escaping: bool,
-    coloring: bool,
+    styling: bool,
 }
 
 impl<'a> Parser<'a> {
-    fn new(text: &'a str, base_color: Color) -> Parser<'a> {
+    fn new(text: &'a str, base_style: Style) -> Parser<'a> {
         Parser {
             text: UnicodeSegmentation::graphemes(text, true).rev().collect::<Vec<&str>>(),
             mark: false,
-            color_string: String::from(""),
-            color: base_color,
-            base_color: base_color,
+            cmd_string: String::from(""),
+            style: base_style,
+            base_style: base_style,
             escaping: false,
-            coloring: false,
+            styling: false,
         }
     }
 
-    fn update_color(&mut self) {
-        self.color = match &*self.color_string {
+    fn update_style(&mut self) {
+        for cmd in self.cmd_string.split(';') {
+            let args = cmd.split('=').collect::<Vec<&str>>();
+            if let Some(first) = args.get(0) {
+                match *first {
+                    "fg" => {
+                        if let Some(snd) = args.get(1) {
+                            self.style.fg = Parser::str_to_color(snd);
+                        }
+                    }
+                    "bg" => {
+                        if let Some(snd) = args.get(1) {
+                            self.style.bg = Parser::str_to_color(snd);
+                        }
+                    }
+                    "mod" => {
+                        if let Some(snd) = args.get(1) {
+                            self.style.modifier = Parser::str_to_modifier(snd);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    fn str_to_color(string: &str) -> Color {
+        match string {
             "black" => Color::Black,
             "red" => Color::Red,
             "green" => Color::Green,
@@ -119,22 +137,32 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn str_to_modifier(string: &str) -> Modifier {
+        match string {
+            "bold" => Modifier::Bold,
+            "italic" => Modifier::Italic,
+            "underline" => Modifier::Underline,
+            "invert" => Modifier::Invert,
+            _ => Modifier::Reset,
+        }
+    }
+
     fn reset(&mut self) {
-        self.coloring = false;
+        self.styling = false;
         self.mark = false;
-        self.color = self.base_color;
-        self.color_string.clear();
+        self.style = self.base_style;
+        self.cmd_string.clear();
     }
 }
 
 impl<'a> Iterator for Parser<'a> {
-    type Item = (&'a str, Color);
-    fn next(&mut self) -> Option<(&'a str, Color)> {
+    type Item = (&'a str, Style);
+    fn next(&mut self) -> Option<Self::Item> {
         match self.text.pop() {
             Some(s) => {
                 if s == "\\" {
                     if self.escaping {
-                        Some((s, self.color))
+                        Some((s, self.style))
                     } else {
                         self.escaping = true;
                         self.next()
@@ -142,9 +170,9 @@ impl<'a> Iterator for Parser<'a> {
                 } else if s == "{" {
                     if self.escaping {
                         self.escaping = false;
-                        Some((s, self.color))
+                        Some((s, self.style))
                     } else {
-                        self.color = self.base_color;
+                        self.style = self.base_style;
                         self.mark = true;
                         self.next()
                     }
@@ -152,14 +180,14 @@ impl<'a> Iterator for Parser<'a> {
                     self.reset();
                     self.next()
                 } else if s == " " && self.mark {
-                    self.coloring = true;
-                    self.update_color();
+                    self.styling = true;
+                    self.update_style();
                     self.next()
-                } else if self.mark && !self.coloring {
-                    self.color_string.push_str(s);
+                } else if self.mark && !self.styling {
+                    self.cmd_string.push_str(s);
                     self.next()
                 } else {
-                    Some((s, self.color))
+                    Some((s, self.style))
                 }
             }
             None => None,
@@ -167,7 +195,7 @@ impl<'a> Iterator for Parser<'a> {
     }
 }
 
-impl<'a> Widget for Text<'a> {
+impl<'a> Widget for Paragraph<'a> {
     fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let text_area = match self.block {
             Some(ref b) => {
@@ -181,14 +209,12 @@ impl<'a> Widget for Text<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&text_area, buf, self.background_color);
-        }
+        self.background(&text_area, buf, self.style.bg);
 
         let mut x = 0;
         let mut y = 0;
-        for (s, c) in Parser::new(self.text, self.color) {
-            if s == "\n" {
+        for (string, style) in Parser::new(self.text, self.style) {
+            if string == "\n" {
                 x = 0;
                 y += 1;
                 continue;
@@ -205,12 +231,10 @@ impl<'a> Widget for Text<'a> {
                 break;
             }
 
-            buf.set_cell(text_area.left() + x,
-                         text_area.top() + y,
-                         s,
-                         c,
-                         self.background_color);
-            x += s.width() as u16;
+            buf.get_mut(text_area.left() + x, text_area.top() + y)
+                .set_symbol(string)
+                .set_style(style);
+            x += string.width() as u16;
         }
     }
 }

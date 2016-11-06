@@ -7,7 +7,7 @@ use cassowary::strength::{REQUIRED, WEAK};
 
 use terminal::{Terminal, Backend};
 
-#[derive(Debug, Hash, PartialEq)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub enum Direction {
     Horizontal,
     Vertical,
@@ -109,7 +109,7 @@ impl Rect {
     }
 }
 
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Size {
     Fixed(u16),
     Percent(u16),
@@ -222,6 +222,17 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
             _ => {}
         }
     }
+    // Fix imprecision by extending the last item a bit if necessary
+    if let Some(last) = results.last_mut() {
+        match *dir {
+            Direction::Vertical => {
+                last.height = dest_area.bottom() - last.y;
+            }
+            Direction::Horizontal => {
+                last.width = dest_area.right() - last.x;
+            }
+        }
+    }
     results
 }
 
@@ -274,7 +285,7 @@ impl Element {
 ///         .sizes(&[Size::Percent(50), Size::Percent(50)]);
 /// # }
 /// ```
-#[derive(Debug, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Group {
     pub direction: Direction,
     pub margin: u16,

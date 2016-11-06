@@ -5,7 +5,7 @@ use unicode_width::UnicodeWidthStr;
 use widgets::{Widget, Block};
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::Style;
 use symbols::bar;
 
 /// Display multiple bars in a single widgets
@@ -36,14 +36,12 @@ pub struct BarChart<'a> {
     bar_width: u16,
     /// The gap between each bar
     bar_gap: u16,
-    /// Color of the bars
-    bar_color: Color,
-    /// Color of the values printed at the bottom of each bar
-    value_color: Color,
-    /// Color of the labels printed under each bar
-    label_color: Color,
-    /// Background color for the widget
-    background_color: Color,
+    /// Style of the values printed at the bottom of each bar
+    value_style: Style,
+    /// Style of the labels printed under each bar
+    label_style: Style,
+    /// Style for the widget
+    style: Style,
     /// Slice of (label, value) pair to plot on the chart
     data: &'a [(&'a str, u64)],
     /// Value necessary for a bar to reach the maximum height (if no value is specified,
@@ -62,10 +60,9 @@ impl<'a> Default for BarChart<'a> {
             values: Vec::new(),
             bar_width: 1,
             bar_gap: 1,
-            bar_color: Color::Reset,
-            value_color: Color::Reset,
-            label_color: Color::Reset,
-            background_color: Color::Reset,
+            value_style: Default::default(),
+            label_style: Default::default(),
+            style: Default::default(),
         }
     }
 }
@@ -97,20 +94,16 @@ impl<'a> BarChart<'a> {
         self.bar_gap = gap;
         self
     }
-    pub fn bar_color(&'a mut self, color: Color) -> &mut BarChart<'a> {
-        self.bar_color = color;
+    pub fn value_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+        self.value_style = style;
         self
     }
-    pub fn value_color(&'a mut self, color: Color) -> &mut BarChart<'a> {
-        self.value_color = color;
+    pub fn label_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+        self.label_style = style;
         self
     }
-    pub fn label_color(&'a mut self, color: Color) -> &mut BarChart<'a> {
-        self.label_color = color;
-        self
-    }
-    pub fn background_color(&'a mut self, color: Color) -> &mut BarChart<'a> {
-        self.background_color = color;
+    pub fn style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+        self.style = style;
         self
     }
 }
@@ -129,9 +122,7 @@ impl<'a> Widget for BarChart<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&chart_area, buf, self.background_color);
-        }
+        self.background(&chart_area, buf, self.style.bg);
 
         let max = self.max.unwrap_or(self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
         let max_index = min((chart_area.width / (self.bar_width + self.bar_gap)) as usize,
@@ -156,12 +147,11 @@ impl<'a> Widget for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.set_cell(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
+                    buf.get_mut(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
                                  x,
-                                 chart_area.top() + j,
-                                 symbol,
-                                 self.bar_color,
-                                 self.background_color);
+                                 chart_area.top() + j)
+                        .set_symbol(symbol)
+                        .set_style(self.style);
                 }
 
                 if d.1 > 8 {
@@ -182,16 +172,14 @@ impl<'a> Widget for BarChart<'a> {
                                    (self.bar_width - width) / 2,
                                    chart_area.bottom() - 2,
                                    value_label,
-                                   self.value_color,
-                                   self.bar_color);
+                                   &self.value_style);
                 }
             }
             buf.set_stringn(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap),
                             chart_area.bottom() - 1,
                             label,
                             self.bar_width as usize,
-                            self.label_color,
-                            self.background_color);
+                            &self.label_style);
         }
     }
 }

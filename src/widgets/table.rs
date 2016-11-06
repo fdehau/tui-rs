@@ -6,7 +6,7 @@ use unicode_width::UnicodeWidthStr;
 use buffer::Buffer;
 use widgets::{Widget, Block};
 use layout::Rect;
-use style::Color;
+use style::Style;
 
 /// A widget to display data in formatted column
 ///
@@ -32,10 +32,12 @@ use style::Color;
 pub struct Table<'a> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
+    /// Base style for the widget
+    style: Style,
     /// Header row for all columns
     header: &'a [&'a str],
-    /// Color of the text in the header
-    header_color: Color,
+    /// Style for the header
+    header_style: Style,
     /// Width of each column (if the total width is greater than the widget width some columns may
     /// not be displayed)
     widths: &'a [u16],
@@ -43,23 +45,21 @@ pub struct Table<'a> {
     column_spacing: u16,
     /// Data to display in each row
     rows: Vec<Cow<'a, [&'a str]>>,
-    /// Color of the text
-    color: Color,
-    /// Background color for the widget
-    background_color: Color,
+    /// Style for each row
+    row_style: Style,
 }
 
 impl<'a> Default for Table<'a> {
     fn default() -> Table<'a> {
         Table {
             block: None,
+            style: Style::default(),
             header: &[],
-            header_color: Color::Reset,
+            header_style: Style::default(),
             widths: &[],
             rows: Vec::new(),
-            color: Color::Reset,
+            row_style: Style::default(),
             column_spacing: 1,
-            background_color: Color::Reset,
         }
     }
 }
@@ -75,8 +75,8 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn header_color(&mut self, color: Color) -> &mut Table<'a> {
-        self.header_color = color;
+    pub fn header_style(&mut self, style: Style) -> &mut Table<'a> {
+        self.header_style = style;
         self
     }
 
@@ -92,18 +92,13 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Table<'a> {
-        self.color = color;
+    pub fn row_style(&mut self, style: Style) -> &mut Table<'a> {
+        self.row_style = style;
         self
     }
 
     pub fn column_spacing(&mut self, spacing: u16) -> &mut Table<'a> {
         self.column_spacing = spacing;
-        self
-    }
-
-    pub fn background_color(&mut self, color: Color) -> &mut Table<'a> {
-        self.background_color = color;
         self
     }
 }
@@ -121,9 +116,7 @@ impl<'a> Widget for Table<'a> {
         };
 
         // Set the background
-        if self.background_color != Color::Reset {
-            self.background(&table_area, buf, self.background_color);
-        }
+        self.background(&table_area, buf, self.style.bg);
 
         let mut x = 0;
         let mut widths = Vec::with_capacity(self.widths.len());
@@ -137,10 +130,11 @@ impl<'a> Widget for Table<'a> {
 
         let mut y = table_area.top();
 
+        // Header
         if y < table_area.bottom() {
             x = table_area.left();
             for (w, t) in widths.iter().zip(self.header.iter()) {
-                buf.set_string(x, y, t, self.header_color, self.background_color);
+                buf.set_string(x, y, t, &self.header_style);
                 x += *w + self.column_spacing;
             }
         }
@@ -151,12 +145,7 @@ impl<'a> Widget for Table<'a> {
             for (i, row) in self.rows.iter().take(remaining).enumerate() {
                 x = table_area.left();
                 for (w, elt) in widths.iter().zip(row.iter()) {
-                    buf.set_stringn(x,
-                                    y + i as u16,
-                                    elt,
-                                    *w as usize,
-                                    self.color,
-                                    self.background_color);
+                    buf.set_stringn(x, y + i as u16, elt, *w as usize, &self.row_style);
                     x += *w + self.column_spacing;
                 }
             }

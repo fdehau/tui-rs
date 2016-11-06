@@ -3,7 +3,7 @@ use std::cmp::min;
 use layout::Rect;
 use buffer::Buffer;
 use widgets::{Widget, Block};
-use style::Color;
+use style::Style;
 use symbols::bar;
 
 /// Widget to render a sparkline over one or more lines.
@@ -26,10 +26,8 @@ use symbols::bar;
 pub struct Sparkline<'a> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
-    /// Color of the bars
-    color: Color,
-    /// Background color of the widget
-    background_color: Color,
+    /// Widget style
+    style: Style,
     /// A slice of the data to display
     data: &'a [u64],
     /// The maximum value to take to compute the maximum bar height (if nothing is specified, the
@@ -41,8 +39,7 @@ impl<'a> Default for Sparkline<'a> {
     fn default() -> Sparkline<'a> {
         Sparkline {
             block: None,
-            color: Color::Reset,
-            background_color: Color::Reset,
+            style: Default::default(),
             data: &[],
             max: None,
         }
@@ -55,16 +52,10 @@ impl<'a> Sparkline<'a> {
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Sparkline<'a> {
-        self.color = color;
+    pub fn style(&mut self, style: Style) -> &mut Sparkline<'a> {
+        self.style = style;
         self
     }
-
-    pub fn background_color(&mut self, color: Color) -> &mut Sparkline<'a> {
-        self.background_color = color;
-        self
-    }
-
 
     pub fn data(&mut self, data: &'a [u64]) -> &mut Sparkline<'a> {
         self.data = data;
@@ -114,11 +105,10 @@ impl<'a> Widget for Sparkline<'a> {
                     7 => bar::SEVEN_EIGHTHS,
                     _ => bar::FULL,
                 };
-                buf.set_cell(spark_area.left() + i as u16,
-                             spark_area.top() + j,
-                             symbol,
-                             self.color,
-                             self.background_color);
+                buf.get_mut(spark_area.left() + i as u16, spark_area.top() + j)
+                    .set_symbol(symbol)
+                    .set_fg(self.style.fg)
+                    .set_bg(self.style.bg);
 
                 if *d > 8 {
                     *d -= 8;

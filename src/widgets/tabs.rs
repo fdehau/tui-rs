@@ -3,7 +3,7 @@ use unicode_width::UnicodeWidthStr;
 use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::Style;
 use symbols::line;
 
 /// A widget to display available tabs in a multiple panels context.
@@ -30,12 +30,10 @@ pub struct Tabs<'a> {
     titles: &'a [&'a str],
     /// The index of the selected tabs
     selected: usize,
-    /// The color used to draw the text
-    color: Color,
-    /// The background color of this widget
-    background_color: Color,
-    /// The color used to display the selected item
-    highlight_color: Color,
+    /// The style used to draw the text
+    style: Style,
+    /// The style used to display the selected item
+    highlight_style: Style,
 }
 
 impl<'a> Default for Tabs<'a> {
@@ -44,9 +42,8 @@ impl<'a> Default for Tabs<'a> {
             block: None,
             titles: &[],
             selected: 0,
-            color: Color::Reset,
-            background_color: Color::Reset,
-            highlight_color: Color::Reset,
+            style: Default::default(),
+            highlight_style: Default::default(),
         }
     }
 }
@@ -67,18 +64,13 @@ impl<'a> Tabs<'a> {
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Tabs<'a> {
-        self.color = color;
+    pub fn style(&mut self, style: Style) -> &mut Tabs<'a> {
+        self.style = style;
         self
     }
 
-    pub fn background_color(&mut self, color: Color) -> &mut Tabs<'a> {
-        self.background_color = color;
-        self
-    }
-
-    pub fn highlight_color(&mut self, color: Color) -> &mut Tabs<'a> {
-        self.highlight_color = color;
+    pub fn highlight_style(&mut self, style: Style) -> &mut Tabs<'a> {
+        self.highlight_style = style;
         self
     }
 }
@@ -98,30 +90,27 @@ impl<'a> Widget for Tabs<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&tabs_area, buf, self.background_color);
-        }
+        self.background(&tabs_area, buf, self.style.bg);
 
         let mut x = tabs_area.left();
-        for (title, color) in self.titles.iter().enumerate().map(|(i, t)| if i == self.selected {
-            (t, self.highlight_color)
+        for (title, style) in self.titles.iter().enumerate().map(|(i, t)| if i == self.selected {
+            (t, &self.highlight_style)
         } else {
-            (t, self.color)
+            (t, &self.style)
         }) {
             x += 1;
             if x > tabs_area.right() {
                 break;
             } else {
-                buf.set_string(x, tabs_area.top(), title, color, self.background_color);
+                buf.set_string(x, tabs_area.top(), title, style);
                 x += title.width() as u16 + 1;
                 if x >= tabs_area.right() {
                     break;
                 } else {
-                    buf.set_cell(x,
-                                 tabs_area.top(),
-                                 line::VERTICAL,
-                                 self.color,
-                                 self.background_color);
+                    buf.get_mut(x, tabs_area.top())
+                        .set_symbol(line::VERTICAL)
+                        .set_fg(self.style.fg)
+                        .set_bg(self.style.bg);
                     x += 1;
                 }
             }

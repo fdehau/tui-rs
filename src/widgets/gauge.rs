@@ -2,7 +2,7 @@ use unicode_width::UnicodeWidthStr;
 
 use widgets::{Widget, Block};
 use buffer::Buffer;
-use style::Color;
+use style::{Style, Color};
 use layout::Rect;
 
 /// A widget to display a task progress.
@@ -12,11 +12,11 @@ use layout::Rect;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Widget, Gauge, Block, border};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color, ;
 /// # fn main() {
 /// Gauge::default()
 ///     .block(Block::default().borders(border::ALL).title("Progress"))
-///     .color(Color::White)
+///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::Italic))
 ///     .background_color(Color::Black)
 ///     .percent(20);
 /// # }
@@ -24,8 +24,7 @@ use layout::Rect;
 pub struct Gauge<'a> {
     block: Option<Block<'a>>,
     percent: u16,
-    color: Color,
-    background_color: Color,
+    style: Style,
 }
 
 impl<'a> Default for Gauge<'a> {
@@ -33,14 +32,13 @@ impl<'a> Default for Gauge<'a> {
         Gauge {
             block: None,
             percent: 0,
-            color: Color::Reset,
-            background_color: Color::Reset,
+            style: Default::default(),
         }
     }
 }
 
 impl<'a> Gauge<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Gauge<'a> {
+    pub fn block(&mut self, block: Block<'a>) -> &mut Gauge<'a> {
         self.block = Some(block);
         self
     }
@@ -50,13 +48,8 @@ impl<'a> Gauge<'a> {
         self
     }
 
-    pub fn color(&mut self, color: Color) -> &mut Gauge<'a> {
-        self.color = color;
-        self
-    }
-
-    pub fn background_color(&mut self, color: Color) -> &mut Gauge<'a> {
-        self.background_color = color;
+    pub fn style(&mut self, style: Style) -> &mut Gauge<'a> {
+        self.style = style;
         self
     }
 }
@@ -74,8 +67,8 @@ impl<'a> Widget for Gauge<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&gauge_area, buf, self.background_color);
+        if self.style.bg != Color::Reset {
+            self.background(&gauge_area, buf, self.style.bg);
         }
 
         // Gauge
@@ -83,21 +76,18 @@ impl<'a> Widget for Gauge<'a> {
         let end = gauge_area.left() + width;
 
         for x in gauge_area.left()..end {
-            buf.set_symbol(x, gauge_area.top(), " ");
+            buf.get_mut(x, gauge_area.top())
+                .set_symbol(" ");
         }
 
         // Label
         let label = format!("{}%", self.percent);
         let label_width = label.width() as u16;
         let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
-        buf.set_string(middle,
-                       gauge_area.top(),
-                       &label,
-                       self.color,
-                       self.background_color);
+        buf.set_string(middle, gauge_area.top(), &label, &self.style);
 
         for x in gauge_area.left()..end {
-            buf.set_colors(x, gauge_area.top(), self.background_color, self.color);
+            buf.get_mut(x, gauge_area.top()).set_fg(self.style.bg).set_bg(self.style.fg);
         }
     }
 }

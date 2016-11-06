@@ -4,22 +4,52 @@ use std::usize;
 use unicode_segmentation::UnicodeSegmentation;
 
 use layout::Rect;
-use style::Color;
+use style::{Style, Color, Modifier};
 
 /// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
-    pub fg: Color,
-    pub bg: Color,
     pub symbol: String,
+    pub style: Style,
 }
 
 impl Cell {
+    pub fn set_symbol(&mut self, symbol: &str) -> &mut Cell {
+        self.symbol.clear();
+        self.symbol.push_str(symbol);
+        self
+    }
+
+    pub fn set_char(&mut self, ch: char) -> &mut Cell {
+        self.symbol.clear();
+        self.symbol.push(ch);
+        self
+    }
+
+    pub fn set_fg(&mut self, color: Color) -> &mut Cell {
+        self.style.fg = color;
+        self
+    }
+
+    pub fn set_bg(&mut self, color: Color) -> &mut Cell {
+        self.style.bg = color;
+        self
+    }
+
+    pub fn set_modifier(&mut self, modifier: Modifier) -> &mut Cell {
+        self.style.modifier = modifier;
+        self
+    }
+
+    pub fn set_style(&mut self, style: Style) -> &mut Cell {
+        self.style = style;
+        self
+    }
+
     pub fn reset(&mut self) {
         self.symbol.clear();
         self.symbol.push(' ');
-        self.fg = Color::Reset;
-        self.bg = Color::Reset;
+        self.style.reset();
     }
 }
 
@@ -27,8 +57,7 @@ impl Default for Cell {
     fn default() -> Cell {
         Cell {
             symbol: " ".into(),
-            fg: Color::Reset,
-            bg: Color::Reset,
+            style: Default::default(),
         }
     }
 }
@@ -46,19 +75,20 @@ impl Default for Cell {
 /// # extern crate tui;
 /// use tui::buffer::{Buffer, Cell};
 /// use tui::layout::Rect;
-/// use tui::style::Color;
+/// use tui::style::{Color, Style};
 ///
 /// # fn main() {
 /// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
-/// buf.set_symbol(0, 2, "x");
-/// assert_eq!(buf.at(0, 2).symbol, "x");
+/// buf.get_mut(0, 2).set_symbol("x");
+/// assert_eq!(buf.get(0, 2).symbol, "x");
 /// buf.set_string(3, 0, "string", Color::Red, Color::White);
-/// assert_eq!(buf.at(5, 0), &Cell{symbol: String::from("r"), fg: Color::Red, bg: Color::White});
-/// buf.update_cell(5, 0, |c| {
-///     c.symbol.clear();
-///     c.symbol.push('x');
-/// });
-/// assert_eq!(buf.at(5, 0).symbol, "x");
+/// assert_eq!(buf.get(5, 0), &Cell{
+///     symbol: String::from("r"),
+///     fg: Color::Red,
+///     bg: Color::White,
+///     style: Style::Reset});
+/// buf.get_mut(5, 0).set_char('x');
+/// assert_eq!(buf.get(5, 0).symbol, "x");
 /// # }
 /// ```
 #[derive(Debug, Clone)]
@@ -110,9 +140,15 @@ impl Buffer {
     }
 
     /// Returns a reference to Cell at the given coordinates
-    pub fn at(&self, x: u16, y: u16) -> &Cell {
+    pub fn get(&self, x: u16, y: u16) -> &Cell {
         let i = self.index_of(x, y);
         &self.content[i]
+    }
+
+    /// Returns a mutable reference to Cell at the given coordinates
+    pub fn get_mut(&mut self, x: u16, y: u16) -> &mut Cell {
+        let i = self.index_of(x, y);
+        &mut self.content[i]
     }
 
     /// Returns the index in the Vec<Cell> for the given (x, y)
@@ -136,74 +172,23 @@ impl Buffer {
         (self.area.x + i as u16 % self.area.width, self.area.y + i as u16 / self.area.width)
     }
 
-    /// Update the symbol of a cell at (x, y)
-    pub fn set_symbol(&mut self, x: u16, y: u16, symbol: &str) {
-        let i = self.index_of(x, y);
-        self.content[i].symbol.clear();
-        self.content[i].symbol.push_str(symbol);
-    }
-
-    /// Update the foreground color of a cell at (x, y)
-    pub fn set_fg(&mut self, x: u16, y: u16, color: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].fg = color;
-    }
-
-    /// Update the background color of a cell at (x, y)
-    pub fn set_bg(&mut self, x: u16, y: u16, color: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].bg = color;
-    }
-
     /// Print a string, starting at the position (x, y)
-    pub fn set_string(&mut self, x: u16, y: u16, string: &str, fg: Color, bg: Color) {
-        self.set_stringn(x, y, string, usize::MAX, fg, bg);
+    pub fn set_string(&mut self, x: u16, y: u16, string: &str, style: &Style) {
+        self.set_stringn(x, y, string, usize::MAX, style);
     }
 
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line
-    pub fn set_stringn(&mut self,
-                       x: u16,
-                       y: u16,
-                       string: &str,
-                       limit: usize,
-                       fg: Color,
-                       bg: Color) {
+    pub fn set_stringn(&mut self, x: u16, y: u16, string: &str, limit: usize, style: &Style) {
         let mut index = self.index_of(x, y);
         let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
-        let max_index = min((self.area.width - x) as usize, limit);
+        let max_index = min((self.area.right() - x) as usize, limit);
         for s in graphemes.into_iter().take(max_index) {
             self.content[index].symbol.clear();
             self.content[index].symbol.push_str(s);
-            self.content[index].fg = fg;
-            self.content[index].bg = bg;
+            self.content[index].style = style.clone();
             index += 1;
         }
-    }
-
-
-    /// Update both the foreground and the background colors in a single method call
-    pub fn set_colors(&mut self, x: u16, y: u16, fg: Color, bg: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].fg = fg;
-        self.content[i].bg = bg;
-    }
-
-    /// Update all attributes of a cell at the given position
-    pub fn set_cell(&mut self, x: u16, y: u16, symbol: &str, fg: Color, bg: Color) {
-        let i = self.index_of(x, y);
-        self.content[i].symbol.clear();
-        self.content[i].symbol.push_str(symbol);
-        self.content[i].fg = fg;
-        self.content[i].bg = bg;
-    }
-
-    /// Update a cell using the closure passed as last argument
-    pub fn update_cell<F>(&mut self, x: u16, y: u16, f: F)
-        where F: Fn(&mut Cell)
-    {
-        let i = self.index_of(x, y);
-        f(&mut self.content[i]);
     }
 
     /// Resize the buffer so that the mapped area matches the given area and that the buffer

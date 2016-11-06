@@ -5,7 +5,7 @@ use unicode_width::UnicodeWidthStr;
 use buffer::Buffer;
 use widgets::{Widget, Block};
 use layout::Rect;
-use style::Color;
+use style::Style;
 
 /// A widget to display several items among which one can be selected (optional)
 ///
@@ -31,12 +31,10 @@ pub struct List<'a> {
     items: &'a [&'a str],
     /// Index of the one selected
     selected: Option<usize>,
-    /// Color used to render non selected items
-    color: Color,
-    /// Background color of the widget
-    background_color: Color,
-    /// Color used to render selected item
-    highlight_color: Color,
+    /// Base style of the widget
+    style: Style,
+    /// Style used to render selected item
+    highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'a str>,
 }
@@ -47,9 +45,8 @@ impl<'a> Default for List<'a> {
             block: None,
             items: &[],
             selected: None,
-            color: Color::Reset,
-            background_color: Color::Reset,
-            highlight_color: Color::Reset,
+            style: Default::default(),
+            highlight_style: Default::default(),
             highlight_symbol: None,
         }
     }
@@ -66,13 +63,8 @@ impl<'a> List<'a> {
         self
     }
 
-    pub fn color(&'a mut self, color: Color) -> &mut List<'a> {
-        self.color = color;
-        self
-    }
-
-    pub fn background_color(&'a mut self, color: Color) -> &mut List<'a> {
-        self.background_color = color;
+    pub fn style(&'a mut self, style: Style) -> &mut List<'a> {
+        self.style = style;
         self
     }
 
@@ -81,8 +73,8 @@ impl<'a> List<'a> {
         self
     }
 
-    pub fn highlight_color(&'a mut self, highlight_color: Color) -> &mut List<'a> {
-        self.highlight_color = highlight_color;
+    pub fn highlight_style(&'a mut self, highlight_style: Style) -> &mut List<'a> {
+        self.highlight_style = highlight_style;
         self
     }
 
@@ -107,52 +99,50 @@ impl<'a> Widget for List<'a> {
             return;
         }
 
-        if self.background_color != Color::Reset {
-            self.background(&list_area, buf, self.background_color);
-        }
+        self.background(&list_area, buf, self.style.bg);
 
         let list_length = self.items.len();
         let list_height = list_area.height as usize;
-        let bound = min(list_height, list_length);
-        let (selected, highlight_color) = match self.selected {
-            Some(i) => (i, self.highlight_color),
-            None => (0, self.color),
+
+        // Use highlight_style only if something is selected
+        let (selected, highlight_style) = match self.selected {
+            Some(i) => (i, &self.highlight_style),
+            None => (0, &self.style),
         };
+
+        // Make sure the list show the selected item
         let offset = if selected >= list_height {
             selected - list_height + 1
         } else {
             0
         };
 
+        // Move items to the right if a highlight symbol was provided
         let x = match self.highlight_symbol {
             Some(s) => (s.width() + 1) as u16 + list_area.left(),
             None => list_area.left(),
         };
 
+        // Render items
         if x < list_area.right() {
             let width = (list_area.right() - x) as usize;
-            for i in 0..bound {
+            let max_index = min(list_height, list_length);
+            for i in 0..max_index {
                 let index = i + offset;
                 let item = self.items[index];
-                let color = if index == selected {
-                    highlight_color
+                let style = if index == selected {
+                    highlight_style
                 } else {
-                    self.color
+                    &self.style
                 };
-                buf.set_stringn(x,
-                                list_area.top() + i as u16,
-                                item,
-                                width,
-                                color,
-                                self.background_color);
+                buf.set_stringn(x, list_area.top() + i as u16, item, width, style);
             }
 
             if let Some(s) = self.highlight_symbol {
                 buf.set_string(list_area.left(),
                                list_area.top() + (selected - offset) as u16,
                                s,
-                               self.highlight_color,
-                               self.background_color);
+                               &self.highlight_style);
             }
         }
     }
