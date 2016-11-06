@@ -12,12 +12,11 @@ use layout::Rect;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Widget, Gauge, Block, border};
-/// # use tui::style::{Style, Color, ;
+/// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// Gauge::default()
 ///     .block(Block::default().borders(border::ALL).title("Progress"))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::Italic))
-///     .background_color(Color::Black)
 ///     .percent(20);
 /// # }
 /// ```

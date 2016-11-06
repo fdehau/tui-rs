@@ -14,14 +14,14 @@ use style::Style;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, List};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// List::default()
 ///     .block(Block::default().title("List").borders(border::ALL))
 ///     .items(&["Item 1", "Item 2", "Item 3"])
 ///     .select(1)
-///     .color(Color::White)
-///     .highlight_color(Color::Yellow)
+///     .style(Style::default().fg(Color::White))
+///     .highlight_style(Style::default().modifier(Modifier::Italic))
 ///     .highlight_symbol(">>");
 /// # }
 /// ```

@@ -14,19 +14,18 @@ use style::Style;
 ///
 /// ```
 /// # use tui::widgets::{Block, border, Table};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Table::default()
 ///     .block(Block::default().title("Table"))
 ///     .header(&["Col1", "Col2", "Col3"])
-///     .header_color(Color::Yellow)
+///     .header_style(Style::default().fg(Color::Yellow))
 ///     .widths(&[5, 5, 10])
+///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1)
 ///     .rows(vec![["Row11", "Row12", "Row13"].as_ref(),
 ///                ["Row21", "Row22", "Row23"].as_ref(),
-///                ["Row31", "Row32", "Row33"].as_ref()])
-///     .color(Color::White)
-///     .background_color(Color::Black);
+///                ["Row31", "Row32", "Row33"].as_ref()]);
 /// # }
 /// ```
 pub struct Table<'a> {
@@ -96,6 +95,12 @@ impl<'a> Table<'a> {
         self.row_style = style;
         self
     }
+
+    pub fn style(&mut self, style: Style) -> &mut Table<'a> {
+        self.style = style;
+        self
+    }
+
 
     pub fn column_spacing(&mut self, spacing: u16) -> &mut Table<'a> {
         self.column_spacing = spacing;

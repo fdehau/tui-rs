@@ -12,14 +12,14 @@ use symbols::line;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Block::default()
 ///     .title("Block")
-///     .title_color(Color::Red)
+///     .title_style(Style::default().fg(Color::Red))
 ///     .borders(border::LEFT | border::RIGHT)
-///     .border_color(Color::White)
-///     .background_color(Color::Black);
+///     .border_style(Style::default().fg(Color::White))
+///     .style(Style::default().bg(Color::Black));
 /// # }
 /// ```
 #[derive(Clone, Copy)]

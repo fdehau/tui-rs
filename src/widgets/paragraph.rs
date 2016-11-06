@@ -14,12 +14,11 @@ use style::{Style, Color, Modifier};
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, Paragraph};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Paragraph::default()
 ///     .block(Block::default().title("Paragraph").borders(border::ALL))
-///     .color(Color::White)
-///     .background_color(Color::Black)
+///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .wrap(true)
 ///     .text("First line\nSecond line\n{red Colored text}.");
 /// # }

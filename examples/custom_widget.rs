@@ -4,7 +4,7 @@ use tui::{Terminal, TermionBackend};
 use tui::widgets::Widget;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
-use tui::style::Color;
+use tui::style::Style;
 
 struct Label<'a> {
     text: &'a str,
@@ -18,11 +18,7 @@ impl<'a> Default for Label<'a> {
 
 impl<'a> Widget for Label<'a> {
     fn draw(&self, area: &Rect, buf: &mut Buffer) {
-        buf.set_string(area.left(),
-                       area.top(),
-                       self.text,
-                       Color::Reset,
-                       Color::Reset);
+        buf.set_string(area.left(), area.top(), self.text, &Style::default());
     }
 }
 

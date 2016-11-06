@@ -15,16 +15,15 @@ use symbols::bar;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, BarChart};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// BarChart::default()
 ///     .block(Block::default().title("BarChart").borders(border::ALL))
 ///     .bar_width(3)
 ///     .bar_gap(1)
-///     .bar_color(Color::Yellow)
-///     .value_color(Color::Red)
-///     .label_color(Color::White)
-///     .background_color(Color::Black)
+///     .style(Style::default().fg(Color::Yellow).bg(Color::Red))
+///     .value_style(Style::default().fg(Color::Red).modifier(Modifier::Bold))
+///     .label_style(Style::default().fg(Color::White))
 ///     .data(&[("B0", 0), ("B1", 2), ("B2", 4), ("B3", 3)])
 ///     .max(4);
 /// # }

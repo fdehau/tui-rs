@@ -75,18 +75,20 @@ impl Default for Cell {
 /// # extern crate tui;
 /// use tui::buffer::{Buffer, Cell};
 /// use tui::layout::Rect;
-/// use tui::style::{Color, Style};
+/// use tui::style::{Color, Style, Modifier};
 ///
 /// # fn main() {
 /// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
 /// buf.get_mut(0, 2).set_symbol("x");
 /// assert_eq!(buf.get(0, 2).symbol, "x");
-/// buf.set_string(3, 0, "string", Color::Red, Color::White);
+/// buf.set_string(3, 0, "string", &Style::default().fg(Color::Red).bg(Color::White));
 /// assert_eq!(buf.get(5, 0), &Cell{
 ///     symbol: String::from("r"),
-///     fg: Color::Red,
-///     bg: Color::White,
-///     style: Style::Reset});
+///     style: Style {
+///         fg: Color::Red,
+///         bg: Color::White,
+///         modifier: Modifier::Reset
+///     }});
 /// buf.get_mut(5, 0).set_char('x');
 /// assert_eq!(buf.get(5, 0).symbol, "x");
 /// # }

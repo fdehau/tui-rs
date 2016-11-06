@@ -469,7 +469,12 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                         });
                     if app.show_chart {
                         Chart::default()
-                            .block(Block::default().title("Chart").borders(border::ALL))
+                            .block(Block::default()
+                                   .title("Chart")
+                                   .title_style(Style::default()
+                                                .fg(Color::Cyan)
+                                                .modifier(Modifier::Bold))
+                                   .borders(border::ALL))
                             .x_axis(Axis::default()
                                 .title("X Axis")
                                 .style(Style::default().fg(Color::Gray))

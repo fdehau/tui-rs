@@ -13,14 +13,13 @@ use symbols::bar;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, Sparkline};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Sparkline::default()
 ///     .block(Block::default().title("Sparkline").borders(border::ALL))
 ///     .data(&[0, 2, 3, 4, 1, 4, 10])
 ///     .max(5)
-///     .color(Color::Yellow)
-///     .background_color(Color::Red);
+///     .style(Style::default().fg(Color::Red).bg(Color::White));
 /// # }
 /// ```
 pub struct Sparkline<'a> {

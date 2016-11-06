@@ -159,29 +159,31 @@ impl Default for ChartLayout {
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, Chart, Axis, Dataset, Marker};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Chart::default()
 ///     .block(Block::default().title("Chart"))
 ///     .x_axis(Axis::default()
 ///         .title("X Axis")
-///         .color(Color::Gray)
+///         .title_style(Style::default().fg(Color::Red))
+///         .style(Style::default().fg(Color::Gray))
 ///         .bounds([0.0, 10.0])
 ///         .labels(&["0.0", "5.0", "10.0"]))
 ///     .y_axis(Axis::default()
 ///         .title("Y Axis")
-///         .color(Color::Gray)
+///         .title_style(Style::default().fg(Color::Red))
+///         .style(Style::default().fg(Color::Gray))
 ///         .bounds([0.0, 10.0])
 ///         .labels(&["0.0", "5.0", "10.0"]))
 ///     .datasets(&[Dataset::default()
 ///                     .name("data1")
 ///                     .marker(Marker::Dot)
-///                     .color(Color::Cyan)
+///                     .style(Style::default().fg(Color::Cyan))
 ///                     .data(&[(0.0, 5.0), (1.0, 6.0), (1.5, 6.434)]),
 ///                 Dataset::default()
 ///                     .name("data2")
 ///                     .marker(Marker::Braille)
-///                     .color(Color::Magenta)
+///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
 /// # }
 pub struct Chart<'a> {

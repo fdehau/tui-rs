@@ -13,14 +13,13 @@ use symbols::line;
 /// ```
 /// # extern crate tui;
 /// # use tui::widgets::{Block, border, Tabs};
-/// # use tui::style::Color;
+/// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Tabs::default()
 ///     .block(Block::default().title("Tabs").borders(border::ALL))
 ///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
-///     .color(Color::White)
-///     .highlight_color(Color::Yellow)
-///     .background_color(Color::Black);
+///     .style(Style::default().fg(Color::White))
+///     .highlight_style(Style::default().fg(Color::Yellow));
 /// # }
 /// ```
 pub struct Tabs<'a> {
