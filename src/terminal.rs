@@ -11,7 +11,6 @@ use buffer::{Buffer, Cell};
 use layout::{Rect, Group, split};
 use widgets::Widget;
 use style::{Color, Modifier, Style};
-use util::hash;
 
 pub trait Backend {
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
@@ -190,7 +189,7 @@ pub struct Terminal<B>
 {
     backend: B,
     /// Cache to prevent the layout to be computed at each draw call
-    layout_cache: HashMap<u64, LayoutEntry>,
+    layout_cache: HashMap<(Group, Rect), LayoutEntry>,
     /// Holds the results of the current and previous draw calls. The two are compared at the end
     /// of each draw pass to output the necessary updates to the terminal
     buffers: [Buffer; 2],
@@ -225,15 +224,13 @@ impl<B> Terminal<B>
     /// add it to the layout cache. Moreover the function marks the queried entries so that we can
     /// clean outdated ones at the end of the draw call.
     pub fn compute_layout(&mut self, group: &Group, area: &Rect) -> Vec<Rect> {
-        let hash = hash(group, area);
         let entry = self.layout_cache
-            .entry(hash)
+            .entry((group.clone(), area.clone()))
             .or_insert_with(|| {
                 let chunks = split(area, &group.direction, group.margin, &group.sizes);
-                debug!("New layout computed:\n* Group = {:?}\n* Chunks = {:?}\n* Hash = {}",
+                debug!("New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
                        group,
-                       chunks,
-                       hash);
+                       chunks);
                 LayoutEntry {
                     chunks: chunks,
                     hot: true,
@@ -288,13 +285,13 @@ impl<B> Terminal<B>
         try!(self.flush());
 
         // Clean layout cache
-        let to_remove = self.layout_cache
-            .iter()
-            .filter_map(|(h, e)| if !e.hot { Some(*h) } else { None })
-            .collect::<Vec<u64>>();
+        let hot = self.layout_cache
+            .drain()
+            .filter(|&(_, ref v)| v.hot == true)
+            .collect::<Vec<((Group, Rect), LayoutEntry)>>();
 
-        for h in to_remove {
-            self.layout_cache.remove(&h);
+        for (key, value) in hot {
+            self.layout_cache.insert(key, value);
         }
 
         for (_, e) in &mut self.layout_cache {

@@ -7,7 +7,7 @@ use cassowary::strength::{REQUIRED, WEAK};
 
 use terminal::{Terminal, Backend};
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub enum Direction {
     Horizontal,
     Vertical,
@@ -285,7 +285,7 @@ impl Element {
 ///         .sizes(&[Size::Percent(50), Size::Percent(50)]);
 /// # }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct Group {
     pub direction: Direction,
     pub margin: u16,

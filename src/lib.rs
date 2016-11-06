@@ -9,7 +9,6 @@ extern crate unicode_segmentation;
 extern crate unicode_width;
 
 pub mod buffer;
-mod util;
 pub mod symbols;
 pub mod terminal;
 pub mod widgets;
