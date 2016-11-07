@@ -142,6 +142,7 @@ impl<'a> Parser<'a> {
             "italic" => Modifier::Italic,
             "underline" => Modifier::Underline,
             "invert" => Modifier::Invert,
+            "crossed_out" => Modifier::CrossedOut,
             _ => Modifier::Reset,
         }
     }
@@ -179,9 +180,13 @@ impl<'a> Iterator for Parser<'a> {
                     self.reset();
                     self.next()
                 } else if s == " " && self.mark {
-                    self.styling = true;
-                    self.update_style();
-                    self.next()
+                    if self.styling {
+                        Some((s, self.style))
+                    } else {
+                        self.styling = true;
+                        self.update_style();
+                        self.next()
+                    }
                 } else if self.mark && !self.styling {
                     self.cmd_string.push_str(s);
                     self.next()
