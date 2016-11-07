@@ -23,6 +23,7 @@ use layout::Rect;
 pub struct Gauge<'a> {
     block: Option<Block<'a>>,
     percent: u16,
+    label: Option<&'a str>,
     style: Style,
 }
 
@@ -31,6 +32,7 @@ impl<'a> Default for Gauge<'a> {
         Gauge {
             block: None,
             percent: 0,
+            label: None,
             style: Default::default(),
         }
     }
@@ -44,6 +46,11 @@ impl<'a> Gauge<'a> {
 
     pub fn percent(&mut self, percent: u16) -> &mut Gauge<'a> {
         self.percent = percent;
+        self
+    }
+
+    pub fn label(&mut self, string: &'a str) -> &mut Gauge<'a> {
+        self.label = Some(string);
         self
     }
 
@@ -80,7 +87,8 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         // Label
-        let label = format!("{}%", self.percent);
+        let precent_label = format!("{}%", self.percent);
+        let label = self.label.unwrap_or(&precent_label);
         let label_width = label.width() as u16;
         let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
         buf.set_string(middle, gauge_area.top(), &label, &self.style);
