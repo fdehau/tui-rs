@@ -93,7 +93,7 @@ impl<'a> Widget for Gauge<'a> {
                 let label = self.label.unwrap_or(&precent_label);
                 let label_width = label.width() as u16;
                 let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
-                buf.set_string(middle, y, &label, &self.style);
+                buf.set_string(middle, y, label, &self.style);
             }
 
             // Fix colors

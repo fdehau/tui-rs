@@ -229,7 +229,7 @@ impl<B> Terminal<B>
     /// clean outdated ones at the end of the draw call.
     pub fn compute_layout(&mut self, group: &Group, area: &Rect) -> Vec<Rect> {
         let entry = self.layout_cache
-            .entry((group.clone(), area.clone()))
+            .entry((group.clone(), *area))
             .or_insert_with(|| {
                 let chunks = split(area, &group.direction, group.margin, &group.sizes);
                 debug!("New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
@@ -291,7 +291,7 @@ impl<B> Terminal<B>
         // Clean layout cache
         let hot = self.layout_cache
             .drain()
-            .filter(|&(_, ref v)| v.hot == true)
+            .filter(|&(_, ref v)| v.hot)
             .collect::<Vec<((Group, Rect), LayoutEntry)>>();
 
         for (key, value) in hot {

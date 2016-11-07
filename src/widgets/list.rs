@@ -72,7 +72,7 @@ impl<'a, T> Widget for List<'a, T>
                             list_area.top() + i as u16,
                             item.as_ref(),
                             list_area.width as usize,
-                            &style);
+                            style);
         }
     }
 }
@@ -193,7 +193,7 @@ impl<'a> Widget for SelectableList<'a> {
 
         // Render items
         List::default()
-            .block(self.block.unwrap_or(Default::default()))
+            .block(self.block.unwrap_or_default())
             .items(&items)
             .draw(area, buf);
     }

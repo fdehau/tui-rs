@@ -143,26 +143,19 @@ impl Color {
 }
 
 fn rgb_to_byte(r: u8, g: u8, b: u8) -> u16 {
-    (((r & 255 & 0xC0) + (g & 255 & 0xE0) >> 2 + (b & 0xE0) >> 5) & 0xFF) as u16
+    ((((r & 255 & 0xC0) + ((g & 255 & 0xE0) >> 2) + ((b & 0xE0) >> 5))) & 0xFF) as u16
 }
 
 impl Into<rustbox::Color> for Color {
     fn into(self) -> rustbox::Color {
         match self {
             Color::Reset => rustbox::Color::Default,
-            Color::Black => rustbox::Color::Black,
-            Color::Red => rustbox::Color::Red,
-            Color::Green => rustbox::Color::Green,
-            Color::Yellow => rustbox::Color::Yellow,
-            Color::Magenta => rustbox::Color::Magenta,
-            Color::Cyan => rustbox::Color::Cyan,
-            Color::Gray => rustbox::Color::Black,
-            Color::DarkGray => rustbox::Color::Black,
-            Color::LightRed => rustbox::Color::Red,
-            Color::LightGreen => rustbox::Color::Green,
-            Color::LightYellow => rustbox::Color::Yellow,
-            Color::LightMagenta => rustbox::Color::Magenta,
-            Color::LightCyan => rustbox::Color::Cyan,
+            Color::Black | Color::Gray | Color::DarkGray => rustbox::Color::Black,
+            Color::Red | Color::LightRed => rustbox::Color::Red,
+            Color::Green | Color::LightGreen => rustbox::Color::Green,
+            Color::Yellow | Color::LightYellow => rustbox::Color::Yellow,
+            Color::Magenta | Color::LightMagenta => rustbox::Color::Magenta,
+            Color::Cyan | Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
             Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
         }
@@ -195,7 +188,6 @@ impl Modifier {
 impl Into<rustbox::Style> for Modifier {
     fn into(self) -> rustbox::Style {
         match self {
-            Modifier::Reset => rustbox::RB_NORMAL,
             Modifier::Bold => rustbox::RB_BOLD,
             Modifier::Underline => rustbox::RB_UNDERLINE,
             Modifier::Invert => rustbox::RB_REVERSE,

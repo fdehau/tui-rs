@@ -161,8 +161,7 @@ impl Buffer {
                       x,
                       y,
                       self.area);
-        let index = ((y - self.area.y) * self.area.width + (x - self.area.x)) as usize;
-        index
+        ((y - self.area.y) * self.area.width + (x - self.area.x)) as usize
     }
 
     /// Returns the coordinates of a cell given its index
@@ -188,7 +187,7 @@ impl Buffer {
         for s in graphemes.into_iter().take(max_index) {
             self.content[index].symbol.clear();
             self.content[index].symbol.push_str(s);
-            self.content[index].style = style.clone();
+            self.content[index].style = *style;
             index += 1;
         }
     }
