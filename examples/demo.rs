@@ -246,7 +246,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
+            thread::sleep(time::Duration::from_millis(200));
         }
     });
 
@@ -452,7 +452,6 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                                             .borders(border::ALL)
                                             .title("List"))
                                         .items(&app.items2)
-                                        .style(Style::default().fg(Color::Gray))
                                         .render(t, &chunks[1]);
                                 });
                             BarChart::default()
@@ -503,9 +502,11 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                     }
                 });
             Paragraph::default()
-                .block(Block::default().borders(border::ALL).title("Footer"))
+                .block(Block::default()
+                       .borders(border::ALL)
+                       .title("Footer")
+                       .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)))
                 .wrap(true)
-                .style(Style::default().fg(app.colors[app.color_index]))
                 .text("This is a paragraph with several lines.\nYou can change the color.\nUse \
                        \\{fg=[color];bg=[color];mod=[modifier] [text]} to highlight the text with a color. For example, {fg=red \
                        u}{fg=green n}{fg=yellow d}{fg=magenta e}{fg=cyan r} {fg=gray t}{fg=light_gray h}{fg=light_red \
