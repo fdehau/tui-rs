@@ -15,6 +15,7 @@ use style::Style;
 /// # use tui::widgets::{Block, border, Table};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
+/// let row_style = Style::default().fg(Color::White);
 /// Table::default()
 ///     .block(Block::default().title("Table"))
 ///     .header(&["Col1", "Col2", "Col3"])
@@ -22,9 +23,9 @@ use style::Style;
 ///     .widths(&[5, 5, 10])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1)
-///     .rows(&[&["Row11", "Row12", "Row13"],
-///                &["Row21", "Row22", "Row23"],
-///                &["Row31", "Row32", "Row33"]]);
+///     .rows(&[(&["Row11", "Row12", "Row13"], &row_style),
+///             (&["Row21", "Row22", "Row23"], &row_style),
+///             (&["Row31", "Row32", "Row33"], &row_style)]);
 /// # }
 /// ```
 
