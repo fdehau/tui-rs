@@ -17,11 +17,8 @@ fn main() {
     loop {
         match terminal.backend().rustbox().poll_event(false) {
             Ok(rustbox::Event::KeyEvent(key)) => {
-                match key {
-                    Key::Char('q') => {
-                        break;
-                    }
-                    _ => {}
+                if key == Key::Char('q') {
+                    break;
                 }
             }
             Err(e) => panic!("{}", e.description()),

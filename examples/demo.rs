@@ -1,9 +1,11 @@
-extern crate tui;
 #[macro_use]
 extern crate log;
-extern crate log4rs;
+
+extern crate tui;
+#[macro_use]
 extern crate termion;
-extern crate rand;
+
+mod util;
 
 use std::io;
 use std::thread;
@@ -11,15 +13,8 @@ use std::env;
 use std::time;
 use std::sync::mpsc;
 
-use rand::distributions::{IndependentSample, Range};
-
 use termion::event;
 use termion::input::TermRead;
-
-use log::LogLevelFilter;
-use log4rs::append::file::FileAppender;
-use log4rs::encode::pattern::PatternEncoder;
-use log4rs::config::{Appender, Config, Root};
 
 use tui::{Terminal, TermionBackend};
 use tui::widgets::{Widget, Block, SelectableList, List, Gauge, Sparkline, Paragraph, border,
@@ -28,55 +23,7 @@ use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
-#[derive(Clone)]
-struct RandomSignal {
-    range: Range<u64>,
-    rng: rand::ThreadRng,
-}
-
-impl RandomSignal {
-    fn new(r: Range<u64>) -> RandomSignal {
-        RandomSignal {
-            range: r,
-            rng: rand::thread_rng(),
-        }
-    }
-}
-
-impl Iterator for RandomSignal {
-    type Item = u64;
-    fn next(&mut self) -> Option<u64> {
-        Some(self.range.ind_sample(&mut self.rng))
-    }
-}
-
-#[derive(Clone)]
-struct SinSignal {
-    x: f64,
-    interval: f64,
-    period: f64,
-    scale: f64,
-}
-
-impl SinSignal {
-    fn new(interval: f64, period: f64, scale: f64) -> SinSignal {
-        SinSignal {
-            x: 0.0,
-            interval: interval,
-            period: period,
-            scale: scale,
-        }
-    }
-}
-
-impl Iterator for SinSignal {
-    type Item = (f64, f64);
-    fn next(&mut self) -> Option<Self::Item> {
-        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale);
-        self.x += self.interval;
-        Some(point)
-    }
-}
+use util::*;
 
 struct Server<'a> {
     name: &'a str,
@@ -85,29 +32,13 @@ struct Server<'a> {
     status: &'a str,
 }
 
-struct MyTabs {
-    titles: [&'static str; 2],
-    selection: usize,
-}
-
-impl MyTabs {
-    fn next(&mut self) {
-        self.selection = (self.selection + 1) % self.titles.len();
-    }
-
-    fn previous(&mut self) {
-        if self.selection > 0 {
-            self.selection -= 1;
-        }
-    }
-}
 
 struct App<'a> {
     size: Rect,
     items: Vec<&'a str>,
     events: Vec<(&'a str, &'a str)>,
     selected: usize,
-    tabs: MyTabs,
+    tabs: MyTabs<'a>,
     show_chart: bool,
     progress: u16,
     data: Vec<u64>,
@@ -130,23 +61,13 @@ fn main() {
 
     for argument in env::args() {
         if argument == "--log" {
-            let log = FileAppender::builder()
-                .encoder(Box::new(PatternEncoder::new("{l} / {d(%H:%M:%S)} / \
-                                                       {M}:{L}{n}{m}{n}{n}")))
-                .build("demo.log")
-                .unwrap();
-
-            let config = Config::builder()
-                .appender(Appender::builder().build("log", Box::new(log)))
-                .build(Root::builder().appender("log").build(LogLevelFilter::Debug))
-                .unwrap();
-            log4rs::init_config(config).unwrap();
+            setup_log("demo.log");
         }
     }
 
     info!("Start");
 
-    let mut rand_signal = RandomSignal::new(Range::new(0, 100));
+    let mut rand_signal = RandomSignal::new(0, 100);
     let mut sin_signal = SinSignal::new(0.2, 3.0, 18.0);
     let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
 
@@ -183,7 +104,7 @@ fn main() {
                      ("Event26", "INFO")],
         selected: 0,
         tabs: MyTabs {
-            titles: ["Tab0", "Tab1"],
+            titles: vec!["Tab0", "Tab1"],
             selection: 0,
         },
         show_chart: true,
@@ -272,7 +193,8 @@ fn main() {
         }
     });
 
-    let mut terminal = Terminal::new(TermionBackend::new().unwrap()).unwrap();
+    let backend = TermionBackend::new().unwrap();
+    let mut terminal = Terminal::new(backend).unwrap();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
 
