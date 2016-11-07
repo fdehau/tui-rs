@@ -1,3 +1,4 @@
+use std::iter;
 use std::cmp::min;
 
 use unicode_width::UnicodeWidthStr;
@@ -7,86 +8,50 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Style;
 
-/// A widget to display several items among which one can be selected (optional)
-///
-/// # Examples
-///
-/// ```
-/// # extern crate tui;
-/// # use tui::widgets::{Block, border, List};
-/// # use tui::style::{Style, Color, Modifier};
-/// # fn main() {
-/// List::default()
-///     .block(Block::default().title("List").borders(border::ALL))
-///     .items(&["Item 1", "Item 2", "Item 3"])
-///     .select(1)
-///     .style(Style::default().fg(Color::White))
-///     .highlight_style(Style::default().modifier(Modifier::Italic))
-///     .highlight_symbol(">>");
-/// # }
-/// ```
-pub struct List<'a> {
+
+pub struct List<'a, T>
+    where T: AsRef<str> + 'a
+{
     block: Option<Block<'a>>,
-    /// Items to be displayed
-    items: &'a [&'a str],
-    /// Index of the one selected
-    selected: Option<usize>,
-    /// Base style of the widget
+    items: &'a [(T, &'a Style)],
     style: Style,
-    /// Style used to render selected item
-    highlight_style: Style,
-    /// Symbol in front of the selected item (Shift all items to the right)
-    highlight_symbol: Option<&'a str>,
 }
 
-impl<'a> Default for List<'a> {
-    fn default() -> List<'a> {
+impl<'a, T> Default for List<'a, T>
+    where T: AsRef<str> + 'a
+{
+    fn default() -> List<'a, T> {
         List {
             block: None,
             items: &[],
-            selected: None,
             style: Default::default(),
-            highlight_style: Default::default(),
-            highlight_symbol: None,
         }
     }
 }
 
-impl<'a> List<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a> {
+impl<'a, T> List<'a, T>
+    where T: AsRef<str> + 'a
+{
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a, T> {
         self.block = Some(block);
         self
     }
 
-    pub fn items(&'a mut self, items: &'a [&'a str]) -> &mut List<'a> {
+    pub fn items(&'a mut self, items: &'a [(T, &'a Style)]) -> &mut List<'a, T> {
         self.items = items;
         self
     }
 
-    pub fn style(&'a mut self, style: Style) -> &mut List<'a> {
+    pub fn style(&'a mut self, style: Style) -> &mut List<'a, T> {
         self.style = style;
-        self
-    }
-
-    pub fn highlight_symbol(&'a mut self, highlight_symbol: &'a str) -> &mut List<'a> {
-        self.highlight_symbol = Some(highlight_symbol);
-        self
-    }
-
-    pub fn highlight_style(&'a mut self, highlight_style: Style) -> &mut List<'a> {
-        self.highlight_style = highlight_style;
-        self
-    }
-
-    pub fn select(&'a mut self, index: usize) -> &'a mut List<'a> {
-        self.selected = Some(index);
         self
     }
 }
 
-impl<'a> Widget for List<'a> {
+impl<'a, T> Widget for List<'a, T>
+    where T: AsRef<str> + 'a
+{
     fn draw(&self, area: &Rect, buf: &mut Buffer) {
-
         let list_area = match self.block {
             Some(ref b) => {
                 b.draw(area, buf);
@@ -101,7 +66,104 @@ impl<'a> Widget for List<'a> {
 
         self.background(&list_area, buf, self.style.bg);
 
-        let list_length = self.items.len();
+        let max_index = min(self.items.len(), list_area.height as usize);
+        for (i, &(ref item, style)) in self.items.iter().enumerate().take(max_index) {
+            buf.set_stringn(list_area.left(),
+                            list_area.top() + i as u16,
+                            item.as_ref(),
+                            list_area.width as usize,
+                            &style);
+        }
+    }
+}
+
+
+
+/// A widget to display several items among which one can be selected (optional)
+///
+/// # Examples
+///
+/// ```
+/// # extern crate tui;
+/// # use tui::widgets::{Block, border, SelectableList};
+/// # use tui::style::{Style, Color, Modifier};
+/// # fn main() {
+/// SelectableList::default()
+///     .block(Block::default().title("SelectableList").borders(border::ALL))
+///     .items(&["Item 1", "Item 2", "Item 3"])
+///     .select(1)
+///     .style(Style::default().fg(Color::White))
+///     .highlight_style(Style::default().modifier(Modifier::Italic))
+///     .highlight_symbol(">>");
+/// # }
+/// ```
+pub struct SelectableList<'a> {
+    block: Option<Block<'a>>,
+    /// Items to be displayed
+    items: &'a [&'a str],
+    /// Index of the one selected
+    selected: Option<usize>,
+    /// Base style of the widget
+    style: Style,
+    /// Style used to render selected item
+    highlight_style: Style,
+    /// Symbol in front of the selected item (Shift all items to the right)
+    highlight_symbol: Option<&'a str>,
+}
+
+impl<'a> Default for SelectableList<'a> {
+    fn default() -> SelectableList<'a> {
+        SelectableList {
+            block: None,
+            items: &[],
+            selected: None,
+            style: Default::default(),
+            highlight_style: Default::default(),
+            highlight_symbol: None,
+        }
+    }
+}
+
+impl<'a> SelectableList<'a> {
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut SelectableList<'a> {
+        self.block = Some(block);
+        self
+    }
+
+    pub fn items(&'a mut self, items: &'a [&'a str]) -> &mut SelectableList<'a> {
+        self.items = items;
+        self
+    }
+
+    pub fn style(&'a mut self, style: Style) -> &mut SelectableList<'a> {
+        self.style = style;
+        self
+    }
+
+    pub fn highlight_symbol(&'a mut self, highlight_symbol: &'a str) -> &mut SelectableList<'a> {
+        self.highlight_symbol = Some(highlight_symbol);
+        self
+    }
+
+    pub fn highlight_style(&'a mut self, highlight_style: Style) -> &mut SelectableList<'a> {
+        self.highlight_style = highlight_style;
+        self
+    }
+
+    pub fn select(&'a mut self, index: usize) -> &'a mut SelectableList<'a> {
+        self.selected = Some(index);
+        self
+    }
+}
+
+impl<'a> Widget for SelectableList<'a> {
+    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+
+        let list_area = match self.block {
+            Some(ref b) => b.inner(area),
+            None => *area,
+        };
+
         let list_height = list_area.height as usize;
 
         // Use highlight_style only if something is selected
@@ -109,41 +171,30 @@ impl<'a> Widget for List<'a> {
             Some(i) => (i, &self.highlight_style),
             None => (0, &self.style),
         };
-
+        let highlight_symbol = self.highlight_symbol.unwrap_or("");
+        let blank_symbol = iter::repeat(" ").take(highlight_symbol.width()).collect::<String>();
         // Make sure the list show the selected item
         let offset = if selected >= list_height {
             selected - list_height + 1
         } else {
             0
         };
-
-        // Move items to the right if a highlight symbol was provided
-        let x = match self.highlight_symbol {
-            Some(s) => (s.width() + 1) as u16 + list_area.left(),
-            None => list_area.left(),
-        };
+        let items = self.items
+            .iter()
+            .cloned()
+            .enumerate()
+            .map(|(i, item)| if i == selected {
+                (format!("{} {}", highlight_symbol, item), highlight_style)
+            } else {
+                (format!("{} {}", blank_symbol, item), &self.style)
+            })
+            .skip(offset as usize)
+            .collect::<Vec<(String, &Style)>>();
 
         // Render items
-        if x < list_area.right() {
-            let width = (list_area.right() - x) as usize;
-            let max_index = min(list_height, list_length);
-            for i in 0..max_index {
-                let index = i + offset;
-                let item = self.items[index];
-                let style = if index == selected {
-                    highlight_style
-                } else {
-                    &self.style
-                };
-                buf.set_stringn(x, list_area.top() + i as u16, item, width, style);
-            }
-
-            if let Some(s) = self.highlight_symbol {
-                buf.set_string(list_area.left(),
-                               list_area.top() + (selected - offset) as u16,
-                               s,
-                               &self.highlight_style);
-            }
-        }
+        List::default()
+            .block(self.block.unwrap_or(Default::default()))
+            .items(&items)
+            .draw(area, buf);
     }
 }

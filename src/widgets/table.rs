@@ -1,5 +1,4 @@
 use std::cmp::max;
-use std::borrow::Cow;
 
 use unicode_width::UnicodeWidthStr;
 
@@ -23,11 +22,12 @@ use style::Style;
 ///     .widths(&[5, 5, 10])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1)
-///     .rows(vec![["Row11", "Row12", "Row13"].as_ref(),
-///                ["Row21", "Row22", "Row23"].as_ref(),
-///                ["Row31", "Row32", "Row33"].as_ref()]);
+///     .rows(&[&["Row11", "Row12", "Row13"],
+///                &["Row21", "Row22", "Row23"],
+///                &["Row31", "Row32", "Row33"]]);
 /// # }
 /// ```
+
 pub struct Table<'a> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
@@ -43,9 +43,7 @@ pub struct Table<'a> {
     /// Space between each column
     column_spacing: u16,
     /// Data to display in each row
-    rows: Vec<Cow<'a, [&'a str]>>,
-    /// Style for each row
-    row_style: Style,
+    rows: Vec<(Vec<&'a str>, &'a Style)>,
 }
 
 impl<'a> Default for Table<'a> {
@@ -57,7 +55,6 @@ impl<'a> Default for Table<'a> {
             header_style: Style::default(),
             widths: &[],
             rows: Vec::new(),
-            row_style: Style::default(),
             column_spacing: 1,
         }
     }
@@ -84,15 +81,15 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn rows<R>(&mut self, rows: Vec<R>) -> &mut Table<'a>
-        where R: Into<Cow<'a, [&'a str]>>
+    pub fn rows<S, R>(&mut self, rows: &'a [(R, &'a Style)]) -> &mut Table<'a>
+        where S: AsRef<str> + 'a,
+              R: AsRef<[S]> + 'a
     {
-        self.rows = rows.into_iter().map(|r| r.into()).collect::<Vec<Cow<'a, [&'a str]>>>();
-        self
-    }
-
-    pub fn row_style(&mut self, style: Style) -> &mut Table<'a> {
-        self.row_style = style;
+        self.rows = rows.iter()
+            .map(|&(ref r, style)| {
+                (r.as_ref().iter().map(|i| i.as_ref()).collect::<Vec<&'a str>>(), style)
+            })
+            .collect::<Vec<(Vec<&'a str>, &'a Style)>>();
         self
     }
 
@@ -147,10 +144,10 @@ impl<'a> Widget for Table<'a> {
 
         if y < table_area.bottom() {
             let remaining = (table_area.bottom() - y) as usize;
-            for (i, row) in self.rows.iter().take(remaining).enumerate() {
+            for (i, &(ref row, style)) in self.rows.iter().take(remaining).enumerate() {
                 x = table_area.left();
                 for (w, elt) in widths.iter().zip(row.iter()) {
-                    buf.set_stringn(x, y + i as u16, elt, *w as usize, &self.row_style);
+                    buf.set_stringn(x, y + i as u16, elt, *w as usize, style);
                     x += *w + self.column_spacing;
                 }
             }

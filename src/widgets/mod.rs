@@ -11,7 +11,7 @@ pub mod canvas;
 
 pub use self::block::Block;
 pub use self::paragraph::Paragraph;
-pub use self::list::List;
+pub use self::list::{List, SelectableList};
 pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
 pub use self::chart::{Chart, Axis, Dataset, Marker};

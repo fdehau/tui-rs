@@ -22,8 +22,8 @@ use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Root};
 
 use tui::{Terminal, TermionBackend};
-use tui::widgets::{Widget, Block, List, Gauge, Sparkline, Paragraph, border, Chart, Axis, Dataset,
-                   BarChart, Marker, Tabs, Table};
+use tui::widgets::{Widget, Block, SelectableList, List, Gauge, Sparkline, Paragraph, border,
+                   Chart, Axis, Dataset, BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
@@ -105,7 +105,7 @@ impl MyTabs {
 struct App<'a> {
     size: Rect,
     items: Vec<&'a str>,
-    items2: Vec<&'a str>,
+    events: Vec<(&'a str, &'a str)>,
     selected: usize,
     tabs: MyTabs,
     show_chart: bool,
@@ -155,10 +155,32 @@ fn main() {
         items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
                     "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16",
                     "Item17", "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24"],
-        items2: vec!["Event1", "Event2", "Event3", "Event4", "Event5", "Event6", "Event7",
-                     "Event8", "Event9", "Event10", "Event11", "Event12", "Event13", "Event14",
-                     "Event15", "Event16", "Event17", "Event18", "Event19", "Event20", "Event21",
-                     "Event22", "Event23", "Event24", "Event25", "Event26"],
+        events: vec![("Event1", "INFO"),
+                     ("Event2", "INFO"),
+                     ("Event3", "CRITICAL"),
+                     ("Event4", "ERROR"),
+                     ("Event5", "INFO"),
+                     ("Event6", "INFO"),
+                     ("Event7", "WARNING"),
+                     ("Event8", "INFO"),
+                     ("Event9", "INFO"),
+                     ("Event10", "INFO"),
+                     ("Event11", "CRITICAL"),
+                     ("Event12", "INFO"),
+                     ("Event13", "INFO"),
+                     ("Event14", "INFO"),
+                     ("Event15", "INFO"),
+                     ("Event16", "INFO"),
+                     ("Event17", "ERROR"),
+                     ("Event18", "ERROR"),
+                     ("Event19", "INFO"),
+                     ("Event20", "INFO"),
+                     ("Event21", "WARNING"),
+                     ("Event22", "INFO"),
+                     ("Event23", "INFO"),
+                     ("Event24", "WARNING"),
+                     ("Event25", "INFO"),
+                     ("Event26", "INFO")],
         selected: 0,
         tabs: MyTabs {
             titles: ["Tab0", "Tab1"],
@@ -309,8 +331,8 @@ fn main() {
                 app.data4.insert(0, i);
                 app.window[0] += 1.0;
                 app.window[1] += 1.0;
-                let i = app.items2.pop().unwrap();
-                app.items2.insert(0, i);
+                let i = app.events.pop().unwrap();
+                app.events.insert(0, i);
                 app.color_index += 1;
                 if app.color_index >= app.colors.len() {
                     app.color_index = 0;
@@ -343,17 +365,26 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
                         .direction(Direction::Horizontal)
                         .sizes(&[Size::Percent(30), Size::Percent(70)])
                         .render(t, &chunks[1], |t, chunks| {
+                            let up_style = Style::default().fg(Color::Green);
+                            let failure_style = Style::default().fg(Color::Red);
                             Table::default()
                                 .block(Block::default()
                                     .title("Servers")
                                     .borders(border::ALL))
                                 .header(&["Server", "Location", "Status"])
-                                .header_style(Style::default().fg(Color::Red))
+                                .header_style(Style::default().fg(Color::Yellow))
                                 .widths(&[15, 15, 10])
-                                .rows(app.servers
+                                .rows(&app.servers
                                     .iter()
-                                    .map(|s| vec![s.name, s.location, s.status])
-                                    .collect::<Vec<Vec<&str>>>())
+                                    .map(|s| {
+                                        (vec![s.name, s.location, s.status],
+                                         if s.status == "Up" {
+                                            &up_style
+                                        } else {
+                                            &failure_style
+                                        })
+                                    })
+                                    .collect::<Vec<(Vec<&str>, &Style)>>())
                                 .render(t, &chunks[0]);
 
                             Canvas::default()
@@ -438,7 +469,7 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                                 .direction(Direction::Horizontal)
                                 .sizes(&[Size::Percent(50), Size::Percent(50)])
                                 .render(t, &chunks[0], |t, chunks| {
-                                    List::default()
+                                    SelectableList::default()
                                         .block(Block::default()
                                             .borders(border::ALL)
                                             .title("List"))
@@ -447,11 +478,20 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                                         .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                                         .highlight_symbol(">")
                                         .render(t, &chunks[0]);
+                                    let info_style = Style::default().fg(Color::White);
+                                    let warning_style = Style::default().fg(Color::Yellow);
+                                    let error_style = Style::default().fg(Color::Magenta);
+                                    let critical_style = Style::default().fg(Color::Red);
                                     List::default()
                                         .block(Block::default()
                                             .borders(border::ALL)
                                             .title("List"))
-                                        .items(&app.items2)
+                                        .items(&app.events.iter().map(|&(evt, level)| (format!("{}: {}", level, evt), match level {
+                                            "ERROR" => &error_style,
+                                            "CRITICAL" => &critical_style,
+                                            "WARNING" => &warning_style,
+                                            _ => &info_style,
+                                        })).collect::<Vec<(String, &Style)>>())
                                         .render(t, &chunks[1]);
                                 });
                             BarChart::default()
