@@ -358,67 +358,10 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
                 .render(t, &chunks[0]);
             match app.tabs.selection {
                 0 => {
-                    draw_main(t, app, &chunks[1]);
+                    draw_first_tab(t, app, &chunks[1]);
                 }
                 1 => {
-                    Group::default()
-                        .direction(Direction::Horizontal)
-                        .sizes(&[Size::Percent(30), Size::Percent(70)])
-                        .render(t, &chunks[1], |t, chunks| {
-                            let up_style = Style::default().fg(Color::Green);
-                            let failure_style = Style::default().fg(Color::Red);
-                            Table::default()
-                                .block(Block::default()
-                                    .title("Servers")
-                                    .borders(border::ALL))
-                                .header(&["Server", "Location", "Status"])
-                                .header_style(Style::default().fg(Color::Yellow))
-                                .widths(&[15, 15, 10])
-                                .rows(&app.servers
-                                    .iter()
-                                    .map(|s| {
-                                        (vec![s.name, s.location, s.status],
-                                         if s.status == "Up" {
-                                            &up_style
-                                        } else {
-                                            &failure_style
-                                        })
-                                    })
-                                    .collect::<Vec<(Vec<&str>, &Style)>>())
-                                .render(t, &chunks[0]);
-
-                            Canvas::default()
-                                .block(Block::default().title("World").borders(border::ALL))
-                                .paint(|ctx| {
-                                    ctx.draw(&Map {
-                                        color: Color::White,
-                                        resolution: MapResolution::High,
-                                    });
-                                    ctx.layer();
-                                    for (i, s1) in app.servers.iter().enumerate() {
-                                        for s2 in &app.servers[i + 1..] {
-                                            ctx.draw(&Line {
-                                                x1: s1.coords.1,
-                                                y1: s1.coords.0,
-                                                y2: s2.coords.0,
-                                                x2: s2.coords.1,
-                                                color: Color::Yellow,
-                                            });
-                                        }
-                                    }
-                                    for server in &app.servers {
-                                        let color = if server.status == "Up" {
-                                            Color::Green
-                                        } else {
-                                            Color::Red
-                                        };
-                                        ctx.print(server.coords.1, server.coords.0, "X", color);
-                                    }
-                                })
-                                .x_bounds([-180.0, 180.0])
-                                .y_bounds([-90.0, 90.0])
-                                .render(t, &chunks[1]);
-                        })
+                    draw_second_tab(t, app, &chunks[1]);
                 }
                 _ => {}
             };
@@ -427,7 +370,7 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+fn draw_first_tab(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
@@ -444,6 +387,7 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                     Gauge::default()
                         .block(Block::default().title("Gauge:"))
                         .style(Style::default().fg(Color::Magenta).bg(Color::Black).modifier(Modifier::Italic))
+                        .label(&format!("{} / 100", app.progress))
                         .percent(app.progress)
                         .render(t, &chunks[0]);
                     Sparkline::default()
@@ -556,4 +500,65 @@ fn draw_main(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
                        characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ ٩(-̮̮̃•̃).")
                 .render(t, &chunks[2]);
         });
+}
+
+fn draw_second_tab(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+    Group::default()
+        .direction(Direction::Horizontal)
+        .sizes(&[Size::Percent(30), Size::Percent(70)])
+        .render(t, area, |t, chunks| {
+            let up_style = Style::default().fg(Color::Green);
+            let failure_style = Style::default().fg(Color::Red);
+            Table::default()
+                .block(Block::default()
+                    .title("Servers")
+                    .borders(border::ALL))
+                .header(&["Server", "Location", "Status"])
+                .header_style(Style::default().fg(Color::Yellow))
+                .widths(&[15, 15, 10])
+                .rows(&app.servers
+                    .iter()
+                    .map(|s| {
+                        (vec![s.name, s.location, s.status],
+                         if s.status == "Up" {
+                            &up_style
+                        } else {
+                            &failure_style
+                        })
+                    })
+                    .collect::<Vec<(Vec<&str>, &Style)>>())
+                .render(t, &chunks[0]);
+
+            Canvas::default()
+                .block(Block::default().title("World").borders(border::ALL))
+                .paint(|ctx| {
+                    ctx.draw(&Map {
+                        color: Color::White,
+                        resolution: MapResolution::High,
+                    });
+                    ctx.layer();
+                    for (i, s1) in app.servers.iter().enumerate() {
+                        for s2 in &app.servers[i + 1..] {
+                            ctx.draw(&Line {
+                                x1: s1.coords.1,
+                                y1: s1.coords.0,
+                                y2: s2.coords.0,
+                                x2: s2.coords.1,
+                                color: Color::Yellow,
+                            });
+                        }
+                    }
+                    for server in &app.servers {
+                        let color = if server.status == "Up" {
+                            Color::Green
+                        } else {
+                            Color::Red
+                        };
+                        ctx.print(server.coords.1, server.coords.0, "X", color);
+                    }
+                })
+                .x_bounds([-180.0, 180.0])
+                .y_bounds([-90.0, 90.0])
+                .render(t, &chunks[1]);
+        })
 }
