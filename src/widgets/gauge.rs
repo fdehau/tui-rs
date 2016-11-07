@@ -77,24 +77,29 @@ impl<'a> Widget for Gauge<'a> {
             self.background(&gauge_area, buf, self.style.bg);
         }
 
-        // Gauge
+        let center = gauge_area.height / 2 + gauge_area.top();
         let width = (gauge_area.width * self.percent) / 100;
         let end = gauge_area.left() + width;
+        for y in gauge_area.top()..gauge_area.bottom() {
 
-        for x in gauge_area.left()..end {
-            buf.get_mut(x, gauge_area.top())
-                .set_symbol(" ");
-        }
+            // Gauge
+            for x in gauge_area.left()..end {
+                buf.get_mut(x, y).set_symbol(" ");
+            }
 
-        // Label
-        let precent_label = format!("{}%", self.percent);
-        let label = self.label.unwrap_or(&precent_label);
-        let label_width = label.width() as u16;
-        let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
-        buf.set_string(middle, gauge_area.top(), &label, &self.style);
+            if y == center {
+                // Label
+                let precent_label = format!("{}%", self.percent);
+                let label = self.label.unwrap_or(&precent_label);
+                let label_width = label.width() as u16;
+                let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
+                buf.set_string(middle, y, &label, &self.style);
+            }
 
-        for x in gauge_area.left()..end {
-            buf.get_mut(x, gauge_area.top()).set_fg(self.style.bg).set_bg(self.style.fg);
+            // Fix colors
+            for x in gauge_area.left()..end {
+                buf.get_mut(x, y).set_fg(self.style.bg).set_bg(self.style.fg);
+            }
         }
     }
 }
