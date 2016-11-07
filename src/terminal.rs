@@ -130,6 +130,10 @@ impl RustboxBackend {
         Ok(RustboxBackend { rustbox: rustbox })
     }
 
+    pub fn with_rustbox(instance: rustbox::RustBox) -> RustboxBackend {
+        RustboxBackend { rustbox: instance }
+    }
+
     pub fn rustbox(&self) -> &rustbox::RustBox {
         &self.rustbox
     }
