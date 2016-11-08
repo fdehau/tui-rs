@@ -1,7 +1,14 @@
 [package]
 name = "tui"
 version = "0.1.0"
-authors = ["Florian Dehau <florian.dehau@telecomnancy.net>"]
+authors = ["Florian Dehau <work@fdehau.com>"]
+description = """
+A library to build rich user interfaces or dashboard for terminals
+"""
+keywords = ["tui", "terminal"]
+repository = "https://github.com/fdehau/tui-rs"
+license = "MIT"
+exclude = ["docs", ".travis.yml"]
 
 [dependencies]
 termion = "1.1.1"
