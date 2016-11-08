@@ -18,11 +18,11 @@ can either choose from:
 However, some features may only be available in one of the two.
 
 The library is based on the principle of immediate rendering with intermediate
-buffers. This means that at each new frame you are meant to issue a call for
-each widget that is part of the UI. While providing a great flexibility for rich
-and interactive UI, this may introduce overhead for highly dynamic content. So, the
-implementation try to minimize the number of ansi escapes sequences outputed to
-draw the updated UI. In practice, given the speed of rust the overhead rather
+buffers. This means that at each new frame you should build all widgets that are
+supposed to be part of the UI. While providing a great flexibility for rich and
+interactive UI, this may introduce overhead for highly dynamic content. So, the
+implementation try to minimize the number of ansi escapes sequences generated to
+draw the updated UI. In practice, given the speed of `Rust` the overhead rather
 comes from the terminal emulator than the library itself.
 
 Moreover, the library does not provide any input handling nor any event system and
