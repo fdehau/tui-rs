@@ -4,6 +4,8 @@ test:
 	cargo test
 doc:
 	cargo doc
+clippy:
+	rustup run nightly cargo clippy
 watch:
 	watchman-make -p 'src/**/*.rs' -t build -p 'test/**/*.rs' -t test
 

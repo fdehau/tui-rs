@@ -87,7 +87,6 @@ fn draw(t: &mut Terminal<TermionBackend>) {
     /// of the closure
     .render(t, &size, |t, chunks| {
         /// Continue to describe your UI there.
-        /// Examples:
         Block::default()
           .title("Block")
           .borders(border::ALL)
