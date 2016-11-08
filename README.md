@@ -1,5 +1,7 @@
 # tui-rs
 
+[![Build Status](https://travis-ci.org/fdehau/tui-rs.svg?branch=master)](https://travis-ci.org/fdehau/tui-rs)
+<img src="https://img.shields.io/crates/v/tui.svg" alt="tui’s current version badge" title="tui’s current version badge">
 <img src="./docs/demo.gif" alt="Demo cast under Linux Termite with Inconsolata font 12pt">
 
 `tui-rs` is a [Rust](https://www.rust-lang.org) library to build rich terminal
