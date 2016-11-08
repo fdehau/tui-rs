@@ -127,7 +127,7 @@ Click on each item to get an example.
 
 ### Demo
 
-The [source code](examples/demo.rs) of the source gif.
+The [source code](examples/demo.rs) of the demo gif.
 
 ## License
 
