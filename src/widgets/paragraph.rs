@@ -32,6 +32,10 @@ pub struct Paragraph<'a> {
     wrapping: bool,
     /// The text to display
     text: &'a str,
+    /// Should we parse the text for embedded commands
+    raw: bool,
+    /// Scroll
+    scroll: u16,
 }
 
 impl<'a> Default for Paragraph<'a> {
@@ -40,7 +44,9 @@ impl<'a> Default for Paragraph<'a> {
             block: None,
             style: Default::default(),
             wrapping: false,
+            raw: false,
             text: "",
+            scroll: 0,
         }
     }
 }
@@ -65,10 +71,22 @@ impl<'a> Paragraph<'a> {
         self.wrapping = flag;
         self
     }
+
+    pub fn raw(&mut self, flag: bool) -> &mut Paragraph<'a> {
+        self.raw = flag;
+        self
+    }
+
+    pub fn scroll(&mut self, offset: u16) -> &mut Paragraph<'a> {
+        self.scroll = offset;
+        self
+    }
 }
 
-struct Parser<'a> {
-    text: Vec<&'a str>,
+struct Parser<'a, T>
+    where T: Iterator<Item = &'a str>
+{
+    text: T,
     mark: bool,
     cmd_string: String,
     style: Style,
@@ -77,10 +95,12 @@ struct Parser<'a> {
     styling: bool,
 }
 
-impl<'a> Parser<'a> {
-    fn new(text: &'a str, base_style: Style) -> Parser<'a> {
+impl<'a, T> Parser<'a, T>
+    where T: Iterator<Item = &'a str>
+{
+    fn new(text: T, base_style: Style) -> Parser<'a, T> {
         Parser {
-            text: UnicodeSegmentation::graphemes(text, true).rev().collect::<Vec<&str>>(),
+            text: text,
             mark: false,
             cmd_string: String::from(""),
             style: base_style,
@@ -97,17 +117,17 @@ impl<'a> Parser<'a> {
                 match *first {
                     "fg" => {
                         if let Some(snd) = args.get(1) {
-                            self.style.fg = Parser::str_to_color(snd);
+                            self.style.fg = Parser::<T>::str_to_color(snd);
                         }
                     }
                     "bg" => {
                         if let Some(snd) = args.get(1) {
-                            self.style.bg = Parser::str_to_color(snd);
+                            self.style.bg = Parser::<T>::str_to_color(snd);
                         }
                     }
                     "mod" => {
                         if let Some(snd) = args.get(1) {
-                            self.style.modifier = Parser::str_to_modifier(snd);
+                            self.style.modifier = Parser::<T>::str_to_modifier(snd);
                         }
                     }
                     _ => {}
@@ -155,10 +175,12 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl<'a> Iterator for Parser<'a> {
+impl<'a, T> Iterator for Parser<'a, T>
+    where T: Iterator<Item = &'a str>
+{
     type Item = (&'a str, Style);
     fn next(&mut self) -> Option<Self::Item> {
-        match self.text.pop() {
+        match self.text.next() {
             Some(s) => {
                 if s == "\\" {
                     if self.escaping {
@@ -172,9 +194,13 @@ impl<'a> Iterator for Parser<'a> {
                         self.escaping = false;
                         Some((s, self.style))
                     } else {
-                        self.style = self.base_style;
-                        self.mark = true;
-                        self.next()
+                        if self.mark {
+                            Some((s, self.style))
+                        } else {
+                            self.style = self.base_style;
+                            self.mark = true;
+                            self.next()
+                        }
                     }
                 } else if s == "}" && self.mark {
                     self.reset();
@@ -217,7 +243,14 @@ impl<'a> Widget for Paragraph<'a> {
 
         let mut x = 0;
         let mut y = 0;
-        for (string, style) in Parser::new(self.text, self.style) {
+        let graphemes = UnicodeSegmentation::graphemes(self.text, true);
+        let styled: Box<Iterator<Item = (&str, Style)>> = if self.raw {
+            Box::new(graphemes.map(|g| (g, self.style)))
+        } else {
+            Box::new(Parser::new(graphemes, self.style))
+        };
+
+        for (string, style) in styled {
             if string == "\n" {
                 x = 0;
                 y += 1;
@@ -235,7 +268,11 @@ impl<'a> Widget for Paragraph<'a> {
                 break;
             }
 
-            buf.get_mut(text_area.left() + x, text_area.top() + y)
+            if y < self.scroll {
+                continue;
+            }
+
+            buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
                 .set_symbol(string)
                 .set_style(style);
             x += string.width() as u16;

@@ -132,7 +132,7 @@ impl<B> Terminal<B>
         self.current = 1 - self.current;
 
         // Flush
-        try!(self.backend.flush());
+        self.backend.flush()?;
         Ok(())
     }
 
