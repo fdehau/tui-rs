@@ -9,48 +9,43 @@ use layout::Rect;
 use style::Style;
 
 
-pub struct List<'a, T>
-    where T: AsRef<str> + 'a
-{
+pub struct List<'a> {
     block: Option<Block<'a>>,
-    items: &'a [(T, &'a Style)],
+    items: Vec<(&'a str, &'a Style)>,
     style: Style,
 }
 
-impl<'a, T> Default for List<'a, T>
-    where T: AsRef<str> + 'a
-{
-    fn default() -> List<'a, T> {
+impl<'a> Default for List<'a> {
+    fn default() -> List<'a> {
         List {
             block: None,
-            items: &[],
+            items: Vec::new(),
             style: Default::default(),
         }
     }
 }
 
-impl<'a, T> List<'a, T>
-    where T: AsRef<str> + 'a
-{
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a, T> {
+impl<'a> List<'a> {
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a> {
         self.block = Some(block);
         self
     }
 
-    pub fn items(&'a mut self, items: &'a [(T, &'a Style)]) -> &mut List<'a, T> {
-        self.items = items;
+    pub fn items<I>(&'a mut self, items: &'a [(I, &'a Style)]) -> &mut List<'a>
+        where I: AsRef<str> + 'a
+    {
+        self.items =
+            items.iter().map(|&(ref i, s)| (i.as_ref(), s)).collect::<Vec<(&'a str, &'a Style)>>();
         self
     }
 
-    pub fn style(&'a mut self, style: Style) -> &mut List<'a, T> {
+    pub fn style(&'a mut self, style: Style) -> &mut List<'a> {
         self.style = style;
         self
     }
 }
 
-impl<'a, T> Widget for List<'a, T>
-    where T: AsRef<str> + 'a
-{
+impl<'a> Widget for List<'a> {
     fn draw(&self, area: &Rect, buf: &mut Buffer) {
         let list_area = match self.block {
             Some(ref b) => {
@@ -100,7 +95,7 @@ impl<'a, T> Widget for List<'a, T>
 pub struct SelectableList<'a> {
     block: Option<Block<'a>>,
     /// Items to be displayed
-    items: &'a [&'a str],
+    items: Vec<&'a str>,
     /// Index of the one selected
     selected: Option<usize>,
     /// Base style of the widget
@@ -115,7 +110,7 @@ impl<'a> Default for SelectableList<'a> {
     fn default() -> SelectableList<'a> {
         SelectableList {
             block: None,
-            items: &[],
+            items: Vec::new(),
             selected: None,
             style: Default::default(),
             highlight_style: Default::default(),
@@ -130,8 +125,10 @@ impl<'a> SelectableList<'a> {
         self
     }
 
-    pub fn items(&'a mut self, items: &'a [&'a str]) -> &mut SelectableList<'a> {
-        self.items = items;
+    pub fn items<I>(&'a mut self, items: &'a [I]) -> &mut SelectableList<'a>
+        where I: AsRef<str> + 'a
+    {
+        self.items = items.iter().map(|i| i.as_ref()).collect::<Vec<&str>>();
         self
     }
 
