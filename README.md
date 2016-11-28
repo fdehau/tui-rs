@@ -32,7 +32,7 @@ you may rely on the previously cited libraries to achieve such features.
 
 ```toml
 [dependencies]
-tui = "0.1"
+tui = "0.1.1"
 ```
 
 ## Get Started
@@ -44,7 +44,8 @@ The first thing to do is to choose from one of the two backends:
 For Termion:
 
 ```rust
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 
 fn main() {
   let backend = TermionBackend::new().unwrap();
@@ -55,12 +56,24 @@ fn main() {
 For Rustbox:
 
 ```rust
-use tui::{Terminal, RustboxBackend};
+use tui::Terminal;
+use tui::backend::RustboxBackend;
 
 fn main() {
   let backend = RustboxBackend::new().unwrap();
   let mut terminal = Terminal::new(backend);
 }
+```
+
+By default both backends are enabled but you might want to use only one. To do
+so, you should disable the default-features for this library and specify the
+chosen backend in features.
+
+```toml
+[dependencies.tui]
+version = "0.1.1"
+default-features = false
+features = ['termion']
 ```
 
 ### Layout
