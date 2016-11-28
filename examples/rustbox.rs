@@ -4,7 +4,8 @@ extern crate rustbox;
 use std::error::Error;
 use rustbox::Key;
 
-use tui::{Terminal, RustboxBackend};
+use tui::Terminal;
+use tui::backend::RustboxBackend;
 use tui::widgets::{Widget, Block, border, Paragraph};
 use tui::layout::{Group, Direction, Size};
 use tui::style::{Style, Color, Modifier};

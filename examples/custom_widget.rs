@@ -1,6 +1,7 @@
 extern crate tui;
 
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 use tui::widgets::Widget;
 use tui::buffer::Buffer;
 use tui::layout::Rect;

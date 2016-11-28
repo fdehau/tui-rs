@@ -2,7 +2,6 @@
 extern crate log;
 
 extern crate tui;
-#[macro_use]
 extern crate termion;
 
 mod util;
@@ -16,7 +15,8 @@ use std::sync::mpsc;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, SelectableList, List, Gauge, Sparkline, Paragraph, border,
                    Chart, Axis, Dataset, BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};

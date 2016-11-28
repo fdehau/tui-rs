@@ -9,7 +9,8 @@ use std::sync::mpsc;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Rect, Direction, Size};

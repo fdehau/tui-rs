@@ -12,7 +12,8 @@ use std::sync::mpsc;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, Chart, Axis, Marker, Dataset};
 use tui::style::{Style, Color, Modifier};
 

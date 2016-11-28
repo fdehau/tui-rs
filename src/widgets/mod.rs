@@ -21,7 +21,8 @@ pub use self::table::Table;
 
 use buffer::Buffer;
 use layout::Rect;
-use terminal::{Backend, Terminal};
+use terminal::Terminal;
+use backend::Backend;
 use style::Color;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.

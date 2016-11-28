@@ -5,7 +5,8 @@ use cassowary::{Solver, Variable, Expression, Constraint};
 use cassowary::WeightedRelation::*;
 use cassowary::strength::{REQUIRED, WEAK};
 
-use terminal::{Terminal, Backend};
+use terminal::Terminal;
+use backend::Backend;
 
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub enum Direction {

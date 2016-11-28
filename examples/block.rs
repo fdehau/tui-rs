@@ -5,7 +5,8 @@ use std::io;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::{Terminal, TermionBackend};
+use tui::Terminal;
+use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border};
 use tui::layout::{Group, Direction, Size};
 use tui::style::{Style, Color, Modifier};
