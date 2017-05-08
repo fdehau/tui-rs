@@ -12,16 +12,18 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, BarChart};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
 struct App<'a> {
+    size: Rect,
     data: Vec<(&'a str, u64)>,
 }
 
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
+            size: Rect::default(),
             data: vec![("B1", 9),
                        ("B2", 12),
                        ("B3", 5),
@@ -96,9 +98,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if app.size != size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -118,13 +127,11 @@ fn main() {
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
 
-    let size = t.size().unwrap();
-
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
         .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             BarChart::default()
                 .block(Block::default().title("Data1").borders(border::ALL))
                 .data(&app.data)

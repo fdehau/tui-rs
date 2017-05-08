@@ -12,10 +12,11 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, SelectableList, List};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
 struct App<'a> {
+    size: Rect,
     items: Vec<&'a str>,
     selected: usize,
     events: Vec<(&'a str, &'a str)>,
@@ -28,6 +29,7 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
+            size: Rect::default(),
             items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
                         "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15",
                         "Item16", "Item17", "Item18", "Item19", "Item20", "Item21", "Item22",
@@ -113,9 +115,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if size != app.size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -151,12 +160,10 @@ fn main() {
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
 
-    let size = t.size().unwrap();
-
     Group::default()
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             SelectableList::default()
                 .block(Block::default()
                     .borders(border::ALL)

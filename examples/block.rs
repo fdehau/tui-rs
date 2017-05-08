@@ -8,7 +8,7 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
 fn main() {
@@ -16,9 +16,16 @@ fn main() {
     let stdin = io::stdin();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
-    draw(&mut terminal);
+
+    let mut term_size = terminal.size().unwrap();
+    draw(&mut terminal, &term_size);
     for c in stdin.keys() {
-        draw(&mut terminal);
+        let size = terminal.size().unwrap();
+        if term_size != size {
+            terminal.resize(size).unwrap();
+            term_size = size;
+        }
+        draw(&mut terminal, &term_size);
         let evt = c.unwrap();
         if evt == event::Key::Char('q') {
             break;
@@ -27,9 +34,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<TermionBackend>) {
-
-    let size = t.size().unwrap();
+fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
 
     // Wrapping block for a group
     // Just draw the block and the group on the same area and build the group

@@ -12,10 +12,11 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, Gauge};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
 struct App {
+    size: Rect,
     progress1: u16,
     progress2: u16,
     progress3: u16,
@@ -25,6 +26,7 @@ struct App {
 impl App {
     fn new() -> App {
         App {
+            size: Rect::default(),
             progress1: 0,
             progress2: 0,
             progress3: 0,
@@ -93,9 +95,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if size != app.size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -115,13 +124,11 @@ fn main() {
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
 
-    let size = t.size().unwrap();
-
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
         .sizes(&[Size::Percent(25), Size::Percent(25), Size::Percent(25), Size::Percent(25)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             Gauge::default()
                 .block(Block::default().title("Gauge1").borders(border::ALL))
                 .style(Style::default().fg(Color::Yellow))

@@ -15,9 +15,11 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, Chart, Axis, Marker, Dataset};
+use tui::layout::Rect;
 use tui::style::{Style, Color, Modifier};
 
 struct App {
+    size: Rect,
     signal1: SinSignal,
     data1: Vec<(f64, f64)>,
     signal2: SinSignal,
@@ -32,6 +34,7 @@ impl App {
         let data1 = signal1.by_ref().take(200).collect::<Vec<(f64, f64)>>();
         let data2 = signal2.by_ref().take(200).collect::<Vec<(f64, f64)>>();
         App {
+            size: Rect::default(),
             signal1: signal1,
             data1: data1,
             signal2: signal2,
@@ -95,9 +98,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if app.size != size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -116,8 +126,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
-
-    let size = t.size().unwrap();
 
     Chart::default()
         .block(Block::default()
@@ -150,7 +158,7 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
                         .marker(Marker::Braille)
                         .style(Style::default().fg(Color::Yellow))
                         .data(&app.data2)])
-        .render(t, &size);
+        .render(t, &app.size);
 
     t.draw().unwrap();
 }

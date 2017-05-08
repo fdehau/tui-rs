@@ -24,6 +24,8 @@ struct App {
     playground: Rect,
     vx: u16,
     vy: u16,
+    dir_x: bool,
+    dir_y: bool,
 }
 
 
@@ -33,23 +35,36 @@ impl App {
             size: Default::default(),
             x: 0.0,
             y: 0.0,
-            ball: Rect::new(20, 20, 10, 10),
+            ball: Rect::new(10, 30, 10, 10),
             playground: Rect::new(10, 10, 100, 100),
             vx: 1,
             vy: 1,
+            dir_x: true,
+            dir_y: true,
         }
     }
 
     fn advance(&mut self) {
         if self.ball.left() < self.playground.left() ||
-           self.ball.right() > self.playground.right() {
-            self.vx = !self.vx;
-        } else if self.ball.top() < self.playground.top() ||
-                  self.ball.bottom() > self.playground.bottom() {
-            self.vy = !self.vy;
+            self.ball.right() > self.playground.right() {
+               self.dir_x = !self.dir_x;
+           }
+        if self.ball.top() < self.playground.top() ||
+            self.ball.bottom() > self.playground.bottom() {
+                self.dir_y = !self.dir_y;
+            }
+
+        if self.dir_x {
+            self.ball.x += self.vx;
+        } else {
+            self.ball.x -= self.vx;
         }
-        self.ball.x += self.vx;
-        self.ball.y += self.vy;
+
+        if self.dir_y {
+            self.ball.y += self.vy;
+        } else {
+            self.ball.y -= self.vy
+        }
     }
 }
 
@@ -94,11 +109,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
-    let size = terminal.size().unwrap();
-    app.size = size;
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if size != app.size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -125,11 +145,6 @@ fn main() {
             Event::Tick => {
                 app.advance();
             }
-        }
-        let size = terminal.size().unwrap();
-        if size != app.size {
-            app.size = size;
-            terminal.resize(size).unwrap();
         }
         draw(&mut terminal, &app);
     }

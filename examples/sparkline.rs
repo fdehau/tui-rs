@@ -15,10 +15,11 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, Sparkline};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color};
 
 struct App {
+    size: Rect,
     signal: RandomSignal,
     data1: Vec<u64>,
     data2: Vec<u64>,
@@ -32,6 +33,7 @@ impl App {
         let data2 = signal.by_ref().take(200).collect::<Vec<u64>>();
         let data3 = signal.by_ref().take(200).collect::<Vec<u64>>();
         App {
+            size: Rect::default(),
             signal: signal,
             data1: data1,
             data2: data2,
@@ -93,9 +95,16 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &app);
 
     loop {
+        let size = terminal.size().unwrap();
+        if size != app.size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = rx.recv().unwrap();
         match evt {
             Event::Input(input) => {
@@ -115,13 +124,11 @@ fn main() {
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
 
-    let size = t.size().unwrap();
-
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
         .sizes(&[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             Sparkline::default()
                 .block(Block::default().title("Data1").borders(border::LEFT | border::RIGHT))
                 .data(&app.data1)
