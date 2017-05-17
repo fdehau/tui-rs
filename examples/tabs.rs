@@ -11,10 +11,11 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, border, Tabs};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color};
 
 struct App<'a> {
+    size: Rect,
     tabs: MyTabs<'a>,
 }
 
@@ -25,6 +26,7 @@ fn main() {
 
     // App
     let mut app = App {
+        size: Rect::default(),
         tabs: MyTabs {
             titles: vec!["Tab0", "Tab1", "Tab2", "Tab3"],
             selection: 0,
@@ -34,11 +36,18 @@ fn main() {
     // First draw call
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
+    app.size = terminal.size().unwrap();
     draw(&mut terminal, &mut app);
 
     // Main loop
     let stdin = io::stdin();
     for c in stdin.keys() {
+        let size = terminal.size().unwrap();
+        if size != app.size {
+            terminal.resize(size).unwrap();
+            app.size = size;
+        }
+
         let evt = c.unwrap();
         match evt {
             event::Key::Char('q') => {
@@ -56,17 +65,15 @@ fn main() {
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &mut App) {
 
-    let size = t.size().unwrap();
-
     Block::default()
         .style(Style::default().bg(Color::White))
-        .render(t, &size);
+        .render(t, &app.size);
 
     Group::default()
         .direction(Direction::Vertical)
         .margin(5)
         .sizes(&[Size::Fixed(3), Size::Min(0)])
-        .render(t, &size, |t, chunks| {
+        .render(t, &app.size, |t, chunks| {
             Tabs::default()
                 .block(Block::default().borders(border::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)

@@ -8,7 +8,7 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, Paragraph};
-use tui::layout::{Group, Direction, Size};
+use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color};
 
 fn main() {
@@ -16,9 +16,18 @@ fn main() {
     let stdin = io::stdin();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
-    draw(&mut terminal);
+
+    let mut term_size = terminal.size().unwrap();
+    draw(&mut terminal, &term_size);
+
     for c in stdin.keys() {
-        draw(&mut terminal);
+        let size = terminal.size().unwrap();
+        if size != term_size {
+            terminal.resize(size).unwrap();
+            term_size = size;
+        }
+
+        draw(&mut terminal, &term_size);
         let evt = c.unwrap();
         if evt == event::Key::Char('q') {
             break;
@@ -27,9 +36,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<TermionBackend>) {
-
-    let size = t.size().unwrap();
+fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
 
     Block::default()
         .style(Style::default().bg(Color::White))
