@@ -264,7 +264,7 @@ impl<'a> Widget for Paragraph<'a> {
                 continue;
             }
 
-            if y > text_area.height - 1 {
+            if y > text_area.height + self.scroll - 1 {
                 break;
             }
 
