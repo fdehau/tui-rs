@@ -5,6 +5,9 @@ rust:
   - beta
   - nightly
 
+env:
+  - NO_RUSTUP=1
+
 cache: cargo
 
 matrix:
@@ -13,7 +16,7 @@ matrix:
     - rust: beta
 
 before_script:
-  - NO_RUSTUP=1 ./scripts/travis/before_script.sh
+  - ./scripts/travis/before_script.sh
 
 script:
-  - NO_RUSTUP=1 ./scripts/travis/script.sh
+  - ./scripts/travis/script.sh
