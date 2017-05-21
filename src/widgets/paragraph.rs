@@ -193,14 +193,12 @@ impl<'a, T> Iterator for Parser<'a, T>
                     if self.escaping {
                         self.escaping = false;
                         Some((s, self.style))
+                    } else if self.mark {
+                        Some((s, self.style))
                     } else {
-                        if self.mark {
-                            Some((s, self.style))
-                        } else {
-                            self.style = self.base_style;
-                            self.mark = true;
-                            self.next()
-                        }
+                        self.style = self.base_style;
+                        self.mark = true;
+                        self.next()
                     }
                 } else if s == "}" && self.mark {
                     self.reset();

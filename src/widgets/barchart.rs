@@ -123,7 +123,8 @@ impl<'a> Widget for BarChart<'a> {
 
         self.background(&chart_area, buf, self.style.bg);
 
-        let max = self.max.unwrap_or(self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
+        let max = self.max
+            .unwrap_or_else(|| self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
         let max_index = min((chart_area.width / (self.bar_width + self.bar_gap)) as usize,
                             self.data.len());
         let mut data = self.data
@@ -146,8 +147,7 @@ impl<'a> Widget for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.get_mut(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
-                                 x,
+                    buf.get_mut(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
                                  chart_area.top() + j)
                         .set_symbol(symbol)
                         .set_style(self.style);

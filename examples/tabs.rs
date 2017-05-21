@@ -83,16 +83,28 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &mut App) {
                 .render(t, &chunks[0]);
             match app.tabs.selection {
                 0 => {
-                    Block::default().title("Inner 0").borders(border::ALL).render(t, &chunks[1]);
+                    Block::default()
+                        .title("Inner 0")
+                        .borders(border::ALL)
+                        .render(t, &chunks[1]);
                 }
                 1 => {
-                    Block::default().title("Inner 1").borders(border::ALL).render(t, &chunks[1]);
+                    Block::default()
+                        .title("Inner 1")
+                        .borders(border::ALL)
+                        .render(t, &chunks[1]);
                 }
                 2 => {
-                    Block::default().title("Inner 2").borders(border::ALL).render(t, &chunks[1]);
+                    Block::default()
+                        .title("Inner 2")
+                        .borders(border::ALL)
+                        .render(t, &chunks[1]);
                 }
                 3 => {
-                    Block::default().title("Inner 3").borders(border::ALL).render(t, &chunks[1]);
+                    Block::default()
+                        .title("Inner 3")
+                        .borders(border::ALL)
+                        .render(t, &chunks[1]);
                 }
                 _ => {}
             }

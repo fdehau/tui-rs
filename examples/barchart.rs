@@ -85,12 +85,10 @@ fn main() {
     });
 
     // Tick
-    thread::spawn(move || {
-        loop {
-            clock_tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
-        }
-    });
+    thread::spawn(move || loop {
+                      clock_tx.send(Event::Tick).unwrap();
+                      thread::sleep(time::Duration::from_millis(500));
+                  });
 
     // App
     let mut app = App::new();

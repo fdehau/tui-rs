@@ -102,12 +102,10 @@ fn main() {
     });
 
     // Tick
-    thread::spawn(move || {
-        loop {
-            clock_tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
-        }
-    });
+    thread::spawn(move || loop {
+                      clock_tx.send(Event::Tick).unwrap();
+                      thread::sleep(time::Duration::from_millis(500));
+                  });
 
     // App
     let mut app = App::new();
@@ -165,30 +163,26 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
             SelectableList::default()
-                .block(Block::default()
-                    .borders(border::ALL)
-                    .title("List"))
+                .block(Block::default().borders(border::ALL).title("List"))
                 .items(&app.items)
                 .select(app.selected)
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                 .highlight_symbol(">")
                 .render(t, &chunks[0]);
             List::default()
-                .block(Block::default()
-                    .borders(border::ALL)
-                    .title("List"))
+                .block(Block::default().borders(border::ALL).title("List"))
                 .items(&app.events
-                    .iter()
-                    .map(|&(evt, level)| {
-                        (format!("{}: {}", level, evt),
-                         match level {
-                            "ERROR" => &app.error_style,
-                            "CRITICAL" => &app.critical_style,
-                            "WARNING" => &app.warning_style,
-                            _ => &app.info_style,
-                        })
-                    })
-                    .collect::<Vec<(String, &Style)>>())
+                            .iter()
+                            .map(|&(evt, level)| {
+                    (format!("{}: {}", level, evt),
+                     match level {
+                         "ERROR" => &app.error_style,
+                         "CRITICAL" => &app.critical_style,
+                         "WARNING" => &app.warning_style,
+                         _ => &app.info_style,
+                     })
+                })
+                            .collect::<Vec<(String, &Style)>>())
                 .render(t, &chunks[1]);
         });
 

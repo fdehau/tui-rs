@@ -46,13 +46,13 @@ impl App {
 
     fn advance(&mut self) {
         if self.ball.left() < self.playground.left() ||
-            self.ball.right() > self.playground.right() {
-               self.dir_x = !self.dir_x;
-           }
+           self.ball.right() > self.playground.right() {
+            self.dir_x = !self.dir_x;
+        }
         if self.ball.top() < self.playground.top() ||
-            self.ball.bottom() > self.playground.bottom() {
-                self.dir_y = !self.dir_y;
-            }
+           self.ball.bottom() > self.playground.bottom() {
+            self.dir_y = !self.dir_y;
+        }
 
         if self.dir_x {
             self.ball.x += self.vx;
@@ -96,12 +96,10 @@ fn main() {
     });
 
     // Tick
-    thread::spawn(move || {
-        loop {
-            clock_tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
-        }
-    });
+    thread::spawn(move || loop {
+                      clock_tx.send(Event::Tick).unwrap();
+                      thread::sleep(time::Duration::from_millis(500));
+                  });
 
     // App
     let mut app = App::new();
@@ -160,52 +158,48 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
             Canvas::default()
-                .block(Block::default()
-                    .borders(border::ALL)
-                    .title("World"))
+                .block(Block::default().borders(border::ALL).title("World"))
                 .paint(|ctx| {
-                    ctx.draw(&Map {
-                        color: Color::White,
-                        resolution: MapResolution::High,
-                    });
-                    ctx.print(app.x, -app.y, "You are here", Color::Yellow);
-                })
+                           ctx.draw(&Map {
+                                        color: Color::White,
+                                        resolution: MapResolution::High,
+                                    });
+                           ctx.print(app.x, -app.y, "You are here", Color::Yellow);
+                       })
                 .x_bounds([-180.0, 180.0])
                 .y_bounds([-90.0, 90.0])
                 .render(t, &chunks[0]);
             Canvas::default()
-                .block(Block::default()
-                    .borders(border::ALL)
-                    .title("List"))
+                .block(Block::default().borders(border::ALL).title("List"))
                 .paint(|ctx| {
                     ctx.draw(&Line {
-                        x1: app.ball.left() as f64,
-                        y1: app.ball.top() as f64,
-                        x2: app.ball.right() as f64,
-                        y2: app.ball.top() as f64,
-                        color: Color::Yellow,
-                    });
+                                 x1: app.ball.left() as f64,
+                                 y1: app.ball.top() as f64,
+                                 x2: app.ball.right() as f64,
+                                 y2: app.ball.top() as f64,
+                                 color: Color::Yellow,
+                             });
                     ctx.draw(&Line {
-                        x1: app.ball.right() as f64,
-                        y1: app.ball.top() as f64,
-                        x2: app.ball.right() as f64,
-                        y2: app.ball.bottom() as f64,
-                        color: Color::Yellow,
-                    });
+                                 x1: app.ball.right() as f64,
+                                 y1: app.ball.top() as f64,
+                                 x2: app.ball.right() as f64,
+                                 y2: app.ball.bottom() as f64,
+                                 color: Color::Yellow,
+                             });
                     ctx.draw(&Line {
-                        x1: app.ball.right() as f64,
-                        y1: app.ball.bottom() as f64,
-                        x2: app.ball.left() as f64,
-                        y2: app.ball.bottom() as f64,
-                        color: Color::Yellow,
-                    });
+                                 x1: app.ball.right() as f64,
+                                 y1: app.ball.bottom() as f64,
+                                 x2: app.ball.left() as f64,
+                                 y2: app.ball.bottom() as f64,
+                                 color: Color::Yellow,
+                             });
                     ctx.draw(&Line {
-                        x1: app.ball.left() as f64,
-                        y1: app.ball.bottom() as f64,
-                        x2: app.ball.left() as f64,
-                        y2: app.ball.top() as f64,
-                        color: Color::Yellow,
-                    });
+                                 x1: app.ball.left() as f64,
+                                 y1: app.ball.bottom() as f64,
+                                 x2: app.ball.left() as f64,
+                                 y2: app.ball.top() as f64,
+                                 color: Color::Yellow,
+                             });
                 })
                 .x_bounds([10.0, 110.0])
                 .y_bounds([10.0, 110.0])

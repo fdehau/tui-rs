@@ -34,8 +34,10 @@ impl<'a> List<'a> {
     pub fn items<I>(&'a mut self, items: &'a [(I, &'a Style)]) -> &mut List<'a>
         where I: AsRef<str> + 'a
     {
-        self.items =
-            items.iter().map(|&(ref i, s)| (i.as_ref(), s)).collect::<Vec<(&'a str, &'a Style)>>();
+        self.items = items
+            .iter()
+            .map(|&(ref i, s)| (i.as_ref(), s))
+            .collect::<Vec<(&'a str, &'a Style)>>();
         self
     }
 
@@ -62,7 +64,7 @@ impl<'a> Widget for List<'a> {
         self.background(&list_area, buf, self.style.bg);
 
         let max_index = min(self.items.len(), list_area.height as usize);
-        for (i, &(ref item, style)) in self.items.iter().enumerate().take(max_index) {
+        for (i, &(item, style)) in self.items.iter().enumerate().take(max_index) {
             buf.set_stringn(list_area.left(),
                             list_area.top() + i as u16,
                             item.as_ref(),
@@ -169,7 +171,9 @@ impl<'a> Widget for SelectableList<'a> {
             None => (0, &self.style),
         };
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
-        let blank_symbol = iter::repeat(" ").take(highlight_symbol.width()).collect::<String>();
+        let blank_symbol = iter::repeat(" ")
+            .take(highlight_symbol.width())
+            .collect::<String>();
         // Make sure the list show the selected item
         let offset = if selected >= list_height {
             selected - list_height + 1
@@ -181,10 +185,10 @@ impl<'a> Widget for SelectableList<'a> {
             .cloned()
             .enumerate()
             .map(|(i, item)| if i == selected {
-                (format!("{} {}", highlight_symbol, item), highlight_style)
-            } else {
-                (format!("{} {}", blank_symbol, item), &self.style)
-            })
+                     (format!("{} {}", highlight_symbol, item), highlight_style)
+                 } else {
+                     (format!("{} {}", blank_symbol, item), &self.style)
+                 })
             .skip(offset as usize)
             .collect::<Vec<(String, &Style)>>();
 

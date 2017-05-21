@@ -93,23 +93,21 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
             let normal_style = Style::default().fg(Color::White);
             Table::default()
-                .block(Block::default()
-                    .borders(border::ALL)
-                    .title("Table"))
+                .block(Block::default().borders(border::ALL).title("Table"))
                 .header(&["Header1", "Header2", "Header3"])
                 .widths(&[10, 10, 10])
                 .rows(&app.items
-                    .iter()
-                    .enumerate()
-                    .map(|(i, item)| {
-                        (item,
-                         if i == app.selected {
-                            &selected_style
-                        } else {
-                            &normal_style
-                        })
-                    })
-                    .collect::<Vec<(&Vec<&str>, &Style)>>())
+                           .iter()
+                           .enumerate()
+                           .map(|(i, item)| {
+                                    (item,
+                                     if i == app.selected {
+                                         &selected_style
+                                     } else {
+                                         &normal_style
+                                     })
+                                })
+                           .collect::<Vec<(&Vec<&str>, &Style)>>())
                 .render(t, &chunks[0]);
         });
 
