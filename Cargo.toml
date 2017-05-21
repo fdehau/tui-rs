@@ -10,6 +10,9 @@ repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
 exclude = ["docs", ".travis.yml"]
 
+[badges]
+travis-ci = { repository = "fdehau/tui-rs" }
+
 [features]
 default = ["rustbox", "termion"]
 
