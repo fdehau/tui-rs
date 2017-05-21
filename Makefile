@@ -30,18 +30,45 @@ help: ## Print all the available commands
 # ================================ Tools ======================================
 
 
-CLIPPY_VERSION = 0.0.134
-RUSTFMT_VERSION = 0.8.4
-
 install: install-rustfmt install-clippy ## Install tools dependencies
+
+RUSTFMT_TARGET_VERSION = 0.8.4
+RUSTFMT = $(shell command -v rustfmt 2> /dev/null)
+ifeq ("$(RUSTFMT)","")
+  RUSTFMT_INSTALL_CMD = @echo "Installing rustfmt $(RUSTFMT_TARGET_VERSION)" \
+			&& $(CARGO) install --vers $(RUSTFMT_TARGET_VERSION) --force rustfmt
+else
+  RUSTFMT_CURRENT_VERSION = $(shell rustfmt --version | sed 's/^\(.*\) ()/\1/')
+  ifeq ($(RUSTFMT_CURRENT_VERSION),$(RUSTFMT_TARGET_VERSION))
+    RUSTFMT_INSTALL_CMD = @echo "Rustfmt is up to date"
+  else
+    RUSTFMT_INSTALL_CMD = @echo "Updating rustfmt from $(RUSTFMT_CURRENT_VERSION) to $(RUSTFMT_TARGET_VERSION)" \
+			  && $(CARGO) install --vers $(RUSTFMT_TARGET_VERSION) --force rustfmt
+  endif
+endif
 
 install-rustfmt: RUST_CHANNEL = nightly
 install-rustfmt: ## Intall rustfmt
-	$(CARGO) install --vers $(RUSTFMT_VERSION) --force rustfmt
+	$(RUSTFMT_INSTALL_CMD)
+
+
+CLIPPY_TARGET_VERSION = 0.0.134
+CLIPPY_CURRENT_VERSION = $(shell $(CARGO) clippy --version 2>/dev/null)
+ifeq ("$(CLIPPY_CURRENT_VERSION)","")
+  CLIPPY_INSTALL_CMD = @echo "Installing clippy $(CLIPPY_TARGET_VERSION)" \
+		       && $(CARGO) install --vers $(CLIPPY_TARGET_VERSION) --force clippy
+else
+  ifeq ($(CLIPPY_CURRENT_VERSION),$(CLIPPY_TARGET_VERSION))
+    CLIPPY_INSTALL_CMD = @echo "Clippy is up to date"
+  else
+    CLIPPY_INSTALL_CMD = @echo "Updating clippy from $(CLIPPY_CURRENT_VERSION) to $(CLIPPY_TARGET_VERSION)" \
+			 && $(CARGO) install --vers $(CLIPPY_TARGET_VERSION) --force clippy
+  endif
+endif
 
 install-clippy: RUST_CHANNEL = nightly
 install-clippy: ## Install clippy
-	$(CARGO) install --vers $(CLIPPY_VERSION) --force clippy
+	$(CLIPPY_INSTALL_CMD)
 
 
 # =============================== Build =======================================
