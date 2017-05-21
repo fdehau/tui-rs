@@ -98,7 +98,9 @@ impl<'a> Widget for Gauge<'a> {
 
             // Fix colors
             for x in gauge_area.left()..end {
-                buf.get_mut(x, y).set_fg(self.style.bg).set_bg(self.style.fg);
+                buf.get_mut(x, y)
+                    .set_fg(self.style.bg)
+                    .set_bg(self.style.fg);
             }
         }
     }

@@ -95,11 +95,11 @@ impl Backend for TermionBackend {
     fn size(&self) -> Result<Rect, io::Error> {
         let terminal = try!(termion::terminal_size());
         Ok(Rect {
-            x: 0,
-            y: 0,
-            width: terminal.0,
-            height: terminal.1,
-        })
+               x: 0,
+               y: 0,
+               width: terminal.0,
+               height: terminal.1,
+           })
     }
 
     fn flush(&mut self) -> Result<(), io::Error> {
@@ -109,23 +109,33 @@ impl Backend for TermionBackend {
 }
 
 macro_rules! termion_fg {
-    ($color:ident) => (format!("{}", termion::color::Fg(termion::color::$color)));
+    ($color:ident) => (
+        format!("{}", termion::color::Fg(termion::color::$color))
+    );
 }
 
 macro_rules! termion_fg_rgb {
-    ($r:expr, $g:expr, $b:expr) => (format!("{}", termion::color::Fg(termion::color::Rgb($r, $g, $b))));
+    ($r:expr, $g:expr, $b:expr) => (
+        format!("{}", termion::color::Fg(termion::color::Rgb($r, $g, $b)))
+    );
 }
 
 macro_rules! termion_bg {
-    ($color:ident) => (format!("{}", termion::color::Bg(termion::color::$color)));
+    ($color:ident) => (
+        format!("{}", termion::color::Bg(termion::color::$color))
+    );
 }
 
 macro_rules! termion_bg_rgb {
-    ($r:expr, $g:expr, $b:expr) => (format!("{}", termion::color::Bg(termion::color::Rgb($r, $g, $b))));
+    ($r:expr, $g:expr, $b:expr) => (
+        format!("{}", termion::color::Bg(termion::color::Rgb($r, $g, $b)))
+    );
 }
 
 macro_rules! termion_modifier {
-    ($style:ident) => (format!("{}", termion::style::$style));
+    ($style:ident) => (
+        format!("{}", termion::style::$style)
+    );
 }
 
 impl Color {

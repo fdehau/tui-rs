@@ -12,8 +12,10 @@ use buffer::Buffer;
 use widgets::{Block, Widget};
 use layout::Rect;
 
-pub const DOTS: [[u16; 2]; 4] =
-    [[0x0001, 0x0008], [0x0002, 0x0010], [0x0004, 0x0020], [0x0040, 0x0080]];
+pub const DOTS: [[u16; 2]; 4] = [[0x0001, 0x0008],
+                                 [0x0002, 0x0010],
+                                 [0x0004, 0x0020],
+                                 [0x0040, 0x0080]];
 pub const BRAILLE_OFFSET: u16 = 0x2800;
 pub const BRAILLE_BLANK: char = '⠀';
 
@@ -90,8 +92,9 @@ impl<'a> Context<'a> {
         let right = self.x_bounds[1];
         let bottom = self.y_bounds[0];
         let top = self.y_bounds[1];
-        for (x, y) in shape.points()
-            .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top)) {
+        for (x, y) in shape
+                .points()
+                .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top)) {
             let dy = ((top - y) * (self.height - 1) as f64 * 4.0 / (top - bottom)) as usize;
             let dx = ((x - left) * (self.width - 1) as f64 * 2.0 / (right - left)) as usize;
             let index = dy / 4 * self.width as usize + dx / 2;
@@ -109,12 +112,13 @@ impl<'a> Context<'a> {
 
     /// Print a string on the canvas at the given position
     pub fn print(&mut self, x: f64, y: f64, text: &'a str, color: Color) {
-        self.labels.push(Label {
-            x: x,
-            y: y,
-            text: text,
-            color: color,
-        });
+        self.labels
+            .push(Label {
+                      x: x,
+                      y: y,
+                      text: text,
+                      color: color,
+                  });
     }
 
     /// Push the last layer if necessary
@@ -248,10 +252,11 @@ impl<'a, F> Widget for Canvas<'a, F>
 
             // Retreive painted points for each layer
             for layer in ctx.layers {
-                for (i, (ch, color)) in layer.string
-                    .chars()
-                    .zip(layer.colors.into_iter())
-                    .enumerate() {
+                for (i, (ch, color)) in layer
+                        .string
+                        .chars()
+                        .zip(layer.colors.into_iter())
+                        .enumerate() {
                     if ch != BRAILLE_BLANK {
                         let (x, y) = (i % width, i / width);
                         buf.get_mut(x as u16 + canvas_area.left(), y as u16 + canvas_area.top())
@@ -264,10 +269,13 @@ impl<'a, F> Widget for Canvas<'a, F>
 
             // Finally draw the labels
             let style = Style::default().bg(self.background_color);
-            for label in ctx.labels.iter().filter(|l| {
-                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
-                  l.y > self.y_bounds[1])
-            }) {
+            for label in ctx.labels
+                    .iter()
+                    .filter(|l| {
+                                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] ||
+                                  l.y < self.y_bounds[0] ||
+                                  l.y > self.y_bounds[1])
+                            }) {
                 let dy = ((self.y_bounds[1] - label.y) * (canvas_area.height - 1) as f64 /
                           (self.y_bounds[1] - self.y_bounds[0])) as u16;
                 let dx = ((label.x - self.x_bounds[0]) * (canvas_area.width - 1) as f64 /

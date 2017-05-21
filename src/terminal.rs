@@ -35,11 +35,11 @@ impl<B> Terminal<B>
     pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
         let size = try!(backend.size());
         Ok(Terminal {
-            backend: backend,
-            layout_cache: HashMap::new(),
-            buffers: [Buffer::empty(size), Buffer::empty(size)],
-            current: 0,
-        })
+               backend: backend,
+               layout_cache: HashMap::new(),
+               buffers: [Buffer::empty(size), Buffer::empty(size)],
+               current: 0,
+           })
     }
 
     pub fn backend(&self) -> &B {
@@ -80,13 +80,13 @@ impl<B> Terminal<B>
             .zip(self.buffers[1 - self.current].content.iter())
             .enumerate()
             .filter_map(|(i, (c, p))| if c != p {
-                let i = i as u16;
-                let x = i % width;
-                let y = i / width;
-                Some((x, y, c))
-            } else {
-                None
-            });
+                            let i = i as u16;
+                            let x = i % width;
+                            let y = i / width;
+                            Some((x, y, c))
+                        } else {
+                            None
+                        });
         self.backend.draw(content)
     }
 
@@ -123,7 +123,7 @@ impl<B> Terminal<B>
             self.layout_cache.insert(key, value);
         }
 
-        for (_, e) in &mut self.layout_cache {
+        for e in self.layout_cache.values_mut() {
             e.hot = false;
         }
 

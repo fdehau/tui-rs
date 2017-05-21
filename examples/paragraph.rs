@@ -40,13 +40,13 @@ fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
 
     Block::default()
         .style(Style::default().bg(Color::White))
-        .render(t, &size);
+        .render(t, size);
 
     Group::default()
         .direction(Direction::Vertical)
         .margin(5)
         .sizes(&[Size::Percent(100)])
-        .render(t, &size, |t, chunks| {
+        .render(t, size, |t, chunks| {
             Group::default()
                 .direction(Direction::Horizontal)
                 .sizes(&[Size::Percent(100)])

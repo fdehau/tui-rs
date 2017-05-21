@@ -389,17 +389,20 @@ impl<'a> Widget for Chart<'a> {
         for dataset in self.datasets {
             match dataset.marker {
                 Marker::Dot => {
-                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
-                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                          y < self.y_axis.bounds[0] ||
-                          y > self.y_axis.bounds[1])
-                    }) {
+                    for &(x, y) in dataset
+                            .data
+                            .iter()
+                            .filter(|&&(x, y)| {
+                                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
+                                          y < self.y_axis.bounds[0] ||
+                                          y > self.y_axis.bounds[1])
+                                    }) {
                         let dy = ((self.y_axis.bounds[1] - y) * (graph_area.height - 1) as f64 /
-                                  (self.y_axis.bounds[1] -
-                                   self.y_axis.bounds[0])) as u16;
+                                  (self.y_axis.bounds[1] - self.y_axis.bounds[0])) as
+                                 u16;
                         let dx = ((x - self.x_axis.bounds[0]) * (graph_area.width - 1) as f64 /
-                                  (self.x_axis.bounds[1] -
-                                   self.x_axis.bounds[0])) as u16;
+                                  (self.x_axis.bounds[1] - self.x_axis.bounds[0])) as
+                                 u16;
 
                         buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
                             .set_symbol(symbols::DOT)
@@ -413,11 +416,11 @@ impl<'a> Widget for Chart<'a> {
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
                         .paint(|ctx| {
-                            ctx.draw(&Points {
-                                coords: dataset.data,
-                                color: dataset.style.fg,
-                            });
-                        })
+                                   ctx.draw(&Points {
+                                                coords: dataset.data,
+                                                color: dataset.style.fg,
+                                            });
+                               })
                         .draw(&graph_area, buf);
                 }
             }

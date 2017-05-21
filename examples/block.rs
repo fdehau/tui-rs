@@ -39,14 +39,12 @@ fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
     // Wrapping block for a group
     // Just draw the block and the group on the same area and build the group
     // with at least a margin of 1
-    Block::default()
-        .borders(border::ALL)
-        .render(t, &size);
+    Block::default().borders(border::ALL).render(t, size);
     Group::default()
         .direction(Direction::Vertical)
         .margin(4)
         .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &size, |t, chunks| {
+        .render(t, size, |t, chunks| {
             Group::default()
                 .direction(Direction::Horizontal)
                 .sizes(&[Size::Percent(50), Size::Percent(50)])
@@ -59,9 +57,9 @@ fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
                     Block::default()
                         .title("Styled title")
                         .title_style(Style::default()
-                            .fg(Color::White)
-                            .bg(Color::Red)
-                            .modifier(Modifier::Bold))
+                                         .fg(Color::White)
+                                         .bg(Color::Red)
+                                         .modifier(Modifier::Bold))
                         .render(t, &chunks[1]);
                 });
             Group::default()

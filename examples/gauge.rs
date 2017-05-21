@@ -82,12 +82,10 @@ fn main() {
     });
 
     // Tick
-    thread::spawn(move || {
-        loop {
-            clock_tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
-        }
-    });
+    thread::spawn(move || loop {
+                      clock_tx.send(Event::Tick).unwrap();
+                      thread::sleep(time::Duration::from_millis(500));
+                  });
 
     // App
     let mut app = App::new();
@@ -127,7 +125,10 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
-        .sizes(&[Size::Percent(25), Size::Percent(25), Size::Percent(25), Size::Percent(25)])
+        .sizes(&[Size::Percent(25),
+                 Size::Percent(25),
+                 Size::Percent(25),
+                 Size::Percent(25)])
         .render(t, &app.size, |t, chunks| {
             Gauge::default()
                 .block(Block::default().title("Gauge1").borders(border::ALL))

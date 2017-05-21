@@ -88,8 +88,12 @@ impl<'a> Table<'a> {
     {
         self.rows = rows.iter()
             .map(|&(ref r, style)| {
-                (r.as_ref().iter().map(|i| i.as_ref()).collect::<Vec<&'a str>>(), style)
-            })
+                     (r.as_ref()
+                          .iter()
+                          .map(|i| i.as_ref())
+                          .collect::<Vec<&'a str>>(),
+                      style)
+                 })
             .collect::<Vec<(Vec<&'a str>, &'a Style)>>();
         self
     }

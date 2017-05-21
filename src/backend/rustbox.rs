@@ -33,12 +33,13 @@ impl Backend for RustboxBackend {
         let mut inst = 0;
         for (x, y, cell) in content {
             inst += 1;
-            self.rustbox.print(x as usize,
-                               y as usize,
-                               cell.style.modifier.into(),
-                               cell.style.fg.into(),
-                               cell.style.bg.into(),
-                               &cell.symbol);
+            self.rustbox
+                .print(x as usize,
+                       y as usize,
+                       cell.style.modifier.into(),
+                       cell.style.fg.into(),
+                       cell.style.bg.into(),
+                       &cell.symbol);
         }
         debug!("{} instructions outputed", inst);
         Ok(())
@@ -54,12 +55,12 @@ impl Backend for RustboxBackend {
         Ok(())
     }
     fn size(&self) -> Result<Rect, io::Error> {
-        Ok((Rect {
-            x: 0,
-            y: 0,
-            width: self.rustbox.width() as u16,
-            height: self.rustbox.height() as u16,
-        }))
+        Ok(Rect {
+               x: 0,
+               y: 0,
+               width: self.rustbox.width() as u16,
+               height: self.rustbox.height() as u16,
+           })
     }
     fn flush(&mut self) -> Result<(), io::Error> {
         self.rustbox.present();
@@ -68,7 +69,7 @@ impl Backend for RustboxBackend {
 }
 
 fn rgb_to_byte(r: u8, g: u8, b: u8) -> u16 {
-    ((((r & 255 & 0xC0) + ((g & 255 & 0xE0) >> 2) + ((b & 0xE0) >> 5))) & 0xFF) as u16
+    (((r & 255 & 0xC0) + ((g & 255 & 0xE0) >> 2) + ((b & 0xE0) >> 5)) & 0xFF) as u16
 }
 
 impl Into<rustbox::Color> for Color {

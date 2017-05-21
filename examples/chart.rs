@@ -85,12 +85,10 @@ fn main() {
     });
 
     // Tick
-    thread::spawn(move || {
-        loop {
-            clock_tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(500));
-        }
-    });
+    thread::spawn(move || loop {
+                      clock_tx.send(Event::Tick).unwrap();
+                      thread::sleep(time::Duration::from_millis(500));
+                  });
 
     // App
     let mut app = App::new();
@@ -129,25 +127,23 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
 
     Chart::default()
         .block(Block::default()
-            .title("Chart")
-            .title_style(Style::default()
-                .fg(Color::Cyan)
-                .modifier(Modifier::Bold))
-            .borders(border::ALL))
+                   .title("Chart")
+                   .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
+                   .borders(border::ALL))
         .x_axis(Axis::default()
-            .title("X Axis")
-            .style(Style::default().fg(Color::Gray))
-            .labels_style(Style::default().modifier(Modifier::Italic))
-            .bounds(app.window)
-            .labels(&[&format!("{}", app.window[0]),
-                      &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                      &format!("{}", app.window[1])]))
+                    .title("X Axis")
+                    .style(Style::default().fg(Color::Gray))
+                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .bounds(app.window)
+                    .labels(&[&format!("{}", app.window[0]),
+                             &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                             &format!("{}", app.window[1])]))
         .y_axis(Axis::default()
-            .title("Y Axis")
-            .style(Style::default().fg(Color::Gray))
-            .labels_style(Style::default().modifier(Modifier::Italic))
-            .bounds([-20.0, 20.0])
-            .labels(&["-20", "0", "20"]))
+                    .title("Y Axis")
+                    .style(Style::default().fg(Color::Gray))
+                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .bounds([-20.0, 20.0])
+                    .labels(&["-20", "0", "20"]))
         .datasets(&[Dataset::default()
                         .name("data2")
                         .marker(Marker::Dot)

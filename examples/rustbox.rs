@@ -40,10 +40,12 @@ fn draw(t: &mut Terminal<RustboxBackend>) {
         .render(t, &size, |t, chunks| {
             Paragraph::default()
                 .block(Block::default()
-                    .title("Rustbox backend")
-                    .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
-                    .borders(border::ALL)
-                    .border_style(Style::default().fg(Color::Magenta)))
+                           .title("Rustbox backend")
+                           .title_style(Style::default()
+                                            .fg(Color::Yellow)
+                                            .modifier(Modifier::Bold))
+                           .borders(border::ALL)
+                           .border_style(Style::default().fg(Color::Magenta)))
                 .text("It {yellow works}!")
                 .render(t, &chunks[0]);
         });
