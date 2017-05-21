@@ -11,7 +11,11 @@ RUSTUP_INSTALLED = $(shell command -v rustup 2> /dev/null)
 ifndef RUSTUP_INSTALLED
   CARGO = cargo
 else
-  CARGO = rustup run $(RUST_CHANNEL) cargo
+  ifdef NO_RUSTUP
+    CARGO = cargo
+  else
+    CARGO = rustup run $(RUST_CHANNEL) cargo
+  endif
 endif
 
 

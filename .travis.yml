@@ -1,9 +1,19 @@
 language: rust
+
 rust:
   - stable
   - beta
   - nightly
+
+cache: cargo
+
 matrix:
   allow_failures:
     - rust: nightly
     - rust: beta
+
+before_script:
+  - NO_RUSTUP=1 ./scripts/travis/before_script.sh
+
+script:
+  - NO_RUSTUP=1 ./scripts/travis/script.sh
