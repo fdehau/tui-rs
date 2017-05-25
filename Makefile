@@ -123,3 +123,14 @@ watch-test: ## Watch files changes and run the tests if any
 
 watch-doc: ## Watch file changes and rebuild the documentation if any
 	watchman-make -p 'src/**/*.rs' -t doc
+
+# ================================= Pipelines =================================
+
+stable: RUST_CHANNEL = stable
+stable: build test
+
+beta: RUST_CHANNEL = beta
+beta: build test
+
+nightly: RUST_CHANNEL = nightly
+nightly: build lint test
