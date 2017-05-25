@@ -41,9 +41,10 @@ tui = "0.1.1"
 
 ### Create the terminal interface
 
-The first thing to do is to choose from one of the two backends:
-
-For Termion:
+Every application using `tui` should start by instantiating a `Terminal`. It is
+a light abstraction over available backends that provides basic functionalities
+such as clearing the screen, hiding the cursor, etc. By default only the `termion`
+backend is available.
 
 ```rust
 use tui::Terminal;
@@ -55,7 +56,17 @@ fn main() {
 }
 ```
 
-For Rustbox:
+If for some reason, you might want to use the `rustbox` backend instead, you
+need the to replace your `tui` dependency specification by:
+
+```toml
+[dependencies.tui]
+version = "0.1.2"
+default-features = false
+features = ['rustbox']
+```
+
+and then create the terminal in a similar way:
 
 ```rust
 use tui::Terminal;
@@ -65,17 +76,6 @@ fn main() {
   let backend = RustboxBackend::new().unwrap();
   let mut terminal = Terminal::new(backend);
 }
-```
-
-By default both backends are enabled but you might want to use only one. To do
-so, you should disable the default-features for this library and specify the
-chosen backend in features.
-
-```toml
-[dependencies.tui]
-version = "0.1.1"
-default-features = false
-features = ['termion']
 ```
 
 ### Layout
