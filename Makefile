@@ -127,10 +127,10 @@ watch-doc: ## Watch file changes and rebuild the documentation if any
 # ================================= Pipelines =================================
 
 stable: RUST_CHANNEL = stable
-stable: build test
+stable: build test ## Run build and tests for stable
 
 beta: RUST_CHANNEL = beta
-beta: build test
+beta: build test ## Run build and tests for beta
 
 nightly: RUST_CHANNEL = nightly
-nightly: build lint test
+nightly: build lint test ## Run build, lint and tests for nightly
