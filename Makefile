@@ -95,7 +95,7 @@ fmt: ## Check the format of the source code
 
 clippy: RUST_CHANNEL = nightly
 clippy: ## Check the style of the source code and catch common errors
-	$(CARGO) clippy
+	$(CARGO) clippy --features="termion rustbox"
 
 
 # ================================ Test =======================================
