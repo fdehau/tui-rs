@@ -52,7 +52,7 @@ install-rustfmt: ## Intall rustfmt
 	$(RUSTFMT_INSTALL_CMD)
 
 
-CLIPPY_TARGET_VERSION = 0.0.134
+CLIPPY_TARGET_VERSION = 0.0.139
 CLIPPY_CURRENT_VERSION = $(shell $(CARGO) clippy --version 2>/dev/null)
 ifeq ("$(CLIPPY_CURRENT_VERSION)","")
   CLIPPY_INSTALL_CMD = @echo "Installing clippy $(CLIPPY_TARGET_VERSION)" \
