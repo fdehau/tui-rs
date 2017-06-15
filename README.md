@@ -30,13 +30,6 @@ comes from the terminal emulator than the library itself.
 Moreover, the library does not provide any input handling nor any event system and
 you may rely on the previously cited libraries to achieve such features.
 
-## Cargo.toml
-
-```toml
-[dependencies]
-tui = "0.1.1"
-```
-
 ## Get Started
 
 ### Create the terminal interface
@@ -61,7 +54,7 @@ need the to replace your `tui` dependency specification by:
 
 ```toml
 [dependencies.tui]
-version = "0.1.2"
+version = "0.1.3"
 default-features = false
 features = ['rustbox']
 ```
