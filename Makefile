@@ -79,7 +79,6 @@ check: ## Validate the project code
 build: ## Build the project in debug mode
 	$(CARGO) build $(CARGO_FLAGS)
 
-
 release: CARGO_FLAGS += --release
 release: build ## Build the project in release mode
 
