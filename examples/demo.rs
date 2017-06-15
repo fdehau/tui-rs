@@ -263,6 +263,7 @@ fn main() {
         }
     }
     terminal.show_cursor().unwrap();
+    terminal.clear().unwrap();
 }
 
 fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
