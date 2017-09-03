@@ -11,7 +11,7 @@ pub use self::rustbox::RustboxBackend;
 #[cfg(feature = "termion")]
 mod termion;
 #[cfg(feature = "termion")]
-pub use self::termion::TermionBackend;
+pub use self::termion::{TermionBackend, MouseBackend, RawBackend};
 
 pub trait Backend {
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
