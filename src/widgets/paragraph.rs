@@ -224,9 +224,9 @@ impl<'a, T> Iterator for Parser<'a, T>
 }
 
 impl<'a> Widget for Paragraph<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let text_area = match self.block {
-            Some(ref b) => {
+            Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }

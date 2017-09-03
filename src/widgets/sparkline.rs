@@ -68,9 +68,9 @@ impl<'a> Sparkline<'a> {
 }
 
 impl<'a> Widget for Sparkline<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let spark_area = match self.block {
-            Some(ref b) => {
+            Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }

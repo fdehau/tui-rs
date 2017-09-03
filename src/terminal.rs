@@ -91,7 +91,7 @@ impl<B> Terminal<B>
     }
 
     /// Calls the draw method of a given widget on the current buffer
-    pub fn render<W>(&mut self, widget: &W, area: &Rect)
+    pub fn render<W>(&mut self, widget: &mut W, area: &Rect)
         where W: Widget
     {
         widget.draw(area, &mut self.buffers[self.current]);

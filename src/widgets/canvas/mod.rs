@@ -221,9 +221,9 @@ impl<'a, F> Canvas<'a, F>
 impl<'a, F> Widget for Canvas<'a, F>
     where F: Fn(&mut Context)
 {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let canvas_area = match self.block {
-            Some(ref b) => {
+            Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }

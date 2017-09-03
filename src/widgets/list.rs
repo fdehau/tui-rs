@@ -48,9 +48,9 @@ impl<'a> List<'a> {
 }
 
 impl<'a> Widget for List<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let list_area = match self.block {
-            Some(ref b) => {
+            Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
@@ -156,10 +156,10 @@ impl<'a> SelectableList<'a> {
 }
 
 impl<'a> Widget for SelectableList<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
 
         let list_area = match self.block {
-            Some(ref b) => b.inner(area),
+            Some(ref mut b) => b.inner(area),
             None => *area,
         };
 
