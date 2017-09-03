@@ -1,6 +1,5 @@
 use std::iter;
 use std::fmt::Display;
-use std::cmp::min;
 use std::iter::Iterator;
 
 use unicode_width::UnicodeWidthStr;

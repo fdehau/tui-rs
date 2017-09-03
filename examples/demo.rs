@@ -17,7 +17,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, SelectableList, List, Gauge, Sparkline, Paragraph, border,
+use tui::widgets::{Widget, Block, SelectableList, List, Item, Gauge, Sparkline, Paragraph, border,
                    Chart, Axis, Dataset, BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
@@ -363,21 +363,18 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                             let warning_style = Style::default().fg(Color::Yellow);
                             let error_style = Style::default().fg(Color::Magenta);
                             let critical_style = Style::default().fg(Color::Red);
-                            List::default()
-                                .block(Block::default().borders(border::ALL).title("List"))
-                                .items(&app.events
-                                            .iter()
-                                            .map(|&(evt, level)| {
-                                    (format!("{}: {}", level, evt),
-                                     match level {
-                                         "ERROR" => &error_style,
-                                         "CRITICAL" => &critical_style,
-                                         "WARNING" => &warning_style,
-                                         _ => &info_style,
-                                     })
+                            List::new(app.events
+                                          .iter()
+                                          .map(|&(evt, level)| {
+                                Item::StyledData(format!("{}: {}", level, evt), match level {
+                                    "ERROR" => &error_style,
+                                    "CRITICAL" => &critical_style,
+                                    "WARNING" => &warning_style,
+                                    _ => &info_style,
                                 })
-                                            .collect::<Vec<(String, &Style)>>())
-                                .render(t, &chunks[1]);
+                            }))
+                                    .block(Block::default().borders(border::ALL).title("List"))
+                                    .render(t, &chunks[1]);
                         });
                     BarChart::default()
                         .block(Block::default().borders(border::ALL).title("Bar chart"))
