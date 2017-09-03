@@ -363,18 +363,19 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                             let warning_style = Style::default().fg(Color::Yellow);
                             let error_style = Style::default().fg(Color::Magenta);
                             let critical_style = Style::default().fg(Color::Red);
-                            List::new(app.events
-                                          .iter()
-                                          .map(|&(evt, level)| {
-                                Item::StyledData(format!("{}: {}", level, evt), match level {
-                                    "ERROR" => &error_style,
-                                    "CRITICAL" => &critical_style,
-                                    "WARNING" => &warning_style,
-                                    _ => &info_style,
-                                })
-                            }))
-                                    .block(Block::default().borders(border::ALL).title("List"))
-                                    .render(t, &chunks[1]);
+                            let events = app.events
+                                .iter()
+                                .map(|&(evt, level)| {
+                                    Item::StyledData(format!("{}: {}", level, evt), match level {
+                                        "ERROR" => &error_style,
+                                        "CRITICAL" => &critical_style,
+                                        "WARNING" => &warning_style,
+                                        _ => &info_style,
+                                    })
+                                });
+                            List::new(events)
+                                .block(Block::default().borders(border::ALL).title("List"))
+                                .render(t, &chunks[1]);
                         });
                     BarChart::default()
                         .block(Block::default().borders(border::ALL).title("Bar chart"))
