@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, SelectableList, List};
+use tui::widgets::{Widget, Block, border, SelectableList, List, Item};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
@@ -169,21 +169,18 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                 .highlight_symbol(">")
                 .render(t, &chunks[0]);
-            List::default()
-                .block(Block::default().borders(border::ALL).title("List"))
-                .items(&app.events
-                            .iter()
-                            .map(|&(evt, level)| {
-                    (format!("{}: {}", level, evt),
-                     match level {
-                         "ERROR" => &app.error_style,
-                         "CRITICAL" => &app.critical_style,
-                         "WARNING" => &app.warning_style,
-                         _ => &app.info_style,
-                     })
+            List::new(app.events
+                          .iter()
+                          .map(|&(evt, level)| {
+                                   Item::StyledData(format!("{}: {}", level, evt), match level {
+                    "ERROR" => &app.error_style,
+                    "CRITICAL" => &app.critical_style,
+                    "WARNING" => &app.warning_style,
+                    _ => &app.info_style,
                 })
-                            .collect::<Vec<(String, &Style)>>())
-                .render(t, &chunks[1]);
+                               }))
+                    .block(Block::default().borders(border::ALL).title("List"))
+                    .render(t, &chunks[1]);
         });
 
     t.draw().unwrap();
