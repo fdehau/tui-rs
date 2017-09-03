@@ -7,7 +7,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::Terminal;
-use tui::backend::TermionBackend;
+use tui::backend::MouseBackend;
 use tui::widgets::{Widget, Block, border, Table};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
@@ -35,7 +35,7 @@ impl<'a> App<'a> {
 
 fn main() {
     // Terminal initialization
-    let backend = TermionBackend::new().unwrap();
+    let backend = MouseBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
 
 
@@ -83,7 +83,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<TermionBackend>, app: &App) {
+fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
 
     Group::default()
         .direction(Direction::Horizontal)

@@ -6,13 +6,13 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::Terminal;
-use tui::backend::TermionBackend;
+use tui::backend::MouseBackend;
 use tui::widgets::{Widget, Block, border};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
 fn main() {
-    let mut terminal = Terminal::new(TermionBackend::new().unwrap()).unwrap();
+    let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
     let stdin = io::stdin();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
@@ -34,7 +34,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<TermionBackend>, size: &Rect) {
+fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
 
     // Wrapping block for a group
     // Just draw the block and the group on the same area and build the group

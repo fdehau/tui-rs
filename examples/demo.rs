@@ -16,7 +16,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::Terminal;
-use tui::backend::TermionBackend;
+use tui::backend::MouseBackend;
 use tui::widgets::{Widget, Block, SelectableList, List, Gauge, Sparkline, Paragraph, border,
                    Chart, Axis, Dataset, BarChart, Marker, Tabs, Table};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
@@ -193,7 +193,7 @@ fn main() {
                       }
                   });
 
-    let backend = TermionBackend::new().unwrap();
+    let backend = MouseBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
@@ -266,7 +266,7 @@ fn main() {
     terminal.clear().unwrap();
 }
 
-fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
+fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
 
     Group::default()
         .direction(Direction::Vertical)
@@ -293,7 +293,7 @@ fn draw(t: &mut Terminal<TermionBackend>, app: &App) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn draw_first_tab(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+fn draw_first_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(7), Size::Min(7), Size::Fixed(7)])
@@ -304,7 +304,7 @@ fn draw_first_tab(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
         });
 }
 
-fn draw_gauges(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+fn draw_gauges(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
 
     Block::default()
         .borders(border::ALL)
@@ -332,7 +332,7 @@ fn draw_gauges(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
         });
 }
 
-fn draw_charts(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
     let sizes = if app.show_chart {
         vec![Size::Percent(50), Size::Percent(50)]
     } else {
@@ -430,7 +430,7 @@ fn draw_charts(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
         });
 }
 
-fn draw_text(t: &mut Terminal<TermionBackend>, area: &Rect) {
+fn draw_text(t: &mut Terminal<MouseBackend>, area: &Rect) {
     Paragraph::default()
         .block(Block::default()
                .borders(border::ALL)
@@ -449,7 +449,7 @@ fn draw_text(t: &mut Terminal<TermionBackend>, area: &Rect) {
         .render(t, area);
 }
 
-fn draw_second_tab(t: &mut Terminal<TermionBackend>, app: &App, area: &Rect) {
+fn draw_second_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
     Group::default()
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(30), Size::Percent(70)])
