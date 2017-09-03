@@ -1,5 +1,7 @@
 use std::iter;
+use std::fmt::Display;
 use std::cmp::min;
+use std::iter::Iterator;
 
 use unicode_width::UnicodeWidthStr;
 
@@ -8,46 +10,64 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Style;
 
+pub enum Item<'a, D: 'a> {
+    Data(D),
+    StyledData(D, &'a Style),
+}
 
-pub struct List<'a> {
+pub struct List<'a, L, D: 'a>
+    where L: Iterator<Item = Item<'a, D>>
+{
     block: Option<Block<'a>>,
-    items: Vec<(&'a str, &'a Style)>,
+    items: L,
     style: Style,
 }
 
-impl<'a> Default for List<'a> {
-    fn default() -> List<'a> {
+impl<'a, L, D> Default for List<'a, L, D>
+    where L: Iterator<Item = Item<'a, D>> + Default
+{
+    fn default() -> List<'a, L, D> {
         List {
             block: None,
-            items: Vec::new(),
+            items: L::default(),
             style: Default::default(),
         }
     }
 }
 
-impl<'a> List<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a> {
+impl<'a, L, D> List<'a, L, D>
+    where L: Iterator<Item = Item<'a, D>>
+{
+    pub fn new(items: L) -> List<'a, L, D> {
+        List {
+            block: None,
+            items: items,
+            style: Default::default(),
+        }
+    }
+
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a, L, D> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I>(&'a mut self, items: &'a [(I, &'a Style)]) -> &mut List<'a>
-        where I: AsRef<str> + 'a
-    {
-        self.items = items
-            .iter()
-            .map(|&(ref i, s)| (i.as_ref(), s))
-            .collect::<Vec<(&'a str, &'a Style)>>();
+    pub fn items<I: IntoIterator<Item = Item<'a, D>>>(&'a mut self,
+                                                      items: L)
+                                                      -> &mut List<'a, L, D> {
+        self.items = items;
         self
     }
 
-    pub fn style(&'a mut self, style: Style) -> &mut List<'a> {
+    pub fn style(&'a mut self, style: Style) -> &mut List<'a, L, D> {
         self.style = style;
         self
     }
 }
 
-impl<'a> Widget for List<'a> {
+impl<'a, L, D> Widget for List<'a, L, D>
+    where L: Iterator<Item = Item<'a, D>>,
+          D: Display
+{
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let list_area = match self.block {
             Some(ref mut b) => {
@@ -63,13 +83,26 @@ impl<'a> Widget for List<'a> {
 
         self.background(&list_area, buf, self.style.bg);
 
-        let max_index = min(self.items.len(), list_area.height as usize);
-        for (i, &(item, style)) in self.items.iter().enumerate().take(max_index) {
-            buf.set_stringn(list_area.left(),
-                            list_area.top() + i as u16,
-                            item.as_ref(),
-                            list_area.width as usize,
-                            style);
+        for (i, item) in self.items
+                .by_ref()
+                .enumerate()
+                .take(list_area.height as usize) {
+            match item {
+                Item::Data(ref v) => {
+                    buf.set_stringn(list_area.left(),
+                                    list_area.top() + i as u16,
+                                    &format!("{}", v),
+                                    list_area.width as usize,
+                                    &Style::default());
+                }
+                Item::StyledData(ref v, ref s) => {
+                    buf.set_stringn(list_area.left(),
+                                    list_area.top() + i as u16,
+                                    &format!("{}", v),
+                                    list_area.width as usize,
+                                    s);
+                }
+            };
         }
     }
 }
@@ -180,22 +213,19 @@ impl<'a> Widget for SelectableList<'a> {
         } else {
             0
         };
-        let items = self.items
-            .iter()
-            .cloned()
-            .enumerate()
-            .map(|(i, item)| if i == selected {
-                     (format!("{} {}", highlight_symbol, item), highlight_style)
-                 } else {
-                     (format!("{} {}", blank_symbol, item), &self.style)
-                 })
-            .skip(offset as usize)
-            .collect::<Vec<(String, &Style)>>();
 
         // Render items
-        List::default()
-            .block(self.block.unwrap_or_default())
-            .items(&items)
-            .draw(area, buf);
+        List::new(self.items
+                      .iter()
+                      .enumerate()
+                      .map(|(i, item)| if i == selected {
+                               Item::StyledData(format!("{} {}", highlight_symbol, item),
+                                                highlight_style)
+                           } else {
+                               Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                           })
+                      .skip(offset as usize))
+                .block(self.block.unwrap_or_default())
+                .draw(area, buf);
     }
 }
