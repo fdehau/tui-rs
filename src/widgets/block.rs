@@ -99,7 +99,7 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
 
         if area.width < 2 || area.height < 2 {
             return;

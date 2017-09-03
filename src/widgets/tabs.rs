@@ -75,10 +75,10 @@ impl<'a> Tabs<'a> {
 }
 
 impl<'a> Widget for Tabs<'a> {
-    fn draw(&self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
 
         let tabs_area = match self.block {
-            Some(b) => {
+            Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
