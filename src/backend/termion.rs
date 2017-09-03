@@ -3,25 +3,41 @@ extern crate termion;
 use std::io;
 use std::io::Write;
 
-use self::termion::raw::{IntoRawMode, RawTerminal};
+use self::termion::raw::IntoRawMode;
 
 use super::Backend;
 use buffer::Cell;
 use layout::Rect;
 use style::{Style, Color, Modifier};
 
-pub struct TermionBackend {
-    stdout: RawTerminal<io::Stdout>,
+pub struct TermionBackend<W>
+    where W: Write
+{
+    stdout: W,
 }
 
-impl TermionBackend {
-    pub fn new() -> Result<TermionBackend, io::Error> {
-        let stdout = try!(io::stdout().into_raw_mode());
-        Ok(TermionBackend { stdout: stdout })
+pub type RawBackend = TermionBackend<termion::raw::RawTerminal<io::Stdout>>;
+pub type MouseBackend =
+    TermionBackend<termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>>;
+
+impl RawBackend {
+    pub fn new() -> Result<RawBackend, io::Error> {
+        let raw = io::stdout().into_raw_mode()?;
+        Ok(TermionBackend { stdout: raw })
     }
 }
 
-impl Backend for TermionBackend {
+impl MouseBackend {
+    pub fn new() -> Result<MouseBackend, io::Error> {
+        let raw = io::stdout().into_raw_mode()?;
+        let mouse = termion::input::MouseTerminal::from(raw);
+        Ok(TermionBackend { stdout: mouse })
+    }
+}
+
+impl<W> Backend for TermionBackend<W>
+    where W: Write
+{
     /// Clears the entire screen and move the cursor to the top left of the screen
     fn clear(&mut self) -> Result<(), io::Error> {
         write!(self.stdout, "{}", termion::clear::All)?;
