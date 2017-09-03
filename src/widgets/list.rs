@@ -9,23 +9,23 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Style;
 
-pub enum Item<'a, D: 'a> {
+pub enum Item<'i, D: 'i> {
     Data(D),
-    StyledData(D, &'a Style),
+    StyledData(D, &'i Style),
 }
 
-pub struct List<'a, L, D: 'a>
-    where L: Iterator<Item = Item<'a, D>>
+pub struct List<'b, 'i, L, D: 'i>
+    where L: Iterator<Item = Item<'i, D>>
 {
-    block: Option<Block<'a>>,
+    block: Option<Block<'b>>,
     items: L,
     style: Style,
 }
 
-impl<'a, L, D> Default for List<'a, L, D>
-    where L: Iterator<Item = Item<'a, D>> + Default
+impl<'b, 'i, L, D> Default for List<'b, 'i, L, D>
+    where L: Iterator<Item = Item<'i, D>> + Default
 {
-    fn default() -> List<'a, L, D> {
+    fn default() -> List<'b, 'i, L, D> {
         List {
             block: None,
             items: L::default(),
@@ -34,10 +34,10 @@ impl<'a, L, D> Default for List<'a, L, D>
     }
 }
 
-impl<'a, L, D> List<'a, L, D>
-    where L: Iterator<Item = Item<'a, D>>
+impl<'b, 'i, L, D> List<'b, 'i, L, D>
+    where L: Iterator<Item = Item<'i, D>>
 {
-    pub fn new(items: L) -> List<'a, L, D> {
+    pub fn new(items: L) -> List<'b, 'i, L, D> {
         List {
             block: None,
             items: items,
@@ -45,26 +45,26 @@ impl<'a, L, D> List<'a, L, D>
         }
     }
 
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut List<'a, L, D> {
+    pub fn block(&'b mut self, block: Block<'b>) -> &mut List<'b, 'i, L, D> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I: IntoIterator<Item = Item<'a, D>>>(&'a mut self,
-                                                      items: L)
-                                                      -> &mut List<'a, L, D> {
-        self.items = items;
+    pub fn items<I>(&'b mut self, items: I) -> &mut List<'b, 'i, L, D>
+        where I: IntoIterator<Item = Item<'i, D>, IntoIter = L>
+    {
+        self.items = items.into_iter();
         self
     }
 
-    pub fn style(&'a mut self, style: Style) -> &mut List<'a, L, D> {
+    pub fn style(&'b mut self, style: Style) -> &mut List<'b, 'i, L, D> {
         self.style = style;
         self
     }
 }
 
-impl<'a, L, D> Widget for List<'a, L, D>
-    where L: Iterator<Item = Item<'a, D>>,
+impl<'b, 'i, L, D> Widget for List<'b, 'i, L, D>
+    where L: Iterator<Item = Item<'i, D>>,
           D: Display
 {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
@@ -126,10 +126,10 @@ impl<'a, L, D> Widget for List<'a, L, D>
 ///     .highlight_symbol(">>");
 /// # }
 /// ```
-pub struct SelectableList<'a> {
-    block: Option<Block<'a>>,
+pub struct SelectableList<'b> {
+    block: Option<Block<'b>>,
     /// Items to be displayed
-    items: Vec<&'a str>,
+    items: Vec<&'b str>,
     /// Index of the one selected
     selected: Option<usize>,
     /// Base style of the widget
@@ -137,11 +137,11 @@ pub struct SelectableList<'a> {
     /// Style used to render selected item
     highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
-    highlight_symbol: Option<&'a str>,
+    highlight_symbol: Option<&'b str>,
 }
 
-impl<'a> Default for SelectableList<'a> {
-    fn default() -> SelectableList<'a> {
+impl<'b> Default for SelectableList<'b> {
+    fn default() -> SelectableList<'b> {
         SelectableList {
             block: None,
             items: Vec::new(),
@@ -153,41 +153,41 @@ impl<'a> Default for SelectableList<'a> {
     }
 }
 
-impl<'a> SelectableList<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut SelectableList<'a> {
+impl<'b> SelectableList<'b> {
+    pub fn block(&'b mut self, block: Block<'b>) -> &mut SelectableList<'b> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I>(&'a mut self, items: &'a [I]) -> &mut SelectableList<'a>
-        where I: AsRef<str> + 'a
+    pub fn items<I>(&'b mut self, items: &'b [I]) -> &mut SelectableList<'b>
+        where I: AsRef<str> + 'b
     {
         self.items = items.iter().map(|i| i.as_ref()).collect::<Vec<&str>>();
         self
     }
 
-    pub fn style(&'a mut self, style: Style) -> &mut SelectableList<'a> {
+    pub fn style(&'b mut self, style: Style) -> &mut SelectableList<'b> {
         self.style = style;
         self
     }
 
-    pub fn highlight_symbol(&'a mut self, highlight_symbol: &'a str) -> &mut SelectableList<'a> {
+    pub fn highlight_symbol(&'b mut self, highlight_symbol: &'b str) -> &mut SelectableList<'b> {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
 
-    pub fn highlight_style(&'a mut self, highlight_style: Style) -> &mut SelectableList<'a> {
+    pub fn highlight_style(&'b mut self, highlight_style: Style) -> &mut SelectableList<'b> {
         self.highlight_style = highlight_style;
         self
     }
 
-    pub fn select(&'a mut self, index: usize) -> &'a mut SelectableList<'a> {
+    pub fn select(&'b mut self, index: usize) -> &'b mut SelectableList<'b> {
         self.selected = Some(index);
         self
     }
 }
 
-impl<'a> Widget for SelectableList<'a> {
+impl<'b> Widget for SelectableList<'b> {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
 
         let list_area = match self.block {
@@ -214,17 +214,17 @@ impl<'a> Widget for SelectableList<'a> {
         };
 
         // Render items
-        List::new(self.items
-                      .iter()
-                      .enumerate()
-                      .map(|(i, item)| if i == selected {
-                               Item::StyledData(format!("{} {}", highlight_symbol, item),
-                                                highlight_style)
-                           } else {
-                               Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
-                           })
-                      .skip(offset as usize))
-                .block(self.block.unwrap_or_default())
-                .draw(area, buf);
+        let items = self.items
+            .iter()
+            .enumerate()
+            .map(|(i, item)| if i == selected {
+                     Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
+                 } else {
+                     Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                 })
+            .skip(offset as usize);
+        List::new(items)
+            .block(self.block.unwrap_or_default())
+            .draw(area, buf);
     }
 }
