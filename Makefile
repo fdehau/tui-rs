@@ -32,7 +32,7 @@ help: ## Print all the available commands
 
 install: install-rustfmt install-clippy ## Install tools dependencies
 
-RUSTFMT_TARGET_VERSION = 0.8.4
+RUSTFMT_TARGET_VERSION = 0.9.0
 RUSTFMT = $(shell command -v rustfmt 2> /dev/null)
 ifeq ("$(RUSTFMT)","")
   RUSTFMT_INSTALL_CMD = @echo "Installing rustfmt $(RUSTFMT_TARGET_VERSION)" \
