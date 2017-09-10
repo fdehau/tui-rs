@@ -17,7 +17,7 @@ pub use self::sparkline::Sparkline;
 pub use self::chart::{Chart, Axis, Dataset, Marker};
 pub use self::barchart::BarChart;
 pub use self::tabs::Tabs;
-pub use self::table::Table;
+pub use self::table::{Table, Row};
 
 use buffer::Buffer;
 use layout::Rect;
@@ -60,8 +60,9 @@ pub trait Widget {
     }
     /// Helper method that can be chained with a widget's builder methods to render it.
     fn render<B>(&mut self, t: &mut Terminal<B>, area: &Rect)
-        where Self: Sized,
-              B: Backend
+    where
+        Self: Sized,
+        B: Backend,
     {
         t.render(self, area);
     }
