@@ -8,7 +8,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, Table};
+use tui::widgets::{Widget, Block, border, Table, Row};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
 
@@ -22,12 +22,14 @@ impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
             size: Rect::default(),
-            items: vec![vec!["Row12", "Row12", "Row13"],
-                        vec!["Row21", "Row22", "Row23"],
-                        vec!["Row31", "Row32", "Row33"],
-                        vec!["Row41", "Row42", "Row43"],
-                        vec!["Row41", "Row42", "Row43"],
-                        vec!["Row41", "Row42", "Row43"]],
+            items: vec![
+                vec!["Row12", "Row12", "Row13"],
+                vec!["Row21", "Row22", "Row23"],
+                vec!["Row31", "Row32", "Row33"],
+                vec!["Row41", "Row42", "Row43"],
+                vec!["Row51", "Row52", "Row53"],
+                vec!["Row61", "Row62", "Row63"],
+            ],
             selected: 0,
         }
     }
@@ -81,6 +83,7 @@ fn main() {
     }
 
     terminal.show_cursor().unwrap();
+    terminal.clear().unwrap();
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
@@ -92,22 +95,17 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .render(t, &app.size, |t, chunks| {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
             let normal_style = Style::default().fg(Color::White);
-            Table::default()
-                .block(Block::default().borders(border::ALL).title("Table"))
-                .header(&["Header1", "Header2", "Header3"])
+            Table::new(
+                ["Header1", "Header2", "Header3"].into_iter(),
+                app.items.iter().enumerate().map(|(i, item)| if i ==
+                    app.selected
+                {
+                    Row::StyledData(item.into_iter(), &selected_style)
+                } else {
+                    Row::StyledData(item.into_iter(), &normal_style)
+                }),
+            ).block(Block::default().borders(border::ALL).title("Table"))
                 .widths(&[10, 10, 10])
-                .rows(&app.items
-                           .iter()
-                           .enumerate()
-                           .map(|(i, item)| {
-                                    (item,
-                                     if i == app.selected {
-                                         &selected_style
-                                     } else {
-                                         &normal_style
-                                     })
-                                })
-                           .collect::<Vec<(&Vec<&str>, &Style)>>())
                 .render(t, &chunks[0]);
         });
 
