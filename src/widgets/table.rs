@@ -6,6 +6,7 @@ use widgets::{Widget, Block};
 use layout::Rect;
 use style::Style;
 
+/// Holds data to be displayed in a Table widget
 pub enum Row<'i, D, I>
 where
     D: Iterator<Item = I>,
@@ -15,25 +16,29 @@ where
     StyledData(D, &'i Style),
 }
 
-/// A widget to display data in formatted column
+/// A widget to display data in formatted columns
 ///
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, border, Table};
+/// # use tui::widgets::{Block, border, Table, Row};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// let row_style = Style::default().fg(Color::White);
-/// Table::default()
+/// Table::new(
+///         ["Col1", "Col2", "Col3"].into_iter(),
+///         vec![
+///             Row::StyledData(["Row11", "Row12", "Row13"].into_iter(), &row_style),
+///             Row::StyledData(["Row21", "Row22", "Row23"].into_iter(), &row_style),
+///             Row::StyledData(["Row31", "Row32", "Row33"].into_iter(), &row_style),
+///             Row::Data(["Row41", "Row42", "Row43"].into_iter())
+///         ].into_iter()
+///     )
 ///     .block(Block::default().title("Table"))
-///     .header(&["Col1", "Col2", "Col3"])
 ///     .header_style(Style::default().fg(Color::Yellow))
 ///     .widths(&[5, 5, 10])
 ///     .style(Style::default().fg(Color::White))
-///     .column_spacing(1)
-///     .rows(&[(&["Row11", "Row12", "Row13"], &row_style),
-///             (&["Row21", "Row22", "Row23"], &row_style),
-///             (&["Row31", "Row32", "Row33"], &row_style)]);
+///     .column_spacing(1);
 /// # }
 /// ```
 pub struct Table<'a, 'i, T, H, I, D, R>
@@ -167,7 +172,7 @@ where
         // Set the background
         self.background(&table_area, buf, self.style.bg);
 
-        // Save the widths of the columns that will fit in the given area
+        // Save widths of the columns that will fit in the given area
         let mut x = 0;
         let mut widths = Vec::with_capacity(self.widths.len());
         for width in self.widths.iter() {
@@ -179,7 +184,7 @@ where
 
         let mut y = table_area.top();
 
-        // Draw the header
+        // Draw header
         if y < table_area.bottom() {
             x = table_area.left();
             for (w, t) in widths.iter().zip(self.header.by_ref()) {
