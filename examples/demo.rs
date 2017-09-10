@@ -18,7 +18,7 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::widgets::{Widget, Block, SelectableList, List, Item, Gauge, Sparkline, Paragraph, border,
-                   Chart, Axis, Dataset, BarChart, Marker, Tabs, Table};
+                   Chart, Axis, Dataset, BarChart, Marker, Tabs, Table, Row};
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
 use tui::layout::{Group, Direction, Size, Rect};
 use tui::style::{Style, Color, Modifier};
@@ -73,35 +73,60 @@ fn main() {
 
     let mut app = App {
         size: Rect::default(),
-        items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
-                    "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16",
-                    "Item17", "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24"],
-        events: vec![("Event1", "INFO"),
-                     ("Event2", "INFO"),
-                     ("Event3", "CRITICAL"),
-                     ("Event4", "ERROR"),
-                     ("Event5", "INFO"),
-                     ("Event6", "INFO"),
-                     ("Event7", "WARNING"),
-                     ("Event8", "INFO"),
-                     ("Event9", "INFO"),
-                     ("Event10", "INFO"),
-                     ("Event11", "CRITICAL"),
-                     ("Event12", "INFO"),
-                     ("Event13", "INFO"),
-                     ("Event14", "INFO"),
-                     ("Event15", "INFO"),
-                     ("Event16", "INFO"),
-                     ("Event17", "ERROR"),
-                     ("Event18", "ERROR"),
-                     ("Event19", "INFO"),
-                     ("Event20", "INFO"),
-                     ("Event21", "WARNING"),
-                     ("Event22", "INFO"),
-                     ("Event23", "INFO"),
-                     ("Event24", "WARNING"),
-                     ("Event25", "INFO"),
-                     ("Event26", "INFO")],
+        items: vec![
+            "Item1",
+            "Item2",
+            "Item3",
+            "Item4",
+            "Item5",
+            "Item6",
+            "Item7",
+            "Item8",
+            "Item9",
+            "Item10",
+            "Item11",
+            "Item12",
+            "Item13",
+            "Item14",
+            "Item15",
+            "Item16",
+            "Item17",
+            "Item18",
+            "Item19",
+            "Item20",
+            "Item21",
+            "Item22",
+            "Item23",
+            "Item24",
+        ],
+        events: vec![
+            ("Event1", "INFO"),
+            ("Event2", "INFO"),
+            ("Event3", "CRITICAL"),
+            ("Event4", "ERROR"),
+            ("Event5", "INFO"),
+            ("Event6", "INFO"),
+            ("Event7", "WARNING"),
+            ("Event8", "INFO"),
+            ("Event9", "INFO"),
+            ("Event10", "INFO"),
+            ("Event11", "CRITICAL"),
+            ("Event12", "INFO"),
+            ("Event13", "INFO"),
+            ("Event14", "INFO"),
+            ("Event15", "INFO"),
+            ("Event16", "INFO"),
+            ("Event17", "ERROR"),
+            ("Event18", "ERROR"),
+            ("Event19", "INFO"),
+            ("Event20", "INFO"),
+            ("Event21", "WARNING"),
+            ("Event22", "INFO"),
+            ("Event23", "INFO"),
+            ("Event24", "WARNING"),
+            ("Event25", "INFO"),
+            ("Event26", "INFO"),
+        ],
         selected: 0,
         tabs: MyTabs {
             titles: vec!["Tab0", "Tab1"],
@@ -112,57 +137,61 @@ fn main() {
         data: rand_signal.clone().take(300).collect(),
         data2: sin_signal.clone().take(100).collect(),
         data3: sin_signal2.clone().take(200).collect(),
-        data4: vec![("B1", 9),
-                    ("B2", 12),
-                    ("B3", 5),
-                    ("B4", 8),
-                    ("B5", 2),
-                    ("B6", 4),
-                    ("B7", 5),
-                    ("B8", 9),
-                    ("B9", 14),
-                    ("B10", 15),
-                    ("B11", 1),
-                    ("B12", 0),
-                    ("B13", 4),
-                    ("B14", 6),
-                    ("B15", 4),
-                    ("B16", 6),
-                    ("B17", 4),
-                    ("B18", 7),
-                    ("B19", 13),
-                    ("B20", 8),
-                    ("B21", 11),
-                    ("B22", 9),
-                    ("B23", 3),
-                    ("B24", 5)],
+        data4: vec![
+            ("B1", 9),
+            ("B2", 12),
+            ("B3", 5),
+            ("B4", 8),
+            ("B5", 2),
+            ("B6", 4),
+            ("B7", 5),
+            ("B8", 9),
+            ("B9", 14),
+            ("B10", 15),
+            ("B11", 1),
+            ("B12", 0),
+            ("B13", 4),
+            ("B14", 6),
+            ("B15", 4),
+            ("B16", 6),
+            ("B17", 4),
+            ("B18", 7),
+            ("B19", 13),
+            ("B20", 8),
+            ("B21", 11),
+            ("B22", 9),
+            ("B23", 3),
+            ("B24", 5),
+        ],
         window: [0.0, 20.0],
         colors: [Color::Magenta, Color::Red],
         color_index: 0,
-        servers: vec![Server {
-                          name: "NorthAmerica-1",
-                          location: "New York City",
-                          coords: (40.71, -74.00),
-                          status: "Up",
-                      },
-                      Server {
-                          name: "Europe-1",
-                          location: "Paris",
-                          coords: (48.85, 2.35),
-                          status: "Failure",
-                      },
-                      Server {
-                          name: "SouthAmerica-1",
-                          location: "São Paulo",
-                          coords: (-23.54, -46.62),
-                          status: "Up",
-                      },
-                      Server {
-                          name: "Asia-1",
-                          location: "Singapore",
-                          coords: (1.35, 103.86),
-                          status: "Up",
-                      }],
+        servers: vec![
+            Server {
+                name: "NorthAmerica-1",
+                location: "New York City",
+                coords: (40.71, -74.00),
+                status: "Up",
+            },
+            Server {
+                name: "Europe-1",
+                location: "Paris",
+                coords: (48.85, 2.35),
+                status: "Failure",
+            },
+            Server {
+                name: "SouthAmerica-1",
+                location: "São Paulo",
+                coords: (-23.54, -46.62),
+                status: "Up",
+            },
+            Server {
+                name: "Asia-1",
+                location: "Singapore",
+                coords: (1.35, 103.86),
+                status: "Up",
+            },
+        ],
     };
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
@@ -186,12 +215,12 @@ fn main() {
     });
 
     thread::spawn(move || {
-                      let tx = tx.clone();
-                      loop {
-                          tx.send(Event::Tick).unwrap();
-                          thread::sleep(time::Duration::from_millis(200));
-                      }
-                  });
+        let tx = tx.clone();
+        loop {
+            tx.send(Event::Tick).unwrap();
+            thread::sleep(time::Duration::from_millis(200));
+        }
+    });
 
     let backend = MouseBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
@@ -317,10 +346,12 @@ fn draw_gauges(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
         .render(t, area, |t, chunks| {
             Gauge::default()
                 .block(Block::default().title("Gauge:"))
-                .style(Style::default()
-                           .fg(Color::Magenta)
-                           .bg(Color::Black)
-                           .modifier(Modifier::Italic))
+                .style(
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .bg(Color::Black)
+                        .modifier(Modifier::Italic),
+                )
                 .label(&format!("{} / 100", app.progress))
                 .percent(app.progress)
                 .render(t, &chunks[0]);
@@ -354,25 +385,26 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                                 .block(Block::default().borders(border::ALL).title("List"))
                                 .items(&app.items)
                                 .select(app.selected)
-                                .highlight_style(Style::default()
-                                                     .fg(Color::Yellow)
-                                                     .modifier(Modifier::Bold))
+                                .highlight_style(
+                                    Style::default().fg(Color::Yellow).modifier(Modifier::Bold),
+                                )
                                 .highlight_symbol(">")
                                 .render(t, &chunks[0]);
                             let info_style = Style::default().fg(Color::White);
                             let warning_style = Style::default().fg(Color::Yellow);
                             let error_style = Style::default().fg(Color::Magenta);
                             let critical_style = Style::default().fg(Color::Red);
-                            let events = app.events
-                                .iter()
-                                .map(|&(evt, level)| {
-                                    Item::StyledData(format!("{}: {}", level, evt), match level {
+                            let events = app.events.iter().map(|&(evt, level)| {
+                                Item::StyledData(
+                                    format!("{}: {}", level, evt),
+                                    match level {
                                         "ERROR" => &error_style,
                                         "CRITICAL" => &critical_style,
                                         "WARNING" => &warning_style,
                                         _ => &info_style,
-                                    })
-                                });
+                                    },
+                                )
+                            });
                             List::new(events)
                                 .block(Block::default().borders(border::ALL).title("List"))
                                 .render(t, &chunks[1]);
@@ -382,47 +414,60 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                         .data(&app.data4)
                         .bar_width(3)
                         .bar_gap(2)
-                        .value_style(Style::default()
-                                         .fg(Color::Black)
-                                         .bg(Color::Green)
-                                         .modifier(Modifier::Italic))
+                        .value_style(
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Green)
+                                .modifier(Modifier::Italic),
+                        )
                         .label_style(Style::default().fg(Color::Yellow))
                         .style(Style::default().fg(Color::Green))
                         .render(t, &chunks[1]);
                 });
             if app.show_chart {
                 Chart::default()
-                    .block(Block::default()
-                               .title("Chart")
-                               .title_style(Style::default()
-                                                .fg(Color::Cyan)
-                                                .modifier(Modifier::Bold))
-                               .borders(border::ALL))
-                    .x_axis(Axis::default()
-                                .title("X Axis")
-                                .style(Style::default().fg(Color::Gray))
-                                .labels_style(Style::default().modifier(Modifier::Italic))
-                                .bounds(app.window)
-                                .labels(&[&format!("{}", app.window[0]),
-                                         &format!("{}",
-                                                 (app.window[0] + app.window[1]) / 2.0),
-                                         &format!("{}", app.window[1])]))
-                    .y_axis(Axis::default()
-                                .title("Y Axis")
-                                .style(Style::default().fg(Color::Gray))
-                                .labels_style(Style::default().modifier(Modifier::Italic))
-                                .bounds([-20.0, 20.0])
-                                .labels(&["-20", "0", "20"]))
-                    .datasets(&[Dataset::default()
-                                    .name("data2")
-                                    .marker(Marker::Dot)
-                                    .style(Style::default().fg(Color::Cyan))
-                                    .data(&app.data2),
-                                Dataset::default()
-                                    .name("data3")
-                                    .marker(Marker::Braille)
-                                    .style(Style::default().fg(Color::Yellow))
-                                    .data(&app.data3)])
+                    .block(
+                        Block::default()
+                            .title("Chart")
+                            .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
+                            .borders(border::ALL),
+                    )
+                    .x_axis(
+                        Axis::default()
+                            .title("X Axis")
+                            .style(Style::default().fg(Color::Gray))
+                            .labels_style(Style::default().modifier(Modifier::Italic))
+                            .bounds(app.window)
+                            .labels(
+                                &[
+                                    &format!("{}", app.window[0]),
+                                    &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                                    &format!("{}", app.window[1]),
+                                ],
+                            ),
+                    )
+                    .y_axis(
+                        Axis::default()
+                            .title("Y Axis")
+                            .style(Style::default().fg(Color::Gray))
+                            .labels_style(Style::default().modifier(Modifier::Italic))
+                            .bounds([-20.0, 20.0])
+                            .labels(&["-20", "0", "20"]),
+                    )
+                    .datasets(
+                        &[
+                            Dataset::default()
+                                .name("data2")
+                                .marker(Marker::Dot)
+                                .style(Style::default().fg(Color::Cyan))
+                                .data(&app.data2),
+                            Dataset::default()
+                                .name("data3")
+                                .marker(Marker::Braille)
+                                .style(Style::default().fg(Color::Yellow))
+                                .data(&app.data3),
+                        ],
+                    )
                     .render(t, &chunks[1]);
             }
         });
@@ -454,41 +499,38 @@ fn draw_second_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
         .render(t, area, |t, chunks| {
             let up_style = Style::default().fg(Color::Green);
             let failure_style = Style::default().fg(Color::Red);
-            Table::default()
-                .block(Block::default().title("Servers").borders(border::ALL))
-                .header(&["Server", "Location", "Status"])
+            Table::new(
+                ["Server", "Location", "Status"].into_iter(),
+                app.servers.iter().map(|s| {
+                    let style = if s.status == "Up" {
+                        &up_style
+                    } else {
+                        &failure_style
+                    };
+                    Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
+                }),
+            ).block(Block::default().title("Servers").borders(border::ALL))
                 .header_style(Style::default().fg(Color::Yellow))
                 .widths(&[15, 15, 10])
-                .rows(&app.servers
-                           .iter()
-                           .map(|s| {
-                                    (vec![s.name, s.location, s.status],
-                                     if s.status == "Up" {
-                                         &up_style
-                                     } else {
-                                         &failure_style
-                                     })
-                                })
-                           .collect::<Vec<(Vec<&str>, &Style)>>())
                 .render(t, &chunks[0]);
 
             Canvas::default()
                 .block(Block::default().title("World").borders(border::ALL))
                 .paint(|ctx| {
                     ctx.draw(&Map {
-                                 color: Color::White,
-                                 resolution: MapResolution::High,
-                             });
+                        color: Color::White,
+                        resolution: MapResolution::High,
+                    });
                     ctx.layer();
                     for (i, s1) in app.servers.iter().enumerate() {
                         for s2 in &app.servers[i + 1..] {
                             ctx.draw(&Line {
-                                         x1: s1.coords.1,
-                                         y1: s1.coords.0,
-                                         y2: s2.coords.0,
-                                         x2: s2.coords.1,
-                                         color: Color::Yellow,
-                                     });
+                                x1: s1.coords.1,
+                                y1: s1.coords.0,
+                                y2: s2.coords.0,
+                                x2: s2.coords.1,
+                                color: Color::Yellow,
+                            });
                         }
                     }
                     for server in &app.servers {
