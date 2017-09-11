@@ -52,11 +52,13 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
                 .sizes(&[Size::Percent(100)])
                 .render(t, &chunks[0], |t, chunks| {
                     Paragraph::default()
-                        .text("This is a line\n{fg=red This is a line}\n{bg=red This is a \
+                        .text(
+                            "This is a line\n{fg=red This is a line}\n{bg=red This is a \
                                line}\n{mod=italic This is a line}\n{mod=bold This is a \
                                line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
                                line}\n{mod=underline This is a \
-                               line}\n{bg=green;fg=yellow;mod=italic This is a line}\n")
+                               line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
+                        )
                         .render(t, &chunks[0]);
                 });
         });

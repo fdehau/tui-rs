@@ -15,7 +15,8 @@ pub use self::termion::{TermionBackend, MouseBackend, RawBackend};
 
 pub trait Backend {
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
-        where I: Iterator<Item = (u16, u16, &'a Cell)>;
+    where
+        I: Iterator<Item = (u16, u16, &'a Cell)>;
     fn hide_cursor(&mut self) -> Result<(), io::Error>;
     fn show_cursor(&mut self) -> Result<(), io::Error>;
     fn clear(&mut self) -> Result<(), io::Error>;

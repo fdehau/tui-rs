@@ -125,17 +125,17 @@ impl<'a> Widget for Block<'a> {
         if self.borders.intersects(border::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
-                buf.get_mut(x, y)
-                    .set_symbol(line::VERTICAL)
-                    .set_style(self.border_style);
+                buf.get_mut(x, y).set_symbol(line::VERTICAL).set_style(
+                    self.border_style,
+                );
             }
         }
         if self.borders.intersects(border::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
-                buf.get_mut(x, y)
-                    .set_symbol(line::HORIZONTAL)
-                    .set_style(self.border_style);
+                buf.get_mut(x, y).set_symbol(line::HORIZONTAL).set_style(
+                    self.border_style,
+                );
             }
         }
 
@@ -174,11 +174,13 @@ impl<'a> Widget for Block<'a> {
                     0
                 };
                 let width = area.width - lx - rx;
-                buf.set_stringn(area.left() + lx,
-                                area.top(),
-                                title,
-                                width as usize,
-                                &self.title_style);
+                buf.set_stringn(
+                    area.left() + lx,
+                    area.top(),
+                    title,
+                    width as usize,
+                    &self.title_style,
+                );
             }
         }
     }

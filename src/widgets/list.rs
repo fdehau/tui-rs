@@ -15,7 +15,8 @@ pub enum Item<'i, D: 'i> {
 }
 
 pub struct List<'b, 'i, L, D: 'i>
-    where L: Iterator<Item = Item<'i, D>>
+where
+    L: Iterator<Item = Item<'i, D>>,
 {
     block: Option<Block<'b>>,
     items: L,
@@ -23,7 +24,8 @@ pub struct List<'b, 'i, L, D: 'i>
 }
 
 impl<'b, 'i, L, D> Default for List<'b, 'i, L, D>
-    where L: Iterator<Item = Item<'i, D>> + Default
+where
+    L: Iterator<Item = Item<'i, D>> + Default,
 {
     fn default() -> List<'b, 'i, L, D> {
         List {
@@ -35,7 +37,8 @@ impl<'b, 'i, L, D> Default for List<'b, 'i, L, D>
 }
 
 impl<'b, 'i, L, D> List<'b, 'i, L, D>
-    where L: Iterator<Item = Item<'i, D>>
+where
+    L: Iterator<Item = Item<'i, D>>,
 {
     pub fn new(items: L) -> List<'b, 'i, L, D> {
         List {
@@ -51,7 +54,8 @@ impl<'b, 'i, L, D> List<'b, 'i, L, D>
     }
 
     pub fn items<I>(&'b mut self, items: I) -> &mut List<'b, 'i, L, D>
-        where I: IntoIterator<Item = Item<'i, D>, IntoIter = L>
+    where
+        I: IntoIterator<Item = Item<'i, D>, IntoIter = L>,
     {
         self.items = items.into_iter();
         self
@@ -64,8 +68,9 @@ impl<'b, 'i, L, D> List<'b, 'i, L, D>
 }
 
 impl<'b, 'i, L, D> Widget for List<'b, 'i, L, D>
-    where L: Iterator<Item = Item<'i, D>>,
-          D: Display
+where
+    L: Iterator<Item = Item<'i, D>>,
+    D: Display,
 {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let list_area = match self.block {
@@ -82,24 +87,28 @@ impl<'b, 'i, L, D> Widget for List<'b, 'i, L, D>
 
         self.background(&list_area, buf, self.style.bg);
 
-        for (i, item) in self.items
-                .by_ref()
-                .enumerate()
-                .take(list_area.height as usize) {
+        for (i, item) in self.items.by_ref().enumerate().take(
+            list_area.height as usize,
+        )
+        {
             match item {
                 Item::Data(ref v) => {
-                    buf.set_stringn(list_area.left(),
-                                    list_area.top() + i as u16,
-                                    &format!("{}", v),
-                                    list_area.width as usize,
-                                    &Style::default());
+                    buf.set_stringn(
+                        list_area.left(),
+                        list_area.top() + i as u16,
+                        &format!("{}", v),
+                        list_area.width as usize,
+                        &Style::default(),
+                    );
                 }
                 Item::StyledData(ref v, ref s) => {
-                    buf.set_stringn(list_area.left(),
-                                    list_area.top() + i as u16,
-                                    &format!("{}", v),
-                                    list_area.width as usize,
-                                    s);
+                    buf.set_stringn(
+                        list_area.left(),
+                        list_area.top() + i as u16,
+                        &format!("{}", v),
+                        list_area.width as usize,
+                        s,
+                    );
                 }
             };
         }
@@ -160,7 +169,8 @@ impl<'b> SelectableList<'b> {
     }
 
     pub fn items<I>(&'b mut self, items: &'b [I]) -> &mut SelectableList<'b>
-        where I: AsRef<str> + 'b
+    where
+        I: AsRef<str> + 'b,
     {
         self.items = items.iter().map(|i| i.as_ref()).collect::<Vec<&str>>();
         self
@@ -218,10 +228,10 @@ impl<'b> Widget for SelectableList<'b> {
             .iter()
             .enumerate()
             .map(|(i, item)| if i == selected {
-                     Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
-                 } else {
-                     Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
-                 })
+                Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
+            } else {
+                Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+            })
             .skip(offset as usize);
         List::new(items)
             .block(self.block.unwrap_or_default())

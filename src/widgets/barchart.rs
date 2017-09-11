@@ -123,10 +123,13 @@ impl<'a> Widget for BarChart<'a> {
 
         self.background(&chart_area, buf, self.style.bg);
 
-        let max = self.max
-            .unwrap_or_else(|| self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
-        let max_index = min((chart_area.width / (self.bar_width + self.bar_gap)) as usize,
-                            self.data.len());
+        let max = self.max.unwrap_or_else(|| {
+            self.data.iter().fold(0, |acc, &(_, v)| max(v, acc))
+        });
+        let max_index = min(
+            (chart_area.width / (self.bar_width + self.bar_gap)) as usize,
+            self.data.len(),
+        );
         let mut data = self.data
             .iter()
             .take(max_index)
@@ -147,9 +150,10 @@ impl<'a> Widget for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.get_mut(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
-                                 chart_area.top() + j)
-                        .set_symbol(symbol)
+                    buf.get_mut(
+                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
+                        chart_area.top() + j,
+                    ).set_symbol(symbol)
                         .set_style(self.style);
                 }
 
@@ -167,18 +171,22 @@ impl<'a> Widget for BarChart<'a> {
                 let value_label = &self.values[i];
                 let width = value_label.width() as u16;
                 if width < self.bar_width {
-                    buf.set_string(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
-                                   (self.bar_width - width) / 2,
-                                   chart_area.bottom() - 2,
-                                   value_label,
-                                   &self.value_style);
+                    buf.set_string(
+                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
+                            (self.bar_width - width) / 2,
+                        chart_area.bottom() - 2,
+                        value_label,
+                        &self.value_style,
+                    );
                 }
             }
-            buf.set_stringn(chart_area.left() + i as u16 * (self.bar_width + self.bar_gap),
-                            chart_area.bottom() - 1,
-                            label,
-                            self.bar_width as usize,
-                            &self.label_style);
+            buf.set_stringn(
+                chart_area.left() + i as u16 * (self.bar_width + self.bar_gap),
+                chart_area.bottom() - 1,
+                label,
+                self.bar_width as usize,
+                &self.label_style,
+            );
         }
     }
 }

@@ -56,10 +56,9 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
                         .render(t, &chunks[0]);
                     Block::default()
                         .title("Styled title")
-                        .title_style(Style::default()
-                                         .fg(Color::White)
-                                         .bg(Color::Red)
-                                         .modifier(Modifier::Bold))
+                        .title_style(Style::default().fg(Color::White).bg(Color::Red).modifier(
+                            Modifier::Bold,
+                        ))
                         .render(t, &chunks[1]);
                 });
             Group::default()

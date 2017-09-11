@@ -25,8 +25,10 @@ impl Iterator for LineIterator {
     type Item = (f64, f64);
     fn next(&mut self) -> Option<Self::Item> {
         if self.current < self.end {
-            let pos = (self.x + (self.current * self.dx) / self.end * self.dir_x,
-                       self.y + (self.current * self.dy) / self.end * self.dir_y);
+            let pos = (
+                self.x + (self.current * self.dx) / self.end * self.dir_x,
+                self.y + (self.current * self.dy) / self.end * self.dir_y,
+            );
             self.current += 1.0;
             Some(pos)
         } else {

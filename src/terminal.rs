@@ -15,7 +15,8 @@ pub struct LayoutEntry {
 
 /// Interface to the terminal backed by Termion
 pub struct Terminal<B>
-    where B: Backend
+where
+    B: Backend,
 {
     backend: B,
     /// Cache to prevent the layout to be computed at each draw call
@@ -28,18 +29,19 @@ pub struct Terminal<B>
 }
 
 impl<B> Terminal<B>
-    where B: Backend
+where
+    B: Backend,
 {
     /// Wrapper around Termion initialization. Each buffer is initialized with a blank string and
     /// default colors for the foreground and the background
     pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
         let size = try!(backend.size());
         Ok(Terminal {
-               backend: backend,
-               layout_cache: HashMap::new(),
-               buffers: [Buffer::empty(size), Buffer::empty(size)],
-               current: 0,
-           })
+            backend: backend,
+            layout_cache: HashMap::new(),
+            buffers: [Buffer::empty(size), Buffer::empty(size)],
+            current: 0,
+        })
     }
 
     pub fn backend(&self) -> &B {
@@ -58,9 +60,11 @@ impl<B> Terminal<B>
             .entry((group.clone(), *area))
             .or_insert_with(|| {
                 let chunks = split(area, &group.direction, group.margin, &group.sizes);
-                debug!("New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
-                       group,
-                       chunks);
+                debug!(
+                    "New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
+                    group,
+                    chunks
+                );
                 LayoutEntry {
                     chunks: chunks,
                     hot: true,
@@ -80,19 +84,20 @@ impl<B> Terminal<B>
             .zip(self.buffers[1 - self.current].content.iter())
             .enumerate()
             .filter_map(|(i, (c, p))| if c != p {
-                            let i = i as u16;
-                            let x = i % width;
-                            let y = i / width;
-                            Some((x, y, c))
-                        } else {
-                            None
-                        });
+                let i = i as u16;
+                let x = i % width;
+                let y = i / width;
+                Some((x, y, c))
+            } else {
+                None
+            });
         self.backend.draw(content)
     }
 
     /// Calls the draw method of a given widget on the current buffer
     pub fn render<W>(&mut self, widget: &mut W, area: &Rect)
-        where W: Widget
+    where
+        W: Widget,
     {
         widget.draw(area, &mut self.buffers[self.current]);
     }

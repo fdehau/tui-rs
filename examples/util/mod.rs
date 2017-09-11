@@ -13,8 +13,10 @@ use self::log4rs::config::{Appender, Config, Root};
 
 pub fn setup_log(file_name: &str) {
     let log = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{l} / {d(%H:%M:%S)} / \
-                                              {M}:{L}{n}{m}{n}{n}")))
+        .encoder(Box::new(PatternEncoder::new(
+            "{l} / {d(%H:%M:%S)} / \
+                                              {M}:{L}{n}{m}{n}{n}",
+        )))
         .build(file_name)
         .unwrap();
 
