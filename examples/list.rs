@@ -30,37 +30,61 @@ impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
             size: Rect::default(),
-            items: vec!["Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
-                        "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15",
-                        "Item16", "Item17", "Item18", "Item19", "Item20", "Item21", "Item22",
-                        "Item23", "Item24"],
+            items: vec![
+                "Item1",
+                "Item2",
+                "Item3",
+                "Item4",
+                "Item5",
+                "Item6",
+                "Item7",
+                "Item8",
+                "Item9",
+                "Item10",
+                "Item11",
+                "Item12",
+                "Item13",
+                "Item14",
+                "Item15",
+                "Item16",
+                "Item17",
+                "Item18",
+                "Item19",
+                "Item20",
+                "Item21",
+                "Item22",
+                "Item23",
+                "Item24",
+            ],
             selected: 0,
-            events: vec![("Event1", "INFO"),
-                         ("Event2", "INFO"),
-                         ("Event3", "CRITICAL"),
-                         ("Event4", "ERROR"),
-                         ("Event5", "INFO"),
-                         ("Event6", "INFO"),
-                         ("Event7", "WARNING"),
-                         ("Event8", "INFO"),
-                         ("Event9", "INFO"),
-                         ("Event10", "INFO"),
-                         ("Event11", "CRITICAL"),
-                         ("Event12", "INFO"),
-                         ("Event13", "INFO"),
-                         ("Event14", "INFO"),
-                         ("Event15", "INFO"),
-                         ("Event16", "INFO"),
-                         ("Event17", "ERROR"),
-                         ("Event18", "ERROR"),
-                         ("Event19", "INFO"),
-                         ("Event20", "INFO"),
-                         ("Event21", "WARNING"),
-                         ("Event22", "INFO"),
-                         ("Event23", "INFO"),
-                         ("Event24", "WARNING"),
-                         ("Event25", "INFO"),
-                         ("Event26", "INFO")],
+            events: vec![
+                ("Event1", "INFO"),
+                ("Event2", "INFO"),
+                ("Event3", "CRITICAL"),
+                ("Event4", "ERROR"),
+                ("Event5", "INFO"),
+                ("Event6", "INFO"),
+                ("Event7", "WARNING"),
+                ("Event8", "INFO"),
+                ("Event9", "INFO"),
+                ("Event10", "INFO"),
+                ("Event11", "CRITICAL"),
+                ("Event12", "INFO"),
+                ("Event13", "INFO"),
+                ("Event14", "INFO"),
+                ("Event15", "INFO"),
+                ("Event16", "INFO"),
+                ("Event17", "ERROR"),
+                ("Event18", "ERROR"),
+                ("Event19", "INFO"),
+                ("Event20", "INFO"),
+                ("Event21", "WARNING"),
+                ("Event22", "INFO"),
+                ("Event23", "INFO"),
+                ("Event24", "WARNING"),
+                ("Event25", "INFO"),
+                ("Event26", "INFO"),
+            ],
             info_style: Style::default().fg(Color::White),
             warning_style: Style::default().fg(Color::Yellow),
             error_style: Style::default().fg(Color::Magenta),
@@ -103,9 +127,9 @@ fn main() {
 
     // Tick
     thread::spawn(move || loop {
-                      clock_tx.send(Event::Tick).unwrap();
-                      thread::sleep(time::Duration::from_millis(500));
-                  });
+        clock_tx.send(Event::Tick).unwrap();
+        thread::sleep(time::Duration::from_millis(500));
+    });
 
     // App
     let mut app = App::new();
@@ -170,16 +194,17 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .highlight_symbol(">")
                 .render(t, &chunks[0]);
             {
-                let events = app.events
-                    .iter()
-                    .map(|&(evt, level)| {
-                             Item::StyledData(format!("{}: {}", level, evt), match level {
+                let events = app.events.iter().map(|&(evt, level)| {
+                    Item::StyledData(
+                        format!("{}: {}", level, evt),
+                        match level {
                             "ERROR" => &app.error_style,
                             "CRITICAL" => &app.critical_style,
                             "WARNING" => &app.warning_style,
                             _ => &app.info_style,
-                        })
-                         });
+                        },
+                    )
+                });
                 List::new(events)
                     .block(Block::default().borders(border::ALL).title("List"))
                     .render(t, &chunks[1]);

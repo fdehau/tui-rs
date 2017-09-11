@@ -293,11 +293,14 @@ impl<'a> Chart<'a> {
             let legend_width = inner_width + 2;
             let legend_height = self.datasets.len() as u16 + 2;
             if legend_width < layout.graph_area.width / 3 &&
-               legend_height < layout.graph_area.height / 3 {
-                layout.legend_area = Some(Rect::new(layout.graph_area.right() - legend_width,
-                                                    layout.graph_area.top(),
-                                                    legend_width,
-                                                    legend_height));
+                legend_height < layout.graph_area.height / 3
+            {
+                layout.legend_area = Some(Rect::new(
+                    layout.graph_area.right() - legend_width,
+                    layout.graph_area.top(),
+                    legend_width,
+                    legend_height,
+                ));
             }
         }
         layout
@@ -338,12 +341,13 @@ impl<'a> Widget for Chart<'a> {
             let labels_len = labels.len() as u16;
             if total_width < graph_area.width && labels_len > 1 {
                 for (i, label) in labels.iter().enumerate() {
-                    buf.set_string(graph_area.left() +
-                                   i as u16 * (graph_area.width - 1) / (labels_len - 1) -
-                                   label.width() as u16,
-                                   y,
-                                   label,
-                                   &self.x_axis.labels_style);
+                    buf.set_string(
+                        graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1) -
+                            label.width() as u16,
+                        y,
+                        label,
+                        &self.x_axis.labels_style,
+                    );
                 }
             }
         }
@@ -354,10 +358,12 @@ impl<'a> Widget for Chart<'a> {
             for (i, label) in labels.iter().enumerate() {
                 let dy = i as u16 * (graph_area.height - 1) / (labels_len - 1);
                 if dy < graph_area.bottom() {
-                    buf.set_string(x,
-                                   graph_area.bottom() - 1 - dy,
-                                   label,
-                                   &self.y_axis.labels_style);
+                    buf.set_string(
+                        x,
+                        graph_area.bottom() - 1 - dy,
+                        label,
+                        &self.y_axis.labels_style,
+                    );
                 }
             }
         }
@@ -389,20 +395,18 @@ impl<'a> Widget for Chart<'a> {
         for dataset in self.datasets {
             match dataset.marker {
                 Marker::Dot => {
-                    for &(x, y) in dataset
-                            .data
-                            .iter()
-                            .filter(|&&(x, y)| {
-                                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                                          y < self.y_axis.bounds[0] ||
-                                          y > self.y_axis.bounds[1])
-                                    }) {
+                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
+                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
+                              y < self.y_axis.bounds[0] ||
+                              y > self.y_axis.bounds[1])
+                    })
+                    {
                         let dy = ((self.y_axis.bounds[1] - y) * (graph_area.height - 1) as f64 /
-                                  (self.y_axis.bounds[1] - self.y_axis.bounds[0])) as
-                                 u16;
+                                      (self.y_axis.bounds[1] - self.y_axis.bounds[0])) as
+                            u16;
                         let dx = ((x - self.x_axis.bounds[0]) * (graph_area.width - 1) as f64 /
-                                  (self.x_axis.bounds[1] - self.x_axis.bounds[0])) as
-                                 u16;
+                                      (self.x_axis.bounds[1] - self.x_axis.bounds[0])) as
+                            u16;
 
                         buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
                             .set_symbol(symbols::DOT)
@@ -416,25 +420,28 @@ impl<'a> Widget for Chart<'a> {
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
                         .paint(|ctx| {
-                                   ctx.draw(&Points {
-                                                coords: dataset.data,
-                                                color: dataset.style.fg,
-                                            });
-                               })
+                            ctx.draw(&Points {
+                                coords: dataset.data,
+                                color: dataset.style.fg,
+                            });
+                        })
                         .draw(&graph_area, buf);
                 }
             }
         }
 
         if let Some(legend_area) = layout.legend_area {
-            Block::default()
-                .borders(border::ALL)
-                .draw(&legend_area, buf);
+            Block::default().borders(border::ALL).draw(
+                &legend_area,
+                buf,
+            );
             for (i, dataset) in self.datasets.iter().enumerate() {
-                buf.set_string(legend_area.x + 1,
-                               legend_area.y + 1 + i as u16,
-                               dataset.name,
-                               &dataset.style);
+                buf.set_string(
+                    legend_area.x + 1,
+                    legend_area.y + 1 + i as u16,
+                    dataset.name,
+                    &dataset.style,
+                );
             }
         }
     }

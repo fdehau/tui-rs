@@ -155,22 +155,29 @@ impl Buffer {
 
     /// Returns the index in the Vec<Cell> for the given (x, y)
     pub fn index_of(&self, x: u16, y: u16) -> usize {
-        debug_assert!(x >= self.area.left() && x < self.area.right() && y >= self.area.top() &&
-                      y < self.area.bottom(),
-                      "Trying to access position outside the buffer: x={}, y={}, area={:?}",
-                      x,
-                      y,
-                      self.area);
+        debug_assert!(
+            x >= self.area.left() && x < self.area.right() && y >= self.area.top() &&
+                y < self.area.bottom(),
+            "Trying to access position outside the buffer: x={}, y={}, area={:?}",
+            x,
+            y,
+            self.area
+        );
         ((y - self.area.y) * self.area.width + (x - self.area.x)) as usize
     }
 
     /// Returns the coordinates of a cell given its index
     pub fn pos_of(&self, i: usize) -> (u16, u16) {
-        debug_assert!(i >= self.content.len(),
-                      "Trying to get the coords of a cell outside the buffer: i={} len={}",
-                      i,
-                      self.content.len());
-        (self.area.x + i as u16 % self.area.width, self.area.y + i as u16 / self.area.width)
+        debug_assert!(
+            i >= self.content.len(),
+            "Trying to get the coords of a cell outside the buffer: i={} len={}",
+            i,
+            self.content.len()
+        );
+        (
+            self.area.x + i as u16 % self.area.width,
+            self.area.y + i as u16 / self.area.width,
+        )
     }
 
     /// Print a string, starting at the position (x, y)

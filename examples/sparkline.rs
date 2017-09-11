@@ -83,9 +83,9 @@ fn main() {
 
     // Tick
     thread::spawn(move || loop {
-                      clock_tx.send(Event::Tick).unwrap();
-                      thread::sleep(time::Duration::from_millis(500));
-                  });
+        clock_tx.send(Event::Tick).unwrap();
+        thread::sleep(time::Duration::from_millis(500));
+    });
 
     // App
     let mut app = App::new();
@@ -125,27 +125,29 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
-        .sizes(&[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)])
+        .sizes(
+            &[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)],
+        )
         .render(t, &app.size, |t, chunks| {
             Sparkline::default()
-                .block(Block::default()
-                           .title("Data1")
-                           .borders(border::LEFT | border::RIGHT))
+                .block(Block::default().title("Data1").borders(
+                    border::LEFT | border::RIGHT,
+                ))
                 .data(&app.data1)
                 .style(Style::default().fg(Color::Yellow))
                 .render(t, &chunks[0]);
             Sparkline::default()
-                .block(Block::default()
-                           .title("Data2")
-                           .borders(border::LEFT | border::RIGHT))
+                .block(Block::default().title("Data2").borders(
+                    border::LEFT | border::RIGHT,
+                ))
                 .data(&app.data2)
                 .style(Style::default().bg(Color::Green))
                 .render(t, &chunks[1]);
             // Multiline
             Sparkline::default()
-                .block(Block::default()
-                           .title("Data3")
-                           .borders(border::LEFT | border::RIGHT))
+                .block(Block::default().title("Data3").borders(
+                    border::LEFT | border::RIGHT,
+                ))
                 .data(&app.data3)
                 .style(Style::default().fg(Color::Red))
                 .render(t, &chunks[2]);

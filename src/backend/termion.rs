@@ -11,7 +11,8 @@ use layout::Rect;
 use style::{Style, Color, Modifier};
 
 pub struct TermionBackend<W>
-    where W: Write
+where
+    W: Write,
 {
     stdout: W,
 }
@@ -36,7 +37,8 @@ impl MouseBackend {
 }
 
 impl<W> Backend for TermionBackend<W>
-    where W: Write
+where
+    W: Write,
 {
     /// Clears the entire screen and move the cursor to the top left of the screen
     fn clear(&mut self) -> Result<(), io::Error> {
@@ -61,7 +63,8 @@ impl<W> Backend for TermionBackend<W>
     }
 
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
-        where I: Iterator<Item = (u16, u16, &'a Cell)>
+    where
+        I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
         let mut string = String::with_capacity(content.size_hint().0 * 3);
         let mut style = Style::default();
@@ -98,12 +101,14 @@ impl<W> Backend for TermionBackend<W>
             inst += 1;
         }
         debug!("{} instructions outputed.", inst);
-        write!(self.stdout,
-               "{}{}{}{}",
-               string,
-               Color::Reset.termion_fg(),
-               Color::Reset.termion_bg(),
-               Modifier::Reset.termion_modifier())?;
+        write!(
+            self.stdout,
+            "{}{}{}{}",
+            string,
+            Color::Reset.termion_fg(),
+            Color::Reset.termion_bg(),
+            Modifier::Reset.termion_modifier()
+        )?;
         Ok(())
     }
 
@@ -111,11 +116,11 @@ impl<W> Backend for TermionBackend<W>
     fn size(&self) -> Result<Rect, io::Error> {
         let terminal = try!(termion::terminal_size());
         Ok(Rect {
-               x: 0,
-               y: 0,
-               width: terminal.0,
-               height: terminal.1,
-           })
+            x: 0,
+            y: 0,
+            width: terminal.0,
+            height: terminal.1,
+        })
     }
 
     fn flush(&mut self) -> Result<(), io::Error> {

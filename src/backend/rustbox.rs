@@ -28,18 +28,20 @@ impl RustboxBackend {
 
 impl Backend for RustboxBackend {
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
-        where I: Iterator<Item = (u16, u16, &'a Cell)>
+    where
+        I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
         let mut inst = 0;
         for (x, y, cell) in content {
             inst += 1;
-            self.rustbox
-                .print(x as usize,
-                       y as usize,
-                       cell.style.modifier.into(),
-                       cell.style.fg.into(),
-                       cell.style.bg.into(),
-                       &cell.symbol);
+            self.rustbox.print(
+                x as usize,
+                y as usize,
+                cell.style.modifier.into(),
+                cell.style.fg.into(),
+                cell.style.bg.into(),
+                &cell.symbol,
+            );
         }
         debug!("{} instructions outputed", inst);
         Ok(())
@@ -56,11 +58,11 @@ impl Backend for RustboxBackend {
     }
     fn size(&self) -> Result<Rect, io::Error> {
         Ok(Rect {
-               x: 0,
-               y: 0,
-               width: self.rustbox.width() as u16,
-               height: self.rustbox.height() as u16,
-           })
+            x: 0,
+            y: 0,
+            width: self.rustbox.width() as u16,
+            height: self.rustbox.height() as u16,
+        })
     }
     fn flush(&mut self) -> Result<(), io::Error> {
         self.rustbox.present();

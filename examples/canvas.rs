@@ -46,11 +46,13 @@ impl App {
 
     fn advance(&mut self) {
         if self.ball.left() < self.playground.left() ||
-           self.ball.right() > self.playground.right() {
+            self.ball.right() > self.playground.right()
+        {
             self.dir_x = !self.dir_x;
         }
         if self.ball.top() < self.playground.top() ||
-           self.ball.bottom() > self.playground.bottom() {
+            self.ball.bottom() > self.playground.bottom()
+        {
             self.dir_y = !self.dir_y;
         }
 
@@ -97,9 +99,9 @@ fn main() {
 
     // Tick
     thread::spawn(move || loop {
-                      clock_tx.send(Event::Tick).unwrap();
-                      thread::sleep(time::Duration::from_millis(500));
-                  });
+        clock_tx.send(Event::Tick).unwrap();
+        thread::sleep(time::Duration::from_millis(500));
+    });
 
     // App
     let mut app = App::new();
@@ -160,12 +162,12 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             Canvas::default()
                 .block(Block::default().borders(border::ALL).title("World"))
                 .paint(|ctx| {
-                           ctx.draw(&Map {
-                                        color: Color::White,
-                                        resolution: MapResolution::High,
-                                    });
-                           ctx.print(app.x, -app.y, "You are here", Color::Yellow);
-                       })
+                    ctx.draw(&Map {
+                        color: Color::White,
+                        resolution: MapResolution::High,
+                    });
+                    ctx.print(app.x, -app.y, "You are here", Color::Yellow);
+                })
                 .x_bounds([-180.0, 180.0])
                 .y_bounds([-90.0, 90.0])
                 .render(t, &chunks[0]);
@@ -173,33 +175,33 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .block(Block::default().borders(border::ALL).title("List"))
                 .paint(|ctx| {
                     ctx.draw(&Line {
-                                 x1: app.ball.left() as f64,
-                                 y1: app.ball.top() as f64,
-                                 x2: app.ball.right() as f64,
-                                 y2: app.ball.top() as f64,
-                                 color: Color::Yellow,
-                             });
+                        x1: app.ball.left() as f64,
+                        y1: app.ball.top() as f64,
+                        x2: app.ball.right() as f64,
+                        y2: app.ball.top() as f64,
+                        color: Color::Yellow,
+                    });
                     ctx.draw(&Line {
-                                 x1: app.ball.right() as f64,
-                                 y1: app.ball.top() as f64,
-                                 x2: app.ball.right() as f64,
-                                 y2: app.ball.bottom() as f64,
-                                 color: Color::Yellow,
-                             });
+                        x1: app.ball.right() as f64,
+                        y1: app.ball.top() as f64,
+                        x2: app.ball.right() as f64,
+                        y2: app.ball.bottom() as f64,
+                        color: Color::Yellow,
+                    });
                     ctx.draw(&Line {
-                                 x1: app.ball.right() as f64,
-                                 y1: app.ball.bottom() as f64,
-                                 x2: app.ball.left() as f64,
-                                 y2: app.ball.bottom() as f64,
-                                 color: Color::Yellow,
-                             });
+                        x1: app.ball.right() as f64,
+                        y1: app.ball.bottom() as f64,
+                        x2: app.ball.left() as f64,
+                        y2: app.ball.bottom() as f64,
+                        color: Color::Yellow,
+                    });
                     ctx.draw(&Line {
-                                 x1: app.ball.left() as f64,
-                                 y1: app.ball.bottom() as f64,
-                                 x2: app.ball.left() as f64,
-                                 y2: app.ball.top() as f64,
-                                 color: Color::Yellow,
-                             });
+                        x1: app.ball.left() as f64,
+                        y1: app.ball.bottom() as f64,
+                        x2: app.ball.left() as f64,
+                        y2: app.ball.top() as f64,
+                        color: Color::Yellow,
+                    });
                 })
                 .x_bounds([10.0, 110.0])
                 .y_bounds([10.0, 110.0])

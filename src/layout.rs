@@ -106,7 +106,7 @@ impl Rect {
 
     pub fn intersects(&self, other: &Rect) -> bool {
         self.x < other.x + other.width && self.x + self.width > other.x &&
-        self.y < other.y + other.height && self.y + self.height > other.y
+            self.y < other.y + other.height && self.y + self.height > other.y
     }
 }
 
@@ -160,23 +160,15 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
     }
     if let Some(first) = elements.first() {
         constraints.push(match *dir {
-                             Direction::Horizontal => {
-                                 first.left() | EQ(REQUIRED) | dest_area.left() as f64
-                             }
-                             Direction::Vertical => {
-                                 first.top() | EQ(REQUIRED) | dest_area.top() as f64
-                             }
-                         });
+            Direction::Horizontal => first.left() | EQ(REQUIRED) | dest_area.left() as f64,
+            Direction::Vertical => first.top() | EQ(REQUIRED) | dest_area.top() as f64,
+        });
     }
     if let Some(last) = elements.last() {
         constraints.push(match *dir {
-                             Direction::Horizontal => {
-                                 last.right() | EQ(REQUIRED) | dest_area.right() as f64
-                             }
-                             Direction::Vertical => {
-                                 last.bottom() | EQ(REQUIRED) | dest_area.bottom() as f64
-                             }
-                         });
+            Direction::Horizontal => last.right() | EQ(REQUIRED) | dest_area.right() as f64,
+            Direction::Vertical => last.bottom() | EQ(REQUIRED) | dest_area.bottom() as f64,
+        });
     }
     match *dir {
         Direction::Horizontal => {
@@ -187,14 +179,13 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
                 constraints.push(elements[i].y | EQ(REQUIRED) | dest_area.y as f64);
                 constraints.push(elements[i].height | EQ(REQUIRED) | dest_area.height as f64);
                 constraints.push(match *size {
-                                     Size::Fixed(v) => elements[i].width | EQ(WEAK) | v as f64,
-                                     Size::Percent(v) => {
-                                         elements[i].width | EQ(WEAK) |
-                                         ((v * dest_area.width) as f64 / 100.0)
-                                     }
-                                     Size::Min(v) => elements[i].width | GE(WEAK) | v as f64,
-                                     Size::Max(v) => elements[i].width | LE(WEAK) | v as f64,
-                                 });
+                    Size::Fixed(v) => elements[i].width | EQ(WEAK) | v as f64,
+                    Size::Percent(v) => {
+                        elements[i].width | EQ(WEAK) | ((v * dest_area.width) as f64 / 100.0)
+                    }
+                    Size::Min(v) => elements[i].width | GE(WEAK) | v as f64,
+                    Size::Max(v) => elements[i].width | LE(WEAK) | v as f64,
+                });
             }
         }
         Direction::Vertical => {
@@ -205,14 +196,13 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
                 constraints.push(elements[i].x | EQ(REQUIRED) | dest_area.x as f64);
                 constraints.push(elements[i].width | EQ(REQUIRED) | dest_area.width as f64);
                 constraints.push(match *size {
-                                     Size::Fixed(v) => elements[i].height | EQ(WEAK) | v as f64,
-                                     Size::Percent(v) => {
-                                         elements[i].height | EQ(WEAK) |
-                                         ((v * dest_area.height) as f64 / 100.0)
-                                     }
-                                     Size::Min(v) => elements[i].height | GE(WEAK) | v as f64,
-                                     Size::Max(v) => elements[i].height | LE(WEAK) | v as f64,
-                                 });
+                    Size::Fixed(v) => elements[i].height | EQ(WEAK) | v as f64,
+                    Size::Percent(v) => {
+                        elements[i].height | EQ(WEAK) | ((v * dest_area.height) as f64 / 100.0)
+                    }
+                    Size::Min(v) => elements[i].height | GE(WEAK) | v as f64,
+                    Size::Max(v) => elements[i].height | LE(WEAK) | v as f64,
+                });
             }
         }
     }
@@ -332,8 +322,9 @@ impl Group {
         self
     }
     pub fn render<F, B>(&self, t: &mut Terminal<B>, area: &Rect, mut f: F)
-        where B: Backend,
-              F: FnMut(&mut Terminal<B>, &[Rect])
+    where
+        B: Backend,
+        F: FnMut(&mut Terminal<B>, &[Rect]),
     {
         let chunks = t.compute_layout(self, area);
         f(t, &chunks);

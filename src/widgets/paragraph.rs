@@ -84,7 +84,8 @@ impl<'a> Paragraph<'a> {
 }
 
 struct Parser<'a, T>
-    where T: Iterator<Item = &'a str>
+where
+    T: Iterator<Item = &'a str>,
 {
     text: T,
     mark: bool,
@@ -96,7 +97,8 @@ struct Parser<'a, T>
 }
 
 impl<'a, T> Parser<'a, T>
-    where T: Iterator<Item = &'a str>
+where
+    T: Iterator<Item = &'a str>,
 {
     fn new(text: T, base_style: Style) -> Parser<'a, T> {
         Parser {
@@ -176,7 +178,8 @@ impl<'a, T> Parser<'a, T>
 }
 
 impl<'a, T> Iterator for Parser<'a, T>
-    where T: Iterator<Item = &'a str>
+where
+    T: Iterator<Item = &'a str>,
 {
     type Item = (&'a str, Style);
     fn next(&mut self) -> Option<Self::Item> {
