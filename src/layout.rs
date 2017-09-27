@@ -9,6 +9,14 @@ use backend::Backend;
 use terminal::Terminal;
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
+pub enum Corner {
+    TopLeft,
+    TopRight,
+    BottomRight,
+    BottomLeft,
+}
+
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub enum Direction {
     Horizontal,
     Vertical,
