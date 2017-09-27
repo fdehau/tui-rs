@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Corner, Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
 
@@ -183,6 +183,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 });
                 List::new(events)
                     .block(Block::default().borders(Borders::ALL).title("List"))
+                    .start_corner(Corner::BottomLeft)
                     .render(t, &chunks[1]);
             }
         });
