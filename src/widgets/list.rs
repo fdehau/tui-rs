@@ -5,7 +5,7 @@ use std::iter::Iterator;
 use unicode_width::UnicodeWidthStr;
 
 use buffer::Buffer;
-use layout::Rect;
+use layout::{Corner, Rect};
 use style::Style;
 use widgets::{Block, Widget};
 
@@ -21,6 +21,7 @@ where
     block: Option<Block<'b>>,
     items: L,
     style: Style,
+    start_corner: Corner,
 }
 
 impl<'b, 'i, L, D> Default for List<'b, 'i, L, D>
@@ -32,6 +33,7 @@ where
             block: None,
             items: L::default(),
             style: Default::default(),
+            start_corner: Corner::TopLeft,
         }
     }
 }
@@ -45,6 +47,7 @@ where
             block: None,
             items: items,
             style: Default::default(),
+            start_corner: Corner::TopLeft,
         }
     }
 
@@ -63,6 +66,11 @@ where
 
     pub fn style(&'b mut self, style: Style) -> &mut List<'b, 'i, L, D> {
         self.style = style;
+        self
+    }
+
+    pub fn start_corner(&'b mut self, corner: Corner) -> &mut List<'b, 'i, L, D> {
+        self.start_corner = corner;
         self
     }
 }
@@ -92,24 +100,24 @@ where
             .enumerate()
             .take(list_area.height as usize)
         {
+            let (x, y) = match self.start_corner {
+                Corner::TopLeft => (list_area.left(), list_area.top() + i as u16),
+                Corner::BottomLeft => (list_area.left(), list_area.bottom() - (i + 1) as u16),
+                // Not supported
+                _ => (list_area.left(), list_area.top() + i as u16),
+            };
             match item {
                 Item::Data(ref v) => {
                     buf.set_stringn(
-                        list_area.left(),
-                        list_area.top() + i as u16,
+                        x,
+                        y,
                         &format!("{}", v),
                         list_area.width as usize,
                         &Style::default(),
                     );
                 }
                 Item::StyledData(ref v, s) => {
-                    buf.set_stringn(
-                        list_area.left(),
-                        list_area.top() + i as u16,
-                        &format!("{}", v),
-                        list_area.width as usize,
-                        s,
-                    );
+                    buf.set_stringn(x, y, &format!("{}", v), list_area.width as usize, s);
                 }
             };
         }
