@@ -153,21 +153,21 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
     }
     let mut constraints: Vec<Constraint> = Vec::with_capacity(elements.len() * 4 + sizes.len() * 6);
     for elt in &elements {
-        constraints.push(elt.left() | GE(REQUIRED) | dest_area.left() as f64);
-        constraints.push(elt.top() | GE(REQUIRED) | dest_area.top() as f64);
-        constraints.push(elt.right() | LE(REQUIRED) | dest_area.right() as f64);
-        constraints.push(elt.bottom() | LE(REQUIRED) | dest_area.bottom() as f64);
+        constraints.push(elt.left() | GE(REQUIRED) | f64::from(dest_area.left()));
+        constraints.push(elt.top() | GE(REQUIRED) | f64::from(dest_area.top()));
+        constraints.push(elt.right() | LE(REQUIRED) | f64::from(dest_area.right()));
+        constraints.push(elt.bottom() | LE(REQUIRED) | f64::from(dest_area.bottom()));
     }
     if let Some(first) = elements.first() {
         constraints.push(match *dir {
-            Direction::Horizontal => first.left() | EQ(REQUIRED) | dest_area.left() as f64,
-            Direction::Vertical => first.top() | EQ(REQUIRED) | dest_area.top() as f64,
+            Direction::Horizontal => first.left() | EQ(REQUIRED) | f64::from(dest_area.left()),
+            Direction::Vertical => first.top() | EQ(REQUIRED) | f64::from(dest_area.top()),
         });
     }
     if let Some(last) = elements.last() {
         constraints.push(match *dir {
-            Direction::Horizontal => last.right() | EQ(REQUIRED) | dest_area.right() as f64,
-            Direction::Vertical => last.bottom() | EQ(REQUIRED) | dest_area.bottom() as f64,
+            Direction::Horizontal => last.right() | EQ(REQUIRED) | f64::from(dest_area.right()),
+            Direction::Vertical => last.bottom() | EQ(REQUIRED) | f64::from(dest_area.bottom()),
         });
     }
     match *dir {
@@ -176,15 +176,15 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
                 constraints.push((pair[0].x + pair[0].width) | EQ(REQUIRED) | pair[1].x);
             }
             for (i, size) in sizes.iter().enumerate() {
-                constraints.push(elements[i].y | EQ(REQUIRED) | dest_area.y as f64);
-                constraints.push(elements[i].height | EQ(REQUIRED) | dest_area.height as f64);
+                constraints.push(elements[i].y | EQ(REQUIRED) | f64::from(dest_area.y));
+                constraints.push(elements[i].height | EQ(REQUIRED) | f64::from(dest_area.height));
                 constraints.push(match *size {
-                    Size::Fixed(v) => elements[i].width | EQ(WEAK) | v as f64,
+                    Size::Fixed(v) => elements[i].width | EQ(WEAK) | f64::from(v),
                     Size::Percent(v) => {
-                        elements[i].width | EQ(WEAK) | ((v * dest_area.width) as f64 / 100.0)
+                        elements[i].width | EQ(WEAK) | (f64::from(v * dest_area.width) / 100.0)
                     }
-                    Size::Min(v) => elements[i].width | GE(WEAK) | v as f64,
-                    Size::Max(v) => elements[i].width | LE(WEAK) | v as f64,
+                    Size::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
+                    Size::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
                 });
             }
         }
@@ -193,15 +193,15 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
                 constraints.push((pair[0].y + pair[0].height) | EQ(REQUIRED) | pair[1].y);
             }
             for (i, size) in sizes.iter().enumerate() {
-                constraints.push(elements[i].x | EQ(REQUIRED) | dest_area.x as f64);
-                constraints.push(elements[i].width | EQ(REQUIRED) | dest_area.width as f64);
+                constraints.push(elements[i].x | EQ(REQUIRED) | f64::from(dest_area.x));
+                constraints.push(elements[i].width | EQ(REQUIRED) | f64::from(dest_area.width));
                 constraints.push(match *size {
-                    Size::Fixed(v) => elements[i].height | EQ(WEAK) | v as f64,
+                    Size::Fixed(v) => elements[i].height | EQ(WEAK) | f64::from(v),
                     Size::Percent(v) => {
-                        elements[i].height | EQ(WEAK) | ((v * dest_area.height) as f64 / 100.0)
+                        elements[i].height | EQ(WEAK) | (f64::from(v * dest_area.height) / 100.0)
                     }
-                    Size::Min(v) => elements[i].height | GE(WEAK) | v as f64,
-                    Size::Max(v) => elements[i].height | LE(WEAK) | v as f64,
+                    Size::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
+                    Size::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
                 });
             }
         }

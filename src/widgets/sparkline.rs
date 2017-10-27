@@ -89,7 +89,7 @@ impl<'a> Widget for Sparkline<'a> {
         let mut data = self.data
             .iter()
             .take(max_index)
-            .map(|e| e * spark_area.height as u64 * 8 / max)
+            .map(|e| e * u64::from(spark_area.height) * 8 / max)
             .collect::<Vec<u64>>();
         for j in (0..spark_area.height).rev() {
             for (i, d) in data.iter_mut().enumerate() {
