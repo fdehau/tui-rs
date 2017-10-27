@@ -30,15 +30,15 @@ pub mod border {
     bitflags! {
         pub flags Flags: u32 {
             /// Show no border (default)
-            const NONE  = 0b00000001,
+            const NONE  = 0b0000_0001,
             /// Show the top border
-            const TOP   = 0b00000010,
+            const TOP   = 0b0000_0010,
             /// Show the right border
-            const RIGHT = 0b00000100,
+            const RIGHT = 0b0000_0100,
             /// Show the bottom border
-            const BOTTOM = 0b0001000,
+            const BOTTOM = 0b000_1000,
             /// Show the left border
-            const LEFT = 0b00010000,
+            const LEFT = 0b0001_0000,
             /// Show all borders
             const ALL = TOP.bits | RIGHT.bits | BOTTOM.bits | LEFT.bits,
         }

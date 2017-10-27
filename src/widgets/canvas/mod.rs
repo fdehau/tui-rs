@@ -99,8 +99,8 @@ impl<'a> Context<'a> {
             !(x < left || x > right || y < bottom || y > top)
         })
         {
-            let dy = ((top - y) * (self.height - 1) as f64 * 4.0 / (top - bottom)) as usize;
-            let dx = ((x - left) * (self.width - 1) as f64 * 2.0 / (right - left)) as usize;
+            let dy = ((top - y) * f64::from(self.height - 1) * 4.0 / (top - bottom)) as usize;
+            let dx = ((x - left) * f64::from(self.width - 1) * 2.0 / (right - left)) as usize;
             let index = dy / 4 * self.width as usize + dx / 2;
             self.grid.cells[index] |= DOTS[dy % 4][dx % 2];
             self.grid.colors[index] = shape.color();
@@ -282,10 +282,10 @@ where
                       l.y > self.y_bounds[1])
             })
             {
-                let dy = ((self.y_bounds[1] - label.y) * (canvas_area.height - 1) as f64 /
+                let dy = ((self.y_bounds[1] - label.y) * f64::from(canvas_area.height - 1) /
                               (self.y_bounds[1] - self.y_bounds[0])) as
                     u16;
-                let dx = ((label.x - self.x_bounds[0]) * (canvas_area.width - 1) as f64 /
+                let dx = ((label.x - self.x_bounds[0]) * f64::from(canvas_area.width - 1) /
                               (self.x_bounds[1] - self.x_bounds[0])) as
                     u16;
                 buf.set_string(

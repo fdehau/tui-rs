@@ -401,10 +401,10 @@ impl<'a> Widget for Chart<'a> {
                               y > self.y_axis.bounds[1])
                     })
                     {
-                        let dy = ((self.y_axis.bounds[1] - y) * (graph_area.height - 1) as f64 /
+                        let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1) /
                                       (self.y_axis.bounds[1] - self.y_axis.bounds[0])) as
                             u16;
-                        let dx = ((x - self.x_axis.bounds[0]) * (graph_area.width - 1) as f64 /
+                        let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1) /
                                       (self.x_axis.bounds[1] - self.x_axis.bounds[0])) as
                             u16;
 

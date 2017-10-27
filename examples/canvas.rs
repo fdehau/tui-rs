@@ -175,31 +175,31 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .block(Block::default().borders(border::ALL).title("List"))
                 .paint(|ctx| {
                     ctx.draw(&Line {
-                        x1: app.ball.left() as f64,
-                        y1: app.ball.top() as f64,
-                        x2: app.ball.right() as f64,
-                        y2: app.ball.top() as f64,
+                        x1: f64::from(app.ball.left()),
+                        y1: f64::from(app.ball.top()),
+                        x2: f64::from(app.ball.right()),
+                        y2: f64::from(app.ball.top()),
                         color: Color::Yellow,
                     });
                     ctx.draw(&Line {
-                        x1: app.ball.right() as f64,
-                        y1: app.ball.top() as f64,
-                        x2: app.ball.right() as f64,
-                        y2: app.ball.bottom() as f64,
+                        x1: f64::from(app.ball.right()),
+                        y1: f64::from(app.ball.top()),
+                        x2: f64::from(app.ball.right()),
+                        y2: f64::from(app.ball.bottom()),
                         color: Color::Yellow,
                     });
                     ctx.draw(&Line {
-                        x1: app.ball.right() as f64,
-                        y1: app.ball.bottom() as f64,
-                        x2: app.ball.left() as f64,
-                        y2: app.ball.bottom() as f64,
+                        x1: f64::from(app.ball.right()),
+                        y1: f64::from(app.ball.bottom()),
+                        x2: f64::from(app.ball.left()),
+                        y2: f64::from(app.ball.bottom()),
                         color: Color::Yellow,
                     });
                     ctx.draw(&Line {
-                        x1: app.ball.left() as f64,
-                        y1: app.ball.bottom() as f64,
-                        x2: app.ball.left() as f64,
-                        y2: app.ball.top() as f64,
+                        x1: f64::from(app.ball.left()),
+                        y1: f64::from(app.ball.bottom()),
+                        x2: f64::from(app.ball.left()),
+                        y2: f64::from(app.ball.top()),
                         color: Color::Yellow,
                     });
                 })
