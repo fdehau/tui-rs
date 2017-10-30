@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate log;
 
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 mod util;
 
@@ -17,11 +17,11 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, SelectableList, List, Item, Gauge, Sparkline, Paragraph, border,
-                   Chart, Axis, Dataset, BarChart, Marker, Tabs, Table, Row};
-use tui::widgets::canvas::{Canvas, Map, MapResolution, Line};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, Axis, BarChart, Block, Chart, Dataset, Gauge, Item, List, Marker,
+                   Paragraph, Row, SelectableList, Sparkline, Table, Tabs, Widget};
+use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
 
 use util::*;
 
@@ -57,8 +57,6 @@ enum Event {
 }
 
 fn main() {
-
-
     for argument in env::args() {
         if argument == "--log" {
             setup_log("demo.log");
@@ -236,33 +234,29 @@ fn main() {
         draw(&mut terminal, &app).unwrap();
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => {
-                match input {
-                    event::Key::Char('q') => {
-                        break;
-                    }
-                    event::Key::Up => {
-                        if app.selected > 0 {
-                            app.selected -= 1
-                        };
-                    }
-                    event::Key::Down => {
-                        if app.selected < app.items.len() - 1 {
-                            app.selected += 1;
-                        }
-                    }
-                    event::Key::Left => {
-                        app.tabs.previous();
-                    }
-                    event::Key::Right => {
-                        app.tabs.next();
-                    }
-                    event::Key::Char('t') => {
-                        app.show_chart = !app.show_chart;
-                    }
-                    _ => {}
+            Event::Input(input) => match input {
+                event::Key::Char('q') => {
+                    break;
                 }
-            }
+                event::Key::Up => {
+                    if app.selected > 0 {
+                        app.selected -= 1
+                    };
+                }
+                event::Key::Down => if app.selected < app.items.len() - 1 {
+                    app.selected += 1;
+                },
+                event::Key::Left => {
+                    app.tabs.previous();
+                }
+                event::Key::Right => {
+                    app.tabs.next();
+                }
+                event::Key::Char('t') => {
+                    app.show_chart = !app.show_chart;
+                }
+                _ => {}
+            },
             Event::Tick => {
                 app.progress += 5;
                 if app.progress > 100 {
@@ -296,7 +290,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-
     Group::default()
         .direction(Direction::Vertical)
         .sizes(&[Size::Fixed(3), Size::Min(0)])
@@ -334,7 +327,6 @@ fn draw_first_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
 }
 
 fn draw_gauges(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
-
     Block::default()
         .borders(border::ALL)
         .title("Graphs")
@@ -438,13 +430,11 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                             .style(Style::default().fg(Color::Gray))
                             .labels_style(Style::default().modifier(Modifier::Italic))
                             .bounds(app.window)
-                            .labels(
-                                &[
-                                    &format!("{}", app.window[0]),
-                                    &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                                    &format!("{}", app.window[1]),
-                                ],
-                            ),
+                            .labels(&[
+                                &format!("{}", app.window[0]),
+                                &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                                &format!("{}", app.window[1]),
+                            ]),
                     )
                     .y_axis(
                         Axis::default()
@@ -454,20 +444,18 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                             .bounds([-20.0, 20.0])
                             .labels(&["-20", "0", "20"]),
                     )
-                    .datasets(
-                        &[
-                            Dataset::default()
-                                .name("data2")
-                                .marker(Marker::Dot)
-                                .style(Style::default().fg(Color::Cyan))
-                                .data(&app.data2),
-                            Dataset::default()
-                                .name("data3")
-                                .marker(Marker::Braille)
-                                .style(Style::default().fg(Color::Yellow))
-                                .data(&app.data3),
-                        ],
-                    )
+                    .datasets(&[
+                        Dataset::default()
+                            .name("data2")
+                            .marker(Marker::Dot)
+                            .style(Style::default().fg(Color::Cyan))
+                            .data(&app.data2),
+                        Dataset::default()
+                            .name("data3")
+                            .marker(Marker::Braille)
+                            .style(Style::default().fg(Color::Yellow))
+                            .data(&app.data3),
+                    ])
                     .render(t, &chunks[1]);
             }
         });
@@ -475,20 +463,24 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
 
 fn draw_text(t: &mut Terminal<MouseBackend>, area: &Rect) {
     Paragraph::default()
-        .block(Block::default()
-               .borders(border::ALL)
-               .title("Footer")
-               .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)))
+        .block(
+            Block::default()
+                .borders(border::ALL)
+                .title("Footer")
+                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
+        )
         .wrap(true)
-        .text("This is a paragraph with several lines.\nYou can change the color.\nUse \
-              \\{fg=[color];bg=[color];mod=[modifier] [text]} to highlight the text with a color. \
-              For example, {fg=red u}{fg=green n}{fg=yellow d}{fg=magenta e}{fg=cyan r} \
-              {fg=gray t}{fg=light_gray h}{fg=light_red e} {fg=light_green r}{fg=light_yellow a} \
-              {fg=light_magenta i}{fg=light_cyan n}{fg=white b}{fg=red o}{fg=green w}.\n\
-              Oh, and if you didn't {mod=italic notice} you can {mod=bold automatically} \
-              {mod=invert wrap} your {mod=underline text} =).\nOne more thing is that \
-              it should display unicode characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ \
-              ٩(-̮̮̃•̃).")
+        .text(
+            "This is a paragraph with several lines.\nYou can change the color.\nUse \
+             \\{fg=[color];bg=[color];mod=[modifier] [text]} to highlight the text with a color. \
+             For example, {fg=red u}{fg=green n}{fg=yellow d}{fg=magenta e}{fg=cyan r} \
+             {fg=gray t}{fg=light_gray h}{fg=light_red e} {fg=light_green r}{fg=light_yellow a} \
+             {fg=light_magenta i}{fg=light_cyan n}{fg=white b}{fg=red o}{fg=green w}.\n\
+             Oh, and if you didn't {mod=italic notice} you can {mod=bold automatically} \
+             {mod=invert wrap} your {mod=underline text} =).\nOne more thing is that \
+             it should display unicode characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ \
+             ٩(-̮̮̃•̃).",
+        )
         .render(t, area);
 }
 

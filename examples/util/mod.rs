@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-extern crate rand;
 extern crate log4rs;
 extern crate log;
+extern crate rand;
 
 use self::rand::distributions::{IndependentSample, Range};
 
@@ -15,7 +15,7 @@ pub fn setup_log(file_name: &str) {
     let log = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(
             "{l} / {d(%H:%M:%S)} / \
-                                              {M}:{L}{n}{m}{n}{n}",
+             {M}:{L}{n}{m}{n}{n}",
         )))
         .build(file_name)
         .unwrap();

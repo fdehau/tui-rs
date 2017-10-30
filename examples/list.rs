@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 use std::io;
 use std::thread;
@@ -11,9 +11,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, SelectableList, List, Item};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, Block, Item, List, SelectableList, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
 
 struct App<'a> {
     size: Rect,
@@ -149,27 +149,23 @@ fn main() {
 
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => {
-                match input {
-                    event::Key::Char('q') => {
-                        break;
-                    }
-                    event::Key::Down => {
-                        app.selected += 1;
-                        if app.selected > app.items.len() - 1 {
-                            app.selected = 0;
-                        }
-                    }
-                    event::Key::Up => {
-                        if app.selected > 0 {
-                            app.selected -= 1;
-                        } else {
-                            app.selected = app.items.len() - 1;
-                        }
-                    }
-                    _ => {}
+            Event::Input(input) => match input {
+                event::Key::Char('q') => {
+                    break;
                 }
-            }
+                event::Key::Down => {
+                    app.selected += 1;
+                    if app.selected > app.items.len() - 1 {
+                        app.selected = 0;
+                    }
+                }
+                event::Key::Up => if app.selected > 0 {
+                    app.selected -= 1;
+                } else {
+                    app.selected = app.items.len() - 1;
+                },
+                _ => {}
+            },
             Event::Tick => {
                 app.advance();
             }
@@ -181,7 +177,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-
     Group::default()
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(50), Size::Percent(50)])

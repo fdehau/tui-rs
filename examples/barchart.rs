@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 use std::io;
 use std::thread;
@@ -11,9 +11,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, BarChart};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, BarChart, Block, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
 
 struct App<'a> {
     size: Rect,
@@ -110,11 +110,9 @@ fn main() {
 
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => {
-                if input == event::Key::Char('q') {
-                    break;
-                }
-            }
+            Event::Input(input) => if input == event::Key::Char('q') {
+                break;
+            },
             Event::Tick => {
                 app.advance();
             }
@@ -126,7 +124,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)

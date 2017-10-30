@@ -1,14 +1,14 @@
-extern crate tui;
 extern crate rustbox;
+extern crate tui;
 
 use std::error::Error;
 use rustbox::Key;
 
 use tui::Terminal;
 use tui::backend::RustboxBackend;
-use tui::widgets::{Widget, Block, border, Paragraph};
-use tui::layout::{Group, Direction, Size};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, Block, Paragraph, Widget};
+use tui::layout::{Direction, Group, Size};
+use tui::style::{Color, Modifier, Style};
 
 fn main() {
     let mut terminal = Terminal::new(RustboxBackend::new().unwrap()).unwrap();
@@ -17,11 +17,9 @@ fn main() {
     draw(&mut terminal);
     loop {
         match terminal.backend().rustbox().poll_event(false) {
-            Ok(rustbox::Event::KeyEvent(key)) => {
-                if key == Key::Char('q') {
-                    break;
-                }
-            }
+            Ok(rustbox::Event::KeyEvent(key)) => if key == Key::Char('q') {
+                break;
+            },
             Err(e) => panic!("{}", e.description()),
             _ => {}
         };
@@ -31,7 +29,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<RustboxBackend>) {
-
     let size = t.size().unwrap();
 
     Group::default()

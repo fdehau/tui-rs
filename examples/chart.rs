@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 mod util;
 use util::*;
@@ -14,9 +14,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, Chart, Axis, Marker, Dataset};
+use tui::widgets::{border, Axis, Block, Chart, Dataset, Marker, Widget};
 use tui::layout::Rect;
-use tui::style::{Style, Color, Modifier};
+use tui::style::{Color, Modifier, Style};
 
 struct App {
     size: Rect,
@@ -108,11 +108,9 @@ fn main() {
 
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => {
-                if input == event::Key::Char('q') {
-                    break;
-                }
-            }
+            Event::Input(input) => if input == event::Key::Char('q') {
+                break;
+            },
             Event::Tick => {
                 app.advance();
             }
@@ -124,7 +122,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-
     Chart::default()
         .block(
             Block::default()
@@ -138,13 +135,11 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .style(Style::default().fg(Color::Gray))
                 .labels_style(Style::default().modifier(Modifier::Italic))
                 .bounds(app.window)
-                .labels(
-                    &[
-                        &format!("{}", app.window[0]),
-                        &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                        &format!("{}", app.window[1]),
-                    ],
-                ),
+                .labels(&[
+                    &format!("{}", app.window[0]),
+                    &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                    &format!("{}", app.window[1]),
+                ]),
         )
         .y_axis(
             Axis::default()
@@ -154,20 +149,18 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .bounds([-20.0, 20.0])
                 .labels(&["-20", "0", "20"]),
         )
-        .datasets(
-            &[
-                Dataset::default()
-                    .name("data2")
-                    .marker(Marker::Dot)
-                    .style(Style::default().fg(Color::Cyan))
-                    .data(&app.data1),
-                Dataset::default()
-                    .name("data3")
-                    .marker(Marker::Braille)
-                    .style(Style::default().fg(Color::Yellow))
-                    .data(&app.data2),
-            ],
-        )
+        .datasets(&[
+            Dataset::default()
+                .name("data2")
+                .marker(Marker::Dot)
+                .style(Style::default().fg(Color::Cyan))
+                .data(&app.data1),
+            Dataset::default()
+                .name("data3")
+                .marker(Marker::Braille)
+                .style(Style::default().fg(Color::Yellow))
+                .data(&app.data2),
+        ])
         .render(t, &app.size);
 
     t.draw().unwrap();

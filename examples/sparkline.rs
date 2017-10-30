@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 mod util;
 use util::*;
@@ -14,9 +14,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, Sparkline};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color};
+use tui::widgets::{border, Block, Sparkline, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Style};
 
 struct App {
     size: Rect,
@@ -105,11 +105,9 @@ fn main() {
 
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => {
-                if input == event::Key::Char('q') {
-                    break;
-                }
-            }
+            Event::Input(input) => if input == event::Key::Char('q') {
+                break;
+            },
             Event::Tick => {
                 app.advance();
             }
@@ -121,33 +119,41 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
-        .sizes(
-            &[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)],
-        )
+        .sizes(&[
+            Size::Fixed(3),
+            Size::Fixed(3),
+            Size::Fixed(7),
+            Size::Min(0),
+        ])
         .render(t, &app.size, |t, chunks| {
             Sparkline::default()
-                .block(Block::default().title("Data1").borders(
-                    border::LEFT | border::RIGHT,
-                ))
+                .block(
+                    Block::default()
+                        .title("Data1")
+                        .borders(border::LEFT | border::RIGHT),
+                )
                 .data(&app.data1)
                 .style(Style::default().fg(Color::Yellow))
                 .render(t, &chunks[0]);
             Sparkline::default()
-                .block(Block::default().title("Data2").borders(
-                    border::LEFT | border::RIGHT,
-                ))
+                .block(
+                    Block::default()
+                        .title("Data2")
+                        .borders(border::LEFT | border::RIGHT),
+                )
                 .data(&app.data2)
                 .style(Style::default().bg(Color::Green))
                 .render(t, &chunks[1]);
             // Multiline
             Sparkline::default()
-                .block(Block::default().title("Data3").borders(
-                    border::LEFT | border::RIGHT,
-                ))
+                .block(
+                    Block::default()
+                        .title("Data3")
+                        .borders(border::LEFT | border::RIGHT),
+                )
                 .data(&app.data3)
                 .style(Style::default().fg(Color::Red))
                 .render(t, &chunks[2]);

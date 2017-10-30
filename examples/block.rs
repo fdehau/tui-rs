@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 use std::io;
 use termion::event;
@@ -7,9 +7,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, Block, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
 
 fn main() {
     let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
@@ -35,7 +35,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
-
     // Wrapping block for a group
     // Just draw the block and the group on the same area and build the group
     // with at least a margin of 1
@@ -56,9 +55,12 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
                         .render(t, &chunks[0]);
                     Block::default()
                         .title("Styled title")
-                        .title_style(Style::default().fg(Color::White).bg(Color::Red).modifier(
-                            Modifier::Bold,
-                        ))
+                        .title_style(
+                            Style::default()
+                                .fg(Color::White)
+                                .bg(Color::Red)
+                                .modifier(Modifier::Bold),
+                        )
                         .render(t, &chunks[1]);
                 });
             Group::default()
