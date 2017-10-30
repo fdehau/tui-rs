@@ -1,4 +1,5 @@
-/// Source: http://www.gnuplotting.org/plotting-the-world-revisited/
+/// [Source data](http://www.gnuplotting.org/plotting-the-world-revisited)
+
 pub static WORLD_HIGH_RESOLUTION: [(f64, f64); 5125] = [
     (-163.71289567772871, -78.595667413241543),
     (-163.105800951163786, -78.223338718578589),

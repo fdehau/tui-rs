@@ -102,7 +102,7 @@ where
                         &Style::default(),
                     );
                 }
-                Item::StyledData(ref v, ref s) => {
+                Item::StyledData(ref v, s) => {
                     buf.set_stringn(
                         list_area.left(),
                         list_area.top() + i as u16,

@@ -71,7 +71,7 @@ impl Backend for RustboxBackend {
 }
 
 fn rgb_to_byte(r: u8, g: u8, b: u8) -> u16 {
-    (((r & 255 & 0xC0) + ((g & 255 & 0xE0) >> 2) + ((b & 0xE0) >> 5)) & 0xFF) as u16
+    u16::from((r & 0xC0) + ((g & 0xE0) >> 2) + ((b & 0xE0) >> 5))
 }
 
 impl Into<rustbox::Color> for Color {
