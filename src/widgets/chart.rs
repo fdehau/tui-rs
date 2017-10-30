@@ -2,7 +2,7 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block, border};
+use widgets::{border, Block, Widget};
 use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
@@ -10,7 +10,10 @@ use style::Style;
 use symbols;
 
 /// An X or Y axis for the chart widget
-pub struct Axis<'a> {
+pub struct Axis<'a, L>
+where
+    L: AsRef<str> + 'a,
+{
     /// Title displayed next to axis end
     title: Option<&'a str>,
     /// Style of the title
@@ -18,15 +21,18 @@ pub struct Axis<'a> {
     /// Bounds for the axis (all data points outside these limits will not be represented)
     bounds: [f64; 2],
     /// A list of labels to put to the left or below the axis
-    labels: Option<&'a [&'a str]>,
+    labels: Option<&'a [L]>,
     /// The labels' style
     labels_style: Style,
     /// The style used to draw the axis itself
     style: Style,
 }
 
-impl<'a> Default for Axis<'a> {
-    fn default() -> Axis<'a> {
+impl<'a, L> Default for Axis<'a, L>
+where
+    L: AsRef<str>,
+{
+    fn default() -> Axis<'a, L> {
         Axis {
             title: None,
             title_style: Default::default(),
@@ -38,33 +44,36 @@ impl<'a> Default for Axis<'a> {
     }
 }
 
-impl<'a> Axis<'a> {
-    pub fn title(mut self, title: &'a str) -> Axis<'a> {
+impl<'a, L> Axis<'a, L>
+where
+    L: AsRef<str>,
+{
+    pub fn title(mut self, title: &'a str) -> Axis<'a, L> {
         self.title = Some(title);
         self
     }
 
-    pub fn title_style(mut self, style: Style) -> Axis<'a> {
+    pub fn title_style(mut self, style: Style) -> Axis<'a, L> {
         self.title_style = style;
         self
     }
 
-    pub fn bounds(mut self, bounds: [f64; 2]) -> Axis<'a> {
+    pub fn bounds(mut self, bounds: [f64; 2]) -> Axis<'a, L> {
         self.bounds = bounds;
         self
     }
 
-    pub fn labels(mut self, labels: &'a [&'a str]) -> Axis<'a> {
+    pub fn labels(mut self, labels: &'a [L]) -> Axis<'a, L> {
         self.labels = Some(labels);
         self
     }
 
-    pub fn labels_style(mut self, style: Style) -> Axis<'a> {
+    pub fn labels_style(mut self, style: Style) -> Axis<'a, L> {
         self.labels_style = style;
         self
     }
 
-    pub fn style(mut self, style: Style) -> Axis<'a> {
+    pub fn style(mut self, style: Style) -> Axis<'a, L> {
         self.style = style;
         self
     }
@@ -186,21 +195,29 @@ impl Default for ChartLayout {
 ///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
 /// # }
-pub struct Chart<'a> {
+pub struct Chart<'a, LX, LY>
+where
+    LX: AsRef<str> + 'a,
+    LY: AsRef<str> + 'a,
+{
     /// A block to display around the widget eventually
     block: Option<Block<'a>>,
     /// The horizontal axis
-    x_axis: Axis<'a>,
+    x_axis: Axis<'a, LX>,
     /// The vertical axis
-    y_axis: Axis<'a>,
+    y_axis: Axis<'a, LY>,
     /// A reference to the datasets
     datasets: &'a [Dataset<'a>],
     /// The widget base style
     style: Style,
 }
 
-impl<'a> Default for Chart<'a> {
-    fn default() -> Chart<'a> {
+impl<'a, LX, LY> Default for Chart<'a, LX, LY>
+where
+    LX: AsRef<str>,
+    LY: AsRef<str>,
+{
+    fn default() -> Chart<'a, LX, LY> {
         Chart {
             block: None,
             x_axis: Axis::default(),
@@ -211,28 +228,32 @@ impl<'a> Default for Chart<'a> {
     }
 }
 
-impl<'a> Chart<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Chart<'a> {
+impl<'a, LX, LY> Chart<'a, LX, LY>
+where
+    LX: AsRef<str>,
+    LY: AsRef<str>,
+{
+    pub fn block(&'a mut self, block: Block<'a>) -> &mut Chart<'a, LX, LY> {
         self.block = Some(block);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Chart<'a> {
+    pub fn style(&mut self, style: Style) -> &mut Chart<'a, LX, LY> {
         self.style = style;
         self
     }
 
-    pub fn x_axis(&mut self, axis: Axis<'a>) -> &mut Chart<'a> {
+    pub fn x_axis(&mut self, axis: Axis<'a, LX>) -> &mut Chart<'a, LX, LY> {
         self.x_axis = axis;
         self
     }
 
-    pub fn y_axis(&mut self, axis: Axis<'a>) -> &mut Chart<'a> {
+    pub fn y_axis(&mut self, axis: Axis<'a, LY>) -> &mut Chart<'a, LX, LY> {
         self.y_axis = axis;
         self
     }
 
-    pub fn datasets(&mut self, datasets: &'a [Dataset<'a>]) -> &mut Chart<'a> {
+    pub fn datasets(&mut self, datasets: &'a [Dataset<'a>]) -> &mut Chart<'a, LX, LY> {
         self.datasets = datasets;
         self
     }
@@ -254,7 +275,7 @@ impl<'a> Chart<'a> {
         }
 
         if let Some(labels) = self.y_axis.labels {
-            let max_width = labels.iter().fold(0, |acc, l| max(l.width(), acc)) as u16;
+            let max_width = labels.iter().fold(0, |acc, l| max(l.as_ref().width(), acc)) as u16;
             if x + max_width < area.right() {
                 layout.label_y = Some(x);
                 x += max_width;
@@ -292,8 +313,8 @@ impl<'a> Chart<'a> {
         if let Some(inner_width) = self.datasets.iter().map(|d| d.name.width() as u16).max() {
             let legend_width = inner_width + 2;
             let legend_height = self.datasets.len() as u16 + 2;
-            if legend_width < layout.graph_area.width / 3 &&
-                legend_height < layout.graph_area.height / 3
+            if legend_width < layout.graph_area.width / 3
+                && legend_height < layout.graph_area.height / 3
             {
                 layout.legend_area = Some(Rect::new(
                     layout.graph_area.right() - legend_width,
@@ -307,7 +328,11 @@ impl<'a> Chart<'a> {
     }
 }
 
-impl<'a> Widget for Chart<'a> {
+impl<'a, LX, LY> Widget for Chart<'a, LX, LY>
+where
+    LX: AsRef<str>,
+    LY: AsRef<str>,
+{
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
@@ -337,15 +362,15 @@ impl<'a> Widget for Chart<'a> {
 
         if let Some(y) = layout.label_x {
             let labels = self.x_axis.labels.unwrap();
-            let total_width = labels.iter().fold(0, |acc, l| l.width() + acc) as u16;
+            let total_width = labels.iter().fold(0, |acc, l| l.as_ref().width() + acc) as u16;
             let labels_len = labels.len() as u16;
             if total_width < graph_area.width && labels_len > 1 {
                 for (i, label) in labels.iter().enumerate() {
                     buf.set_string(
-                        graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1) -
-                            label.width() as u16,
+                        graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1)
+                            - label.as_ref().width() as u16,
                         y,
-                        label,
+                        label.as_ref(),
                         &self.x_axis.labels_style,
                     );
                 }
@@ -361,7 +386,7 @@ impl<'a> Widget for Chart<'a> {
                     buf.set_string(
                         x,
                         graph_area.bottom() - 1 - dy,
-                        label,
+                        label.as_ref(),
                         &self.y_axis.labels_style,
                     );
                 }
@@ -394,26 +419,23 @@ impl<'a> Widget for Chart<'a> {
 
         for dataset in self.datasets {
             match dataset.marker {
-                Marker::Dot => {
-                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
-                        !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1] ||
-                              y < self.y_axis.bounds[0] ||
-                              y > self.y_axis.bounds[1])
-                    })
-                    {
-                        let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1) /
-                                      (self.y_axis.bounds[1] - self.y_axis.bounds[0])) as
-                            u16;
-                        let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1) /
-                                      (self.x_axis.bounds[1] - self.x_axis.bounds[0])) as
-                            u16;
+                Marker::Dot => for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
+                    !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1]
+                        || y < self.y_axis.bounds[0]
+                        || y > self.y_axis.bounds[1])
+                }) {
+                    let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1)
+                        / (self.y_axis.bounds[1] - self.y_axis.bounds[0]))
+                        as u16;
+                    let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1)
+                        / (self.x_axis.bounds[1] - self.x_axis.bounds[0]))
+                        as u16;
 
-                        buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
-                            .set_symbol(symbols::DOT)
-                            .set_fg(dataset.style.fg)
-                            .set_bg(dataset.style.bg);
-                    }
-                }
+                    buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
+                        .set_symbol(symbols::DOT)
+                        .set_fg(dataset.style.fg)
+                        .set_bg(dataset.style.bg);
+                },
                 Marker::Braille => {
                     Canvas::default()
                         .background_color(self.style.bg)
@@ -431,10 +453,9 @@ impl<'a> Widget for Chart<'a> {
         }
 
         if let Some(legend_area) = layout.legend_area {
-            Block::default().borders(border::ALL).draw(
-                &legend_area,
-                buf,
-            );
+            Block::default()
+                .borders(border::ALL)
+                .draw(&legend_area, buf);
             for (i, dataset) in self.datasets.iter().enumerate() {
                 buf.set_string(
                     legend_area.x + 1,
