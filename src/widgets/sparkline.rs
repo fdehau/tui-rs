@@ -2,7 +2,7 @@ use std::cmp::min;
 
 use layout::Rect;
 use buffer::Buffer;
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use style::Style;
 use symbols::bar;
 

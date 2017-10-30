@@ -11,13 +11,13 @@ pub mod canvas;
 
 pub use self::block::Block;
 pub use self::paragraph::Paragraph;
-pub use self::list::{List, Item, SelectableList};
+pub use self::list::{Item, List, SelectableList};
 pub use self::gauge::Gauge;
 pub use self::sparkline::Sparkline;
-pub use self::chart::{Chart, Axis, Dataset, Marker};
+pub use self::chart::{Axis, Chart, Dataset, Marker};
 pub use self::barchart::BarChart;
 pub use self::tabs::Tabs;
-pub use self::table::{Table, Row};
+pub use self::table::{Row, Table};
 
 use buffer::Buffer;
 use layout::Rect;

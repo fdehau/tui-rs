@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use backend::Backend;
 use buffer::Buffer;
-use layout::{Rect, Group, split};
+use layout::{split, Group, Rect};
 use widgets::Widget;
 
 /// Holds a computed layout and keeps track of its use between successive draw calls
@@ -114,7 +114,6 @@ where
 
     /// Flushes the current internal state and prepares the interface for the next draw call
     pub fn draw(&mut self) -> Result<(), io::Error> {
-
         // Draw to stdout
         self.flush()?;
 

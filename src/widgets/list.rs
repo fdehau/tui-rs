@@ -5,7 +5,7 @@ use std::iter::Iterator;
 use unicode_width::UnicodeWidthStr;
 
 use buffer::Buffer;
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use layout::Rect;
 use style::Style;
 
@@ -87,9 +87,10 @@ where
 
         self.background(&list_area, buf, self.style.bg);
 
-        for (i, item) in self.items.by_ref().enumerate().take(
-            list_area.height as usize,
-        )
+        for (i, item) in self.items
+            .by_ref()
+            .enumerate()
+            .take(list_area.height as usize)
         {
             match item {
                 Item::Data(ref v) => {
@@ -199,7 +200,6 @@ impl<'b> SelectableList<'b> {
 
 impl<'b> Widget for SelectableList<'b> {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
-
         let list_area = match self.block {
             Some(ref mut b) => b.inner(area),
             None => *area,

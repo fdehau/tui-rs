@@ -4,7 +4,7 @@ use std::usize;
 use unicode_segmentation::UnicodeSegmentation;
 
 use layout::Rect;
-use style::{Style, Color, Modifier};
+use style::{Color, Modifier, Style};
 
 /// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
@@ -156,8 +156,8 @@ impl Buffer {
     /// Returns the index in the Vec<Cell> for the given (x, y)
     pub fn index_of(&self, x: u16, y: u16) -> usize {
         debug_assert!(
-            x >= self.area.left() && x < self.area.right() && y >= self.area.top() &&
-                y < self.area.bottom(),
+            x >= self.area.left() && x < self.area.right() && y >= self.area.top()
+                && y < self.area.bottom(),
             "Trying to access position outside the buffer: x={}, y={}, area={:?}",
             x,
             y,

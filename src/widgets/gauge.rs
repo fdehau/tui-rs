@@ -1,8 +1,8 @@
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use buffer::Buffer;
-use style::{Style, Color};
+use style::{Color, Style};
 use layout::Rect;
 
 /// A widget to display a task progress.
@@ -81,7 +81,6 @@ impl<'a> Widget for Gauge<'a> {
         let width = (gauge_area.width * self.percent) / 100;
         let end = gauge_area.left() + width;
         for y in gauge_area.top()..gauge_area.bottom() {
-
             // Gauge
             for x in gauge_area.left()..end {
                 buf.get_mut(x, y).set_symbol(" ");
@@ -98,9 +97,9 @@ impl<'a> Widget for Gauge<'a> {
 
             // Fix colors
             for x in gauge_area.left()..end {
-                buf.get_mut(x, y).set_fg(self.style.bg).set_bg(
-                    self.style.fg,
-                );
+                buf.get_mut(x, y)
+                    .set_fg(self.style.bg)
+                    .set_bg(self.style.fg);
             }
         }
     }

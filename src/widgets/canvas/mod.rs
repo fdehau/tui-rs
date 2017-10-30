@@ -7,7 +7,7 @@ pub use self::points::Points;
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
 
-use style::{Style, Color};
+use style::{Color, Style};
 use buffer::Buffer;
 use widgets::{Block, Widget};
 use layout::Rect;
@@ -95,9 +95,9 @@ impl<'a> Context<'a> {
         let right = self.x_bounds[1];
         let bottom = self.y_bounds[0];
         let top = self.y_bounds[1];
-        for (x, y) in shape.points().filter(|&(x, y)| {
-            !(x < left || x > right || y < bottom || y > top)
-        })
+        for (x, y) in shape
+            .points()
+            .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top))
         {
             let dy = ((top - y) * f64::from(self.height - 1) * 4.0 / (top - bottom)) as usize;
             let dx = ((x - left) * f64::from(self.width - 1) * 2.0 / (right - left)) as usize;
@@ -241,7 +241,6 @@ where
         let height = canvas_area.height as usize;
 
         if let Some(ref painter) = self.painter {
-
             // Create a blank context that match the size of the terminal
             let mut ctx = Context {
                 x_bounds: self.x_bounds,
@@ -278,16 +277,13 @@ where
             // Finally draw the labels
             let style = Style::default().bg(self.background_color);
             for label in ctx.labels.iter().filter(|l| {
-                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0] ||
-                      l.y > self.y_bounds[1])
-            })
-            {
-                let dy = ((self.y_bounds[1] - label.y) * f64::from(canvas_area.height - 1) /
-                              (self.y_bounds[1] - self.y_bounds[0])) as
-                    u16;
-                let dx = ((label.x - self.x_bounds[0]) * f64::from(canvas_area.width - 1) /
-                              (self.x_bounds[1] - self.x_bounds[0])) as
-                    u16;
+                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0]
+                    || l.y > self.y_bounds[1])
+            }) {
+                let dy = ((self.y_bounds[1] - label.y) * f64::from(canvas_area.height - 1)
+                    / (self.y_bounds[1] - self.y_bounds[0])) as u16;
+                let dx = ((label.x - self.x_bounds[0]) * f64::from(canvas_area.width - 1)
+                    / (self.x_bounds[1] - self.x_bounds[0])) as u16;
                 buf.set_string(
                     dx + canvas_area.left(),
                     dy + canvas_area.top(),

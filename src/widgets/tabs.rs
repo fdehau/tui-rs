@@ -76,7 +76,6 @@ impl<'a> Tabs<'a> {
 
 impl<'a> Widget for Tabs<'a> {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
-
         let tabs_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
@@ -92,14 +91,14 @@ impl<'a> Widget for Tabs<'a> {
         self.background(&tabs_area, buf, self.style.bg);
 
         let mut x = tabs_area.left();
-        for (title, style) in self.titles.iter().enumerate().map(|(i, t)| if i ==
-            self.selected
-        {
-            (t, &self.highlight_style)
-        } else {
-            (t, &self.style)
-        })
-        {
+        for (title, style) in self.titles
+            .iter()
+            .enumerate()
+            .map(|(i, t)| if i == self.selected {
+                (t, &self.highlight_style)
+            } else {
+                (t, &self.style)
+            }) {
             x += 1;
             if x > tabs_area.right() {
                 break;

@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::iter::Iterator;
 
 use buffer::Buffer;
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use layout::Rect;
 use style::Style;
 
@@ -72,8 +72,7 @@ where
     H: Iterator<Item = T> + Default,
     I: Display,
     D: Iterator<Item = I>,
-    R: Iterator<Item = Row<'i, D, I>>
-        + Default,
+    R: Iterator<Item = Row<'i, D, I>> + Default,
 {
     fn default() -> Table<'a, 'i, T, H, I, D, R> {
         Table {
@@ -159,7 +158,6 @@ where
     R: Iterator<Item = Row<'i, D, I>>,
 {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
-
         // Render block if necessary and get the drawing area
         let table_area = match self.block {
             Some(ref mut b) => {
