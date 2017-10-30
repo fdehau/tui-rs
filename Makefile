@@ -58,8 +58,7 @@ RUSTFMT_WRITEMODE ?= 'diff'
 lint: fmt clippy ## Lint project files
 
 fmt: ## Check the format of the source code
-	rustfmt --write-mode=$(RUSTFMT_WRITEMODE) $(shell find src -type f -name "*.rs")
-	rustfmt --write-mode=$(RUSTFMT_WRITEMODE) $(shell find examples -type f -name "*.rs")
+	cargo fmt -- --write-mode=$(RUSTFMT_WRITEMODE)
 
 clippy: RUST_CHANNEL = nightly
 clippy: ## Check the style of the source code and catch common errors
