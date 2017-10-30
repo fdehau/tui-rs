@@ -22,11 +22,14 @@ use symbols::line;
 ///     .highlight_style(Style::default().fg(Color::Yellow));
 /// # }
 /// ```
-pub struct Tabs<'a> {
+pub struct Tabs<'a, T>
+where
+    T: AsRef<str> + 'a,
+{
     /// A block to wrap this widget in if necessary
     block: Option<Block<'a>>,
     /// One title for each tab
-    titles: &'a [&'a str],
+    titles: &'a [T],
     /// The index of the selected tabs
     selected: usize,
     /// The style used to draw the text
@@ -35,8 +38,11 @@ pub struct Tabs<'a> {
     highlight_style: Style,
 }
 
-impl<'a> Default for Tabs<'a> {
-    fn default() -> Tabs<'a> {
+impl<'a, T> Default for Tabs<'a, T>
+where
+    T: AsRef<str>,
+{
+    fn default() -> Tabs<'a, T> {
         Tabs {
             block: None,
             titles: &[],
@@ -47,34 +53,40 @@ impl<'a> Default for Tabs<'a> {
     }
 }
 
-impl<'a> Tabs<'a> {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Tabs<'a> {
+impl<'a, T> Tabs<'a, T>
+where
+    T: AsRef<str>,
+{
+    pub fn block(&mut self, block: Block<'a>) -> &mut Tabs<'a, T> {
         self.block = Some(block);
         self
     }
 
-    pub fn titles(&mut self, titles: &'a [&'a str]) -> &mut Tabs<'a> {
+    pub fn titles(&mut self, titles: &'a [T]) -> &mut Tabs<'a, T> {
         self.titles = titles;
         self
     }
 
-    pub fn select(&mut self, selected: usize) -> &mut Tabs<'a> {
+    pub fn select(&mut self, selected: usize) -> &mut Tabs<'a, T> {
         self.selected = selected;
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Tabs<'a> {
+    pub fn style(&mut self, style: Style) -> &mut Tabs<'a, T> {
         self.style = style;
         self
     }
 
-    pub fn highlight_style(&mut self, style: Style) -> &mut Tabs<'a> {
+    pub fn highlight_style(&mut self, style: Style) -> &mut Tabs<'a, T> {
         self.highlight_style = style;
         self
     }
 }
 
-impl<'a> Widget for Tabs<'a> {
+impl<'a, T> Widget for Tabs<'a, T>
+where
+    T: AsRef<str>,
+{
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
         let tabs_area = match self.block {
             Some(ref mut b) => {
@@ -103,8 +115,8 @@ impl<'a> Widget for Tabs<'a> {
             if x > tabs_area.right() {
                 break;
             } else {
-                buf.set_string(x, tabs_area.top(), title, style);
-                x += title.width() as u16 + 1;
+                buf.set_string(x, tabs_area.top(), title.as_ref(), style);
+                x += title.as_ref().width() as u16 + 1;
                 if x >= tabs_area.right() {
                     break;
                 } else {
