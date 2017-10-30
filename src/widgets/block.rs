@@ -1,7 +1,7 @@
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
-use widgets::{Widget, border};
+use widgets::{border, Widget};
 use symbols::line;
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
@@ -100,7 +100,6 @@ impl<'a> Block<'a> {
 
 impl<'a> Widget for Block<'a> {
     fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
-
         if area.width < 2 || area.height < 2 {
             return;
         }
@@ -125,17 +124,17 @@ impl<'a> Widget for Block<'a> {
         if self.borders.intersects(border::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
-                buf.get_mut(x, y).set_symbol(line::VERTICAL).set_style(
-                    self.border_style,
-                );
+                buf.get_mut(x, y)
+                    .set_symbol(line::VERTICAL)
+                    .set_style(self.border_style);
             }
         }
         if self.borders.intersects(border::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
-                buf.get_mut(x, y).set_symbol(line::HORIZONTAL).set_style(
-                    self.border_style,
-                );
+                buf.get_mut(x, y)
+                    .set_symbol(line::HORIZONTAL)
+                    .set_style(self.border_style);
             }
         }
 

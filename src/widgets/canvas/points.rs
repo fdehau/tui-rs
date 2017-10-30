@@ -31,7 +31,9 @@ impl<'a> IntoIterator for &'a Points<'a> {
     type Item = (f64, f64);
     type IntoIter = PointsIterator<'a>;
     fn into_iter(self) -> Self::IntoIter {
-        PointsIterator { iter: self.coords.iter() }
+        PointsIterator {
+            iter: self.coords.iter(),
+        }
     }
 }
 

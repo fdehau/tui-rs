@@ -1,8 +1,8 @@
-use std::cmp::{min, max};
+use std::cmp::{max, min};
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
@@ -123,9 +123,8 @@ impl<'a> Widget for BarChart<'a> {
 
         self.background(&chart_area, buf, self.style.bg);
 
-        let max = self.max.unwrap_or_else(|| {
-            self.data.iter().fold(0, |acc, &(_, v)| max(v, acc))
-        });
+        let max = self.max
+            .unwrap_or_else(|| self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
         let max_index = min(
             (chart_area.width / (self.bar_width + self.bar_gap)) as usize,
             self.data.len(),
@@ -162,7 +161,6 @@ impl<'a> Widget for BarChart<'a> {
                 } else {
                     d.1 = 0;
                 }
-
             }
         }
 
@@ -172,8 +170,8 @@ impl<'a> Widget for BarChart<'a> {
                 let width = value_label.width() as u16;
                 if width < self.bar_width {
                     buf.set_string(
-                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) +
-                            (self.bar_width - width) / 2,
+                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap)
+                            + (self.bar_width - width) / 2,
                         chart_area.bottom() - 2,
                         value_label,
                         &self.value_style,

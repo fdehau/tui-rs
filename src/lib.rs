@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate bitflags;
+extern crate cassowary;
 #[macro_use]
 extern crate log;
-extern crate cassowary;
 extern crate unicode_segmentation;
 extern crate unicode_width;
 

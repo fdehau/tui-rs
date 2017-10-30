@@ -1,10 +1,10 @@
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Widget, Block};
+use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
-use style::{Style, Color, Modifier};
+use style::{Color, Modifier, Style};
 
 /// A widget to display some text. You can specify colors using commands embedded in
 /// the text such as "{[color] [text]}".
@@ -117,21 +117,15 @@ where
             let args = cmd.split('=').collect::<Vec<&str>>();
             if let Some(first) = args.get(0) {
                 match *first {
-                    "fg" => {
-                        if let Some(snd) = args.get(1) {
-                            self.style.fg = Parser::<T>::str_to_color(snd);
-                        }
-                    }
-                    "bg" => {
-                        if let Some(snd) = args.get(1) {
-                            self.style.bg = Parser::<T>::str_to_color(snd);
-                        }
-                    }
-                    "mod" => {
-                        if let Some(snd) = args.get(1) {
-                            self.style.modifier = Parser::<T>::str_to_modifier(snd);
-                        }
-                    }
+                    "fg" => if let Some(snd) = args.get(1) {
+                        self.style.fg = Parser::<T>::str_to_color(snd);
+                    },
+                    "bg" => if let Some(snd) = args.get(1) {
+                        self.style.bg = Parser::<T>::str_to_color(snd);
+                    },
+                    "mod" => if let Some(snd) = args.get(1) {
+                        self.style.modifier = Parser::<T>::str_to_modifier(snd);
+                    },
                     _ => {}
                 }
             }
@@ -184,43 +178,41 @@ where
     type Item = (&'a str, Style);
     fn next(&mut self) -> Option<Self::Item> {
         match self.text.next() {
-            Some(s) => {
-                if s == "\\" {
-                    if self.escaping {
-                        Some((s, self.style))
-                    } else {
-                        self.escaping = true;
-                        self.next()
-                    }
-                } else if s == "{" {
-                    if self.escaping {
-                        self.escaping = false;
-                        Some((s, self.style))
-                    } else if self.mark {
-                        Some((s, self.style))
-                    } else {
-                        self.style = self.base_style;
-                        self.mark = true;
-                        self.next()
-                    }
-                } else if s == "}" && self.mark {
-                    self.reset();
-                    self.next()
-                } else if s == " " && self.mark {
-                    if self.styling {
-                        Some((s, self.style))
-                    } else {
-                        self.styling = true;
-                        self.update_style();
-                        self.next()
-                    }
-                } else if self.mark && !self.styling {
-                    self.cmd_string.push_str(s);
-                    self.next()
-                } else {
+            Some(s) => if s == "\\" {
+                if self.escaping {
                     Some((s, self.style))
+                } else {
+                    self.escaping = true;
+                    self.next()
                 }
-            }
+            } else if s == "{" {
+                if self.escaping {
+                    self.escaping = false;
+                    Some((s, self.style))
+                } else if self.mark {
+                    Some((s, self.style))
+                } else {
+                    self.style = self.base_style;
+                    self.mark = true;
+                    self.next()
+                }
+            } else if s == "}" && self.mark {
+                self.reset();
+                self.next()
+            } else if s == " " && self.mark {
+                if self.styling {
+                    Some((s, self.style))
+                } else {
+                    self.styling = true;
+                    self.update_style();
+                    self.next()
+                }
+            } else if self.mark && !self.styling {
+                self.cmd_string.push_str(s);
+                self.next()
+            } else {
+                Some((s, self.style))
+            },
             None => None,
         }
     }

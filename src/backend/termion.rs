@@ -8,7 +8,7 @@ use self::termion::raw::IntoRawMode;
 use super::Backend;
 use buffer::Cell;
 use layout::Rect;
-use style::{Style, Color, Modifier};
+use style::{Color, Modifier, Style};
 
 pub struct TermionBackend<W>
 where
@@ -18,8 +18,9 @@ where
 }
 
 pub type RawBackend = TermionBackend<termion::raw::RawTerminal<io::Stdout>>;
-pub type MouseBackend =
-    TermionBackend<termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>>;
+pub type MouseBackend = TermionBackend<
+    termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>,
+>;
 
 impl RawBackend {
     pub fn new() -> Result<RawBackend, io::Error> {
