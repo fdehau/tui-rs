@@ -30,45 +30,13 @@ help: ## Print all the available commands
 # ================================ Tools ======================================
 
 
-install: install-rustfmt install-clippy ## Install tools dependencies
+install-tools: install-rustfmt install-clippy ## Install tools dependencies
 
-RUSTFMT_TARGET_VERSION = 0.9.0
-RUSTFMT = $(shell command -v rustfmt 2> /dev/null)
-ifeq ("$(RUSTFMT)","")
-  RUSTFMT_INSTALL_CMD = @echo "Installing rustfmt $(RUSTFMT_TARGET_VERSION)" \
-			&& $(CARGO) install --vers $(RUSTFMT_TARGET_VERSION) --force rustfmt
-else
-  RUSTFMT_CURRENT_VERSION = $(shell rustfmt --version | sed 's/^\(.*\) ()/\1/')
-  ifeq ($(RUSTFMT_CURRENT_VERSION),$(RUSTFMT_TARGET_VERSION))
-    RUSTFMT_INSTALL_CMD = @echo "Rustfmt is up to date"
-  else
-    RUSTFMT_INSTALL_CMD = @echo "Updating rustfmt from $(RUSTFMT_CURRENT_VERSION) to $(RUSTFMT_TARGET_VERSION)" \
-			  && $(CARGO) install --vers $(RUSTFMT_TARGET_VERSION) --force rustfmt
-  endif
-endif
-
-install-rustfmt: RUST_CHANNEL = nightly
 install-rustfmt: ## Intall rustfmt
-	$(RUSTFMT_INSTALL_CMD)
+	./scripts/tools/rustfmt.sh
 
-
-CLIPPY_TARGET_VERSION = 0.0.157
-CLIPPY_CURRENT_VERSION = $(shell $(CARGO) clippy --version 2>/dev/null)
-ifeq ("$(CLIPPY_CURRENT_VERSION)","")
-  CLIPPY_INSTALL_CMD = @echo "Installing clippy $(CLIPPY_TARGET_VERSION)" \
-		       && $(CARGO) install --vers $(CLIPPY_TARGET_VERSION) --force clippy
-else
-  ifeq ($(CLIPPY_CURRENT_VERSION),$(CLIPPY_TARGET_VERSION))
-    CLIPPY_INSTALL_CMD = @echo "Clippy is up to date"
-  else
-    CLIPPY_INSTALL_CMD = @echo "Updating clippy from $(CLIPPY_CURRENT_VERSION) to $(CLIPPY_TARGET_VERSION)" \
-			 && $(CARGO) install --vers $(CLIPPY_TARGET_VERSION) --force clippy
-  endif
-endif
-
-install-clippy: RUST_CHANNEL = nightly
 install-clippy: ## Install clippy
-	$(CLIPPY_INSTALL_CMD)
+	./scripts/tools/clippy.sh
 
 
 # =============================== Build =======================================
@@ -90,7 +58,8 @@ RUSTFMT_WRITEMODE ?= 'diff'
 lint: fmt clippy ## Lint project files
 
 fmt: ## Check the format of the source code
-	$(CARGO) fmt -- --write-mode=$(RUSTFMT_WRITEMODE)
+	rustfmt --write-mode=$(RUSTFMT_WRITEMODE) $(shell find src -type f -name "*.rs")
+	rustfmt --write-mode=$(RUSTFMT_WRITEMODE) $(shell find examples -type f -name "*.rs")
 
 clippy: RUST_CHANNEL = nightly
 clippy: ## Check the style of the source code and catch common errors
@@ -132,4 +101,4 @@ beta: RUST_CHANNEL = beta
 beta: build test ## Run build and tests for beta
 
 nightly: RUST_CHANNEL = nightly
-nightly: build lint test ## Run build, lint and tests for nightly
+nightly: install-tools build lint test ## Run build, lint and tests for nightly
