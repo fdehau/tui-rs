@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 use std::io;
 use termion::event;
@@ -7,9 +7,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, Paragraph};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color};
+use tui::widgets::{Block, Paragraph, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Style};
 
 fn main() {
     let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
@@ -37,7 +37,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
-
     Block::default()
         .style(Style::default().bg(Color::White))
         .render(t, size);
@@ -54,10 +53,10 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
                     Paragraph::default()
                         .text(
                             "This is a line\n{fg=red This is a line}\n{bg=red This is a \
-                               line}\n{mod=italic This is a line}\n{mod=bold This is a \
-                               line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
-                               line}\n{mod=underline This is a \
-                               line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
+                             line}\n{mod=italic This is a line}\n{mod=bold This is a \
+                             line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
+                             line}\n{mod=underline This is a \
+                             line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
                         )
                         .render(t, &chunks[0]);
                 });

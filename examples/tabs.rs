@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 mod util;
 use util::*;
@@ -10,9 +10,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, Tabs};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color};
+use tui::widgets::{border, Block, Tabs, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Style};
 
 struct App<'a> {
     size: Rect,
@@ -64,7 +64,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
-
     Block::default()
         .style(Style::default().bg(Color::White))
         .render(t, &app.size);

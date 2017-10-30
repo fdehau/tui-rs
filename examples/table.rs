@@ -1,5 +1,5 @@
-extern crate tui;
 extern crate termion;
+extern crate tui;
 
 use std::io;
 
@@ -8,9 +8,9 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Widget, Block, border, Table, Row};
-use tui::layout::{Group, Direction, Size, Rect};
-use tui::style::{Style, Color, Modifier};
+use tui::widgets::{border, Block, Row, Table, Widget};
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
 
 struct App<'a> {
     size: Rect,
@@ -70,13 +70,11 @@ fn main() {
                     app.selected = 0;
                 }
             }
-            event::Key::Up => {
-                if app.selected > 0 {
-                    app.selected -= 1;
-                } else {
-                    app.selected = app.items.len() - 1;
-                }
-            }
+            event::Key::Up => if app.selected > 0 {
+                app.selected -= 1;
+            } else {
+                app.selected = app.items.len() - 1;
+            },
             _ => {}
         };
         draw(&mut terminal, &app);
@@ -87,7 +85,6 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-
     Group::default()
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(100)])
@@ -97,13 +94,14 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             let normal_style = Style::default().fg(Color::White);
             Table::new(
                 ["Header1", "Header2", "Header3"].into_iter(),
-                app.items.iter().enumerate().map(|(i, item)| if i ==
-                    app.selected
-                {
-                    Row::StyledData(item.into_iter(), &selected_style)
-                } else {
-                    Row::StyledData(item.into_iter(), &normal_style)
-                }),
+                app.items
+                    .iter()
+                    .enumerate()
+                    .map(|(i, item)| if i == app.selected {
+                        Row::StyledData(item.into_iter(), &selected_style)
+                    } else {
+                        Row::StyledData(item.into_iter(), &normal_style)
+                    }),
             ).block(Block::default().borders(border::ALL).title("Table"))
                 .widths(&[10, 10, 10])
                 .render(t, &chunks[0]);
