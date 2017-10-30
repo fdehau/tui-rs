@@ -1,31 +1,8 @@
 #![allow(dead_code)]
 
-extern crate log4rs;
-extern crate log;
 extern crate rand;
 
 use self::rand::distributions::{IndependentSample, Range};
-
-use self::log::LogLevelFilter;
-use self::log4rs::append::file::FileAppender;
-use self::log4rs::encode::pattern::PatternEncoder;
-use self::log4rs::config::{Appender, Config, Root};
-
-pub fn setup_log(file_name: &str) {
-    let log = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(
-            "{l} / {d(%H:%M:%S)} / \
-             {M}:{L}{n}{m}{n}{n}",
-        )))
-        .build(file_name)
-        .unwrap();
-
-    let config = Config::builder()
-        .appender(Appender::builder().build("log", Box::new(log)))
-        .build(Root::builder().appender("log").build(LogLevelFilter::Debug))
-        .unwrap();
-    log4rs::init_config(config).unwrap();
-}
 
 #[derive(Clone)]
 pub struct RandomSignal {

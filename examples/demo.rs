@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate log;
-
+extern crate stderrlog;
 extern crate termion;
 extern crate tui;
 
@@ -8,7 +8,6 @@ mod util;
 
 use std::io;
 use std::thread;
-use std::env;
 use std::time;
 use std::sync::mpsc;
 
@@ -57,12 +56,11 @@ enum Event {
 }
 
 fn main() {
-    for argument in env::args() {
-        if argument == "--log" {
-            setup_log("demo.log");
-        }
-    }
-
+    stderrlog::new()
+        .module(module_path!())
+        .verbosity(4)
+        .init()
+        .unwrap();
     info!("Start");
 
     let mut rand_signal = RandomSignal::new(0, 100);
