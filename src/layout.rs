@@ -8,7 +8,7 @@ use cassowary::strength::{REQUIRED, WEAK};
 use terminal::Terminal;
 use backend::Backend;
 
-#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+#[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Horizontal,
     Vertical,
@@ -110,7 +110,7 @@ impl Rect {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Size {
     Fixed(u16),
     Percent(u16),
