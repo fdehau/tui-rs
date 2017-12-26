@@ -274,10 +274,10 @@ where
         }
 
         if let Some(y_labels) = self.y_axis.labels {
-            let mut max_width = y_labels.iter().fold(
-                0,
-                |acc, l| max(l.as_ref().width(), acc),
-            ) as u16;
+            let mut max_width = y_labels
+                .iter()
+                .fold(0, |acc, l| max(l.as_ref().width(), acc))
+                as u16;
             if let Some(x_labels) = self.x_axis.labels {
                 if x_labels.len() > 0 {
                     max_width = max(max_width, x_labels[0].as_ref().width() as u16);
