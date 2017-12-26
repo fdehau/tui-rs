@@ -116,8 +116,6 @@ where
     }
 }
 
-
-
 /// A widget to display several items among which one can be selected (optional)
 ///
 /// # Examples
@@ -227,10 +225,12 @@ impl<'b> Widget for SelectableList<'b> {
         let items = self.items
             .iter()
             .enumerate()
-            .map(|(i, item)| if i == selected {
-                Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
-            } else {
-                Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+            .map(|(i, item)| {
+                if i == selected {
+                    Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
+                } else {
+                    Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                }
             })
             .skip(offset as usize);
         List::new(items)

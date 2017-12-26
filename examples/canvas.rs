@@ -28,7 +28,6 @@ struct App {
     dir_y: bool,
 }
 
-
 impl App {
     fn new() -> App {
         App {

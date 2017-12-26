@@ -40,7 +40,6 @@ fn main() {
     let backend = MouseBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
 
-
     // App
     let mut app = App::new();
 
@@ -94,14 +93,13 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             let normal_style = Style::default().fg(Color::White);
             Table::new(
                 ["Header1", "Header2", "Header3"].into_iter(),
-                app.items
-                    .iter()
-                    .enumerate()
-                    .map(|(i, item)| if i == app.selected {
+                app.items.iter().enumerate().map(|(i, item)| {
+                    if i == app.selected {
                         Row::StyledData(item.into_iter(), &selected_style)
                     } else {
                         Row::StyledData(item.into_iter(), &normal_style)
-                    }),
+                    }
+                }),
             ).block(Block::default().borders(border::ALL).title("Table"))
                 .widths(&[10, 10, 10])
                 .render(t, &chunks[0]);

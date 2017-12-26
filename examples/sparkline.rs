@@ -122,12 +122,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
     Group::default()
         .direction(Direction::Vertical)
         .margin(2)
-        .sizes(&[
-            Size::Fixed(3),
-            Size::Fixed(3),
-            Size::Fixed(7),
-            Size::Min(0),
-        ])
+        .sizes(&[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)])
         .render(t, &app.size, |t, chunks| {
             Sparkline::default()
                 .block(

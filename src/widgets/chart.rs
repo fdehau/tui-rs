@@ -258,7 +258,6 @@ where
         self
     }
 
-
     /// Compute the internal layout of the chart given the area. If the area is too small some
     /// elements may be automatically hidden
     fn layout(&self, area: &Rect) -> ChartLayout {
