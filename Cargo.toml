@@ -1,6 +1,6 @@
 [package]
 name = "tui"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
@@ -8,7 +8,7 @@ A library to build rich terminal user interfaces or dashboards
 keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
-exclude = ["docs", ".travis.yml"]
+exclude = ["docs/*", ".travis.yml"]
 
 [badges]
 travis-ci = { repository = "fdehau/tui-rs" }
