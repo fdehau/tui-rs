@@ -21,7 +21,7 @@ where
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, border, Table, Row};
+/// # use tui::widgets::{Block, Borders, Table, Row};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// let row_style = Style::default().fg(Color::White);

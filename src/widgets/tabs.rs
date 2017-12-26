@@ -12,11 +12,11 @@ use symbols::line;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, Tabs};
+/// # use tui::widgets::{Block, Borders, Tabs};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Tabs::default()
-///     .block(Block::default().title("Tabs").borders(border::ALL))
+///     .block(Block::default().title("Tabs").borders(Borders::ALL))
 ///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
 ///     .style(Style::default().fg(Color::White))
 ///     .highlight_style(Style::default().fg(Color::Yellow));

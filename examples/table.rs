@@ -8,7 +8,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Row, Table, Widget};
+use tui::widgets::{Borders, Block, Row, Table, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -100,7 +100,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                         Row::StyledData(item.into_iter(), &normal_style)
                     }
                 }),
-            ).block(Block::default().borders(border::ALL).title("Table"))
+            ).block(Block::default().borders(Borders::ALL).title("Table"))
                 .widths(&[10, 10, 10])
                 .render(t, &chunks[0]);
         });

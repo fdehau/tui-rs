@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Widget};
+use tui::widgets::{Borders, Block, Widget};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::Color;
@@ -153,7 +153,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
             Canvas::default()
-                .block(Block::default().borders(border::ALL).title("World"))
+                .block(Block::default().borders(Borders::ALL).title("World"))
                 .paint(|ctx| {
                     ctx.draw(&Map {
                         color: Color::White,
@@ -165,7 +165,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .y_bounds([-90.0, 90.0])
                 .render(t, &chunks[0]);
             Canvas::default()
-                .block(Block::default().borders(border::ALL).title("List"))
+                .block(Block::default().borders(Borders::ALL).title("List"))
                 .paint(|ctx| {
                     ctx.draw(&Line {
                         x1: f64::from(app.ball.left()),

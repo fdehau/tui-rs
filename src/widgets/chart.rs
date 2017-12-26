@@ -2,7 +2,7 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{border, Block, Widget};
+use widgets::{Block, Borders, Widget};
 use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
@@ -167,7 +167,7 @@ impl Default for ChartLayout {
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, Chart, Axis, Dataset, Marker};
+/// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Chart::default()
@@ -461,7 +461,7 @@ where
 
         if let Some(legend_area) = layout.legend_area {
             Block::default()
-                .borders(border::ALL)
+                .borders(Borders::ALL)
                 .draw(&legend_area, buf);
             for (i, dataset) in self.datasets.iter().enumerate() {
                 buf.set_string(

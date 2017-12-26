@@ -1,7 +1,7 @@
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
-use widgets::{border, Widget};
+use widgets::{Borders, Widget};
 use symbols::line;
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
@@ -11,13 +11,13 @@ use symbols::line;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border};
+/// # use tui::widgets::{Block, Border};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Block::default()
 ///     .title("Block")
 ///     .title_style(Style::default().fg(Color::Red))
-///     .borders(border::LEFT | border::RIGHT)
+///     .borders(Borders::LEFT | Borders::RIGHT)
 ///     .border_style(Style::default().fg(Color::White))
 ///     .style(Style::default().bg(Color::Black));
 /// # }
@@ -29,7 +29,7 @@ pub struct Block<'a> {
     /// Title style
     title_style: Style,
     /// Visible borders
-    borders: border::Flags,
+    borders: Borders,
     /// Border style
     border_style: Style,
     /// Widget style
@@ -41,7 +41,7 @@ impl<'a> Default for Block<'a> {
         Block {
             title: None,
             title_style: Default::default(),
-            borders: border::NONE,
+            borders: Borders::NONE,
             border_style: Default::default(),
             style: Default::default(),
         }
@@ -69,7 +69,7 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn borders(mut self, flag: border::Flags) -> Block<'a> {
+    pub fn borders(mut self, flag: Borders) -> Block<'a> {
         self.borders = flag;
         self
     }
@@ -80,18 +80,18 @@ impl<'a> Block<'a> {
             return Rect::default();
         }
         let mut inner = *area;
-        if self.borders.intersects(border::LEFT) {
+        if self.borders.intersects(Borders::LEFT) {
             inner.x += 1;
             inner.width -= 1;
         }
-        if self.borders.intersects(border::TOP) || self.title.is_some() {
+        if self.borders.intersects(Borders::TOP) || self.title.is_some() {
             inner.y += 1;
             inner.height -= 1;
         }
-        if self.borders.intersects(border::RIGHT) {
+        if self.borders.intersects(Borders::RIGHT) {
             inner.width -= 1;
         }
-        if self.borders.intersects(border::BOTTOM) {
+        if self.borders.intersects(Borders::BOTTOM) {
             inner.height -= 1;
         }
         inner
@@ -107,21 +107,21 @@ impl<'a> Widget for Block<'a> {
         self.background(area, buf, self.style.bg);
 
         // Sides
-        if self.borders.intersects(border::LEFT) {
+        if self.borders.intersects(Borders::LEFT) {
             for y in area.top()..area.bottom() {
                 buf.get_mut(area.left(), y)
                     .set_symbol(line::VERTICAL)
                     .set_style(self.border_style);
             }
         }
-        if self.borders.intersects(border::TOP) {
+        if self.borders.intersects(Borders::TOP) {
             for x in area.left()..area.right() {
                 buf.get_mut(x, area.top())
                     .set_symbol(line::HORIZONTAL)
                     .set_style(self.border_style);
             }
         }
-        if self.borders.intersects(border::RIGHT) {
+        if self.borders.intersects(Borders::RIGHT) {
             let x = area.right() - 1;
             for y in area.top()..area.bottom() {
                 buf.get_mut(x, y)
@@ -129,7 +129,7 @@ impl<'a> Widget for Block<'a> {
                     .set_style(self.border_style);
             }
         }
-        if self.borders.intersects(border::BOTTOM) {
+        if self.borders.intersects(Borders::BOTTOM) {
             let y = area.bottom() - 1;
             for x in area.left()..area.right() {
                 buf.get_mut(x, y)
@@ -139,22 +139,22 @@ impl<'a> Widget for Block<'a> {
         }
 
         // Corners
-        if self.borders.contains(border::LEFT | border::TOP) {
+        if self.borders.contains(Borders::LEFT | Borders::TOP) {
             buf.get_mut(area.left(), area.top())
                 .set_symbol(line::TOP_LEFT)
                 .set_style(self.border_style);
         }
-        if self.borders.contains(border::RIGHT | border::TOP) {
+        if self.borders.contains(Borders::RIGHT | Borders::TOP) {
             buf.get_mut(area.right() - 1, area.top())
                 .set_symbol(line::TOP_RIGHT)
                 .set_style(self.border_style);
         }
-        if self.borders.contains(border::LEFT | border::BOTTOM) {
+        if self.borders.contains(Borders::LEFT | Borders::BOTTOM) {
             buf.get_mut(area.left(), area.bottom() - 1)
                 .set_symbol(line::BOTTOM_LEFT)
                 .set_style(self.border_style);
         }
-        if self.borders.contains(border::RIGHT | border::BOTTOM) {
+        if self.borders.contains(Borders::RIGHT | Borders::BOTTOM) {
             buf.get_mut(area.right() - 1, area.bottom() - 1)
                 .set_symbol(line::BOTTOM_RIGHT)
                 .set_style(self.border_style);
@@ -162,12 +162,12 @@ impl<'a> Widget for Block<'a> {
 
         if area.width > 2 {
             if let Some(title) = self.title {
-                let lx = if self.borders.intersects(border::LEFT) {
+                let lx = if self.borders.intersects(Borders::LEFT) {
                     1
                 } else {
                     0
                 };
-                let rx = if self.borders.intersects(border::RIGHT) {
+                let rx = if self.borders.intersects(Borders::RIGHT) {
                     1
                 } else {
                     0

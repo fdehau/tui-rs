@@ -14,7 +14,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Sparkline, Widget};
+use tui::widgets::{Borders, Block, Sparkline, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
 
@@ -128,7 +128,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .block(
                     Block::default()
                         .title("Data1")
-                        .borders(border::LEFT | border::RIGHT),
+                        .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data1)
                 .style(Style::default().fg(Color::Yellow))
@@ -137,7 +137,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .block(
                     Block::default()
                         .title("Data2")
-                        .borders(border::LEFT | border::RIGHT),
+                        .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data2)
                 .style(Style::default().bg(Color::Green))
@@ -147,7 +147,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .block(
                     Block::default()
                         .title("Data3")
-                        .borders(border::LEFT | border::RIGHT),
+                        .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data3)
                 .style(Style::default().fg(Color::Red))

@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, BarChart, Block, Widget};
+use tui::widgets::{BarChart, Block, Borders, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -130,7 +130,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
             BarChart::default()
-                .block(Block::default().title("Data1").borders(border::ALL))
+                .block(Block::default().title("Data1").borders(Borders::ALL))
                 .data(&app.data)
                 .bar_width(9)
                 .style(Style::default().fg(Color::Yellow))
@@ -141,7 +141,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 .sizes(&[Size::Percent(50), Size::Percent(50)])
                 .render(t, &chunks[1], |t, chunks| {
                     BarChart::default()
-                        .block(Block::default().title("Data2").borders(border::ALL))
+                        .block(Block::default().title("Data2").borders(Borders::ALL))
                         .data(&app.data)
                         .bar_width(5)
                         .bar_gap(3)
@@ -149,7 +149,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                         .value_style(Style::default().bg(Color::Green).modifier(Modifier::Bold))
                         .render(t, &chunks[0]);
                     BarChart::default()
-                        .block(Block::default().title("Data3").borders(border::ALL))
+                        .block(Block::default().title("Data3").borders(Borders::ALL))
                         .data(&app.data)
                         .style(Style::default().fg(Color::Red))
                         .bar_width(7)

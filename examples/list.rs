@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Item, List, SelectableList, Widget};
+use tui::widgets::{Borders, Block, Item, List, SelectableList, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -161,7 +161,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
             SelectableList::default()
-                .block(Block::default().borders(border::ALL).title("List"))
+                .block(Block::default().borders(Borders::ALL).title("List"))
                 .items(&app.items)
                 .select(app.selected)
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
@@ -180,7 +180,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                     )
                 });
                 List::new(events)
-                    .block(Block::default().borders(border::ALL).title("List"))
+                    .block(Block::default().borders(Borders::ALL).title("List"))
                     .render(t, &chunks[1]);
             }
         });

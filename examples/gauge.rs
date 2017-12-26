@@ -11,7 +11,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Gauge, Widget};
+use tui::widgets::{Borders, Block, Gauge, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -130,23 +130,23 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         ])
         .render(t, &app.size, |t, chunks| {
             Gauge::default()
-                .block(Block::default().title("Gauge1").borders(border::ALL))
+                .block(Block::default().title("Gauge1").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
                 .percent(app.progress1)
                 .render(t, &chunks[0]);
             Gauge::default()
-                .block(Block::default().title("Gauge2").borders(border::ALL))
+                .block(Block::default().title("Gauge2").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Magenta).bg(Color::Green))
                 .percent(app.progress2)
                 .label(&format!("{}/100", app.progress2))
                 .render(t, &chunks[1]);
             Gauge::default()
-                .block(Block::default().title("Gauge2").borders(border::ALL))
+                .block(Block::default().title("Gauge2").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
                 .percent(app.progress3)
                 .render(t, &chunks[2]);
             Gauge::default()
-                .block(Block::default().title("Gauge3").borders(border::ALL))
+                .block(Block::default().title("Gauge3").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
                 .percent(app.progress4)
                 .label(&format!("{}/100", app.progress2))

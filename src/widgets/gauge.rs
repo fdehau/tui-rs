@@ -15,7 +15,7 @@ use layout::Rect;
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// Gauge::default()
-///     .block(Block::default().borders(border::ALL).title("Progress"))
+///     .block(Block::default().borders(Borders::ALL).title("Progress"))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::Italic))
 ///     .percent(20);
 /// # }

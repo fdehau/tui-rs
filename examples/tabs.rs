@@ -10,7 +10,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Tabs, Widget};
+use tui::widgets::{Borders, Block, Tabs, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
 
@@ -74,7 +74,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
         .sizes(&[Size::Fixed(3), Size::Min(0)])
         .render(t, &app.size, |t, chunks| {
             Tabs::default()
-                .block(Block::default().borders(border::ALL).title("Tabs"))
+                .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)
                 .select(app.tabs.selection)
                 .style(Style::default().fg(Color::Cyan))
@@ -84,25 +84,25 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
                 0 => {
                     Block::default()
                         .title("Inner 0")
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .render(t, &chunks[1]);
                 }
                 1 => {
                     Block::default()
                         .title("Inner 1")
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .render(t, &chunks[1]);
                 }
                 2 => {
                     Block::default()
                         .title("Inner 2")
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .render(t, &chunks[1]);
                 }
                 3 => {
                     Block::default()
                         .title("Inner 3")
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .render(t, &chunks[1]);
                 }
                 _ => {}
