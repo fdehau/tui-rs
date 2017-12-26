@@ -103,14 +103,13 @@ where
         self.background(&tabs_area, buf, self.style.bg);
 
         let mut x = tabs_area.left();
-        for (title, style) in self.titles
-            .iter()
-            .enumerate()
-            .map(|(i, t)| if i == self.selected {
+        for (title, style) in self.titles.iter().enumerate().map(|(i, t)| {
+            if i == self.selected {
                 (t, &self.highlight_style)
             } else {
                 (t, &self.style)
-            }) {
+            }
+        }) {
             x += 1;
             if x > tabs_area.right() {
                 break;

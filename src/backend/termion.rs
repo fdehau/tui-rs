@@ -18,9 +18,8 @@ where
 }
 
 pub type RawBackend = TermionBackend<termion::raw::RawTerminal<io::Stdout>>;
-pub type MouseBackend = TermionBackend<
-    termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>,
->;
+pub type MouseBackend =
+    TermionBackend<termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>>;
 
 impl RawBackend {
     pub fn new() -> Result<RawBackend, io::Error> {

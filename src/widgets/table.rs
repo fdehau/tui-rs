@@ -142,7 +142,6 @@ where
         self
     }
 
-
     pub fn column_spacing(&mut self, spacing: u16) -> &mut Table<'a, 'i, T, H, I, D, R> {
         self.column_spacing = spacing;
         self

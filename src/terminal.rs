@@ -62,8 +62,7 @@ where
                 let chunks = split(area, &group.direction, group.margin, &group.sizes);
                 debug!(
                     "New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
-                    group,
-                    chunks
+                    group, chunks
                 );
                 LayoutEntry {
                     chunks: chunks,
@@ -83,13 +82,15 @@ where
             .iter()
             .zip(self.buffers[1 - self.current].content.iter())
             .enumerate()
-            .filter_map(|(i, (c, p))| if c != p {
-                let i = i as u16;
-                let x = i % width;
-                let y = i / width;
-                Some((x, y, c))
-            } else {
-                None
+            .filter_map(|(i, (c, p))| {
+                if c != p {
+                    let i = i as u16;
+                    let x = i % width;
+                    let y = i / width;
+                    Some((x, y, c))
+                } else {
+                    None
+                }
             });
         self.backend.draw(content)
     }
