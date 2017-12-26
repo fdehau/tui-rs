@@ -16,7 +16,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Borders, Axis, BarChart, Block, Chart, Dataset, Gauge, Item, List, Marker,
+use tui::widgets::{Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker,
                    Paragraph, Row, SelectableList, Sparkline, Table, Tabs, Widget};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::layout::{Direction, Group, Rect, Size};

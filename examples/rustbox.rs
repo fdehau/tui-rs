@@ -6,7 +6,7 @@ use rustbox::Key;
 
 use tui::Terminal;
 use tui::backend::RustboxBackend;
-use tui::widgets::{Borders, Block, Paragraph, Widget};
+use tui::widgets::{Block, Borders, Paragraph, Widget};
 use tui::layout::{Direction, Group, Size};
 use tui::style::{Color, Modifier, Style};
 
