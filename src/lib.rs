@@ -68,7 +68,7 @@
 //!
 //! use tui::Terminal;
 //! use tui::backend::RawBackend;
-//! use tui::widgets::{Widget, Block, border};
+//! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Group, Size, Direction};
 //!
 //! fn main() {
@@ -108,7 +108,7 @@
 //!
 //! use tui::Terminal;
 //! use tui::backend::RawBackend;
-//! use tui::widgets::{Widget, Block, border};
+//! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Group, Size, Direction};
 //!
 //! fn main() {

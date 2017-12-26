@@ -14,7 +14,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Borders, Block, Sparkline, Widget};
+use tui::widgets::{Block, Borders, Sparkline, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
 

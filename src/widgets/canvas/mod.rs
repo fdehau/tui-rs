@@ -138,7 +138,7 @@ impl<'a> Context<'a> {
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border};
+/// # use tui::widgets::{Block, Borders};
 /// # use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
 /// # use tui::style::Color;
 /// # fn main() {

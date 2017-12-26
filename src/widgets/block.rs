@@ -11,7 +11,7 @@ use symbols::line;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, Border};
+/// # use tui::widgets::{Block, Borders};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Block::default()

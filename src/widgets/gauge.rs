@@ -11,7 +11,7 @@ use layout::Rect;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Widget, Gauge, Block, border};
+/// # use tui::widgets::{Widget, Gauge, Block, Borders};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// Gauge::default()

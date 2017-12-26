@@ -14,7 +14,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Borders, Axis, Block, Chart, Dataset, Marker, Widget};
+use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 

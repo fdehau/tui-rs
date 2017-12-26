@@ -115,11 +115,11 @@ impl Buffer {
     /// Returns a Buffer with all cells set to the default one
     pub fn empty(area: Rect) -> Buffer {
         let cell: Cell = Default::default();
-        Buffer::filled(area, cell)
+        Buffer::filled(area, &cell)
     }
 
     /// Returns a Buffer with all cells initialized with the attributes of the given Cell
-    pub fn filled(area: Rect, cell: Cell) -> Buffer {
+    pub fn filled(area: Rect, cell: &Cell) -> Buffer {
         let size = area.area() as usize;
         let mut content = Vec::with_capacity(size);
         for _ in 0..size {
@@ -219,7 +219,7 @@ impl Buffer {
     }
 
     /// Merge an other buffer into this one
-    pub fn merge(&mut self, other: Buffer) {
+    pub fn merge(&mut self, other: &Buffer) {
         let area = self.area.union(&other.area);
         let cell: Cell = Default::default();
         self.content.resize(area.area() as usize, cell.clone());

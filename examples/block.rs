@@ -7,7 +7,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Borders, Block, Widget};
+use tui::widgets::{Block, Borders, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
