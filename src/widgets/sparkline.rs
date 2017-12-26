@@ -12,11 +12,11 @@ use symbols::bar;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, Sparkline};
+/// # use tui::widgets::{Block, Borders, Sparkline};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Sparkline::default()
-///     .block(Block::default().title("Sparkline").borders(border::ALL))
+///     .block(Block::default().title("Sparkline").borders(Borders::ALL))
 ///     .data(&[0, 2, 3, 4, 1, 4, 10])
 ///     .max(5)
 ///     .style(Style::default().fg(Color::Red).bg(Color::White));

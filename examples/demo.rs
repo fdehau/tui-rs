@@ -16,7 +16,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Axis, BarChart, Block, Chart, Dataset, Gauge, Item, List, Marker,
+use tui::widgets::{Borders, Axis, BarChart, Block, Chart, Dataset, Gauge, Item, List, Marker,
                    Paragraph, Row, SelectableList, Sparkline, Table, Tabs, Widget};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::layout::{Direction, Group, Rect, Size};
@@ -271,7 +271,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
         .sizes(&[Size::Fixed(3), Size::Min(0)])
         .render(t, &app.size, |t, chunks| {
             Tabs::default()
-                .block(Block::default().borders(border::ALL).title("Tabs"))
+                .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)
                 .style(Style::default().fg(Color::Green))
                 .highlight_style(Style::default().fg(Color::Yellow))
@@ -304,7 +304,7 @@ fn draw_first_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
 
 fn draw_gauges(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
     Block::default()
-        .borders(border::ALL)
+        .borders(Borders::ALL)
         .title("Graphs")
         .render(t, area);
     Group::default()
@@ -350,7 +350,7 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                         .sizes(&[Size::Percent(50), Size::Percent(50)])
                         .render(t, &chunks[0], |t, chunks| {
                             SelectableList::default()
-                                .block(Block::default().borders(border::ALL).title("List"))
+                                .block(Block::default().borders(Borders::ALL).title("List"))
                                 .items(&app.items)
                                 .select(app.selected)
                                 .highlight_style(
@@ -374,11 +374,11 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                                 )
                             });
                             List::new(events)
-                                .block(Block::default().borders(border::ALL).title("List"))
+                                .block(Block::default().borders(Borders::ALL).title("List"))
                                 .render(t, &chunks[1]);
                         });
                     BarChart::default()
-                        .block(Block::default().borders(border::ALL).title("Bar chart"))
+                        .block(Block::default().borders(Borders::ALL).title("Bar chart"))
                         .data(&app.data4)
                         .bar_width(3)
                         .bar_gap(2)
@@ -398,7 +398,7 @@ fn draw_charts(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                         Block::default()
                             .title("Chart")
                             .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
-                            .borders(border::ALL),
+                            .borders(Borders::ALL),
                     )
                     .x_axis(
                         Axis::default()
@@ -441,7 +441,7 @@ fn draw_text(t: &mut Terminal<MouseBackend>, area: &Rect) {
     Paragraph::default()
         .block(
             Block::default()
-                .borders(border::ALL)
+                .borders(Borders::ALL)
                 .title("Footer")
                 .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
         )
@@ -477,13 +477,13 @@ fn draw_second_tab(t: &mut Terminal<MouseBackend>, app: &App, area: &Rect) {
                     };
                     Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
                 }),
-            ).block(Block::default().title("Servers").borders(border::ALL))
+            ).block(Block::default().title("Servers").borders(Borders::ALL))
                 .header_style(Style::default().fg(Color::Yellow))
                 .widths(&[15, 15, 10])
                 .render(t, &chunks[0]);
 
             Canvas::default()
-                .block(Block::default().title("World").borders(border::ALL))
+                .block(Block::default().title("World").borders(Borders::ALL))
                 .paint(|ctx| {
                     ctx.draw(&Map {
                         color: Color::White,

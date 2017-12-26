@@ -7,7 +7,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Block, Widget};
+use tui::widgets::{Borders, Block, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -38,7 +38,7 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
     // Wrapping block for a group
     // Just draw the block and the group on the same area and build the group
     // with at least a margin of 1
-    Block::default().borders(border::ALL).render(t, size);
+    Block::default().borders(Borders::ALL).render(t, size);
     Group::default()
         .direction(Direction::Vertical)
         .margin(4)
@@ -69,12 +69,12 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
                 .render(t, &chunks[1], |t, chunks| {
                     Block::default()
                         .title("With borders")
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .render(t, &chunks[0]);
                     Block::default()
                         .title("With styled borders")
                         .border_style(Style::default().fg(Color::Cyan))
-                        .borders(border::LEFT | border::RIGHT)
+                        .borders(Borders::LEFT | Borders::RIGHT)
                         .render(t, &chunks[1]);
                 });
         });

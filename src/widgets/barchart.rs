@@ -14,11 +14,11 @@ use symbols::bar;
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, BarChart};
+/// # use tui::widgets::{Block, Borders, BarChart};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// BarChart::default()
-///     .block(Block::default().title("BarChart").borders(border::ALL))
+///     .block(Block::default().title("BarChart").borders(Borders::ALL))
 ///     .bar_width(3)
 ///     .bar_gap(1)
 ///     .style(Style::default().fg(Color::Yellow).bg(Color::Red))

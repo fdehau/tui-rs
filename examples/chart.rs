@@ -14,7 +14,7 @@ use termion::input::TermRead;
 
 use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{border, Axis, Block, Chart, Dataset, Marker, Widget};
+use tui::widgets::{Borders, Axis, Block, Chart, Dataset, Marker, Widget};
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 
@@ -127,7 +127,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             Block::default()
                 .title("Chart")
                 .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
-                .borders(border::ALL),
+                .borders(Borders::ALL),
         )
         .x_axis(
             Axis::default()

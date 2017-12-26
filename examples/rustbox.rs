@@ -6,7 +6,7 @@ use rustbox::Key;
 
 use tui::Terminal;
 use tui::backend::RustboxBackend;
-use tui::widgets::{border, Block, Paragraph, Widget};
+use tui::widgets::{Borders, Block, Paragraph, Widget};
 use tui::layout::{Direction, Group, Size};
 use tui::style::{Color, Modifier, Style};
 
@@ -40,7 +40,7 @@ fn draw(t: &mut Terminal<RustboxBackend>) {
                     Block::default()
                         .title("Rustbox backend")
                         .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
-                        .borders(border::ALL)
+                        .borders(Borders::ALL)
                         .border_style(Style::default().fg(Color::Magenta)),
                 )
                 .text("It {yellow works}!")

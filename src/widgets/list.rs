@@ -122,11 +122,11 @@ where
 ///
 /// ```
 /// # extern crate tui;
-/// # use tui::widgets::{Block, border, SelectableList};
+/// # use tui::widgets::{Block, Borders, SelectableList};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// SelectableList::default()
-///     .block(Block::default().title("SelectableList").borders(border::ALL))
+///     .block(Block::default().title("SelectableList").borders(Borders::ALL))
 ///     .items(&["Item 1", "Item 2", "Item 3"])
 ///     .select(1)
 ///     .style(Style::default().fg(Color::White))

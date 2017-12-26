@@ -87,7 +87,7 @@
 //!
 //!     Block::default()
 //!         .title("Block")
-//!         .borders(border::ALL)
+//!         .borders(Borders::ALL)
 //!         .render(t, &size);
 //!
 //!     t.draw()
@@ -132,11 +132,11 @@
 //!         .render(t, &size, |t, chunks| {
 //!             Block::default()
 //!                 .title("Block")
-//!                 .borders(border::ALL)
+//!                 .borders(Borders::ALL)
 //!                 .render(t, &chunks[0]);
 //!             Block::default()
 //!                 .title("Block 2")
-//!                 .borders(border::ALL)
+//!                 .borders(Borders::ALL)
 //!                 .render(t, &chunks[2]);
 //!         });
 //!
