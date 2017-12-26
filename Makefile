@@ -11,7 +11,7 @@ RUSTUP_INSTALLED = $(shell command -v rustup 2> /dev/null)
 ifndef RUSTUP_INSTALLED
   CARGO = cargo
 else
-  ifdef NO_RUSTUP
+  ifdef CI
     CARGO = cargo
   else
     CARGO = rustup run $(RUST_CHANNEL) cargo
@@ -32,11 +32,19 @@ help: ## Print all the available commands
 
 install-tools: install-rustfmt install-clippy ## Install tools dependencies
 
+INSTALL_RUSTFMT = ./scripts/tools/install.sh --name=rustfmt-nightly
+ifndef CI
+  INSTALL_RUSTFMT += --channel=nightly
+endif
 install-rustfmt: ## Intall rustfmt
-	./scripts/tools/rustfmt.sh
+	$(INSTALL_RUSTFMT)
 
-install-clippy: ## Install clippy
-	./scripts/tools/clippy.sh
+INSTALL_CLIPPY = ./scripts/tools/install.sh --name=clippy
+ifndef CI
+  INSTALL_CLIPPY += --channel=nightly
+endif
+install-clippy: ## Intall rustfmt
+	$(INSTALL_CLIPPY)
 
 
 # =============================== Build =======================================
