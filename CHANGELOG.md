@@ -13,6 +13,7 @@
 * Generic parameters for `List` to allow passing iterators as items
 * Generic parameters for `Table` to allow using iterators as rows and header
 * Generic parameters for `Tabs`
+* Rename `border` bitflags to `Borders`
 
 * Run latest `rustfmt` on all sources
 
