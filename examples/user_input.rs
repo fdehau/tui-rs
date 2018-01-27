@@ -53,7 +53,6 @@ fn main() {
     // Channels
     let (tx, rx) = mpsc::channel();
     let input_tx = tx.clone();
-    let clock_tx = tx.clone();
 
     // Input
     thread::spawn(move || {
@@ -115,6 +114,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .sizes(&[Size::Fixed(3), Size::Min(1)])
         .render(t, &app.size, |t, chunks| {
             Paragraph::default()
+                .style(Style::default().fg(Color::Yellow))
                 .block(Block::default().borders(Borders::ALL).title("Input"))
                 .text(&app.input)
                 .render(t, &chunks[0]);
