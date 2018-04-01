@@ -85,3 +85,7 @@ path = "examples/tabs.rs"
 [[example]]
 name = "user_input"
 path = "examples/user_input.rs"
+
+[[example]]
+name = "layout"
+path = "examples/layout.rs"
