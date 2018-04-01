@@ -1,6 +1,6 @@
 # Changelog
 
-## To be released
+## v0.2.1 - 2018-04-01
 
 ### Added
 
