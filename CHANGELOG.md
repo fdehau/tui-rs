@@ -1,12 +1,16 @@
 # Changelog
 
-## v0.2.1 - now
+## To be released
 
-## Added
+### Added
 
 * Add `AlternateScreenBackend` in `termion` backend
 * Add `TermionBackend::with_stdout` in order to let an user of the library
 provides its own termion struct
+
+### Fixed
+
+* Pass the style of `SelectableList` to the underlying `List`
 
 ## v0.2.0 - 2017-12-26
 
