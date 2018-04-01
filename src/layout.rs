@@ -209,7 +209,11 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
     solver.add_constraints(&constraints).unwrap();
     for &(var, value) in solver.fetch_changes() {
         let (index, attr) = vars[&var];
-        let value = value as u16;
+        let value = if value.is_sign_negative() {
+            0
+        } else {
+            value as u16
+        };
         match attr {
             0 => {
                 results[index].x = value;
@@ -226,6 +230,7 @@ pub fn split(area: &Rect, dir: &Direction, margin: u16, sizes: &[Size]) -> Vec<R
             _ => {}
         }
     }
+
     // Fix imprecision by extending the last item a bit if necessary
     if let Some(last) = results.last_mut() {
         match *dir {
