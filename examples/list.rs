@@ -160,11 +160,13 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(50), Size::Percent(50)])
         .render(t, &app.size, |t, chunks| {
+            let style = Style::default().fg(Color::Black).bg(Color::White);
             SelectableList::default()
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .items(&app.items)
                 .select(app.selected)
-                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
+                .style(style)
+                .highlight_style(style.clone().fg(Color::LightGreen).modifier(Modifier::Bold))
                 .highlight_symbol(">")
                 .render(t, &chunks[0]);
             {
