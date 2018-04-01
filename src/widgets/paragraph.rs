@@ -243,6 +243,7 @@ impl<'a> Widget for Paragraph<'a> {
             Box::new(Parser::new(graphemes, self.style))
         };
 
+        let mut remove_leading_whitespaces = false;
         for (string, style) in styled {
             if string == "\n" {
                 x = 0;
@@ -253,9 +254,14 @@ impl<'a> Widget for Paragraph<'a> {
                 if self.wrapping {
                     x = 0;
                     y += 1;
+                    remove_leading_whitespaces = true
                 }
+            }
+
+            if remove_leading_whitespaces && string == " " {
                 continue;
             }
+            remove_leading_whitespaces = false;
 
             if y > text_area.height + self.scroll - 1 {
                 break;
