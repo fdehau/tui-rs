@@ -128,7 +128,7 @@
 //!     Group::default()
 //!         .direction(Direction::Vertical)
 //!         .margin(1)
-//!         .sizes(&[Size::Fixed(10), Size::Max(20), Size::Min(10)])
+//!         .sizes(&[Size::Percent(10), Size::Percent(80), Size::Percent(10)])
 //!         .render(t, &size, |t, chunks| {
 //!             Block::default()
 //!                 .title("Block")
