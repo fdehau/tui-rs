@@ -235,6 +235,7 @@ impl<'b> Widget for SelectableList<'b> {
             .skip(offset as usize);
         List::new(items)
             .block(self.block.unwrap_or_default())
+            .style(self.style)
             .draw(area, buf);
     }
 }
