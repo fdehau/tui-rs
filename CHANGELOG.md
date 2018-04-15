@@ -1,5 +1,11 @@
 # Changelog
 
+## To be released
+
+### Added
+
+* `Terminal` implements `Debug`
+
 ## v0.2.1 - 2018-04-01
 
 ### Added

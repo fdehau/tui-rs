@@ -14,6 +14,7 @@ pub struct LayoutEntry {
 }
 
 /// Interface to the terminal backed by Termion
+#[derive(Debug)]
 pub struct Terminal<B>
 where
     B: Backend,
