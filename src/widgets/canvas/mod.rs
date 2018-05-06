@@ -1,16 +1,16 @@
-mod points;
 mod line;
 mod map;
+mod points;
 mod world;
 
-pub use self::points::Points;
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
+pub use self::points::Points;
 
-use style::{Color, Style};
 use buffer::Buffer;
-use widgets::{Block, Widget};
 use layout::Rect;
+use style::{Color, Style};
+use widgets::{Block, Widget};
 
 pub const DOTS: [[u16; 2]; 4] = [
     [0x0001, 0x0008],

@@ -1,10 +1,10 @@
 use std::cmp::min;
 
-use layout::Rect;
 use buffer::Buffer;
-use widgets::{Block, Widget};
+use layout::Rect;
 use style::Style;
 use symbols::bar;
+use widgets::{Block, Widget};
 
 /// Widget to render a sparkline over one or more lines.
 ///

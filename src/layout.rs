@@ -1,12 +1,12 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
-use cassowary::{Constraint, Expression, Solver, Variable};
-use cassowary::WeightedRelation::*;
 use cassowary::strength::{REQUIRED, WEAK};
+use cassowary::WeightedRelation::*;
+use cassowary::{Constraint, Expression, Solver, Variable};
 
-use terminal::Terminal;
 use backend::Backend;
+use terminal::Terminal;
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {

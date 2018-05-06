@@ -2,18 +2,18 @@ extern crate termion;
 extern crate tui;
 
 use std::io;
+use std::sync::mpsc;
 use std::thread;
 use std::time;
-use std::sync::mpsc;
 
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{BarChart, Block, Borders, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
+use tui::widgets::{BarChart, Block, Borders, Widget};
+use tui::Terminal;
 
 struct App<'a> {
     size: Rect,

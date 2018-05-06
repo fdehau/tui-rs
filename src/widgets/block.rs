@@ -1,8 +1,8 @@
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
-use widgets::{Borders, Widget};
 use symbols::line;
+use widgets::{Borders, Widget};
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.

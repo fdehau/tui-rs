@@ -1,10 +1,10 @@
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
 use style::{Color, Modifier, Style};
+use widgets::{Block, Widget};
 
 /// A widget to display some text. You can specify colors using commands embedded in
 /// the text such as "{[color] [text]}".

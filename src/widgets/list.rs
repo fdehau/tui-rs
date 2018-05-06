@@ -1,13 +1,13 @@
-use std::iter;
 use std::fmt::Display;
+use std::iter;
 use std::iter::Iterator;
 
 use unicode_width::UnicodeWidthStr;
 
 use buffer::Buffer;
-use widgets::{Block, Widget};
 use layout::Rect;
 use style::Style;
+use widgets::{Block, Widget};
 
 pub enum Item<'i, D: 'i> {
     Data(D),
