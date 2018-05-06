@@ -2,6 +2,8 @@
 
 ## To be released
 
+## v0.2.2 - 2018-05-06
+
 ### Added
 
 * `Terminal` implements `Debug`
