@@ -13,17 +13,17 @@ extern crate termion;
 extern crate tui;
 
 use std::io;
-use std::thread;
 use std::sync::mpsc;
+use std::thread;
 
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
+use tui::Terminal;
 
 struct App {
     size: Rect,

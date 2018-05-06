@@ -1,9 +1,9 @@
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
 use buffer::Buffer;
-use style::{Color, Style};
 use layout::Rect;
+use style::{Color, Style};
+use widgets::{Block, Widget};
 
 /// A widget to display a task progress.
 ///

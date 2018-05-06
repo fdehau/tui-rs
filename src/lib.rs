@@ -161,12 +161,12 @@ extern crate log;
 extern crate unicode_segmentation;
 extern crate unicode_width;
 
-pub mod buffer;
-pub mod symbols;
 pub mod backend;
+pub mod buffer;
+pub mod layout;
+pub mod style;
+pub mod symbols;
 pub mod terminal;
 pub mod widgets;
-pub mod style;
-pub mod layout;
 
 pub use self::terminal::Terminal;

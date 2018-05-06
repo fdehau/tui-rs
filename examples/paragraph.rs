@@ -5,11 +5,11 @@ use std::io;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Block, Paragraph, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
+use tui::widgets::{Block, Paragraph, Widget};
+use tui::Terminal;
 
 fn main() {
     let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();

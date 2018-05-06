@@ -1,29 +1,29 @@
-mod block;
-mod paragraph;
-mod list;
-mod gauge;
-mod sparkline;
-mod chart;
 mod barchart;
-mod tabs;
-mod table;
+mod block;
 pub mod canvas;
+mod chart;
+mod gauge;
+mod list;
+mod paragraph;
+mod sparkline;
+mod table;
+mod tabs;
 
-pub use self::block::Block;
-pub use self::paragraph::Paragraph;
-pub use self::list::{Item, List, SelectableList};
-pub use self::gauge::Gauge;
-pub use self::sparkline::Sparkline;
-pub use self::chart::{Axis, Chart, Dataset, Marker};
 pub use self::barchart::BarChart;
-pub use self::tabs::Tabs;
+pub use self::block::Block;
+pub use self::chart::{Axis, Chart, Dataset, Marker};
+pub use self::gauge::Gauge;
+pub use self::list::{Item, List, SelectableList};
+pub use self::paragraph::Paragraph;
+pub use self::sparkline::Sparkline;
 pub use self::table::{Row, Table};
+pub use self::tabs::Tabs;
 
+use backend::Backend;
 use buffer::Buffer;
 use layout::Rect;
-use terminal::Terminal;
-use backend::Backend;
 use style::Color;
+use terminal::Terminal;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.
 bitflags! {

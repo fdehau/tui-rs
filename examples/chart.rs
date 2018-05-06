@@ -5,18 +5,18 @@ mod util;
 use util::*;
 
 use std::io;
+use std::sync::mpsc;
 use std::thread;
 use std::time;
-use std::sync::mpsc;
 
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
+use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
+use tui::Terminal;
 
 struct App {
     size: Rect,

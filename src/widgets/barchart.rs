@@ -2,11 +2,11 @@ use std::cmp::{max, min};
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
 use symbols::bar;
+use widgets::{Block, Widget};
 
 /// Display multiple bars in a single widgets
 ///

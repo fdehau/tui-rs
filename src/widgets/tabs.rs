@@ -1,10 +1,10 @@
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
 use symbols::line;
+use widgets::{Block, Widget};
 
 /// A widget to display available tabs in a multiple panels context.
 ///

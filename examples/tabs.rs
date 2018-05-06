@@ -8,11 +8,11 @@ use std::io;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Block, Borders, Tabs, Widget};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, Tabs, Widget};
+use tui::Terminal;
 
 struct App<'a> {
     size: Rect,

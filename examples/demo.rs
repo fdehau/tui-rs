@@ -7,20 +7,20 @@ extern crate tui;
 mod util;
 
 use std::io;
+use std::sync::mpsc;
 use std::thread;
 use std::time;
-use std::sync::mpsc;
 
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
-use tui::widgets::{Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker,
-                   Paragraph, Row, SelectableList, Sparkline, Table, Tabs, Widget};
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
+use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
+use tui::widgets::{Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker,
+                   Paragraph, Row, SelectableList, Sparkline, Table, Tabs, Widget};
+use tui::Terminal;
 
 use util::*;
 

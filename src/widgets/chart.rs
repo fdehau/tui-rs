@@ -2,12 +2,12 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Borders, Widget};
-use widgets::canvas::{Canvas, Points};
 use buffer::Buffer;
 use layout::Rect;
 use style::Style;
 use symbols;
+use widgets::canvas::{Canvas, Points};
+use widgets::{Block, Borders, Widget};
 
 /// An X or Y axis for the chart widget
 pub struct Axis<'a, L>
