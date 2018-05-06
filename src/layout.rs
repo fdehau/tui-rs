@@ -326,10 +326,10 @@ impl Group {
         self.sizes = Vec::from(sizes);
         self
     }
-    pub fn render<F, B>(&self, t: &mut Terminal<B>, area: &Rect, mut f: F)
+    pub fn render<F, B>(&self, t: &mut Terminal<B>, area: &Rect, f: F)
     where
         B: Backend,
-        F: FnMut(&mut Terminal<B>, &[Rect]),
+        F: FnOnce(&mut Terminal<B>, &[Rect]),
     {
         let chunks = t.compute_layout(self, area);
         f(t, &chunks);
