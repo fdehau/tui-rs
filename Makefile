@@ -27,26 +27,6 @@ help: ## Print all the available commands
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 
-# ================================ Tools ======================================
-
-
-install-tools: install-rustfmt install-clippy ## Install tools dependencies
-
-INSTALL_RUSTFMT = ./scripts/tools/install.sh --name=rustfmt-nightly
-ifndef CI
-  INSTALL_RUSTFMT += --channel=nightly
-endif
-install-rustfmt: ## Intall rustfmt
-	$(INSTALL_RUSTFMT)
-
-INSTALL_CLIPPY = ./scripts/tools/install.sh --name=clippy
-ifndef CI
-  INSTALL_CLIPPY += --channel=nightly
-endif
-install-clippy: ## Intall rustfmt
-	$(INSTALL_CLIPPY)
-
-
 # =============================== Build =======================================
 
 check: ## Validate the project code
