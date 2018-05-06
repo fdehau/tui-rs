@@ -84,23 +84,23 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
+    let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
+    let normal_style = Style::default().fg(Color::White);
+    let header = ["Header1", "Header2", "Header3"];
+    let rows = app.items.iter().enumerate().map(|(i, item)| {
+        if i == app.selected {
+            Row::StyledData(item.into_iter(), &selected_style)
+        } else {
+            Row::StyledData(item.into_iter(), &normal_style)
+        }
+    });
     Group::default()
         .direction(Direction::Horizontal)
         .sizes(&[Size::Percent(100)])
         .margin(5)
         .render(t, &app.size, |t, chunks| {
-            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
-            let normal_style = Style::default().fg(Color::White);
-            Table::new(
-                ["Header1", "Header2", "Header3"].into_iter(),
-                app.items.iter().enumerate().map(|(i, item)| {
-                    if i == app.selected {
-                        Row::StyledData(item.into_iter(), &selected_style)
-                    } else {
-                        Row::StyledData(item.into_iter(), &normal_style)
-                    }
-                }),
-            ).block(Block::default().borders(Borders::ALL).title("Table"))
+            Table::new(header.into_iter(), rows)
+                .block(Block::default().borders(Borders::ALL).title("Table"))
                 .widths(&[10, 10, 10])
                 .render(t, &chunks[0]);
         });
