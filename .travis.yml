@@ -16,6 +16,6 @@ before_script:
   - rustup component add rustfmt-preview
 
 script:
-  - make fmt
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then make fmt; fi
   - make build
   - make test
