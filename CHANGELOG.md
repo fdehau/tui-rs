@@ -6,6 +6,10 @@
 
 * `Terminal` implements `Debug`
 
+### Changed
+
+* Use `FnOnce` instead of `FnMut` in Group::render
+
 ## v0.2.1 - 2018-04-01
 
 ### Added
