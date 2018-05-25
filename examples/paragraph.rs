@@ -8,7 +8,7 @@ use termion::input::TermRead;
 use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::layout::{Direction, Group, Rect, Size};
-use tui::style::{Color, Style};
+use tui::style::{Alignment, Color, Style};
 use tui::widgets::{Block, Paragraph, Widget};
 
 fn main() {
@@ -44,13 +44,46 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
     Group::default()
         .direction(Direction::Vertical)
         .margin(5)
-        .sizes(&[Size::Percent(100)])
+        .sizes(&[Size::Percent(30), Size::Percent(30), Size::Percent(30)])
         .render(t, size, |t, chunks| {
             Group::default()
                 .direction(Direction::Horizontal)
                 .sizes(&[Size::Percent(100)])
                 .render(t, &chunks[0], |t, chunks| {
                     Paragraph::default()
+                        .alignment(Alignment::Left)
+                        .text(
+                            "This is a line\n{fg=red This is a line}\n{bg=red This is a \
+                             line}\n{mod=italic This is a line}\n{mod=bold This is a \
+                             line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
+                             line}\n{mod=underline This is a \
+                             line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
+                        )
+                        .render(t, &chunks[0]);
+                });
+            Group::default()
+                .direction(Direction::Horizontal)
+                .sizes(&[Size::Percent(100)])
+                .render(t, &chunks[1], |t, chunks| {
+                    Paragraph::default()
+                        .alignment(Alignment::Center)
+                        .wrap(true)
+                        .text(
+                            "This is a line\n{fg=red This is a line}\n{bg=red This is a \
+                             line}\n{mod=italic This is a line}\n{mod=bold This is a \
+                             line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
+                             line}\n{mod=underline This is a \
+                             line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
+                        )
+                        .render(t, &chunks[0]);
+                });
+            Group::default()
+                .direction(Direction::Horizontal)
+                .sizes(&[Size::Percent(100)])
+                .render(t, &chunks[2], |t, chunks| {
+                    Paragraph::default()
+                        .alignment(Alignment::Right)
+                        .wrap(true)
                         .text(
                             "This is a line\n{fg=red This is a line}\n{bg=red This is a \
                              line}\n{mod=italic This is a line}\n{mod=bold This is a \
