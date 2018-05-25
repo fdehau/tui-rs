@@ -1,8 +1,8 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
-use cassowary::strength::{REQUIRED, WEAK};
 use cassowary::WeightedRelation::*;
+use cassowary::strength::{REQUIRED, WEAK};
 use cassowary::{Constraint, Expression, Solver, Variable};
 
 use backend::Backend;
