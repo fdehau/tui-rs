@@ -19,6 +19,7 @@ default = ["termion"]
 [dependencies]
 bitflags = "1.0.1"
 cassowary = "0.3.0"
+itertools = "0.7.8"
 log = "0.4.1"
 unicode-segmentation = "1.2.0"
 unicode-width = "0.1.4"
