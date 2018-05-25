@@ -156,6 +156,7 @@
 #[macro_use]
 extern crate bitflags;
 extern crate cassowary;
+extern crate itertools;
 #[macro_use]
 extern crate log;
 extern crate unicode_segmentation;

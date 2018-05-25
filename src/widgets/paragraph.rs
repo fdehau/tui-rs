@@ -1,9 +1,10 @@
+use itertools::{multipeek, MultiPeek};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 use buffer::Buffer;
 use layout::Rect;
-use style::{Color, Modifier, Style};
+use style::{Alignment, Color, Modifier, Style};
 use widgets::{Block, Widget};
 
 /// A widget to display some text. You can specify colors using commands embedded in
@@ -36,6 +37,8 @@ pub struct Paragraph<'a> {
     raw: bool,
     /// Scroll
     scroll: u16,
+    /// Aligenment of the text
+    alignment: Alignment,
 }
 
 impl<'a> Default for Paragraph<'a> {
@@ -47,6 +50,7 @@ impl<'a> Default for Paragraph<'a> {
             raw: false,
             text: "",
             scroll: 0,
+            alignment: Alignment::Left,
         }
     }
 }
@@ -79,6 +83,11 @@ impl<'a> Paragraph<'a> {
 
     pub fn scroll(&mut self, offset: u16) -> &mut Paragraph<'a> {
         self.scroll = offset;
+        self
+    }
+
+    pub fn alignment(&mut self, alignment: Alignment) -> &mut Paragraph<'a> {
+        self.alignment = alignment;
         self
     }
 }
@@ -236,8 +245,6 @@ impl<'a> Widget for Paragraph<'a> {
 
         self.background(&text_area, buf, self.style.bg);
 
-        let mut x = 0;
-        let mut y = 0;
         let graphemes = UnicodeSegmentation::graphemes(self.text, true);
         let styled: Box<Iterator<Item = (&str, Style)>> = if self.raw {
             Box::new(graphemes.map(|g| (g, self.style)))
@@ -245,38 +252,83 @@ impl<'a> Widget for Paragraph<'a> {
             Box::new(Parser::new(graphemes, self.style))
         };
 
+        let mut styled = multipeek(styled);
+
+        fn get_cur_line_len<'a, I: Iterator<Item = (&'a str, Style)>>(
+            styled: &mut MultiPeek<I>,
+        ) -> u16 {
+            let mut line_len = 0;
+            while match &styled.peek() {
+                Some(&(x, _)) => x != "\n",
+                None => false,
+            } {
+                line_len += 1;
+            }
+            line_len
+        };
+
+        let mut x = match self.alignment {
+            Alignment::Center => {
+                (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
+            }
+            Alignment::Right => (text_area.width).saturating_sub(get_cur_line_len(&mut styled)),
+            Alignment::Left => 0,
+        };
+        let mut y = 0;
+
         let mut remove_leading_whitespaces = false;
-        for (string, style) in styled {
-            if string == "\n" {
-                x = 0;
-                y += 1;
-                continue;
-            }
-            if x >= text_area.width {
-                if self.wrapping {
-                    x = 0;
+        loop {
+            if let Some((string, style)) = styled.next() {
+                if string == "\n" {
+                    x = match self.alignment {
+                        Alignment::Center => {
+                            (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
+                        }
+
+                        Alignment::Right => {
+                            (text_area.width).saturating_sub(get_cur_line_len(&mut styled))
+                        }
+                        Alignment::Left => 0,
+                    };
                     y += 1;
-                    remove_leading_whitespaces = true
+                    continue;
                 }
-            }
+                if x >= text_area.width {
+                    if self.wrapping {
+                        x = match self.alignment {
+                            Alignment::Center => (text_area.width / 2)
+                                .saturating_sub(get_cur_line_len(&mut styled) / 2),
 
-            if remove_leading_whitespaces && string == " " {
-                continue;
-            }
-            remove_leading_whitespaces = false;
+                            Alignment::Right => {
+                                (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
+                            }
+                            Alignment::Left => 0,
+                        };
+                        y += 1;
+                        remove_leading_whitespaces = true
+                    }
+                }
 
-            if y > text_area.height + self.scroll - 1 {
+                if remove_leading_whitespaces && string == " " {
+                    continue;
+                }
+                remove_leading_whitespaces = false;
+
+                if y > text_area.height + self.scroll - 1 {
+                    break;
+                }
+
+                if y < self.scroll {
+                    continue;
+                }
+
+                buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
+                    .set_symbol(string)
+                    .set_style(style);
+                x += string.width() as u16;
+            } else {
                 break;
             }
-
-            if y < self.scroll {
-                continue;
-            }
-
-            buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
-                .set_symbol(string)
-                .set_style(style);
-            x += string.width() as u16;
         }
     }
 }
