@@ -32,6 +32,10 @@ you may rely on the previously cited libraries to achieve such features.
 
 ### [Documentation](https://docs.rs/tui)
 
+### Demo
+
+The [source code](examples/demo.rs) of the demo gif.
+
 ### Widgets
 
 The library comes with the following list of widgets:
@@ -50,14 +54,15 @@ The library comes with the following list of widgets:
 Click on each item to see the source of the example. Run the examples with with 
 cargo (e.g. to run the demo `cargo run --example demo`), and quit by pressing `q`.
 
-### Demo
+### Third-party widgets
 
-The [source code](examples/demo.rs) of the demo gif.
+* [tui-logger](https://github.com/gin66/tui-logger)
+
+### Alternatives
+
+You might want to checkout [Cursive](https://github.com/gyscos/Cursive) for an
+alternative solution to build text user interfaces in Rust.
 
 ## License
 
 [MIT](LICENSE)
-
-## Author
-
-Florian Dehau
