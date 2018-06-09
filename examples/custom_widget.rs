@@ -1,11 +1,11 @@
 extern crate tui;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 use tui::style::Style;
 use tui::widgets::Widget;
+use tui::Terminal;
 
 struct Label<'a> {
     text: &'a str,

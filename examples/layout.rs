@@ -10,10 +10,10 @@ use std::thread;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::widgets::{Block, Borders, Widget};
+use tui::Terminal;
 
 struct App {
     size: Rect,

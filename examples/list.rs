@@ -9,11 +9,11 @@ use std::time;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::layout::{Corner, Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
+use tui::Terminal;
 
 struct App<'a> {
     size: Rect,

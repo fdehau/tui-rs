@@ -19,11 +19,11 @@ use std::thread;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
+use tui::Terminal;
 
 struct App {
     size: Rect,
