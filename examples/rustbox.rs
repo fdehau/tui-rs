@@ -4,11 +4,11 @@ extern crate tui;
 use rustbox::Key;
 use std::error::Error;
 
-use tui::Terminal;
 use tui::backend::RustboxBackend;
 use tui::layout::{Direction, Group, Size};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Paragraph, Widget};
+use tui::Terminal;
 
 fn main() {
     let mut terminal = Terminal::new(RustboxBackend::new().unwrap()).unwrap();

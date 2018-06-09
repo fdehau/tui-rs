@@ -12,11 +12,11 @@ use std::time;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::Terminal;
 use tui::backend::MouseBackend;
 use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
+use tui::Terminal;
 
 struct App {
     size: Rect,
