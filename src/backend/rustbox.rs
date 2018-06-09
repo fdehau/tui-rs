@@ -85,6 +85,7 @@ impl Into<rustbox::Color> for Color {
             Color::Magenta | Color::LightMagenta => rustbox::Color::Magenta,
             Color::Cyan | Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
+            Color::Blue | Color::LightBlue => rustbox::Color::Blue,
             Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
         }
     }
