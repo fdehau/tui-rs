@@ -2,6 +2,13 @@
 
 ## To be released
 
+## v0.2.3 - 2018-06-09
+
+### Added
+
+* Add `start_corner` option for `List`
+* Add more text aligment options for `Paragraph`
+
 ## v0.2.2 - 2018-05-06
 
 ### Added
