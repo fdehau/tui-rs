@@ -20,7 +20,7 @@ use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{
     Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Widget,
+    SelectableList, Sparkline, Table, Tabs, Widget, Text,
 };
 use tui::{Frame, Terminal};
 
@@ -194,7 +194,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(200));
+            thread::sleep(time::Duration::from_millis(16));
         }
     });
 
@@ -440,7 +440,24 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
 }
 
 fn draw_text(f: &mut Frame<MouseBackend>, area: &Rect) {
-    Paragraph::default()
+    let text = [
+        Text::Data("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
+        Text::StyledData("under", Style::default().fg(Color::Red)),
+        Text::Data(" "),
+        Text::StyledData("the", Style::default().fg(Color::Green)),
+        Text::Data(" "),
+        Text::StyledData("rainbow", Style::default().fg(Color::Blue)),
+        Text::Data(".\nOh and if you didn't "),
+        Text::StyledData("notice", Style::default().modifier(Modifier::Italic)),
+        Text::Data(" you can "),
+        Text::StyledData("automatically", Style::default().modifier(Modifier::Bold)),
+        Text::Data(" "),
+        Text::StyledData("wrap", Style::default().modifier(Modifier::Invert)),
+        Text::Data(" your "),
+        Text::StyledData("text", Style::default().modifier(Modifier::Underline)),
+        Text::Data(".\nOne more thing is that it should display unicode characters: 10€")
+    ];
+    Paragraph::new(text.iter())
         .block(
             Block::default()
                 .borders(Borders::ALL)
@@ -448,17 +465,6 @@ fn draw_text(f: &mut Frame<MouseBackend>, area: &Rect) {
                 .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
         )
         .wrap(true)
-        .text(
-            "This is a paragraph with several lines.\nYou can change the color.\nUse \
-             \\{fg=[color];bg=[color];mod=[modifier] [text]} to highlight the text with a color. \
-             For example, {fg=red u}{fg=green n}{fg=yellow d}{fg=magenta e}{fg=cyan r} \
-             {fg=gray t}{fg=light_gray h}{fg=light_red e} {fg=light_green r}{fg=light_yellow a} \
-             {fg=light_magenta i}{fg=light_cyan n}{fg=white b}{fg=red o}{fg=green w}.\n\
-             Oh, and if you didn't {mod=italic notice} you can {mod=bold automatically} \
-             {mod=invert wrap} your {mod=underline text} =).\nOne more thing is that \
-             it should display unicode characters properly: 日本国, ٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ \
-             ٩(-̮̮̃•̃).",
-        )
         .render(f, area);
 }
 

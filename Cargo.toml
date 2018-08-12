@@ -21,6 +21,7 @@ bitflags = "1.0.1"
 cassowary = "0.3.0"
 itertools = "0.7.8"
 log = "0.4.1"
+either = "1.5.0"
 unicode-segmentation = "1.2.0"
 unicode-width = "0.1.4"
 termion = { version = "1.5.1", optional = true }

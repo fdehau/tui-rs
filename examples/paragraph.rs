@@ -6,9 +6,9 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Alignment, Color, Style};
-use tui::widgets::{Block, Paragraph, Widget};
+use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use tui::style::{Color, Style, Modifier};
+use tui::widgets::{Block, Paragraph, Widget, Text};
 use tui::Terminal;
 
 fn main() {
@@ -55,38 +55,24 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
             )
             .split(size);
 
-        Paragraph::default()
-            .alignment(Alignment::Left)
-            .text(
-                "This is a line\n{fg=red This is a line}\n{bg=red This is a \
-                 line}\n{mod=italic This is a line}\n{mod=bold This is a \
-                 line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
-                 line}\n{mod=underline This is a \
-                 line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
-            )
-            .render(&mut f, &chunks[0]);
+        let text = [
+            Text::Data("This a line\n"),
+            Text::StyledData("This a line\n", Style::default().fg(Color::Red)),
+            Text::StyledData("This a line\n", Style::default().bg(Color::Blue)),
+            Text::StyledData("This a longer line\n", Style::default().modifier(Modifier::CrossedOut)),
+            Text::StyledData("This a line\n", Style::default().fg(Color::Green).modifier(Modifier::Italic)),
+        ];
 
-        Paragraph::default()
+        Paragraph::new(text.iter())
+            .alignment(Alignment::Left)
+            .render(&mut f, &chunks[0]);
+        Paragraph::new(text.iter())
             .alignment(Alignment::Center)
             .wrap(true)
-            .text(
-                "This is a line\n{fg=red This is a line}\n{bg=red This is a \
-                 line}\n{mod=italic This is a line}\n{mod=bold This is a \
-                 line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
-                 line}\n{mod=underline This is a \
-                 line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
-            )
             .render(&mut f, &chunks[1]);
-        Paragraph::default()
+        Paragraph::new(text.iter())
             .alignment(Alignment::Right)
             .wrap(true)
-            .text(
-                "This is a line\n{fg=red This is a line}\n{bg=red This is a \
-                 line}\n{mod=italic This is a line}\n{mod=bold This is a \
-                 line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
-                 line}\n{mod=underline This is a \
-                 line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
-            )
             .render(&mut f, &chunks[2]);
     }
     t.draw().unwrap();

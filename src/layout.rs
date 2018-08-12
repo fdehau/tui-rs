@@ -29,6 +29,13 @@ pub enum Constraint {
     Min(u16),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Alignment {
+    Left,
+    Center,
+    Right,
+}
+
 // TODO: enforce constraints size once const generics has landed
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Layout {

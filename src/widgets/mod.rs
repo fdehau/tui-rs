@@ -14,7 +14,7 @@ pub use self::block::Block;
 pub use self::chart::{Axis, Chart, Dataset, Marker};
 pub use self::gauge::Gauge;
 pub use self::list::{Item, List, SelectableList};
-pub use self::paragraph::Paragraph;
+pub use self::paragraph::{Paragraph, Text};
 pub use self::sparkline::Sparkline;
 pub use self::table::{Row, Table};
 pub use self::tabs::Tabs;
