@@ -89,25 +89,24 @@ impl Layout {
     ///     let chunks = Layout::default()
     ///         .direction(Direction::Vertical)
     ///         .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
-    ///         .split(&Rect{x: 2, y: 2, width: 10, height: 10});
+    ///         .split(Rect{x: 2, y: 2, width: 10, height: 10});
     ///     assert_eq!(chunks, vec![Rect{x:2, y: 2, width: 10, height: 5},
     ///                             Rect{x: 2, y: 7, width: 10, height: 5}])
     /// # }
     ///
     /// ```
-    pub fn split(self, area: &Rect) -> Vec<Rect> {
+    pub fn split(self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?
         LAYOUT_CACHE.with(|c| {
-            return c
-                .borrow_mut()
-                .entry((*area, self.clone()))
-                .or_insert_with(|| split(area, self))
-                .clone();
+            c.borrow_mut()
+                .entry((area, self.clone()))
+                .or_insert_with(|| split(area, &self))
+                .clone()
         })
     }
 }
 
-fn split(area: &Rect, layout: Layout) -> Vec<Rect> {
+fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
     let elements = layout
@@ -282,34 +281,34 @@ impl Default for Rect {
 impl Rect {
     pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
         Rect {
-            x: x,
-            y: y,
-            width: width,
-            height: height,
+            x,
+            y,
+            width,
+            height,
         }
     }
 
-    pub fn area(&self) -> u16 {
+    pub fn area(self) -> u16 {
         self.width * self.height
     }
 
-    pub fn left(&self) -> u16 {
+    pub fn left(self) -> u16 {
         self.x
     }
 
-    pub fn right(&self) -> u16 {
+    pub fn right(self) -> u16 {
         self.x + self.width
     }
 
-    pub fn top(&self) -> u16 {
+    pub fn top(self) -> u16 {
         self.y
     }
 
-    pub fn bottom(&self) -> u16 {
+    pub fn bottom(self) -> u16 {
         self.y + self.height
     }
 
-    pub fn inner(&self, margin: u16) -> Rect {
+    pub fn inner(self, margin: u16) -> Rect {
         if self.width < 2 * margin || self.height < 2 * margin {
             Rect::default()
         } else {
@@ -322,7 +321,7 @@ impl Rect {
         }
     }
 
-    pub fn union(&self, other: &Rect) -> Rect {
+    pub fn union(self, other: Rect) -> Rect {
         let x1 = min(self.x, other.x);
         let y1 = min(self.y, other.y);
         let x2 = max(self.x + self.width, other.x + other.width);
@@ -335,7 +334,7 @@ impl Rect {
         }
     }
 
-    pub fn intersection(&self, other: &Rect) -> Rect {
+    pub fn intersection(self, other: Rect) -> Rect {
         let x1 = max(self.x, other.x);
         let y1 = max(self.y, other.y);
         let x2 = min(self.x + self.width, other.x + other.width);
@@ -348,7 +347,7 @@ impl Rect {
         }
     }
 
-    pub fn intersects(&self, other: &Rect) -> bool {
+    pub fn intersects(self, other: Rect) -> bool {
         self.x < other.x + other.width
             && self.x + self.width > other.x
             && self.y < other.y + other.height

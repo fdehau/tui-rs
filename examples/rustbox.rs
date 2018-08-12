@@ -35,11 +35,11 @@ fn draw(t: &mut Terminal<RustboxBackend>) {
         Paragraph::default()
             .block(
                 Block::default()
-                .title("Rustbox backend")
-                .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Magenta)),
-                )
+                    .title("Rustbox backend")
+                    .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Magenta)),
+            )
             .text("It {yellow works}!")
             .render(&mut f, &size);
     }

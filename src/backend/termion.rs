@@ -187,8 +187,8 @@ macro_rules! termion_modifier {
 }
 
 impl Color {
-    pub fn termion_fg(&self) -> String {
-        match *self {
+    pub fn termion_fg(self) -> String {
+        match self {
             Color::Reset => termion_fg!(Reset),
             Color::Black => termion_fg!(Black),
             Color::Red => termion_fg!(Red),
@@ -209,8 +209,8 @@ impl Color {
             Color::Rgb(r, g, b) => termion_fg_rgb!(r, g, b),
         }
     }
-    pub fn termion_bg(&self) -> String {
-        match *self {
+    pub fn termion_bg(self) -> String {
+        match self {
             Color::Reset => termion_bg!(Reset),
             Color::Black => termion_bg!(Black),
             Color::Red => termion_bg!(Red),
@@ -234,8 +234,8 @@ impl Color {
 }
 
 impl Modifier {
-    pub fn termion_modifier(&self) -> String {
-        match *self {
+    pub fn termion_modifier(self) -> String {
+        match self {
             Modifier::Blink => termion_modifier!(Blink),
             Modifier::Bold => termion_modifier!(Bold),
             Modifier::CrossedOut => termion_modifier!(CrossedOut),

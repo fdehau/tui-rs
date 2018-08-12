@@ -46,7 +46,7 @@ RUSTFMT_WRITEMODE ?= 'diff'
 lint: fmt clippy ## Lint project files
 
 fmt: ## Check the format of the source code
-	cargo fmt -- --write-mode=$(RUSTFMT_WRITEMODE)
+	cargo fmt --all -- --check
 
 clippy: RUST_CHANNEL = nightly
 clippy: ## Check the style of the source code and catch common errors
@@ -88,4 +88,4 @@ beta: RUST_CHANNEL = beta
 beta: build test ## Run build and tests for beta
 
 nightly: RUST_CHANNEL = nightly
-nightly: install-tools build lint test ## Run build, lint and tests for nightly
+nightly: build lint test ## Run build, lint and tests for nightly

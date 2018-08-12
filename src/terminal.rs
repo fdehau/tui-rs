@@ -31,7 +31,7 @@ where
     B: Backend,
 {
     /// Calls the draw method of a given widget on the current buffer
-    pub fn render<W>(&mut self, widget: &mut W, area: &Rect)
+    pub fn render<W>(&mut self, widget: &mut W, area: Rect)
     where
         W: Widget,
     {
@@ -48,17 +48,17 @@ where
     pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
         let size = backend.size()?;
         Ok(Terminal {
-            backend: backend,
+            backend,
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
         })
     }
 
-    pub fn get_frame<'a>(&'a mut self) -> Frame<'a, B> {
+    pub fn get_frame(&mut self) -> Frame<B> {
         Frame { terminal: self }
     }
 
-    pub fn current_buffer_mut<'a>(&'a mut self) -> &'a mut Buffer {
+    pub fn current_buffer_mut(&mut self) -> &mut Buffer {
         &mut self.buffers[self.current]
     }
 

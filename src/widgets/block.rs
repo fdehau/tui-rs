@@ -75,11 +75,11 @@ impl<'a> Block<'a> {
     }
 
     /// Compute the inner area of a block based on its border visibility rules.
-    pub fn inner(&self, area: &Rect) -> Rect {
+    pub fn inner(&self, area: Rect) -> Rect {
         if area.width < 2 || area.height < 2 {
             return Rect::default();
         }
-        let mut inner = *area;
+        let mut inner = area;
         if self.borders.intersects(Borders::LEFT) {
             inner.x += 1;
             inner.width -= 1;
@@ -99,12 +99,12 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         if area.width < 2 || area.height < 2 {
             return;
         }
 
-        self.background(area, buf, self.style.bg);
+        self.background(&area, buf, self.style.bg);
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {

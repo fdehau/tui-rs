@@ -105,13 +105,13 @@ impl<'a, 't, T> Widget for Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let text_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         if text_area.height < 1 {
@@ -121,11 +121,11 @@ where
         self.background(&text_area, buf, self.style.bg);
 
         let style = self.style;
-        let styled = self.text.by_ref().flat_map(|t| match t {
-            &Text::Data(d) => {
+        let styled = self.text.by_ref().flat_map(|t| match *t {
+            Text::Data(d) => {
                 Either::Left(UnicodeSegmentation::graphemes(d, true).map(|g| (g, style)))
             }
-            &Text::StyledData(d, s) => {
+            Text::StyledData(d, s) => {
                 Either::Right(UnicodeSegmentation::graphemes(d, true).map(move |g| (g, s)))
             }
         });
@@ -154,58 +154,53 @@ where
         let mut y = 0;
 
         let mut remove_leading_whitespaces = false;
-        loop {
-            if let Some((string, style)) = styled.next() {
-                if string == "\n" {
-                    x = match self.alignment {
-                        Alignment::Center => {
-                            (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
-                        }
-
-                        Alignment::Right => {
-                            (text_area.width).saturating_sub(get_cur_line_len(&mut styled))
-                        }
-                        Alignment::Left => 0,
-                    };
-                    y += 1;
-                    continue;
-                }
-                if x >= text_area.width {
-                    if self.wrapping {
-                        x = match self.alignment {
-                            Alignment::Center => (text_area.width / 2)
-                                .saturating_sub(get_cur_line_len(&mut styled) / 2),
-
-                            Alignment::Right => {
-                                (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
-                            }
-                            Alignment::Left => 0,
-                        };
-                        y += 1;
-                        remove_leading_whitespaces = true
+        while let Some((string, style)) = styled.next() {
+            if string == "\n" {
+                x = match self.alignment {
+                    Alignment::Center => {
+                        (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
                     }
-                }
 
-                if remove_leading_whitespaces && string == " " {
-                    continue;
-                }
-                remove_leading_whitespaces = false;
+                    Alignment::Right => {
+                        (text_area.width).saturating_sub(get_cur_line_len(&mut styled))
+                    }
+                    Alignment::Left => 0,
+                };
+                y += 1;
+                continue;
+            }
+            if x >= text_area.width && self.wrapping {
+                x = match self.alignment {
+                    Alignment::Center => {
+                        (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
+                    }
 
-                if y > text_area.height + self.scroll - 1 {
-                    break;
-                }
+                    Alignment::Right => {
+                        (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
+                    }
+                    Alignment::Left => 0,
+                };
+                y += 1;
+                remove_leading_whitespaces = true
+            }
 
-                if y < self.scroll {
-                    continue;
-                }
+            if remove_leading_whitespaces && string == " " {
+                continue;
+            }
+            remove_leading_whitespaces = false;
 
-                buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
-                    .set_symbol(string)
-                    .set_style(style);
-                x += string.width() as u16;
-            } else {
+            if y > text_area.height + self.scroll - 1 {
                 break;
             }
+
+            if y < self.scroll {
+                continue;
+            }
+
+            buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
+                .set_symbol(string)
+                .set_style(style);
+            x += string.width() as u16;
         }
     }
 }

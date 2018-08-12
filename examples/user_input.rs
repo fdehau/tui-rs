@@ -19,10 +19,10 @@ use std::thread;
 use termion::event;
 use termion::input::TermRead;
 
-use tui::backend::MouseBackend;
+use tui::backend::AlternateScreenBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget, Text};
+use tui::widgets::{Block, Borders, Item, List, Paragraph, Text, Widget};
 use tui::Terminal;
 
 struct App {
@@ -47,7 +47,7 @@ enum Event {
 
 fn main() {
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
+    let backend = AlternateScreenBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
 
     // Channels
@@ -107,25 +107,25 @@ fn main() {
     terminal.clear().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
+fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) {
     {
         let mut f = t.get_frame();
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(2)
             .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-            .split(&app.size);
+            .split(app.size);
         Paragraph::new([Text::Data(&app.input)].iter())
             .style(Style::default().fg(Color::Yellow))
             .block(Block::default().borders(Borders::ALL).title("Input"))
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         List::new(
             app.messages
                 .iter()
                 .enumerate()
                 .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
         ).block(Block::default().borders(Borders::ALL).title("Messages"))
-            .render(&mut f, &chunks[1]);
+            .render(&mut f, chunks[1]);
     }
 
     t.draw().unwrap();

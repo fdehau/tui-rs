@@ -99,10 +99,10 @@ where
         Table {
             block: None,
             style: Style::default(),
-            header: header,
+            header,
             header_style: Style::default(),
             widths: &[],
-            rows: rows,
+            rows,
             column_spacing: 1,
         }
     }
@@ -156,14 +156,14 @@ where
     D: Iterator<Item = I>,
     R: Iterator<Item = Row<'i, D, I>>,
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         // Render block if necessary and get the drawing area
         let table_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         // Set the background

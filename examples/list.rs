@@ -10,7 +10,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Constraint, Corner, Direction, Rect, Layout};
+use tui::layout::{Constraint, Corner, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
 use tui::Terminal;
@@ -161,7 +161,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-            .split(&app.size);
+            .split(app.size);
 
         let style = Style::default().fg(Color::Black).bg(Color::White);
         SelectableList::default()
@@ -169,9 +169,9 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             .items(&app.items)
             .select(app.selected)
             .style(style)
-            .highlight_style(style.clone().fg(Color::LightGreen).modifier(Modifier::Bold))
+            .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::Bold))
             .highlight_symbol(">")
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         {
             let events = app.events.iter().map(|&(evt, level)| {
                 Item::StyledData(
@@ -182,12 +182,12 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                         "WARNING" => &app.warning_style,
                         _ => &app.info_style,
                     },
-                    )
+                )
             });
             List::new(events)
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .start_corner(Corner::BottomLeft)
-                .render(&mut f, &chunks[1]);
+                .render(&mut f, chunks[1]);
         }
     }
     t.draw().unwrap();

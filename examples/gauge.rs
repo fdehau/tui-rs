@@ -132,29 +132,29 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                     Constraint::Percentage(25),
                 ].as_ref(),
             )
-            .split(&app.size);
+            .split(app.size);
         Gauge::default()
             .block(Block::default().title("Gauge1").borders(Borders::ALL))
             .style(Style::default().fg(Color::Yellow))
             .percent(app.progress1)
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         Gauge::default()
             .block(Block::default().title("Gauge2").borders(Borders::ALL))
             .style(Style::default().fg(Color::Magenta).bg(Color::Green))
             .percent(app.progress2)
             .label(&format!("{}/100", app.progress2))
-            .render(&mut f, &chunks[1]);
+            .render(&mut f, chunks[1]);
         Gauge::default()
             .block(Block::default().title("Gauge2").borders(Borders::ALL))
             .style(Style::default().fg(Color::Yellow))
             .percent(app.progress3)
-            .render(&mut f, &chunks[2]);
+            .render(&mut f, chunks[2]);
         Gauge::default()
             .block(Block::default().title("Gauge3").borders(Borders::ALL))
             .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
             .percent(app.progress4)
             .label(&format!("{}/100", app.progress2))
-            .render(&mut f, &chunks[3]);
+            .render(&mut f, chunks[3]);
     }
 
     t.draw().unwrap();

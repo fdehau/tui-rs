@@ -20,7 +20,7 @@ use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{
     Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Widget, Text,
+    SelectableList, Sparkline, Table, Tabs, Text, Widget,
 };
 use tui::{Frame, Terminal};
 
@@ -272,20 +272,20 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
         let mut f = t.get_frame();
         let chunks = Layout::default()
             .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-            .split(&app.size);
+            .split(app.size);
         Tabs::default()
             .block(Block::default().borders(Borders::ALL).title("Tabs"))
             .titles(&app.tabs.titles)
             .style(Style::default().fg(Color::Green))
             .highlight_style(Style::default().fg(Color::Yellow))
             .select(app.tabs.selection)
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         match app.tabs.selection {
             0 => {
-                draw_first_tab(&mut f, app, &chunks[1]);
+                draw_first_tab(&mut f, app, chunks[1]);
             }
             1 => {
-                draw_second_tab(&mut f, app, &chunks[1]);
+                draw_second_tab(&mut f, app, chunks[1]);
             }
             _ => {}
         };
@@ -293,7 +293,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
     t.draw()
 }
 
-fn draw_first_tab(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
+fn draw_first_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints(
             [
@@ -303,16 +303,16 @@ fn draw_first_tab(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
             ].as_ref(),
         )
         .split(area);
-    draw_gauges(f, app, &chunks[0]);
-    draw_charts(f, app, &chunks[1]);
-    draw_text(f, &chunks[2]);
+    draw_gauges(f, app, chunks[0]);
+    draw_charts(f, app, chunks[1]);
+    draw_text(f, chunks[2]);
 }
 
-fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
+fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints([Constraint::Length(2), Constraint::Length(3)].as_ref())
         .margin(1)
-        .split(&area);
+        .split(area);
     Block::default()
         .borders(Borders::ALL)
         .title("Graphs")
@@ -327,15 +327,15 @@ fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
         )
         .label(&format!("{} / 100", app.progress))
         .percent(app.progress)
-        .render(f, &chunks[0]);
+        .render(f, chunks[0]);
     Sparkline::default()
         .block(Block::default().title("Sparkline:"))
         .style(Style::default().fg(Color::Green))
         .data(&app.data)
-        .render(f, &chunks[1]);
+        .render(f, chunks[1]);
 }
 
-fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
+fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
     let constraints = if app.show_chart {
         vec![Constraint::Percentage(50), Constraint::Percentage(50)]
     } else {
@@ -344,23 +344,23 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
     let chunks = Layout::default()
         .constraints(constraints)
         .direction(Direction::Horizontal)
-        .split(&area);
+        .split(area);
     {
         let chunks = Layout::default()
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-            .split(&chunks[0]);
+            .split(chunks[0]);
         {
             let chunks = Layout::default()
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .direction(Direction::Horizontal)
-                .split(&chunks[0]);
+                .split(chunks[0]);
             SelectableList::default()
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .items(&app.items)
                 .select(app.selected)
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                 .highlight_symbol(">")
-                .render(f, &chunks[0]);
+                .render(f, chunks[0]);
             let info_style = Style::default().fg(Color::White);
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
@@ -378,7 +378,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
             });
             List::new(events)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .render(f, &chunks[1]);
+                .render(f, chunks[1]);
         }
         BarChart::default()
             .block(Block::default().borders(Borders::ALL).title("Bar chart"))
@@ -393,7 +393,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
             )
             .label_style(Style::default().fg(Color::Yellow))
             .style(Style::default().fg(Color::Green))
-            .render(f, &chunks[1]);
+            .render(f, chunks[1]);
     }
     if app.show_chart {
         Chart::default()
@@ -435,11 +435,11 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
                     .style(Style::default().fg(Color::Yellow))
                     .data(&app.data3),
             ])
-            .render(f, &chunks[1]);
+            .render(f, chunks[1]);
     }
 }
 
-fn draw_text(f: &mut Frame<MouseBackend>, area: &Rect) {
+fn draw_text(f: &mut Frame<MouseBackend>, area: Rect) {
     let text = [
         Text::Data("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
         Text::StyledData("under", Style::default().fg(Color::Red)),
@@ -468,7 +468,7 @@ fn draw_text(f: &mut Frame<MouseBackend>, area: &Rect) {
         .render(f, area);
 }
 
-fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
+fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
         .direction(Direction::Horizontal)
@@ -488,7 +488,7 @@ fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
     ).block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[15, 15, 10])
-        .render(f, &chunks[0]);
+        .render(f, chunks[0]);
 
     Canvas::default()
         .block(Block::default().title("World").borders(Borders::ALL))
@@ -520,5 +520,5 @@ fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: &Rect) {
         })
         .x_bounds([-180.0, 180.0])
         .y_bounds([-90.0, 90.0])
-        .render(f, &chunks[1]);
+        .render(f, chunks[1]);
 }

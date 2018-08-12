@@ -90,7 +90,7 @@
 //!         Block::default()
 //!             .title("Block")
 //!             .borders(Borders::ALL)
-//!             .render(&mut f, &size);
+//!             .render(&mut f, size);
 //!     }
 //!
 //!     t.draw()
@@ -139,15 +139,15 @@
 //!                 Constraint::Percentage(10)
 //!             ].as_ref()
 //!         )
-//!         .split(&size);
+//!         .split(size);
 //!     Block::default()
 //!          .title("Block")
 //!          .borders(Borders::ALL)
-//!          .render(&mut f, &chunks[0]);
+//!          .render(&mut f, chunks[0]);
 //!     Block::default()
 //!          .title("Block 2")
 //!          .borders(Borders::ALL)
-//!          .render(&mut f, &chunks[2]);
+//!          .render(&mut f, chunks[2]);
 //!     }
 //!
 //!     t.draw()
@@ -166,8 +166,8 @@
 #[macro_use]
 extern crate bitflags;
 extern crate cassowary;
-extern crate itertools;
 extern crate either;
+extern crate itertools;
 #[macro_use]
 extern crate log;
 extern crate unicode_segmentation;

@@ -18,7 +18,7 @@ impl<'a> Default for Label<'a> {
 }
 
 impl<'a> Widget for Label<'a> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_string(area.left(), area.top(), self.text, &Style::default());
     }
 }
@@ -34,6 +34,8 @@ fn main() {
     let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
     let size = terminal.size().unwrap();
     terminal.clear().unwrap();
-    Label::default().text("Test").render(&mut terminal.get_frame(), &size);
+    Label::default()
+        .text("Test")
+        .render(&mut terminal.get_frame(), size);
     terminal.draw().unwrap();
 }

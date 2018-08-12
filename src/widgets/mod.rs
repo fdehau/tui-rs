@@ -47,7 +47,7 @@ bitflags! {
 pub trait Widget {
     /// Draws the current state of the widget in the given buffer. That the only method required to
     /// implement a custom widget.
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer);
+    fn draw(&mut self, area: Rect, buf: &mut Buffer);
     /// Helper method to quickly set the background of all cells inside the specified area.
     fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
         for y in area.top()..area.bottom() {
@@ -57,7 +57,7 @@ pub trait Widget {
         }
     }
     /// Helper method that can be chained with a widget's builder methods to render it.
-    fn render<B>(&mut self, f: &mut Frame<B>, area: &Rect)
+    fn render<B>(&mut self, f: &mut Frame<B>, area: Rect)
     where
         Self: Sized,
         B: Backend,

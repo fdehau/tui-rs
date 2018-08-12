@@ -7,8 +7,8 @@ use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Style, Modifier};
-use tui::widgets::{Block, Paragraph, Widget, Text};
+use tui::style::{Color, Modifier, Style};
+use tui::widgets::{Block, Paragraph, Text, Widget};
 use tui::Terminal;
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
     terminal.hide_cursor().unwrap();
 
     let mut term_size = terminal.size().unwrap();
-    draw(&mut terminal, &term_size);
+    draw(&mut terminal, term_size);
 
     for c in stdin.keys() {
         let size = terminal.size().unwrap();
@@ -27,7 +27,7 @@ fn main() {
             term_size = size;
         }
 
-        draw(&mut terminal, &term_size);
+        draw(&mut terminal, term_size);
         let evt = c.unwrap();
         if evt == event::Key::Char('q') {
             break;
@@ -36,7 +36,7 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
+fn draw(t: &mut Terminal<MouseBackend>, size: Rect) {
     {
         let mut f = t.get_frame();
         Block::default()
@@ -59,21 +59,27 @@ fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
             Text::Data("This a line\n"),
             Text::StyledData("This a line\n", Style::default().fg(Color::Red)),
             Text::StyledData("This a line\n", Style::default().bg(Color::Blue)),
-            Text::StyledData("This a longer line\n", Style::default().modifier(Modifier::CrossedOut)),
-            Text::StyledData("This a line\n", Style::default().fg(Color::Green).modifier(Modifier::Italic)),
+            Text::StyledData(
+                "This a longer line\n",
+                Style::default().modifier(Modifier::CrossedOut),
+            ),
+            Text::StyledData(
+                "This a line\n",
+                Style::default().fg(Color::Green).modifier(Modifier::Italic),
+            ),
         ];
 
         Paragraph::new(text.iter())
             .alignment(Alignment::Left)
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         Paragraph::new(text.iter())
             .alignment(Alignment::Center)
             .wrap(true)
-            .render(&mut f, &chunks[1]);
+            .render(&mut f, chunks[1]);
         Paragraph::new(text.iter())
             .alignment(Alignment::Right)
             .wrap(true)
-            .render(&mut f, &chunks[2]);
+            .render(&mut f, chunks[2]);
     }
     t.draw().unwrap();
 }

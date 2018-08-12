@@ -35,10 +35,10 @@ impl App {
         let data2 = signal2.by_ref().take(200).collect::<Vec<(f64, f64)>>();
         App {
             size: Rect::default(),
-            signal1: signal1,
-            data1: data1,
-            signal2: signal2,
-            data2: data2,
+            signal1,
+            data1,
+            signal2,
+            data2,
             window: [0.0, 20.0],
         }
     }
@@ -127,44 +127,43 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         Chart::default()
             .block(
                 Block::default()
-                .title("Chart")
-                .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
-                .borders(Borders::ALL),
-                )
+                    .title("Chart")
+                    .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
+                    .borders(Borders::ALL),
+            )
             .x_axis(
                 Axis::default()
-                .title("X Axis")
-                .style(Style::default().fg(Color::Gray))
-                .labels_style(Style::default().modifier(Modifier::Italic))
-                .bounds(app.window)
-                .labels(&[
+                    .title("X Axis")
+                    .style(Style::default().fg(Color::Gray))
+                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .bounds(app.window)
+                    .labels(&[
                         &format!("{}", app.window[0]),
                         &format!("{}", (app.window[0] + app.window[1]) / 2.0),
                         &format!("{}", app.window[1]),
-                ]),
-                )
+                    ]),
+            )
             .y_axis(
                 Axis::default()
-                .title("Y Axis")
-                .style(Style::default().fg(Color::Gray))
-                .labels_style(Style::default().modifier(Modifier::Italic))
-                .bounds([-20.0, 20.0])
-                .labels(&["-20", "0", "20"]),
-                )
+                    .title("Y Axis")
+                    .style(Style::default().fg(Color::Gray))
+                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .bounds([-20.0, 20.0])
+                    .labels(&["-20", "0", "20"]),
+            )
             .datasets(&[
-                      Dataset::default()
-                      .name("data2")
-                      .marker(Marker::Dot)
-                      .style(Style::default().fg(Color::Cyan))
-                      .data(&app.data1),
-                      Dataset::default()
-                      .name("data3")
-                      .marker(Marker::Braille)
-                      .style(Style::default().fg(Color::Yellow))
-                      .data(&app.data2),
+                Dataset::default()
+                    .name("data2")
+                    .marker(Marker::Dot)
+                    .style(Style::default().fg(Color::Cyan))
+                    .data(&app.data1),
+                Dataset::default()
+                    .name("data3")
+                    .marker(Marker::Braille)
+                    .style(Style::default().fg(Color::Yellow))
+                    .data(&app.data2),
             ])
-            .render(&mut f, &app.size);
-
+            .render(&mut f, app.size);
     }
     t.draw().unwrap();
 }
