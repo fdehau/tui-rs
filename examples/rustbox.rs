@@ -5,7 +5,7 @@ use rustbox::Key;
 use std::error::Error;
 
 use tui::backend::RustboxBackend;
-use tui::layout::{Direction, Group, Size};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Paragraph, Widget};
 use tui::Terminal;
@@ -30,22 +30,19 @@ fn main() {
 
 fn draw(t: &mut Terminal<RustboxBackend>) {
     let size = t.size().unwrap();
-
-    Group::default()
-        .direction(Direction::Vertical)
-        .sizes(&[Size::Percent(100)])
-        .render(t, &size, |t, chunks| {
-            Paragraph::default()
-                .block(
-                    Block::default()
-                        .title("Rustbox backend")
-                        .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
-                        .borders(Borders::ALL)
-                        .border_style(Style::default().fg(Color::Magenta)),
+    {
+        let mut f = t.get_frame();
+        Paragraph::default()
+            .block(
+                Block::default()
+                .title("Rustbox backend")
+                .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Magenta)),
                 )
-                .text("It {yellow works}!")
-                .render(t, &chunks[0]);
-        });
+            .text("It {yellow works}!")
+            .render(&mut f, &size);
+    }
 
     t.draw().unwrap();
 }

@@ -10,7 +10,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Corner, Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Corner, Direction, Rect, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
 use tui::Terminal;
@@ -156,37 +156,39 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Horizontal)
-        .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &app.size, |t, chunks| {
-            let style = Style::default().fg(Color::Black).bg(Color::White);
-            SelectableList::default()
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(app.selected)
-                .style(style)
-                .highlight_style(style.clone().fg(Color::LightGreen).modifier(Modifier::Bold))
-                .highlight_symbol(">")
-                .render(t, &chunks[0]);
-            {
-                let events = app.events.iter().map(|&(evt, level)| {
-                    Item::StyledData(
-                        format!("{}: {}", level, evt),
-                        match level {
-                            "ERROR" => &app.error_style,
-                            "CRITICAL" => &app.critical_style,
-                            "WARNING" => &app.warning_style,
-                            _ => &app.info_style,
-                        },
-                    )
-                });
-                List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List"))
-                    .start_corner(Corner::BottomLeft)
-                    .render(t, &chunks[1]);
-            }
-        });
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(&app.size);
 
+        let style = Style::default().fg(Color::Black).bg(Color::White);
+        SelectableList::default()
+            .block(Block::default().borders(Borders::ALL).title("List"))
+            .items(&app.items)
+            .select(app.selected)
+            .style(style)
+            .highlight_style(style.clone().fg(Color::LightGreen).modifier(Modifier::Bold))
+            .highlight_symbol(">")
+            .render(&mut f, &chunks[0]);
+        {
+            let events = app.events.iter().map(|&(evt, level)| {
+                Item::StyledData(
+                    format!("{}: {}", level, evt),
+                    match level {
+                        "ERROR" => &app.error_style,
+                        "CRITICAL" => &app.critical_style,
+                        "WARNING" => &app.warning_style,
+                        _ => &app.info_style,
+                    },
+                    )
+            });
+            List::new(events)
+                .block(Block::default().borders(Borders::ALL).title("List"))
+                .start_corner(Corner::BottomLeft)
+                .render(&mut f, &chunks[1]);
+        }
+    }
     t.draw().unwrap();
 }

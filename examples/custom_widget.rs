@@ -34,6 +34,6 @@ fn main() {
     let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
     let size = terminal.size().unwrap();
     terminal.clear().unwrap();
-    Label::default().text("Test").render(&mut terminal, &size);
+    Label::default().text("Test").render(&mut terminal.get_frame(), &size);
     terminal.draw().unwrap();
 }

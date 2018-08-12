@@ -95,7 +95,8 @@ where
 
         self.background(&list_area, buf, self.style.bg);
 
-        for (i, item) in self.items
+        for (i, item) in self
+            .items
             .by_ref()
             .enumerate()
             .take(list_area.height as usize)
@@ -230,7 +231,8 @@ impl<'b> Widget for SelectableList<'b> {
         };
 
         // Render items
-        let items = self.items
+        let items = self
+            .items
             .iter()
             .enumerate()
             .map(|(i, item)| {

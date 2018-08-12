@@ -86,7 +86,8 @@ impl<'a> Widget for Sparkline<'a> {
             None => *self.data.iter().max().unwrap_or(&1u64),
         };
         let max_index = min(spark_area.width as usize, self.data.len());
-        let mut data = self.data
+        let mut data = self
+            .data
             .iter()
             .take(max_index)
             .map(|e| e * u64::from(spark_area.height) * 8 / max)

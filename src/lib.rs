@@ -69,7 +69,7 @@
 //! use tui::Terminal;
 //! use tui::backend::RawBackend;
 //! use tui::widgets::{Widget, Block, Borders};
-//! use tui::layout::{Group, Size, Direction};
+//! use tui::layout::{Layout, Constraint, Direction};
 //!
 //! fn main() {
 //!     let mut terminal = init().expect("Failed initialization");
@@ -85,10 +85,13 @@
 //!
 //!     let size = t.size()?;
 //!
-//!     Block::default()
-//!         .title("Block")
-//!         .borders(Borders::ALL)
-//!         .render(t, &size);
+//!     {
+//!         let mut f = t.get_frame();
+//!         Block::default()
+//!             .title("Block")
+//!             .borders(Borders::ALL)
+//!             .render(&mut f, &size);
+//!     }
 //!
 //!     t.draw()
 //! }
@@ -96,10 +99,9 @@
 //!
 //! ## Layout
 //!
-//! The library comes with a basic yet useful layout management object called
-//! `Group`. As you may see below and in the examples, the library makes heavy
-//! use of the builder pattern to provide full customization. And the `Group`
-//! object is no exception:
+//! The library comes with a basic yet useful layout management object called `Layout`. As you may
+//! see below and in the examples, the library makes heavy use of the builder pattern to provide
+//! full customization. And `Layout` is no exception:
 //!
 //! ```rust,no_run
 //! extern crate tui;
@@ -109,7 +111,7 @@
 //! use tui::Terminal;
 //! use tui::backend::RawBackend;
 //! use tui::widgets::{Widget, Block, Borders};
-//! use tui::layout::{Group, Size, Direction};
+//! use tui::layout::{Layout, Constraint, Direction};
 //!
 //! fn main() {
 //!     let mut terminal = init().expect("Failed initialization");
@@ -125,20 +127,28 @@
 //!
 //!     let size = t.size()?;
 //!
-//!     Group::default()
+//!     {
+//!     let mut f = t.get_frame();
+//!     let chunks = Layout::default()
 //!         .direction(Direction::Vertical)
 //!         .margin(1)
-//!         .sizes(&[Size::Percent(10), Size::Percent(80), Size::Percent(10)])
-//!         .render(t, &size, |t, chunks| {
-//!             Block::default()
-//!                 .title("Block")
-//!                 .borders(Borders::ALL)
-//!                 .render(t, &chunks[0]);
-//!             Block::default()
-//!                 .title("Block 2")
-//!                 .borders(Borders::ALL)
-//!                 .render(t, &chunks[2]);
-//!         });
+//!         .constraints(
+//!             [
+//!                 Constraint::Percentage(10),
+//!                 Constraint::Percentage(80),
+//!                 Constraint::Percentage(10)
+//!             ].as_ref()
+//!         )
+//!         .split(&size);
+//!     Block::default()
+//!          .title("Block")
+//!          .borders(Borders::ALL)
+//!          .render(&mut f, &chunks[0]);
+//!     Block::default()
+//!          .title("Block 2")
+//!          .borders(Borders::ALL)
+//!          .render(&mut f, &chunks[2]);
+//!     }
 //!
 //!     t.draw()
 //! }
@@ -170,4 +180,4 @@ pub mod symbols;
 pub mod terminal;
 pub mod widgets;
 
-pub use self::terminal::Terminal;
+pub use self::terminal::{Frame, Terminal};

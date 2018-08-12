@@ -10,7 +10,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{BarChart, Block, Borders, Widget};
 use tui::Terminal;
@@ -124,41 +124,43 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &app.size, |t, chunks| {
-            BarChart::default()
-                .block(Block::default().title("Data1").borders(Borders::ALL))
-                .data(&app.data)
-                .bar_width(9)
-                .style(Style::default().fg(Color::Yellow))
-                .value_style(Style::default().fg(Color::Black).bg(Color::Yellow))
-                .render(t, &chunks[0]);
-            Group::default()
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(2)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(&app.size);
+        BarChart::default()
+            .block(Block::default().title("Data1").borders(Borders::ALL))
+            .data(&app.data)
+            .bar_width(9)
+            .style(Style::default().fg(Color::Yellow))
+            .value_style(Style::default().fg(Color::Black).bg(Color::Yellow))
+            .render(&mut f, &chunks[0]);
+        {
+            let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .sizes(&[Size::Percent(50), Size::Percent(50)])
-                .render(t, &chunks[1], |t, chunks| {
-                    BarChart::default()
-                        .block(Block::default().title("Data2").borders(Borders::ALL))
-                        .data(&app.data)
-                        .bar_width(5)
-                        .bar_gap(3)
-                        .style(Style::default().fg(Color::Green))
-                        .value_style(Style::default().bg(Color::Green).modifier(Modifier::Bold))
-                        .render(t, &chunks[0]);
-                    BarChart::default()
-                        .block(Block::default().title("Data3").borders(Borders::ALL))
-                        .data(&app.data)
-                        .style(Style::default().fg(Color::Red))
-                        .bar_width(7)
-                        .bar_gap(0)
-                        .value_style(Style::default().bg(Color::Red))
-                        .label_style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
-                        .render(t, &chunks[1]);
-                })
-        });
-
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(&chunks[1]);
+            BarChart::default()
+                .block(Block::default().title("Data2").borders(Borders::ALL))
+                .data(&app.data)
+                .bar_width(5)
+                .bar_gap(3)
+                .style(Style::default().fg(Color::Green))
+                .value_style(Style::default().bg(Color::Green).modifier(Modifier::Bold))
+                .render(&mut f, &chunks[0]);
+            BarChart::default()
+                .block(Block::default().title("Data3").borders(Borders::ALL))
+                .data(&app.data)
+                .style(Style::default().fg(Color::Red))
+                .bar_width(7)
+                .bar_gap(0)
+                .value_style(Style::default().bg(Color::Red))
+                .label_style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
+                .render(&mut f, &chunks[1]);
+        }
+    }
     t.draw().unwrap();
 }

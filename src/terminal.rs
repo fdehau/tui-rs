@@ -1,17 +1,9 @@
-use std::collections::HashMap;
 use std::io;
 
 use backend::Backend;
 use buffer::Buffer;
-use layout::{split, Group, Rect};
+use layout::Rect;
 use widgets::Widget;
-
-/// Holds a computed layout and keeps track of its use between successive draw calls
-#[derive(Debug)]
-pub struct LayoutEntry {
-    chunks: Vec<Rect>,
-    hot: bool,
-}
 
 /// Interface to the terminal backed by Termion
 #[derive(Debug)]
@@ -20,13 +12,31 @@ where
     B: Backend,
 {
     backend: B,
-    /// Cache to prevent the layout to be computed at each draw call
-    layout_cache: HashMap<(Group, Rect), LayoutEntry>,
     /// Holds the results of the current and previous draw calls. The two are compared at the end
     /// of each draw pass to output the necessary updates to the terminal
     buffers: [Buffer; 2],
     /// Index of the current buffer in the previous array
     current: usize,
+}
+
+pub struct Frame<'a, B: 'a>
+where
+    B: Backend,
+{
+    terminal: &'a mut Terminal<B>,
+}
+
+impl<'a, B> Frame<'a, B>
+where
+    B: Backend,
+{
+    /// Calls the draw method of a given widget on the current buffer
+    pub fn render<W>(&mut self, widget: &mut W, area: &Rect)
+    where
+        W: Widget,
+    {
+        widget.draw(area, self.terminal.current_buffer_mut());
+    }
 }
 
 impl<B> Terminal<B>
@@ -36,13 +46,20 @@ where
     /// Wrapper around Termion initialization. Each buffer is initialized with a blank string and
     /// default colors for the foreground and the background
     pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
-        let size = try!(backend.size());
+        let size = backend.size()?;
         Ok(Terminal {
             backend: backend,
-            layout_cache: HashMap::new(),
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
         })
+    }
+
+    pub fn get_frame<'a>(&'a mut self) -> Frame<'a, B> {
+        Frame { terminal: self }
+    }
+
+    pub fn current_buffer_mut<'a>(&'a mut self) -> &'a mut Buffer {
+        &mut self.buffers[self.current]
     }
 
     pub fn backend(&self) -> &B {
@@ -51,27 +68,6 @@ where
 
     pub fn backend_mut(&mut self) -> &mut B {
         &mut self.backend
-    }
-
-    /// Check if we have already computed a layout for a given group, otherwise it creates one and
-    /// add it to the layout cache. Moreover the function marks the queried entries so that we can
-    /// clean outdated ones at the end of the draw call.
-    pub fn compute_layout(&mut self, group: &Group, area: &Rect) -> Vec<Rect> {
-        let entry = self.layout_cache
-            .entry((group.clone(), *area))
-            .or_insert_with(|| {
-                let chunks = split(area, &group.direction, group.margin, &group.sizes);
-                debug!(
-                    "New layout computed:\n* Group = {:?}\n* Chunks = {:?}",
-                    group, chunks
-                );
-                LayoutEntry {
-                    chunks: chunks,
-                    hot: true,
-                }
-            });
-        entry.hot = true;
-        entry.chunks.clone()
     }
 
     /// Builds a string representing the minimal escape sequences and characters set necessary to
@@ -96,21 +92,12 @@ where
         self.backend.draw(content)
     }
 
-    /// Calls the draw method of a given widget on the current buffer
-    pub fn render<W>(&mut self, widget: &mut W, area: &Rect)
-    where
-        W: Widget,
-    {
-        widget.draw(area, &mut self.buffers[self.current]);
-    }
-
     /// Updates the interface so that internal buffers matches the current size of the terminal.
     /// This leads to a full redraw of the screen.
     pub fn resize(&mut self, area: Rect) -> Result<(), io::Error> {
         self.buffers[self.current].resize(area);
-        self.buffers[1 - self.current].resize(area);
         self.buffers[1 - self.current].reset();
-        self.layout_cache.clear();
+        self.buffers[1 - self.current].resize(area);
         self.backend.clear()
     }
 
@@ -118,20 +105,6 @@ where
     pub fn draw(&mut self) -> Result<(), io::Error> {
         // Draw to stdout
         self.flush()?;
-
-        // Clean layout cache
-        let hot = self.layout_cache
-            .drain()
-            .filter(|&(_, ref v)| v.hot)
-            .collect::<Vec<((Group, Rect), LayoutEntry)>>();
-
-        for (key, value) in hot {
-            self.layout_cache.insert(key, value);
-        }
-
-        for e in self.layout_cache.values_mut() {
-            e.hot = false;
-        }
 
         // Swap buffers
         self.buffers[1 - self.current].reset();

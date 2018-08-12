@@ -10,7 +10,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::Color;
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{Block, Borders, Widget};
@@ -148,58 +148,60 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Horizontal)
-        .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &app.size, |t, chunks| {
-            Canvas::default()
-                .block(Block::default().borders(Borders::ALL).title("World"))
-                .paint(|ctx| {
-                    ctx.draw(&Map {
-                        color: Color::White,
-                        resolution: MapResolution::High,
-                    });
-                    ctx.print(app.x, -app.y, "You are here", Color::Yellow);
-                })
-                .x_bounds([-180.0, 180.0])
-                .y_bounds([-90.0, 90.0])
-                .render(t, &chunks[0]);
-            Canvas::default()
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .paint(|ctx| {
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.left()),
-                        y1: f64::from(app.ball.top()),
-                        x2: f64::from(app.ball.right()),
-                        y2: f64::from(app.ball.top()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.right()),
-                        y1: f64::from(app.ball.top()),
-                        x2: f64::from(app.ball.right()),
-                        y2: f64::from(app.ball.bottom()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.right()),
-                        y1: f64::from(app.ball.bottom()),
-                        x2: f64::from(app.ball.left()),
-                        y2: f64::from(app.ball.bottom()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.left()),
-                        y1: f64::from(app.ball.bottom()),
-                        x2: f64::from(app.ball.left()),
-                        y2: f64::from(app.ball.top()),
-                        color: Color::Yellow,
-                    });
-                })
-                .x_bounds([10.0, 110.0])
-                .y_bounds([10.0, 110.0])
-                .render(t, &chunks[1]);
-        });
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(&app.size);
+        Canvas::default()
+            .block(Block::default().borders(Borders::ALL).title("World"))
+            .paint(|ctx| {
+                ctx.draw(&Map {
+                    color: Color::White,
+                    resolution: MapResolution::High,
+                });
+                ctx.print(app.x, -app.y, "You are here", Color::Yellow);
+            })
+            .x_bounds([-180.0, 180.0])
+            .y_bounds([-90.0, 90.0])
+            .render(&mut f, &chunks[0]);
+        Canvas::default()
+            .block(Block::default().borders(Borders::ALL).title("List"))
+            .paint(|ctx| {
+                ctx.draw(&Line {
+                    x1: f64::from(app.ball.left()),
+                    y1: f64::from(app.ball.top()),
+                    x2: f64::from(app.ball.right()),
+                    y2: f64::from(app.ball.top()),
+                    color: Color::Yellow,
+                });
+                ctx.draw(&Line {
+                    x1: f64::from(app.ball.right()),
+                    y1: f64::from(app.ball.top()),
+                    x2: f64::from(app.ball.right()),
+                    y2: f64::from(app.ball.bottom()),
+                    color: Color::Yellow,
+                });
+                ctx.draw(&Line {
+                    x1: f64::from(app.ball.right()),
+                    y1: f64::from(app.ball.bottom()),
+                    x2: f64::from(app.ball.left()),
+                    y2: f64::from(app.ball.bottom()),
+                    color: Color::Yellow,
+                });
+                ctx.draw(&Line {
+                    x1: f64::from(app.ball.left()),
+                    y1: f64::from(app.ball.bottom()),
+                    x2: f64::from(app.ball.left()),
+                    y2: f64::from(app.ball.top()),
+                    color: Color::Yellow,
+                });
+            })
+            .x_bounds([10.0, 110.0])
+            .y_bounds([10.0, 110.0])
+            .render(&mut f, &chunks[1]);
+    }
 
     t.draw().unwrap();
 }

@@ -10,7 +10,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Gauge, Widget};
 use tui::Terminal;
@@ -119,39 +119,43 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[
-            Size::Percent(25),
-            Size::Percent(25),
-            Size::Percent(25),
-            Size::Percent(25),
-        ])
-        .render(t, &app.size, |t, chunks| {
-            Gauge::default()
-                .block(Block::default().title("Gauge1").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Yellow))
-                .percent(app.progress1)
-                .render(t, &chunks[0]);
-            Gauge::default()
-                .block(Block::default().title("Gauge2").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Magenta).bg(Color::Green))
-                .percent(app.progress2)
-                .label(&format!("{}/100", app.progress2))
-                .render(t, &chunks[1]);
-            Gauge::default()
-                .block(Block::default().title("Gauge2").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Yellow))
-                .percent(app.progress3)
-                .render(t, &chunks[2]);
-            Gauge::default()
-                .block(Block::default().title("Gauge3").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
-                .percent(app.progress4)
-                .label(&format!("{}/100", app.progress2))
-                .render(t, &chunks[3]);
-        });
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(2)
+            .constraints(
+                [
+                    Constraint::Percentage(25),
+                    Constraint::Percentage(25),
+                    Constraint::Percentage(25),
+                    Constraint::Percentage(25),
+                ].as_ref(),
+            )
+            .split(&app.size);
+        Gauge::default()
+            .block(Block::default().title("Gauge1").borders(Borders::ALL))
+            .style(Style::default().fg(Color::Yellow))
+            .percent(app.progress1)
+            .render(&mut f, &chunks[0]);
+        Gauge::default()
+            .block(Block::default().title("Gauge2").borders(Borders::ALL))
+            .style(Style::default().fg(Color::Magenta).bg(Color::Green))
+            .percent(app.progress2)
+            .label(&format!("{}/100", app.progress2))
+            .render(&mut f, &chunks[1]);
+        Gauge::default()
+            .block(Block::default().title("Gauge2").borders(Borders::ALL))
+            .style(Style::default().fg(Color::Yellow))
+            .percent(app.progress3)
+            .render(&mut f, &chunks[2]);
+        Gauge::default()
+            .block(Block::default().title("Gauge3").borders(Borders::ALL))
+            .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
+            .percent(app.progress4)
+            .label(&format!("{}/100", app.progress2))
+            .render(&mut f, &chunks[3]);
+    }
 
     t.draw().unwrap();
 }
