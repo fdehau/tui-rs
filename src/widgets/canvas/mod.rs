@@ -116,12 +116,7 @@ impl<'a> Context<'a> {
 
     /// Print a string on the canvas at the given position
     pub fn print(&mut self, x: f64, y: f64, text: &'a str, color: Color) {
-        self.labels.push(Label {
-            x: x,
-            y: y,
-            text: text,
-            color: color,
-        });
+        self.labels.push(Label { x, y, text, color });
     }
 
     /// Push the last layer if necessary
@@ -228,13 +223,13 @@ impl<'a, F> Widget for Canvas<'a, F>
 where
     F: Fn(&mut Context),
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let canvas_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         let width = canvas_area.width as usize;

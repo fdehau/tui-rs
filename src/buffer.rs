@@ -125,10 +125,7 @@ impl Buffer {
         for _ in 0..size {
             content.push(cell.clone());
         }
-        Buffer {
-            area: area,
-            content: content,
-        }
+        Buffer { area, content }
     }
 
     /// Returns the content of the buffer as a slice
@@ -275,7 +272,7 @@ impl Buffer {
 
     /// Merge an other buffer into this one
     pub fn merge(&mut self, other: &Buffer) {
-        let area = self.area.union(&other.area);
+        let area = self.area.union(other.area);
         let cell: Cell = Default::default();
         self.content.resize(area.area() as usize, cell.clone());
 

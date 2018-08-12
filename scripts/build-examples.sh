@@ -2,7 +2,7 @@
 
 # Build all examples in examples directory
 
-set -eu -o pipefail
+set -u -o pipefail
 
 for file in examples/*.rs; do
   name=$(basename ${file//.rs/})

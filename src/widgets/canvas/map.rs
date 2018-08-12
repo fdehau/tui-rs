@@ -10,8 +10,8 @@ pub enum MapResolution {
 }
 
 impl MapResolution {
-    fn data(&self) -> &'static [(f64, f64)] {
-        match *self {
+    fn data(self) -> &'static [(f64, f64)] {
+        match self {
             MapResolution::Low => &WORLD_LOW_RESOLUTION,
             MapResolution::High => &WORLD_HIGH_RESOLUTION,
         }

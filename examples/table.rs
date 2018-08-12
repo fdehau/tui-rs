@@ -100,11 +100,11 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
         let rects = Layout::default()
             .constraints([Constraint::Percentage(100)].as_ref())
             .margin(5)
-            .split(&app.size);
+            .split(app.size);
         Table::new(header.into_iter(), rows)
             .block(Block::default().borders(Borders::ALL).title("Table"))
             .widths(&[10, 10, 10])
-            .render(&mut frame, &rects[0]);
+            .render(&mut frame, rects[0]);
     }
     t.draw()
 }

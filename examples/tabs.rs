@@ -70,42 +70,42 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
             .direction(Direction::Vertical)
             .margin(5)
             .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-            .split(&app.size);
+            .split(app.size);
 
         Block::default()
             .style(Style::default().bg(Color::White))
-            .render(&mut f, &app.size);
+            .render(&mut f, app.size);
         Tabs::default()
             .block(Block::default().borders(Borders::ALL).title("Tabs"))
             .titles(&app.tabs.titles)
             .select(app.tabs.selection)
             .style(Style::default().fg(Color::Cyan))
             .highlight_style(Style::default().fg(Color::Yellow))
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         match app.tabs.selection {
             0 => {
                 Block::default()
                     .title("Inner 0")
                     .borders(Borders::ALL)
-                    .render(&mut f, &chunks[1]);
+                    .render(&mut f, chunks[1]);
             }
             1 => {
                 Block::default()
                     .title("Inner 1")
                     .borders(Borders::ALL)
-                    .render(&mut f, &chunks[1]);
+                    .render(&mut f, chunks[1]);
             }
             2 => {
                 Block::default()
                     .title("Inner 2")
                     .borders(Borders::ALL)
-                    .render(&mut f, &chunks[1]);
+                    .render(&mut f, chunks[1]);
             }
             3 => {
                 Block::default()
                     .title("Inner 3")
                     .borders(Borders::ALL)
-                    .render(&mut f, &chunks[1]);
+                    .render(&mut f, chunks[1]);
             }
             _ => {}
         }

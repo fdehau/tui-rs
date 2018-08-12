@@ -72,11 +72,8 @@ fn main() {
 
         let evt = rx.recv().unwrap();
         match evt {
-            Event::Input(input) => match input {
-                event::Key::Char('q') => {
-                    break;
-                }
-                _ => {}
+            Event::Input(input) => if let event::Key::Char('q') = input {
+                break;
             },
         }
         draw(&mut terminal, &app);
@@ -97,16 +94,16 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                     Constraint::Percentage(10),
                 ].as_ref(),
             )
-            .split(&app.size);
+            .split(app.size);
 
         Block::default()
             .title("Block")
             .borders(Borders::ALL)
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         Block::default()
             .title("Block 2")
             .borders(Borders::ALL)
-            .render(&mut f, &chunks[2]);
+            .render(&mut f, chunks[2]);
     }
 
     t.draw().unwrap();

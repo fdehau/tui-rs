@@ -45,7 +45,7 @@ where
     pub fn new(items: L) -> List<'b, 'i, L, D> {
         List {
             block: None,
-            items: items,
+            items,
             style: Default::default(),
             start_corner: Corner::TopLeft,
         }
@@ -80,13 +80,13 @@ where
     L: Iterator<Item = Item<'i, D>>,
     D: Display,
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let list_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         if list_area.width < 1 || list_area.height < 1 {
@@ -206,10 +206,10 @@ impl<'b> SelectableList<'b> {
 }
 
 impl<'b> Widget for SelectableList<'b> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let list_area = match self.block {
             Some(ref mut b) => b.inner(area),
-            None => *area,
+            None => area,
         };
 
         let list_height = list_area.height as usize;

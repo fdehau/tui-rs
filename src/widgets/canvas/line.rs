@@ -49,12 +49,12 @@ impl<'a> IntoIterator for &'a Line {
         LineIterator {
             x: self.x1,
             y: self.y1,
-            dx: dx,
-            dy: dy,
-            dir_x: dir_x,
-            dir_y: dir_y,
+            dx,
+            dy,
+            dir_x,
+            dir_y,
             current: 0.0,
-            end: end,
+            end,
         }
     }
 }

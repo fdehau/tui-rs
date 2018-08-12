@@ -260,7 +260,7 @@ where
 
     /// Compute the internal layout of the chart given the area. If the area is too small some
     /// elements may be automatically hidden
-    fn layout(&self, area: &Rect) -> ChartLayout {
+    fn layout(&self, area: Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
         if area.height == 0 || area.width == 0 {
             return layout;
@@ -279,7 +279,7 @@ where
                 .fold(0, |acc, l| max(l.as_ref().width(), acc))
                 as u16;
             if let Some(x_labels) = self.x_axis.labels {
-                if x_labels.len() > 0 {
+                if !x_labels.is_empty() {
                     max_width = max(max_width, x_labels[0].as_ref().width() as u16);
                 }
             }
@@ -341,16 +341,16 @@ where
     LX: AsRef<str>,
     LY: AsRef<str>,
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
-        let layout = self.layout(&chart_area);
+        let layout = self.layout(chart_area);
         let graph_area = layout.graph_area;
         if graph_area.width < 1 || graph_area.height < 1 {
             return;
@@ -456,7 +456,7 @@ where
                                 color: dataset.style.fg,
                             });
                         })
-                        .draw(&graph_area, buf);
+                        .draw(graph_area, buf);
                 }
             }
         }
@@ -464,7 +464,7 @@ where
         if let Some(legend_area) = layout.legend_area {
             Block::default()
                 .borders(Borders::ALL)
-                .draw(&legend_area, buf);
+                .draw(legend_area, buf);
             for (i, dataset) in self.datasets.iter().enumerate() {
                 buf.set_string(
                     legend_area.x + 1,

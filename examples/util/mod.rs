@@ -38,9 +38,9 @@ impl SinSignal {
     pub fn new(interval: f64, period: f64, scale: f64) -> SinSignal {
         SinSignal {
             x: 0.0,
-            interval: interval,
-            period: period,
-            scale: scale,
+            interval,
+            period,
+            scale,
         }
     }
 }

@@ -153,7 +153,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-            .split(&app.size);
+            .split(app.size);
         Canvas::default()
             .block(Block::default().borders(Borders::ALL).title("World"))
             .paint(|ctx| {
@@ -165,7 +165,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             })
             .x_bounds([-180.0, 180.0])
             .y_bounds([-90.0, 90.0])
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         Canvas::default()
             .block(Block::default().borders(Borders::ALL).title("List"))
             .paint(|ctx| {
@@ -200,7 +200,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             })
             .x_bounds([10.0, 110.0])
             .y_bounds([10.0, 110.0])
-            .render(&mut f, &chunks[1]);
+            .render(&mut f, chunks[1]);
     }
 
     t.draw().unwrap();

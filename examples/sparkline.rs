@@ -34,10 +34,10 @@ impl App {
         let data3 = signal.by_ref().take(200).collect::<Vec<u64>>();
         App {
             size: Rect::default(),
-            signal: signal,
-            data1: data1,
-            data2: data2,
-            data3: data3,
+            signal,
+            data1,
+            data2,
+            data3,
         }
     }
 
@@ -132,7 +132,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                     Constraint::Min(0),
                 ].as_ref(),
             )
-            .split(&app.size);
+            .split(app.size);
         Sparkline::default()
             .block(
                 Block::default()
@@ -141,7 +141,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             )
             .data(&app.data1)
             .style(Style::default().fg(Color::Yellow))
-            .render(&mut f, &chunks[0]);
+            .render(&mut f, chunks[0]);
         Sparkline::default()
             .block(
                 Block::default()
@@ -150,7 +150,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             )
             .data(&app.data2)
             .style(Style::default().bg(Color::Green))
-            .render(&mut f, &chunks[1]);
+            .render(&mut f, chunks[1]);
         // Multiline
         Sparkline::default()
             .block(
@@ -160,7 +160,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             )
             .data(&app.data3)
             .style(Style::default().fg(Color::Red))
-            .render(&mut f, &chunks[2]);
+            .render(&mut f, chunks[2]);
     }
     t.draw().unwrap();
 }
