@@ -6,7 +6,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
@@ -35,49 +35,52 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
-    // Wrapping block for a group
-    // Just draw the block and the group on the same area and build the group
-    // with at least a margin of 1
-    Block::default().borders(Borders::ALL).render(t, size);
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(4)
-        .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, size, |t, chunks| {
-            Group::default()
+    {
+        let mut f = t.get_frame();
+        // Wrapping block for a group
+        // Just draw the block and the group on the same area and build the group
+        // with at least a margin of 1
+        Block::default().borders(Borders::ALL).render(&mut f, size);
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(4)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(size);
+        {
+            let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .sizes(&[Size::Percent(50), Size::Percent(50)])
-                .render(t, &chunks[0], |t, chunks| {
-                    Block::default()
-                        .title("With background")
-                        .title_style(Style::default().fg(Color::Yellow))
-                        .style(Style::default().bg(Color::Green))
-                        .render(t, &chunks[0]);
-                    Block::default()
-                        .title("Styled title")
-                        .title_style(
-                            Style::default()
-                                .fg(Color::White)
-                                .bg(Color::Red)
-                                .modifier(Modifier::Bold),
-                        )
-                        .render(t, &chunks[1]);
-                });
-            Group::default()
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(&chunks[0]);
+            Block::default()
+                .title("With background")
+                .title_style(Style::default().fg(Color::Yellow))
+                .style(Style::default().bg(Color::Green))
+                .render(&mut f, &chunks[0]);
+            Block::default()
+                .title("Styled title")
+                .title_style(
+                    Style::default()
+                        .fg(Color::White)
+                        .bg(Color::Red)
+                        .modifier(Modifier::Bold),
+                )
+                .render(&mut f, &chunks[1]);
+        }
+        {
+            let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .sizes(&[Size::Percent(50), Size::Percent(50)])
-                .render(t, &chunks[1], |t, chunks| {
-                    Block::default()
-                        .title("With borders")
-                        .borders(Borders::ALL)
-                        .render(t, &chunks[0]);
-                    Block::default()
-                        .title("With styled borders")
-                        .border_style(Style::default().fg(Color::Cyan))
-                        .borders(Borders::LEFT | Borders::RIGHT)
-                        .render(t, &chunks[1]);
-                });
-        });
-
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(&chunks[1]);
+            Block::default()
+                .title("With borders")
+                .borders(Borders::ALL)
+                .render(&mut f, &chunks[0]);
+            Block::default()
+                .title("With styled borders")
+                .border_style(Style::default().fg(Color::Cyan))
+                .borders(Borders::LEFT | Borders::RIGHT)
+                .render(&mut f, &chunks[1]);
+        }
+    }
     t.draw().unwrap();
 }

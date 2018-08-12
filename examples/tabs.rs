@@ -9,7 +9,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Tabs, Widget};
 use tui::Terminal;
@@ -64,50 +64,51 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
-    Block::default()
-        .style(Style::default().bg(Color::White))
-        .render(t, &app.size);
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(5)
+            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+            .split(&app.size);
 
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(5)
-        .sizes(&[Size::Fixed(3), Size::Min(0)])
-        .render(t, &app.size, |t, chunks| {
-            Tabs::default()
-                .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                .titles(&app.tabs.titles)
-                .select(app.tabs.selection)
-                .style(Style::default().fg(Color::Cyan))
-                .highlight_style(Style::default().fg(Color::Yellow))
-                .render(t, &chunks[0]);
-            match app.tabs.selection {
-                0 => {
-                    Block::default()
-                        .title("Inner 0")
-                        .borders(Borders::ALL)
-                        .render(t, &chunks[1]);
-                }
-                1 => {
-                    Block::default()
-                        .title("Inner 1")
-                        .borders(Borders::ALL)
-                        .render(t, &chunks[1]);
-                }
-                2 => {
-                    Block::default()
-                        .title("Inner 2")
-                        .borders(Borders::ALL)
-                        .render(t, &chunks[1]);
-                }
-                3 => {
-                    Block::default()
-                        .title("Inner 3")
-                        .borders(Borders::ALL)
-                        .render(t, &chunks[1]);
-                }
-                _ => {}
+        Block::default()
+            .style(Style::default().bg(Color::White))
+            .render(&mut f, &app.size);
+        Tabs::default()
+            .block(Block::default().borders(Borders::ALL).title("Tabs"))
+            .titles(&app.tabs.titles)
+            .select(app.tabs.selection)
+            .style(Style::default().fg(Color::Cyan))
+            .highlight_style(Style::default().fg(Color::Yellow))
+            .render(&mut f, &chunks[0]);
+        match app.tabs.selection {
+            0 => {
+                Block::default()
+                    .title("Inner 0")
+                    .borders(Borders::ALL)
+                    .render(&mut f, &chunks[1]);
             }
-        });
-
+            1 => {
+                Block::default()
+                    .title("Inner 1")
+                    .borders(Borders::ALL)
+                    .render(&mut f, &chunks[1]);
+            }
+            2 => {
+                Block::default()
+                    .title("Inner 2")
+                    .borders(Borders::ALL)
+                    .render(&mut f, &chunks[1]);
+            }
+            3 => {
+                Block::default()
+                    .title("Inner 3")
+                    .borders(Borders::ALL)
+                    .render(&mut f, &chunks[1]);
+            }
+            _ => {}
+        }
+    }
     t.draw().unwrap();
 }

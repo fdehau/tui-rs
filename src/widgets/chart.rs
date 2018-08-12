@@ -428,7 +428,8 @@ where
         for dataset in self.datasets {
             match dataset.marker {
                 Marker::Dot => for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
-                    !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1]
+                    !(x < self.x_axis.bounds[0]
+                        || x > self.x_axis.bounds[1]
                         || y < self.y_axis.bounds[0]
                         || y > self.y_axis.bounds[1])
                 }) {

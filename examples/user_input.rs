@@ -20,7 +20,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
 use tui::Terminal;
@@ -108,24 +108,26 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[Size::Fixed(3), Size::Min(1)])
-        .render(t, &app.size, |t, chunks| {
-            Paragraph::default()
-                .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title("Input"))
-                .text(&app.input)
-                .render(t, &chunks[0]);
-            List::new(
-                app.messages
-                    .iter()
-                    .enumerate()
-                    .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
-            ).block(Block::default().borders(Borders::ALL).title("Messages"))
-                .render(t, &chunks[1]);
-        });
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(2)
+            .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+            .split(&app.size);
+        Paragraph::default()
+            .style(Style::default().fg(Color::Yellow))
+            .block(Block::default().borders(Borders::ALL).title("Input"))
+            .text(&app.input)
+            .render(&mut f, &chunks[0]);
+        List::new(
+            app.messages
+                .iter()
+                .enumerate()
+                .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
+        ).block(Block::default().borders(Borders::ALL).title("Messages"))
+            .render(&mut f, &chunks[1]);
+    }
 
     t.draw().unwrap();
 }

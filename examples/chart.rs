@@ -122,46 +122,49 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Chart::default()
-        .block(
-            Block::default()
+    {
+        let mut f = t.get_frame();
+        Chart::default()
+            .block(
+                Block::default()
                 .title("Chart")
                 .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
                 .borders(Borders::ALL),
-        )
-        .x_axis(
-            Axis::default()
+                )
+            .x_axis(
+                Axis::default()
                 .title("X Axis")
                 .style(Style::default().fg(Color::Gray))
                 .labels_style(Style::default().modifier(Modifier::Italic))
                 .bounds(app.window)
                 .labels(&[
-                    &format!("{}", app.window[0]),
-                    &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                    &format!("{}", app.window[1]),
+                        &format!("{}", app.window[0]),
+                        &format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                        &format!("{}", app.window[1]),
                 ]),
-        )
-        .y_axis(
-            Axis::default()
+                )
+            .y_axis(
+                Axis::default()
                 .title("Y Axis")
                 .style(Style::default().fg(Color::Gray))
                 .labels_style(Style::default().modifier(Modifier::Italic))
                 .bounds([-20.0, 20.0])
                 .labels(&["-20", "0", "20"]),
-        )
-        .datasets(&[
-            Dataset::default()
-                .name("data2")
-                .marker(Marker::Dot)
-                .style(Style::default().fg(Color::Cyan))
-                .data(&app.data1),
-            Dataset::default()
-                .name("data3")
-                .marker(Marker::Braille)
-                .style(Style::default().fg(Color::Yellow))
-                .data(&app.data2),
-        ])
-        .render(t, &app.size);
+                )
+            .datasets(&[
+                      Dataset::default()
+                      .name("data2")
+                      .marker(Marker::Dot)
+                      .style(Style::default().fg(Color::Cyan))
+                      .data(&app.data1),
+                      Dataset::default()
+                      .name("data3")
+                      .marker(Marker::Braille)
+                      .style(Style::default().fg(Color::Yellow))
+                      .data(&app.data2),
+            ])
+            .render(&mut f, &app.size);
 
+    }
     t.draw().unwrap();
 }

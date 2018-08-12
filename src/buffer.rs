@@ -183,7 +183,9 @@ impl Buffer {
     /// ```
     pub fn index_of(&self, x: u16, y: u16) -> usize {
         debug_assert!(
-            x >= self.area.left() && x < self.area.right() && y >= self.area.top()
+            x >= self.area.left()
+                && x < self.area.right()
+                && y >= self.area.top()
                 && y < self.area.bottom(),
             "Trying to access position outside the buffer: x={}, y={}, area={:?}",
             x,

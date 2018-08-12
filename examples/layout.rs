@@ -11,7 +11,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
@@ -86,19 +86,28 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .sizes(&[Size::Percent(10), Size::Percent(80), Size::Percent(10)])
-        .render(t, &app.size, |t, chunks| {
-            Block::default()
-                .title("Block")
-                .borders(Borders::ALL)
-                .render(t, &chunks[0]);
-            Block::default()
-                .title("Block 2")
-                .borders(Borders::ALL)
-                .render(t, &chunks[2]);
-        });
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Percentage(10),
+                    Constraint::Percentage(80),
+                    Constraint::Percentage(10),
+                ].as_ref(),
+            )
+            .split(&app.size);
+
+        Block::default()
+            .title("Block")
+            .borders(Borders::ALL)
+            .render(&mut f, &chunks[0]);
+        Block::default()
+            .title("Block 2")
+            .borders(Borders::ALL)
+            .render(&mut f, &chunks[2]);
+    }
 
     t.draw().unwrap();
 }

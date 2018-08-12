@@ -13,7 +13,7 @@ use termion::event;
 use termion::input::TermRead;
 
 use tui::backend::MouseBackend;
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Sparkline, Widget};
 use tui::Terminal;
@@ -119,40 +119,48 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)])
-        .render(t, &app.size, |t, chunks| {
-            Sparkline::default()
-                .block(
-                    Block::default()
-                        .title("Data1")
-                        .borders(Borders::LEFT | Borders::RIGHT),
-                )
-                .data(&app.data1)
-                .style(Style::default().fg(Color::Yellow))
-                .render(t, &chunks[0]);
-            Sparkline::default()
-                .block(
-                    Block::default()
-                        .title("Data2")
-                        .borders(Borders::LEFT | Borders::RIGHT),
-                )
-                .data(&app.data2)
-                .style(Style::default().bg(Color::Green))
-                .render(t, &chunks[1]);
-            // Multiline
-            Sparkline::default()
-                .block(
-                    Block::default()
-                        .title("Data3")
-                        .borders(Borders::LEFT | Borders::RIGHT),
-                )
-                .data(&app.data3)
-                .style(Style::default().fg(Color::Red))
-                .render(t, &chunks[2]);
-        });
-
+    {
+        let mut f = t.get_frame();
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(2)
+            .constraints(
+                [
+                    Constraint::Length(3),
+                    Constraint::Length(3),
+                    Constraint::Length(7),
+                    Constraint::Min(0),
+                ].as_ref(),
+            )
+            .split(&app.size);
+        Sparkline::default()
+            .block(
+                Block::default()
+                    .title("Data1")
+                    .borders(Borders::LEFT | Borders::RIGHT),
+            )
+            .data(&app.data1)
+            .style(Style::default().fg(Color::Yellow))
+            .render(&mut f, &chunks[0]);
+        Sparkline::default()
+            .block(
+                Block::default()
+                    .title("Data2")
+                    .borders(Borders::LEFT | Borders::RIGHT),
+            )
+            .data(&app.data2)
+            .style(Style::default().bg(Color::Green))
+            .render(&mut f, &chunks[1]);
+        // Multiline
+        Sparkline::default()
+            .block(
+                Block::default()
+                    .title("Data3")
+                    .borders(Borders::LEFT | Borders::RIGHT),
+            )
+            .data(&app.data3)
+            .style(Style::default().fg(Color::Red))
+            .render(&mut f, &chunks[2]);
+    }
     t.draw().unwrap();
 }

@@ -23,7 +23,7 @@ use backend::Backend;
 use buffer::Buffer;
 use layout::Rect;
 use style::Color;
-use terminal::Terminal;
+use terminal::Frame;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.
 bitflags! {
@@ -57,11 +57,11 @@ pub trait Widget {
         }
     }
     /// Helper method that can be chained with a widget's builder methods to render it.
-    fn render<B>(&mut self, t: &mut Terminal<B>, area: &Rect)
+    fn render<B>(&mut self, f: &mut Frame<B>, area: &Rect)
     where
         Self: Sized,
         B: Backend,
     {
-        t.render(self, area);
+        f.render(self, area);
     }
 }

@@ -277,7 +277,9 @@ where
             // Finally draw the labels
             let style = Style::default().bg(self.background_color);
             for label in ctx.labels.iter().filter(|l| {
-                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0]
+                !(l.x < self.x_bounds[0]
+                    || l.x > self.x_bounds[1]
+                    || l.y < self.y_bounds[0]
                     || l.y > self.y_bounds[1])
             }) {
                 let dy = ((self.y_bounds[1] - label.y) * f64::from(canvas_area.height - 1)
