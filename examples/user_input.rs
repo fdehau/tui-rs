@@ -22,7 +22,7 @@ use termion::input::TermRead;
 use tui::backend::MouseBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
+use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget, Text};
 use tui::Terminal;
 
 struct App {
@@ -115,10 +115,9 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             .margin(2)
             .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
             .split(&app.size);
-        Paragraph::default()
+        Paragraph::new([Text::Data(&app.input)].iter())
             .style(Style::default().fg(Color::Yellow))
             .block(Block::default().borders(Borders::ALL).title("Input"))
-            .text(&app.input)
             .render(&mut f, &chunks[0]);
         List::new(
             app.messages
