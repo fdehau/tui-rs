@@ -322,6 +322,7 @@ where
             let legend_height = self.datasets.len() as u16 + 2;
             if legend_width < layout.graph_area.width / 3
                 && legend_height < layout.graph_area.height / 3
+                && inner_width > 0
             {
                 layout.legend_area = Some(Rect::new(
                     layout.graph_area.right() - legend_width,
