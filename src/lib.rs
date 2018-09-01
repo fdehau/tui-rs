@@ -56,7 +56,7 @@
 //!
 //! Each widget follows a builder pattern API providing a default configuration
 //! along with methods to customize them. The widget is then registered using
-//! its `render` method that take a `Terminal` instance and an area to draw
+//! its `render` method that take a `Frame` instance and an area to draw
 //! to.
 //!
 //! The following example renders a block of the size of the terminal:
@@ -146,14 +146,10 @@
 //! }
 //! ```
 //!
-//! This let you describe responsive terminal UI by nesting groups. You should note
+//! This let you describe responsive terminal UI by nesting layouts. You should note
 //! that by default the computed layout tries to fill the available space
 //! completely. So if for any reason you might need a blank space somewhere, try to
-//! pass an additional size to the group and don't use the corresponding area inside
-//! the render method.
-//!
-//! Once you have finished to describe the UI, you just need to call `draw`
-//! on `Terminal` to actually flush to the terminal.
+//! pass an additional constraint and don't use the corresponding area.
 
 #[macro_use]
 extern crate bitflags;
