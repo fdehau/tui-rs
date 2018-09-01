@@ -70,32 +70,32 @@ where
         }
     }
 
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Paragraph<'a, 't, T> {
+    pub fn block(mut self, block: Block<'a>) -> Paragraph<'a, 't, T> {
         self.block = Some(block);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Paragraph<'a, 't, T> {
+    pub fn style(mut self, style: Style) -> Paragraph<'a, 't, T> {
         self.style = style;
         self
     }
 
-    pub fn wrap(&mut self, flag: bool) -> &mut Paragraph<'a, 't, T> {
+    pub fn wrap(mut self, flag: bool) -> Paragraph<'a, 't, T> {
         self.wrapping = flag;
         self
     }
 
-    pub fn raw(&mut self, flag: bool) -> &mut Paragraph<'a, 't, T> {
+    pub fn raw(mut self, flag: bool) -> Paragraph<'a, 't, T> {
         self.raw = flag;
         self
     }
 
-    pub fn scroll(&mut self, offset: u16) -> &mut Paragraph<'a, 't, T> {
+    pub fn scroll(mut self, offset: u16) -> Paragraph<'a, 't, T> {
         self.scroll = offset;
         self
     }
 
-    pub fn alignment(&mut self, alignment: Alignment) -> &mut Paragraph<'a, 't, T> {
+    pub fn alignment(mut self, alignment: Alignment) -> Paragraph<'a, 't, T> {
         self.alignment = alignment;
         self
     }

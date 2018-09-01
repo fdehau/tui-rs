@@ -194,7 +194,7 @@ fn main() {
         let tx = tx.clone();
         loop {
             tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(16));
+            thread::sleep(time::Duration::from_millis(250));
         }
     });
 
@@ -268,8 +268,7 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-    {
-        let mut f = t.get_frame();
+    t.draw(|mut f| {
         let chunks = Layout::default()
             .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
             .split(app.size);
@@ -289,8 +288,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
             }
             _ => {}
         };
-    }
-    t.draw()
+    })
 }
 
 fn draw_first_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {

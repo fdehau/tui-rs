@@ -73,7 +73,7 @@ fn main() {
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
     app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
+    draw(&mut terminal, &app).unwrap();
 
     loop {
         let size = terminal.size().unwrap();
@@ -100,16 +100,15 @@ fn main() {
                 _ => {}
             },
         }
-        draw(&mut terminal, &app);
+        draw(&mut terminal, &app).unwrap();
     }
 
     terminal.show_cursor().unwrap();
     terminal.clear().unwrap();
 }
 
-fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(2)
@@ -126,7 +125,5 @@ fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) {
                 .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
         ).block(Block::default().borders(Borders::ALL).title("Messages"))
             .render(&mut f, chunks[1]);
-    }
-
-    t.draw().unwrap();
+    })
 }

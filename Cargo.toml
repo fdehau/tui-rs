@@ -9,6 +9,7 @@ keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
 exclude = ["docs/*", ".travis.yml"]
+autoexamples = true
 
 [badges]
 travis-ci = { repository = "fdehau/tui-rs" }
@@ -32,62 +33,6 @@ stderrlog = "0.3.0"
 rand = "0.4.2"
 
 [[example]]
-name = "barchart"
-path = "examples/barchart.rs"
-
-[[example]]
-name = "block"
-path = "examples/block.rs"
-
-[[example]]
-name = "canvas"
-path = "examples/canvas.rs"
-
-[[example]]
-name = "chart"
-path = "examples/chart.rs"
-
-[[example]]
-name = "custom_widget"
-path = "examples/custom_widget.rs"
-
-[[example]]
-name = "demo"
-path = "examples/demo.rs"
-
-[[example]]
-name = "gauge"
-path = "examples/gauge.rs"
-
-[[example]]
-name = "list"
-path = "examples/list.rs"
-
-[[example]]
-name = "paragraph"
-path = "examples/paragraph.rs"
-
-[[example]]
 name = "rustbox"
 path = "examples/rustbox.rs"
 required-features = ["rustbox"]
-
-[[example]]
-name = "sparkline"
-path = "examples/sparkline.rs"
-
-[[example]]
-name = "table"
-path = "examples/table.rs"
-
-[[example]]
-name = "tabs"
-path = "examples/tabs.rs"
-
-[[example]]
-name = "user_input"
-path = "examples/user_input.rs"
-
-[[example]]
-name = "layout"
-path = "examples/layout.rs"

@@ -51,12 +51,12 @@ where
         }
     }
 
-    pub fn block(&'b mut self, block: Block<'b>) -> &mut List<'b, 'i, L, D> {
+    pub fn block(mut self, block: Block<'b>) -> List<'b, 'i, L, D> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I>(&'b mut self, items: I) -> &mut List<'b, 'i, L, D>
+    pub fn items<I>(mut self, items: I) -> List<'b, 'i, L, D>
     where
         I: IntoIterator<Item = Item<'i, D>, IntoIter = L>,
     {
@@ -64,12 +64,12 @@ where
         self
     }
 
-    pub fn style(&'b mut self, style: Style) -> &mut List<'b, 'i, L, D> {
+    pub fn style(mut self, style: Style) -> List<'b, 'i, L, D> {
         self.style = style;
         self
     }
 
-    pub fn start_corner(&'b mut self, corner: Corner) -> &mut List<'b, 'i, L, D> {
+    pub fn start_corner(mut self, corner: Corner) -> List<'b, 'i, L, D> {
         self.start_corner = corner;
         self
     }
@@ -171,12 +171,12 @@ impl<'b> Default for SelectableList<'b> {
 }
 
 impl<'b> SelectableList<'b> {
-    pub fn block(&'b mut self, block: Block<'b>) -> &mut SelectableList<'b> {
+    pub fn block(mut self, block: Block<'b>) -> SelectableList<'b> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I>(&'b mut self, items: &'b [I]) -> &mut SelectableList<'b>
+    pub fn items<I>(mut self, items: &'b [I]) -> SelectableList<'b>
     where
         I: AsRef<str> + 'b,
     {
@@ -184,22 +184,22 @@ impl<'b> SelectableList<'b> {
         self
     }
 
-    pub fn style(&'b mut self, style: Style) -> &mut SelectableList<'b> {
+    pub fn style(mut self, style: Style) -> SelectableList<'b> {
         self.style = style;
         self
     }
 
-    pub fn highlight_symbol(&'b mut self, highlight_symbol: &'b str) -> &mut SelectableList<'b> {
+    pub fn highlight_symbol(mut self, highlight_symbol: &'b str) -> SelectableList<'b> {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
 
-    pub fn highlight_style(&'b mut self, highlight_style: Style) -> &mut SelectableList<'b> {
+    pub fn highlight_style(mut self, highlight_style: Style) -> SelectableList<'b> {
         self.highlight_style = highlight_style;
         self
     }
 
-    pub fn select(&'b mut self, index: usize) -> &'b mut SelectableList<'b> {
+    pub fn select(mut self, index: usize) -> SelectableList<'b> {
         self.selected = Some(index);
         self
     }

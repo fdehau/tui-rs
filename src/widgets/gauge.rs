@@ -39,22 +39,22 @@ impl<'a> Default for Gauge<'a> {
 }
 
 impl<'a> Gauge<'a> {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Gauge<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Gauge<'a> {
         self.block = Some(block);
         self
     }
 
-    pub fn percent(&mut self, percent: u16) -> &mut Gauge<'a> {
+    pub fn percent(mut self, percent: u16) -> Gauge<'a> {
         self.percent = percent;
         self
     }
 
-    pub fn label(&mut self, string: &'a str) -> &mut Gauge<'a> {
+    pub fn label(mut self, string: &'a str) -> Gauge<'a> {
         self.label = Some(string);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Gauge<'a> {
+    pub fn style(mut self, style: Style) -> Gauge<'a> {
         self.style = style;
         self
     }

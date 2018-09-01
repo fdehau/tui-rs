@@ -37,7 +37,7 @@ fn main() {
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
     app.size = terminal.size().unwrap();
-    draw(&mut terminal, &mut app);
+    draw(&mut terminal, &mut app).unwrap();
 
     // Main loop
     let stdin = io::stdin();
@@ -57,15 +57,14 @@ fn main() {
             event::Key::Left => app.tabs.previous(),
             _ => {}
         }
-        draw(&mut terminal, &mut app);
+        draw(&mut terminal, &mut app).unwrap();
     }
 
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(5)
@@ -109,6 +108,5 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &mut App) {
             }
             _ => {}
         }
-    }
-    t.draw().unwrap();
+    })
 }

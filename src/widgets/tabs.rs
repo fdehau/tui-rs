@@ -57,27 +57,27 @@ impl<'a, T> Tabs<'a, T>
 where
     T: AsRef<str>,
 {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Tabs<'a, T> {
+    pub fn block(mut self, block: Block<'a>) -> Tabs<'a, T> {
         self.block = Some(block);
         self
     }
 
-    pub fn titles(&mut self, titles: &'a [T]) -> &mut Tabs<'a, T> {
+    pub fn titles(mut self, titles: &'a [T]) -> Tabs<'a, T> {
         self.titles = titles;
         self
     }
 
-    pub fn select(&mut self, selected: usize) -> &mut Tabs<'a, T> {
+    pub fn select(mut self, selected: usize) -> Tabs<'a, T> {
         self.selected = selected;
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Tabs<'a, T> {
+    pub fn style(mut self, style: Style) -> Tabs<'a, T> {
         self.style = style;
         self
     }
 
-    pub fn highlight_style(&mut self, style: Style) -> &mut Tabs<'a, T> {
+    pub fn highlight_style(mut self, style: Style) -> Tabs<'a, T> {
         self.highlight_style = style;
         self
     }
