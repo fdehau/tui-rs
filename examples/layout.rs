@@ -61,7 +61,7 @@ fn main() {
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
     app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
+    draw(&mut terminal, &app).unwrap();
 
     loop {
         let size = terminal.size().unwrap();
@@ -76,15 +76,14 @@ fn main() {
                 break;
             },
         }
-        draw(&mut terminal, &app);
+        draw(&mut terminal, &app).unwrap();
     }
 
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints(
@@ -104,7 +103,5 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             .title("Block 2")
             .borders(Borders::ALL)
             .render(&mut f, chunks[2]);
-    }
-
-    t.draw().unwrap();
+    })
 }

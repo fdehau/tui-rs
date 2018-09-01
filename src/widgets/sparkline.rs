@@ -46,22 +46,22 @@ impl<'a> Default for Sparkline<'a> {
 }
 
 impl<'a> Sparkline<'a> {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Sparkline<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Sparkline<'a> {
         self.block = Some(block);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Sparkline<'a> {
+    pub fn style(mut self, style: Style) -> Sparkline<'a> {
         self.style = style;
         self
     }
 
-    pub fn data(&mut self, data: &'a [u64]) -> &mut Sparkline<'a> {
+    pub fn data(mut self, data: &'a [u64]) -> Sparkline<'a> {
         self.data = data;
         self
     }
 
-    pub fn max(&mut self, max: u64) -> &mut Sparkline<'a> {
+    pub fn max(mut self, max: u64) -> Sparkline<'a> {
         self.max = Some(max);
         self
     }

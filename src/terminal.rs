@@ -102,7 +102,12 @@ where
     }
 
     /// Flushes the current internal state and prepares the interface for the next draw call
-    pub fn draw(&mut self) -> Result<(), io::Error> {
+    pub fn draw<F>(&mut self, f: F) -> Result<(), io::Error>
+    where
+        F: FnOnce(Frame<B>),
+    {
+        f(self.get_frame());
+
         // Draw to stdout
         self.flush()?;
 

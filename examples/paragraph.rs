@@ -18,7 +18,7 @@ fn main() {
     terminal.hide_cursor().unwrap();
 
     let mut term_size = terminal.size().unwrap();
-    draw(&mut terminal, term_size);
+    draw(&mut terminal, term_size).unwrap();
 
     for c in stdin.keys() {
         let size = terminal.size().unwrap();
@@ -27,7 +27,7 @@ fn main() {
             term_size = size;
         }
 
-        draw(&mut terminal, term_size);
+        draw(&mut terminal, term_size).unwrap();
         let evt = c.unwrap();
         if evt == event::Key::Char('q') {
             break;
@@ -36,9 +36,8 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, size: Rect) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<MouseBackend>, size: Rect) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         Block::default()
             .style(Style::default().bg(Color::White))
             .render(&mut f, size);
@@ -80,6 +79,5 @@ fn draw(t: &mut Terminal<MouseBackend>, size: Rect) {
             .alignment(Alignment::Right)
             .wrap(true)
             .render(&mut f, chunks[2]);
-    }
-    t.draw().unwrap();
+    })
 }

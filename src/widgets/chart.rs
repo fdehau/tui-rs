@@ -195,6 +195,7 @@ impl Default for ChartLayout {
 ///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
 /// # }
+/// ```
 pub struct Chart<'a, LX, LY>
 where
     LX: AsRef<str> + 'a,
@@ -233,27 +234,27 @@ where
     LX: AsRef<str>,
     LY: AsRef<str>,
 {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Chart<'a, LX, LY> {
+    pub fn block(mut self, block: Block<'a>) -> Chart<'a, LX, LY> {
         self.block = Some(block);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Chart<'a, LX, LY> {
+    pub fn style(mut self, style: Style) -> Chart<'a, LX, LY> {
         self.style = style;
         self
     }
 
-    pub fn x_axis(&mut self, axis: Axis<'a, LX>) -> &mut Chart<'a, LX, LY> {
+    pub fn x_axis(mut self, axis: Axis<'a, LX>) -> Chart<'a, LX, LY> {
         self.x_axis = axis;
         self
     }
 
-    pub fn y_axis(&mut self, axis: Axis<'a, LY>) -> &mut Chart<'a, LX, LY> {
+    pub fn y_axis(mut self, axis: Axis<'a, LY>) -> Chart<'a, LX, LY> {
         self.y_axis = axis;
         self
     }
 
-    pub fn datasets(&mut self, datasets: &'a [Dataset<'a>]) -> &mut Chart<'a, LX, LY> {
+    pub fn datasets(mut self, datasets: &'a [Dataset<'a>]) -> Chart<'a, LX, LY> {
         self.datasets = datasets;
         self
     }

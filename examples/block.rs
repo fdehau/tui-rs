@@ -18,14 +18,14 @@ fn main() {
     terminal.hide_cursor().unwrap();
 
     let mut term_size = terminal.size().unwrap();
-    draw(&mut terminal, term_size);
+    draw(&mut terminal, term_size).unwrap();
     for c in stdin.keys() {
         let size = terminal.size().unwrap();
         if term_size != size {
             terminal.resize(size).unwrap();
             term_size = size;
         }
-        draw(&mut terminal, term_size);
+        draw(&mut terminal, term_size).unwrap();
         let evt = c.unwrap();
         if evt == event::Key::Char('q') {
             break;
@@ -34,9 +34,8 @@ fn main() {
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, size: Rect) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<MouseBackend>, size: Rect) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         // Wrapping block for a group
         // Just draw the block and the group on the same area and build the group
         // with at least a margin of 1
@@ -81,6 +80,5 @@ fn draw(t: &mut Terminal<MouseBackend>, size: Rect) {
                 .borders(Borders::LEFT | Borders::RIGHT)
                 .render(&mut f, chunks[1]);
         }
-    }
-    t.draw().unwrap();
+    })
 }

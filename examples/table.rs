@@ -84,8 +84,7 @@ fn main() {
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-    {
-        let mut frame = t.get_frame();
+    t.draw(|mut f| {
         let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
         let normal_style = Style::default().fg(Color::White);
         let header = ["Header1", "Header2", "Header3"];
@@ -104,7 +103,6 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
         Table::new(header.into_iter(), rows)
             .block(Block::default().borders(Borders::ALL).title("Table"))
             .widths(&[10, 10, 10])
-            .render(&mut frame, rects[0]);
-    }
-    t.draw()
+            .render(&mut f, rects[0]);
+    })
 }

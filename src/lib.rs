@@ -84,16 +84,12 @@
 //! fn draw(t: &mut Terminal<RawBackend>) -> Result<(), io::Error> {
 //!
 //!     let size = t.size()?;
-//!
-//!     {
-//!         let mut f = t.get_frame();
+//!     t.draw(|mut f| {
 //!         Block::default()
 //!             .title("Block")
 //!             .borders(Borders::ALL)
 //!             .render(&mut f, size);
-//!     }
-//!
-//!     t.draw()
+//!     })
 //! }
 //! ```
 //!
@@ -126,31 +122,27 @@
 //! fn draw(t: &mut Terminal<RawBackend>) -> Result<(), io::Error> {
 //!
 //!     let size = t.size()?;
-//!
-//!     {
-//!     let mut f = t.get_frame();
-//!     let chunks = Layout::default()
-//!         .direction(Direction::Vertical)
-//!         .margin(1)
-//!         .constraints(
-//!             [
-//!                 Constraint::Percentage(10),
-//!                 Constraint::Percentage(80),
-//!                 Constraint::Percentage(10)
-//!             ].as_ref()
-//!         )
-//!         .split(size);
-//!     Block::default()
-//!          .title("Block")
-//!          .borders(Borders::ALL)
-//!          .render(&mut f, chunks[0]);
-//!     Block::default()
-//!          .title("Block 2")
-//!          .borders(Borders::ALL)
-//!          .render(&mut f, chunks[2]);
-//!     }
-//!
-//!     t.draw()
+//!     t.draw(|mut f| {
+//!         let chunks = Layout::default()
+//!             .direction(Direction::Vertical)
+//!             .margin(1)
+//!             .constraints(
+//!                 [
+//!                     Constraint::Percentage(10),
+//!                     Constraint::Percentage(80),
+//!                     Constraint::Percentage(10)
+//!                 ].as_ref()
+//!             )
+//!             .split(size);
+//!         Block::default()
+//!              .title("Block")
+//!              .borders(Borders::ALL)
+//!              .render(&mut f, chunks[0]);
+//!         Block::default()
+//!              .title("Block 2")
+//!              .borders(Borders::ALL)
+//!              .render(&mut f, chunks[2]);
+//!     })
 //! }
 //! ```
 //!

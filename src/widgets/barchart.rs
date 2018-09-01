@@ -67,7 +67,7 @@ impl<'a> Default for BarChart<'a> {
 }
 
 impl<'a> BarChart<'a> {
-    pub fn data(&'a mut self, data: &'a [(&'a str, u64)]) -> &mut BarChart<'a> {
+    pub fn data(mut self, data: &'a [(&'a str, u64)]) -> BarChart<'a> {
         self.data = data;
         self.values = Vec::with_capacity(self.data.len());
         for &(_, v) in self.data {
@@ -76,32 +76,32 @@ impl<'a> BarChart<'a> {
         self
     }
 
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut BarChart<'a> {
+    pub fn block(mut self, block: Block<'a>) -> BarChart<'a> {
         self.block = Some(block);
         self
     }
-    pub fn max(&'a mut self, max: u64) -> &mut BarChart<'a> {
+    pub fn max(mut self, max: u64) -> BarChart<'a> {
         self.max = Some(max);
         self
     }
 
-    pub fn bar_width(&'a mut self, width: u16) -> &mut BarChart<'a> {
+    pub fn bar_width(mut self, width: u16) -> BarChart<'a> {
         self.bar_width = width;
         self
     }
-    pub fn bar_gap(&'a mut self, gap: u16) -> &mut BarChart<'a> {
+    pub fn bar_gap(mut self, gap: u16) -> BarChart<'a> {
         self.bar_gap = gap;
         self
     }
-    pub fn value_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn value_style(mut self, style: Style) -> BarChart<'a> {
         self.value_style = style;
         self
     }
-    pub fn label_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn label_style(mut self, style: Style) -> BarChart<'a> {
         self.label_style = style;
         self
     }
-    pub fn style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn style(mut self, style: Style) -> BarChart<'a> {
         self.style = style;
         self
     }

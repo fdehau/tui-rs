@@ -107,7 +107,7 @@ fn main() {
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
     app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
+    draw(&mut terminal, &app).unwrap();
 
     loop {
         let size = terminal.size().unwrap();
@@ -141,15 +141,14 @@ fn main() {
                 app.advance();
             }
         }
-        draw(&mut terminal, &app);
+        draw(&mut terminal, &app).unwrap();
     }
 
     terminal.show_cursor().unwrap();
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    {
-        let mut f = t.get_frame();
+fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
+    t.draw(|mut f| {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
@@ -201,7 +200,5 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
             .x_bounds([10.0, 110.0])
             .y_bounds([10.0, 110.0])
             .render(&mut f, chunks[1]);
-    }
-
-    t.draw().unwrap();
+    })
 }

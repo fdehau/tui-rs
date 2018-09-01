@@ -106,12 +106,12 @@ where
             column_spacing: 1,
         }
     }
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Table<'a, 'i, T, H, I, D, R> {
+    pub fn block(mut self, block: Block<'a>) -> Table<'a, 'i, T, H, I, D, R> {
         self.block = Some(block);
         self
     }
 
-    pub fn header<II>(&mut self, header: II) -> &mut Table<'a, 'i, T, H, I, D, R>
+    pub fn header<II>(mut self, header: II) -> Table<'a, 'i, T, H, I, D, R>
     where
         II: IntoIterator<Item = T, IntoIter = H>,
     {
@@ -119,17 +119,17 @@ where
         self
     }
 
-    pub fn header_style(&mut self, style: Style) -> &mut Table<'a, 'i, T, H, I, D, R> {
+    pub fn header_style(mut self, style: Style) -> Table<'a, 'i, T, H, I, D, R> {
         self.header_style = style;
         self
     }
 
-    pub fn widths(&mut self, widths: &'a [u16]) -> &mut Table<'a, 'i, T, H, I, D, R> {
+    pub fn widths(mut self, widths: &'a [u16]) -> Table<'a, 'i, T, H, I, D, R> {
         self.widths = widths;
         self
     }
 
-    pub fn rows<II>(&mut self, rows: II) -> &mut Table<'a, 'i, T, H, I, D, R>
+    pub fn rows<II>(mut self, rows: II) -> Table<'a, 'i, T, H, I, D, R>
     where
         II: IntoIterator<Item = Row<'i, D, I>, IntoIter = R>,
     {
@@ -137,12 +137,12 @@ where
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Table<'a, 'i, T, H, I, D, R> {
+    pub fn style(mut self, style: Style) -> Table<'a, 'i, T, H, I, D, R> {
         self.style = style;
         self
     }
 
-    pub fn column_spacing(&mut self, spacing: u16) -> &mut Table<'a, 'i, T, H, I, D, R> {
+    pub fn column_spacing(mut self, spacing: u16) -> Table<'a, 'i, T, H, I, D, R> {
         self.column_spacing = spacing;
         self
     }

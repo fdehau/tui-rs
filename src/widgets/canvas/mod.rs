@@ -194,26 +194,26 @@ impl<'a, F> Canvas<'a, F>
 where
     F: Fn(&mut Context),
 {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Canvas<'a, F> {
+    pub fn block(mut self, block: Block<'a>) -> Canvas<'a, F> {
         self.block = Some(block);
         self
     }
-    pub fn x_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
+    pub fn x_bounds(mut self, bounds: [f64; 2]) -> Canvas<'a, F> {
         self.x_bounds = bounds;
         self
     }
-    pub fn y_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
+    pub fn y_bounds(mut self, bounds: [f64; 2]) -> Canvas<'a, F> {
         self.y_bounds = bounds;
         self
     }
 
     /// Store the closure that will be used to draw to the Canvas
-    pub fn paint(&mut self, f: F) -> &mut Canvas<'a, F> {
+    pub fn paint(mut self, f: F) -> Canvas<'a, F> {
         self.painter = Some(f);
         self
     }
 
-    pub fn background_color(&'a mut self, color: Color) -> &mut Canvas<'a, F> {
+    pub fn background_color(mut self, color: Color) -> Canvas<'a, F> {
         self.background_color = color;
         self
     }
