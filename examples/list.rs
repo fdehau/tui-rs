@@ -18,7 +18,7 @@ use tui::Terminal;
 struct App<'a> {
     size: Rect,
     items: Vec<&'a str>,
-    selected: usize,
+    selected: Option<usize>,
     events: Vec<(&'a str, &'a str)>,
     info_style: Style,
     warning_style: Style,
@@ -35,7 +35,7 @@ impl<'a> App<'a> {
                 "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
                 "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
             ],
-            selected: 0,
+            selected: None,
             events: vec![
                 ("Event1", "INFO"),
                 ("Event2", "INFO"),
@@ -132,17 +132,31 @@ fn main() {
                 event::Key::Char('q') => {
                     break;
                 }
+                event::Key::Left => {
+                    app.selected = None;
+                }
                 event::Key::Down => {
-                    app.selected += 1;
-                    if app.selected > app.items.len() - 1 {
-                        app.selected = 0;
+                    app.selected = if let Some(selected) = app.selected {
+                        if selected >= app.items.len() - 1 {
+                            Some(0)
+                        } else {
+                            Some(selected + 1)
+                        }
+                    } else {
+                        Some(0)
                     }
                 }
-                event::Key::Up => if app.selected > 0 {
-                    app.selected -= 1;
-                } else {
-                    app.selected = app.items.len() - 1;
-                },
+                event::Key::Up => {
+                    app.selected = if let Some(selected) = app.selected {
+                        if selected > 0 {
+                            Some(selected - 1)
+                        } else {
+                            Some(app.items.len() - 1)
+                        }
+                    } else {
+                        Some(0)
+                    }
+                }
                 _ => {}
             },
             Event::Tick => {
@@ -153,6 +167,7 @@ fn main() {
     }
 
     terminal.show_cursor().unwrap();
+    terminal.clear().unwrap();
 }
 
 fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
@@ -181,7 +196,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
                         "WARNING" => &app.warning_style,
                         _ => &app.info_style,
                     },
-                    )
+                )
             });
             List::new(events)
                 .block(Block::default().borders(Borders::ALL).title("List"))
