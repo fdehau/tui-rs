@@ -137,7 +137,7 @@ where
 /// SelectableList::default()
 ///     .block(Block::default().title("SelectableList").borders(Borders::ALL))
 ///     .items(&["Item 1", "Item 2", "Item 3"])
-///     .select(1)
+///     .select(Some(1))
 ///     .style(Style::default().fg(Color::White))
 ///     .highlight_style(Style::default().modifier(Modifier::Italic))
 ///     .highlight_symbol(">>");
@@ -199,8 +199,8 @@ impl<'b> SelectableList<'b> {
         self
     }
 
-    pub fn select(mut self, index: usize) -> SelectableList<'b> {
-        self.selected = Some(index);
+    pub fn select(mut self, index: Option<usize>) -> SelectableList<'b> {
+        self.selected = index;
         self
     }
 }
@@ -216,16 +216,20 @@ impl<'b> Widget for SelectableList<'b> {
 
         // Use highlight_style only if something is selected
         let (selected, highlight_style) = match self.selected {
-            Some(i) => (i, &self.highlight_style),
-            None => (0, &self.style),
+            Some(i) => (Some(i), &self.highlight_style),
+            None => (None, &self.style),
         };
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
             .take(highlight_symbol.width())
             .collect::<String>();
         // Make sure the list show the selected item
-        let offset = if selected >= list_height {
-            selected - list_height + 1
+        let offset = if let Some(selected) = selected {
+            if selected >= list_height {
+                selected - list_height + 1
+            } else {
+                0
+            }
         } else {
             0
         };
@@ -236,10 +240,14 @@ impl<'b> Widget for SelectableList<'b> {
             .iter()
             .enumerate()
             .map(|(i, item)| {
-                if i == selected {
-                    Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
+                if let Some(s) = selected {
+                    if i == s {
+                        Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
+                    } else {
+                        Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                    }
                 } else {
-                    Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                    Item::StyledData(format!("{}", item), &self.style)
                 }
             })
             .skip(offset as usize);

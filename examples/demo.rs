@@ -355,7 +355,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
             SelectableList::default()
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .items(&app.items)
-                .select(app.selected)
+                .select(Some(app.selected))
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                 .highlight_symbol(">")
                 .render(f, chunks[0]);
