@@ -16,7 +16,7 @@ pub use self::termion::{AlternateScreenBackend, MouseBackend, RawBackend, Termio
 #[cfg(feature = "crossterm")]
 mod crossterm;
 #[cfg(feature = "crossterm")]
-pub use self::crossterm::{CrosstermBackend};
+pub use self::crossterm::CrosstermBackend;
 
 pub trait Backend {
     fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
