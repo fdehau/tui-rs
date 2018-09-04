@@ -247,7 +247,7 @@ impl<'b> Widget for SelectableList<'b> {
                         Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
                     }
                 } else {
-                    Item::StyledData(format!("{}", item), &self.style)
+                    Item::StyledData(item.to_string(), &self.style)
                 }
             })
             .skip(offset as usize);

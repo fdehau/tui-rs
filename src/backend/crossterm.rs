@@ -122,7 +122,7 @@ impl From<Modifier> for Option<crossterm::Attribute> {
             Modifier::Invert => Some(crossterm::Attribute::Reverse),
             Modifier::Italic => Some(crossterm::Attribute::Italic),
             Modifier::Underline => Some(crossterm::Attribute::Underlined),
-            _ => None
+            _ => None,
         }
     }
 }
