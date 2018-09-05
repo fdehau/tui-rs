@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use either::Either;
 use itertools::{multipeek, MultiPeek};
 use unicode_segmentation::UnicodeSegmentation;
@@ -50,8 +52,8 @@ where
 }
 
 pub enum Text<'b> {
-    Data(&'b str),
-    StyledData(&'b str, Style),
+    Data(Cow<'b, str>),
+    StyledData(Cow<'b, str>, Style),
 }
 
 impl<'a, 't, T> Paragraph<'a, 't, T>
@@ -122,11 +124,13 @@ where
 
         let style = self.style;
         let styled = self.text.by_ref().flat_map(|t| match *t {
-            Text::Data(d) => {
-                Either::Left(UnicodeSegmentation::graphemes(d, true).map(|g| (g, style)))
+            Text::Data(ref d) => {
+                let data: &'t str = d; // coerce to &str
+                Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| (g, style)))
             }
-            Text::StyledData(d, s) => {
-                Either::Right(UnicodeSegmentation::graphemes(d, true).map(move |g| (g, s)))
+            Text::StyledData(ref d, s) => {
+                let data: &'t str = d; // coerce to &str
+                Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| (g, s)))
             }
         });
         let mut styled = multipeek(styled);
