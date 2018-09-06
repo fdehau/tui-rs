@@ -21,8 +21,8 @@ use widgets::{Block, Widget};
 /// # use tui::layout::{Alignment};
 /// # fn main() {
 /// let text = [
-///     Text::Data("First line\n"),
-///     Text::StyledData("Second line\n", Style::default().fg(Color::Red))
+///     Text::Data("First line\n".into()),
+///     Text::StyledData("Second line\n".into(), Style::default().fg(Color::Red))
 /// ];
 /// Paragraph::new(text.iter())
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
