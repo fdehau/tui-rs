@@ -21,8 +21,8 @@ use widgets::{Block, Widget};
 /// # use tui::layout::{Alignment};
 /// # fn main() {
 /// let text = [
-///     Text::Data("First line\n".into()),
-///     Text::StyledData("Second line\n".into(), Style::default().fg(Color::Red))
+///     Text::data("First line\n"),
+///     Text::styled_data("Second line\n", Style::default().fg(Color::Red))
 /// ];
 /// Paragraph::new(text.iter())
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
@@ -54,6 +54,16 @@ where
 pub enum Text<'b> {
     Data(Cow<'b, str>),
     StyledData(Cow<'b, str>, Style),
+}
+
+impl<'b> Text<'b> {
+    pub fn data<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
+        Text::Data(data.into())
+    }
+
+    pub fn styled_data<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
+        Text::StyledData(data.into(), style)
+    }
 }
 
 impl<'a, 't, T> Paragraph<'a, 't, T>
