@@ -439,21 +439,21 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
 
 fn draw_text(f: &mut Frame<MouseBackend>, area: Rect) {
     let text = [
-        Text::Data("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
-        Text::StyledData("under", Style::default().fg(Color::Red)),
-        Text::Data(" "),
-        Text::StyledData("the", Style::default().fg(Color::Green)),
-        Text::Data(" "),
-        Text::StyledData("rainbow", Style::default().fg(Color::Blue)),
-        Text::Data(".\nOh and if you didn't "),
-        Text::StyledData("notice", Style::default().modifier(Modifier::Italic)),
-        Text::Data(" you can "),
-        Text::StyledData("automatically", Style::default().modifier(Modifier::Bold)),
-        Text::Data(" "),
-        Text::StyledData("wrap", Style::default().modifier(Modifier::Invert)),
-        Text::Data(" your "),
-        Text::StyledData("text", Style::default().modifier(Modifier::Underline)),
-        Text::Data(".\nOne more thing is that it should display unicode characters: 10€")
+        Text::Data("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: ".into()),
+        Text::StyledData("under".into(), Style::default().fg(Color::Red)),
+        Text::Data(" ".into()),
+        Text::StyledData("the".into(), Style::default().fg(Color::Green)),
+        Text::Data(" ".into()),
+        Text::StyledData("rainbow".into(), Style::default().fg(Color::Blue)),
+        Text::Data(".\nOh and if you didn't ".into()),
+        Text::StyledData("notice".into(), Style::default().modifier(Modifier::Italic)),
+        Text::Data(" you can ".into()),
+        Text::StyledData("automatically".into(), Style::default().modifier(Modifier::Bold)),
+        Text::Data(" ".into()),
+        Text::StyledData("wrap".into(), Style::default().modifier(Modifier::Invert)),
+        Text::Data(" your ".into()),
+        Text::StyledData("text".into(), Style::default().modifier(Modifier::Underline)),
+        Text::Data(".\nOne more thing is that it should display unicode characters: 10€".into())
     ];
     Paragraph::new(text.iter())
         .block(
