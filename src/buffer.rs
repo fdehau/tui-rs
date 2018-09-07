@@ -81,7 +81,7 @@ impl Default for Cell {
 /// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
 /// buf.get_mut(0, 2).set_symbol("x");
 /// assert_eq!(buf.get(0, 2).symbol, "x");
-/// buf.set_string(3, 0, "string", &Style::default().fg(Color::Red).bg(Color::White));
+/// buf.set_string(3, 0, "string", Style::default().fg(Color::Red).bg(Color::White));
 /// assert_eq!(buf.get(5, 0), &Cell{
 ///     symbol: String::from("r"),
 ///     style: Style {
@@ -233,20 +233,26 @@ impl Buffer {
     }
 
     /// Print a string, starting at the position (x, y)
-    pub fn set_string(&mut self, x: u16, y: u16, string: &str, style: &Style) {
+    pub fn set_string<S>(&mut self, x: u16, y: u16, string: S, style: Style)
+    where
+        S: AsRef<str>,
+    {
         self.set_stringn(x, y, string, usize::MAX, style);
     }
 
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line
-    pub fn set_stringn(&mut self, x: u16, y: u16, string: &str, limit: usize, style: &Style) {
+    pub fn set_stringn<S>(&mut self, x: u16, y: u16, string: S, limit: usize, style: Style)
+    where
+        S: AsRef<str>,
+    {
         let mut index = self.index_of(x, y);
-        let graphemes = UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>();
+        let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
         let max_index = min((self.area.right() - x) as usize, limit);
-        for s in graphemes.into_iter().take(max_index) {
+        for s in graphemes.take(max_index) {
             self.content[index].symbol.clear();
             self.content[index].symbol.push_str(s);
-            self.content[index].style = *style;
+            self.content[index].style = style;
             index += 1;
         }
     }

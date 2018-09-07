@@ -285,7 +285,7 @@ where
                     dx + canvas_area.left(),
                     dy + canvas_area.top(),
                     label.text,
-                    &style.fg(label.color),
+                    style.fg(label.color),
                 );
             }
         }

@@ -9,14 +9,14 @@ use layout::{Corner, Rect};
 use style::Style;
 use widgets::{Block, Widget};
 
-pub enum Item<'i, D: 'i> {
+pub enum Item<D> {
     Data(D),
-    StyledData(D, &'i Style),
+    StyledData(D, Style),
 }
 
-pub struct List<'b, 'i, L, D: 'i>
+pub struct List<'b, L, D>
 where
-    L: Iterator<Item = Item<'i, D>>,
+    L: Iterator<Item = Item<D>>,
 {
     block: Option<Block<'b>>,
     items: L,
@@ -24,11 +24,11 @@ where
     start_corner: Corner,
 }
 
-impl<'b, 'i, L, D> Default for List<'b, 'i, L, D>
+impl<'b, L, D> Default for List<'b, L, D>
 where
-    L: Iterator<Item = Item<'i, D>> + Default,
+    L: Iterator<Item = Item<D>> + Default,
 {
-    fn default() -> List<'b, 'i, L, D> {
+    fn default() -> List<'b, L, D> {
         List {
             block: None,
             items: L::default(),
@@ -38,11 +38,11 @@ where
     }
 }
 
-impl<'b, 'i, L, D> List<'b, 'i, L, D>
+impl<'b, L, D> List<'b, L, D>
 where
-    L: Iterator<Item = Item<'i, D>>,
+    L: Iterator<Item = Item<D>>,
 {
-    pub fn new(items: L) -> List<'b, 'i, L, D> {
+    pub fn new(items: L) -> List<'b, L, D> {
         List {
             block: None,
             items,
@@ -51,33 +51,33 @@ where
         }
     }
 
-    pub fn block(mut self, block: Block<'b>) -> List<'b, 'i, L, D> {
+    pub fn block(mut self, block: Block<'b>) -> List<'b, L, D> {
         self.block = Some(block);
         self
     }
 
-    pub fn items<I>(mut self, items: I) -> List<'b, 'i, L, D>
+    pub fn items<I>(mut self, items: I) -> List<'b, L, D>
     where
-        I: IntoIterator<Item = Item<'i, D>, IntoIter = L>,
+        I: IntoIterator<Item = Item<D>, IntoIter = L>,
     {
         self.items = items.into_iter();
         self
     }
 
-    pub fn style(mut self, style: Style) -> List<'b, 'i, L, D> {
+    pub fn style(mut self, style: Style) -> List<'b, L, D> {
         self.style = style;
         self
     }
 
-    pub fn start_corner(mut self, corner: Corner) -> List<'b, 'i, L, D> {
+    pub fn start_corner(mut self, corner: Corner) -> List<'b, L, D> {
         self.start_corner = corner;
         self
     }
 }
 
-impl<'b, 'i, L, D> Widget for List<'b, 'i, L, D>
+impl<'b, L, D> Widget for List<'b, L, D>
 where
-    L: Iterator<Item = Item<'i, D>>,
+    L: Iterator<Item = Item<D>>,
     D: Display,
 {
     fn draw(&mut self, area: Rect, buf: &mut Buffer) {
@@ -112,13 +112,13 @@ where
                     buf.set_stringn(
                         x,
                         y,
-                        &format!("{}", v),
+                        format!("{}", v),
                         list_area.width as usize,
-                        &Style::default(),
+                        Style::default(),
                     );
                 }
                 Item::StyledData(ref v, s) => {
-                    buf.set_stringn(x, y, &format!("{}", v), list_area.width as usize, s);
+                    buf.set_stringn(x, y, format!("{}", v), list_area.width as usize, s);
                 }
             };
         }
@@ -216,8 +216,8 @@ impl<'b> Widget for SelectableList<'b> {
 
         // Use highlight_style only if something is selected
         let (selected, highlight_style) = match self.selected {
-            Some(i) => (Some(i), &self.highlight_style),
-            None => (None, &self.style),
+            Some(i) => (Some(i), self.highlight_style),
+            None => (None, self.style),
         };
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
@@ -244,10 +244,10 @@ impl<'b> Widget for SelectableList<'b> {
                     if i == s {
                         Item::StyledData(format!("{} {}", highlight_symbol, item), highlight_style)
                     } else {
-                        Item::StyledData(format!("{} {}", blank_symbol, item), &self.style)
+                        Item::StyledData(format!("{} {}", blank_symbol, item), self.style)
                     }
                 } else {
-                    Item::StyledData(item.to_string(), &self.style)
+                    Item::StyledData(item.to_string(), self.style)
                 }
             })
             .skip(offset as usize);

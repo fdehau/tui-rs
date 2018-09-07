@@ -7,13 +7,13 @@ use style::Style;
 use widgets::{Block, Widget};
 
 /// Holds data to be displayed in a Table widget
-pub enum Row<'i, D, I>
+pub enum Row<D, I>
 where
     D: Iterator<Item = I>,
     I: Display,
 {
     Data(D),
-    StyledData(D, &'i Style),
+    StyledData(D, Style),
 }
 
 /// A widget to display data in formatted columns
@@ -28,9 +28,9 @@ where
 /// Table::new(
 ///         ["Col1", "Col2", "Col3"].into_iter(),
 ///         vec![
-///             Row::StyledData(["Row11", "Row12", "Row13"].into_iter(), &row_style),
-///             Row::StyledData(["Row21", "Row22", "Row23"].into_iter(), &row_style),
-///             Row::StyledData(["Row31", "Row32", "Row33"].into_iter(), &row_style),
+///             Row::StyledData(["Row11", "Row12", "Row13"].into_iter(), row_style),
+///             Row::StyledData(["Row21", "Row22", "Row23"].into_iter(), row_style),
+///             Row::StyledData(["Row31", "Row32", "Row33"].into_iter(), row_style),
 ///             Row::Data(["Row41", "Row42", "Row43"].into_iter())
 ///         ].into_iter()
 ///     )
@@ -41,13 +41,13 @@ where
 ///     .column_spacing(1);
 /// # }
 /// ```
-pub struct Table<'a, 'i, T, H, I, D, R>
+pub struct Table<'a, T, H, I, D, R>
 where
     T: Display,
     H: Iterator<Item = T>,
     I: Display,
     D: Iterator<Item = I>,
-    R: Iterator<Item = Row<'i, D, I>>,
+    R: Iterator<Item = Row<D, I>>,
 {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
@@ -66,15 +66,15 @@ where
     rows: R,
 }
 
-impl<'a, 'i, T, H, I, D, R> Default for Table<'a, 'i, T, H, I, D, R>
+impl<'a, T, H, I, D, R> Default for Table<'a, T, H, I, D, R>
 where
     T: Display,
     H: Iterator<Item = T> + Default,
     I: Display,
     D: Iterator<Item = I>,
-    R: Iterator<Item = Row<'i, D, I>> + Default,
+    R: Iterator<Item = Row<D, I>> + Default,
 {
-    fn default() -> Table<'a, 'i, T, H, I, D, R> {
+    fn default() -> Table<'a, T, H, I, D, R> {
         Table {
             block: None,
             style: Style::default(),
@@ -87,15 +87,15 @@ where
     }
 }
 
-impl<'a, 'i, T, H, I, D, R> Table<'a, 'i, T, H, I, D, R>
+impl<'a, T, H, I, D, R> Table<'a, T, H, I, D, R>
 where
     T: Display,
     H: Iterator<Item = T>,
     I: Display,
     D: Iterator<Item = I>,
-    R: Iterator<Item = Row<'i, D, I>>,
+    R: Iterator<Item = Row<D, I>>,
 {
-    pub fn new(header: H, rows: R) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn new(header: H, rows: R) -> Table<'a, T, H, I, D, R> {
         Table {
             block: None,
             style: Style::default(),
@@ -106,12 +106,12 @@ where
             column_spacing: 1,
         }
     }
-    pub fn block(mut self, block: Block<'a>) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn block(mut self, block: Block<'a>) -> Table<'a, T, H, I, D, R> {
         self.block = Some(block);
         self
     }
 
-    pub fn header<II>(mut self, header: II) -> Table<'a, 'i, T, H, I, D, R>
+    pub fn header<II>(mut self, header: II) -> Table<'a, T, H, I, D, R>
     where
         II: IntoIterator<Item = T, IntoIter = H>,
     {
@@ -119,42 +119,42 @@ where
         self
     }
 
-    pub fn header_style(mut self, style: Style) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn header_style(mut self, style: Style) -> Table<'a, T, H, I, D, R> {
         self.header_style = style;
         self
     }
 
-    pub fn widths(mut self, widths: &'a [u16]) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn widths(mut self, widths: &'a [u16]) -> Table<'a, T, H, I, D, R> {
         self.widths = widths;
         self
     }
 
-    pub fn rows<II>(mut self, rows: II) -> Table<'a, 'i, T, H, I, D, R>
+    pub fn rows<II>(mut self, rows: II) -> Table<'a, T, H, I, D, R>
     where
-        II: IntoIterator<Item = Row<'i, D, I>, IntoIter = R>,
+        II: IntoIterator<Item = Row<D, I>, IntoIter = R>,
     {
         self.rows = rows.into_iter();
         self
     }
 
-    pub fn style(mut self, style: Style) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn style(mut self, style: Style) -> Table<'a, T, H, I, D, R> {
         self.style = style;
         self
     }
 
-    pub fn column_spacing(mut self, spacing: u16) -> Table<'a, 'i, T, H, I, D, R> {
+    pub fn column_spacing(mut self, spacing: u16) -> Table<'a, T, H, I, D, R> {
         self.column_spacing = spacing;
         self
     }
 }
 
-impl<'a, 'i, T, H, I, D, R> Widget for Table<'a, 'i, T, H, I, D, R>
+impl<'a, T, H, I, D, R> Widget for Table<'a, T, H, I, D, R>
 where
     T: Display,
     H: Iterator<Item = T>,
     I: Display,
     D: Iterator<Item = I>,
-    R: Iterator<Item = Row<'i, D, I>>,
+    R: Iterator<Item = Row<D, I>>,
 {
     fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         // Render block if necessary and get the drawing area
@@ -185,7 +185,7 @@ where
         if y < table_area.bottom() {
             x = table_area.left();
             for (w, t) in widths.iter().zip(self.header.by_ref()) {
-                buf.set_string(x, y, &format!("{}", t), &self.header_style);
+                buf.set_string(x, y, format!("{}", t), self.header_style);
                 x += *w + self.column_spacing;
             }
         }
@@ -197,12 +197,12 @@ where
             let remaining = (table_area.bottom() - y) as usize;
             for (i, row) in self.rows.by_ref().take(remaining).enumerate() {
                 let (data, style) = match row {
-                    Row::Data(d) => (d, &default_style),
+                    Row::Data(d) => (d, default_style),
                     Row::StyledData(d, s) => (d, s),
                 };
                 x = table_area.left();
                 for (w, elt) in widths.iter().zip(data) {
-                    buf.set_stringn(x, y + i as u16, &format!("{}", elt), *w as usize, style);
+                    buf.set_stringn(x, y + i as u16, format!("{}", elt), *w as usize, style);
                     x += *w + self.column_spacing;
                 }
             }

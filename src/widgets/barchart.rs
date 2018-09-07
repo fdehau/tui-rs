@@ -177,7 +177,7 @@ impl<'a> Widget for BarChart<'a> {
                             + (self.bar_width - width) / 2,
                         chart_area.bottom() - 2,
                         value_label,
-                        &self.value_style,
+                        self.value_style,
                     );
                 }
             }
@@ -186,7 +186,7 @@ impl<'a> Widget for BarChart<'a> {
                 chart_area.bottom() - 1,
                 label,
                 self.bar_width as usize,
-                &self.label_style,
+                self.label_style,
             );
         }
     }

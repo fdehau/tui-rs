@@ -361,12 +361,12 @@ where
 
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
-            buf.set_string(x, y, title, &self.x_axis.style);
+            buf.set_string(x, y, title, self.x_axis.style);
         }
 
         if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
-            buf.set_string(x, y, title, &self.y_axis.style);
+            buf.set_string(x, y, title, self.y_axis.style);
         }
 
         if let Some(y) = layout.label_x {
@@ -380,7 +380,7 @@ where
                             - label.as_ref().width() as u16,
                         y,
                         label.as_ref(),
-                        &self.x_axis.labels_style,
+                        self.x_axis.labels_style,
                     );
                 }
             }
@@ -396,7 +396,7 @@ where
                         x,
                         graph_area.bottom() - 1 - dy,
                         label.as_ref(),
-                        &self.y_axis.labels_style,
+                        self.y_axis.labels_style,
                     );
                 }
             }
@@ -471,7 +471,7 @@ where
                     legend_area.x + 1,
                     legend_area.y + 1 + i as u16,
                     dataset.name,
-                    &dataset.style,
+                    dataset.style,
                 );
             }
         }

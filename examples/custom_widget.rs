@@ -19,7 +19,7 @@ impl<'a> Default for Label<'a> {
 
 impl<'a> Widget for Label<'a> {
     fn draw(&mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_string(area.left(), area.top(), self.text, &Style::default());
+        buf.set_string(area.left(), area.top(), self.text, Style::default());
     }
 }
 

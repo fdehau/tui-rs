@@ -178,7 +178,7 @@ impl<'a> Widget for Block<'a> {
                     area.top(),
                     title,
                     width as usize,
-                    &self.title_style,
+                    self.title_style,
                 );
             }
         }

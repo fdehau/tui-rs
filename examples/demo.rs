@@ -367,10 +367,10 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                 Item::StyledData(
                     format!("{}: {}", level, evt),
                     match level {
-                        "ERROR" => &error_style,
-                        "CRITICAL" => &critical_style,
-                        "WARNING" => &warning_style,
-                        _ => &info_style,
+                        "ERROR" => error_style,
+                        "CRITICAL" => critical_style,
+                        "WARNING" => warning_style,
+                        _ => info_style,
                     },
                 )
             });
@@ -477,9 +477,9 @@ fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
         ["Server", "Location", "Status"].into_iter(),
         app.servers.iter().map(|s| {
             let style = if s.status == "Up" {
-                &up_style
+                up_style
             } else {
-                &failure_style
+                failure_style
             };
             Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
         }),
