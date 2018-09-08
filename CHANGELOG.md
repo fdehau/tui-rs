@@ -2,6 +2,14 @@
 
 ## To be released
 
+## v0.3.1-beta.1 - 2018-09-08
+
+### Changed
+
+* Replace `Item` by a generic and flexible `Text` that can be used in both
+`Paragraph` and `List` widgets.
+* Remove unecessary borrows on `Style`.
+
 ## v0.3.0-beta.0 - 2018-09-04
 
 ### Added
