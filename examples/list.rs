@@ -12,7 +12,7 @@ use termion::input::TermRead;
 use tui::backend::MouseBackend;
 use tui::layout::{Constraint, Corner, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
+use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
 use tui::Terminal;
 
 struct App<'a> {
@@ -188,7 +188,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
             .render(&mut f, chunks[0]);
         {
             let events = app.events.iter().map(|&(evt, level)| {
-                Item::StyledData(
+                Text::styled(
                     format!("{}: {}", level, evt),
                     match level {
                         "ERROR" => app.error_style,
