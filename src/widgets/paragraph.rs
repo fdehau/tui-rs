@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use either::Either;
 use itertools::{multipeek, MultiPeek};
 use unicode_segmentation::UnicodeSegmentation;
@@ -8,7 +6,7 @@ use unicode_width::UnicodeWidthStr;
 use buffer::Buffer;
 use layout::{Alignment, Rect};
 use style::Style;
-use widgets::{Block, Widget};
+use widgets::{Block, Text, Widget};
 
 /// A widget to display some text.
 ///
@@ -49,21 +47,6 @@ where
     scroll: u16,
     /// Aligenment of the text
     alignment: Alignment,
-}
-
-pub enum Text<'b> {
-    Raw(Cow<'b, str>),
-    Styled(Cow<'b, str>, Style),
-}
-
-impl<'b> Text<'b> {
-    pub fn raw<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
-        Text::Raw(data.into())
-    }
-
-    pub fn styled<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
-        Text::Styled(data.into(), style)
-    }
 }
 
 impl<'a, 't, T> Paragraph<'a, 't, T>
