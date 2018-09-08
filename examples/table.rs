@@ -90,9 +90,9 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
         let header = ["Header1", "Header2", "Header3"];
         let rows = app.items.iter().enumerate().map(|(i, item)| {
             if i == app.selected {
-                Row::StyledData(item.into_iter(), &selected_style)
+                Row::StyledData(item.into_iter(), selected_style)
             } else {
-                Row::StyledData(item.into_iter(), &normal_style)
+                Row::StyledData(item.into_iter(), normal_style)
             }
         });
 

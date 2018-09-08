@@ -191,10 +191,10 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
                 Item::StyledData(
                     format!("{}: {}", level, evt),
                     match level {
-                        "ERROR" => &app.error_style,
-                        "CRITICAL" => &app.critical_style,
-                        "WARNING" => &app.warning_style,
-                        _ => &app.info_style,
+                        "ERROR" => app.error_style,
+                        "CRITICAL" => app.critical_style,
+                        "WARNING" => app.warning_style,
+                        _ => app.info_style,
                     },
                 )
             });
