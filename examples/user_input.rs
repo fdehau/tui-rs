@@ -114,7 +114,7 @@ fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) -> Result<(), io::E
             .margin(2)
             .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
             .split(app.size);
-        Paragraph::new([Text::data(&app.input)].iter())
+        Paragraph::new([Text::raw(&app.input)].iter())
             .style(Style::default().fg(Color::Yellow))
             .block(Block::default().borders(Borders::ALL).title("Input"))
             .render(&mut f, chunks[0]);

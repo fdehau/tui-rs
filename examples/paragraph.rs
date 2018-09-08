@@ -55,14 +55,14 @@ fn draw(t: &mut Terminal<MouseBackend>, size: Rect) -> Result<(), io::Error> {
             .split(size);
 
         let text = [
-            Text::data("This a line\n"),
-            Text::styled_data("This a line\n", Style::default().fg(Color::Red)),
-            Text::styled_data("This a line\n", Style::default().bg(Color::Blue)),
-            Text::styled_data(
+            Text::raw("This a line\n"),
+            Text::styled("This a line\n", Style::default().fg(Color::Red)),
+            Text::styled("This a line\n", Style::default().bg(Color::Blue)),
+            Text::styled(
                 "This a longer line\n",
                 Style::default().modifier(Modifier::CrossedOut),
             ),
-            Text::styled_data(
+            Text::styled(
                 "This a line\n",
                 Style::default().fg(Color::Green).modifier(Modifier::Italic),
             ),
