@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 mod barchart;
 mod block;
 pub mod canvas;
@@ -14,7 +16,7 @@ pub use self::block::Block;
 pub use self::chart::{Axis, Chart, Dataset, Marker};
 pub use self::gauge::Gauge;
 pub use self::list::{Item, List, SelectableList};
-pub use self::paragraph::{Paragraph, Text};
+pub use self::paragraph::Paragraph;
 pub use self::sparkline::Sparkline;
 pub use self::table::{Row, Table};
 pub use self::tabs::Tabs;
@@ -22,7 +24,7 @@ pub use self::tabs::Tabs;
 use backend::Backend;
 use buffer::Buffer;
 use layout::Rect;
-use style::Color;
+use style::{Color, Style};
 use terminal::Frame;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.
@@ -40,6 +42,21 @@ bitflags! {
         const LEFT = 0b0001_0000;
         /// Show all borders
         const ALL = Self::TOP.bits | Self::RIGHT.bits | Self::BOTTOM.bits | Self::LEFT.bits;
+    }
+}
+
+pub enum Text<'b> {
+    Raw(Cow<'b, str>),
+    Styled(Cow<'b, str>, Style),
+}
+
+impl<'b> Text<'b> {
+    pub fn raw<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
+        Text::Raw(data.into())
+    }
+
+    pub fn styled<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
+        Text::Styled(data.into(), style)
     }
 }
 
