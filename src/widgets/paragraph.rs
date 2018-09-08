@@ -21,8 +21,8 @@ use widgets::{Block, Widget};
 /// # use tui::layout::{Alignment};
 /// # fn main() {
 /// let text = [
-///     Text::data("First line\n"),
-///     Text::styled_data("Second line\n", Style::default().fg(Color::Red))
+///     Text::raw("First line\n"),
+///     Text::styled("Second line\n", Style::default().fg(Color::Red))
 /// ];
 /// Paragraph::new(text.iter())
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
@@ -52,17 +52,17 @@ where
 }
 
 pub enum Text<'b> {
-    Data(Cow<'b, str>),
-    StyledData(Cow<'b, str>, Style),
+    Raw(Cow<'b, str>),
+    Styled(Cow<'b, str>, Style),
 }
 
 impl<'b> Text<'b> {
-    pub fn data<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
-        Text::Data(data.into())
+    pub fn raw<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
+        Text::Raw(data.into())
     }
 
-    pub fn styled_data<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
-        Text::StyledData(data.into(), style)
+    pub fn styled<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
+        Text::Styled(data.into(), style)
     }
 }
 
@@ -134,11 +134,11 @@ where
 
         let style = self.style;
         let styled = self.text.by_ref().flat_map(|t| match *t {
-            Text::Data(ref d) => {
+            Text::Raw(ref d) => {
                 let data: &'t str = d; // coerce to &str
                 Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| (g, style)))
             }
-            Text::StyledData(ref d, s) => {
+            Text::Styled(ref d, s) => {
                 let data: &'t str = d; // coerce to &str
                 Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| (g, s)))
             }
