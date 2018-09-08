@@ -19,7 +19,7 @@ use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{
-    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, Item, List, Marker, Paragraph, Row,
+    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
     SelectableList, Sparkline, Table, Tabs, Text, Widget,
 };
 use tui::{Frame, Terminal};
@@ -364,7 +364,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
             let error_style = Style::default().fg(Color::Magenta);
             let critical_style = Style::default().fg(Color::Red);
             let events = app.events.iter().map(|&(evt, level)| {
-                Item::StyledData(
+                Text::styled(
                     format!("{}: {}", level, evt),
                     match level {
                         "ERROR" => error_style,

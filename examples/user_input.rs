@@ -22,7 +22,7 @@ use termion::input::TermRead;
 use tui::backend::AlternateScreenBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Item, List, Paragraph, Text, Widget};
+use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
 
 struct App {
@@ -122,7 +122,7 @@ fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) -> Result<(), io::E
             app.messages
                 .iter()
                 .enumerate()
-                .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
+                .map(|(i, m)| Text::raw(format!("{}: {}", i, m))),
         ).block(Block::default().borders(Borders::ALL).title("Messages"))
             .render(&mut f, chunks[1]);
     })
