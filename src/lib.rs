@@ -1,7 +1,7 @@
 //! [tui](https://github.com/fdehau/tui-rs) is a library used to build rich
 //! terminal users interfaces and dashboards.
 //!
-//! ![](https://raw.githubusercontent.com/fdehau/tui-rs/master/docs/demo.gif)
+//! ![](https://raw.githubusercontent.com/fdehau/tui-rs/master/assets/demo.gif)
 //!
 //! # Get started
 //!

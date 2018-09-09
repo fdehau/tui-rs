@@ -8,7 +8,7 @@ A library to build rich terminal user interfaces or dashboards
 keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
-exclude = ["docs/*", ".travis.yml"]
+exclude = ["assets/*", ".travis.yml"]
 autoexamples = true
 
 [badges]

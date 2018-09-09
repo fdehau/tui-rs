@@ -4,7 +4,7 @@
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 
-<img src="./docs/demo.gif" alt="Demo cast under Linux Termite with Inconsolata font 12pt">
+<img src="./assets/demo.gif" alt="Demo cast under Linux Termite with Inconsolata font 12pt">
 
 `tui-rs` is a [Rust](https://www.rust-lang.org) library to build rich terminal
 user interfaces and dashboards. It is heavily inspired by the `Javascript`
