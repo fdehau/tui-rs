@@ -34,8 +34,8 @@ fn draw(t: &mut Terminal<CrosstermBackend>) -> io::Result<()> {
     let size = t.size()?;
     t.draw(|mut f| {
         let text = [
-            Text::Data("It "),
-            Text::StyledData("works", Style::default().fg(Color::Yellow)),
+            Text::raw("It "),
+            Text::styled("works", Style::default().fg(Color::Yellow)),
         ];
         Paragraph::new(text.iter())
             .block(
