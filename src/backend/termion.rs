@@ -3,8 +3,6 @@ extern crate termion;
 use std::io;
 use std::io::Write;
 
-use self::termion::raw::IntoRawMode;
-
 use super::Backend;
 use buffer::Cell;
 use layout::Rect;
@@ -17,40 +15,11 @@ where
     stdout: W,
 }
 
-pub type RawBackend = TermionBackend<termion::raw::RawTerminal<io::Stdout>>;
-pub type MouseBackend =
-    TermionBackend<termion::input::MouseTerminal<termion::raw::RawTerminal<io::Stdout>>>;
-pub type AlternateScreenBackend =
-    TermionBackend<termion::screen::AlternateScreen<termion::raw::RawTerminal<io::Stdout>>>;
-
-impl RawBackend {
-    pub fn new() -> Result<RawBackend, io::Error> {
-        let raw = io::stdout().into_raw_mode()?;
-        Ok(TermionBackend::with_stdout(raw))
-    }
-}
-
-impl MouseBackend {
-    pub fn new() -> Result<MouseBackend, io::Error> {
-        let raw = io::stdout().into_raw_mode()?;
-        let mouse = termion::input::MouseTerminal::from(raw);
-        Ok(TermionBackend::with_stdout(mouse))
-    }
-}
-
-impl AlternateScreenBackend {
-    pub fn new() -> Result<AlternateScreenBackend, io::Error> {
-        let raw = io::stdout().into_raw_mode()?;
-        let screen = termion::screen::AlternateScreen::from(raw);
-        Ok(TermionBackend::with_stdout(screen))
-    }
-}
-
 impl<W> TermionBackend<W>
 where
     W: Write,
 {
-    pub fn with_stdout(stdout: W) -> TermionBackend<W> {
+    pub fn new(stdout: W) -> TermionBackend<W> {
         TermionBackend { stdout }
     }
 }

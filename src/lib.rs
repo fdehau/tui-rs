@@ -14,13 +14,18 @@
 //!
 //! ```rust,no_run
 //! extern crate tui;
+//! extern crate termion;
 //!
+//! use std::io;
 //! use tui::Terminal;
-//! use tui::backend::RawBackend;
+//! use tui::backend::TermionBackend;
+//! use termion::raw::IntoRawMode;
 //!
-//! fn main() {
-//!     let backend = RawBackend::new().unwrap();
-//!     let mut terminal = Terminal::new(backend).unwrap();
+//! fn main() -> Result<(), io::Error> {
+//!     let stdout = io::stdout().into_raw_mode()?;
+//!     let backend = TermionBackend::new(stdout);
+//!     let mut terminal = Terminal::new(backend)?;
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -42,9 +47,10 @@
 //! use tui::Terminal;
 //! use tui::backend::RustboxBackend;
 //!
-//! fn main() {
-//!     let backend = RustboxBackend::new().unwrap();
-//!     let mut terminal = Terminal::new(backend).unwrap();
+//! fn main() -> Result<(), io::Error> {
+//!     let backend = RustboxBackend::new()?;
+//!     let mut terminal = Terminal::new(backend);
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -63,28 +69,21 @@
 //!
 //! ```rust,no_run
 //! extern crate tui;
+//! extern crate termion;
 //!
 //! use std::io;
-//!
+//! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
-//! use tui::backend::RawBackend;
+//! use tui::backend::TermionBackend;
 //! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Layout, Constraint, Direction};
 //!
-//! fn main() {
-//!     let mut terminal = init().expect("Failed initialization");
-//!     draw(&mut terminal).expect("Failed to draw");
-//! }
-//!
-//! fn init() -> Result<Terminal<RawBackend>, io::Error> {
-//!     let backend = RawBackend::new()?;
-//!     Terminal::new(backend)
-//! }
-//!
-//! fn draw(t: &mut Terminal<RawBackend>) -> Result<(), io::Error> {
-//!
-//!     let size = t.size()?;
-//!     t.draw(|mut f| {
+//! fn main() -> Result<(), io::Error> {
+//!     let stdout = io::stdout().into_raw_mode()?;
+//!     let backend = TermionBackend::new(stdout);
+//!     let mut terminal = Terminal::new(backend)?;
+//!     let size = terminal.size()?;
+//!     terminal.draw(|mut f| {
 //!         Block::default()
 //!             .title("Block")
 //!             .borders(Borders::ALL)
@@ -101,28 +100,21 @@
 //!
 //! ```rust,no_run
 //! extern crate tui;
+//! extern crate termion;
 //!
 //! use std::io;
-//!
+//! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
-//! use tui::backend::RawBackend;
+//! use tui::backend::TermionBackend;
 //! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Layout, Constraint, Direction};
 //!
-//! fn main() {
-//!     let mut terminal = init().expect("Failed initialization");
-//!     draw(&mut terminal).expect("Failed to draw");
-//! }
-//!
-//! fn init() -> Result<Terminal<RawBackend>, io::Error> {
-//!     let backend = RawBackend::new()?;
-//!     Terminal::new(backend)
-//! }
-//!
-//! fn draw(t: &mut Terminal<RawBackend>) -> Result<(), io::Error> {
-//!
-//!     let size = t.size()?;
-//!     t.draw(|mut f| {
+//! fn main() -> Result<(), io::Error> {
+//!     let stdout = io::stdout().into_raw_mode()?;
+//!     let backend = TermionBackend::new(stdout);
+//!     let mut terminal = Terminal::new(backend)?;
+//!     let size = terminal.size()?;
+//!     terminal.draw(|mut f| {
 //!         let chunks = Layout::default()
 //!             .direction(Direction::Vertical)
 //!             .margin(1)

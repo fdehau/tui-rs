@@ -11,7 +11,7 @@ pub use self::rustbox::RustboxBackend;
 #[cfg(feature = "termion")]
 mod termion;
 #[cfg(feature = "termion")]
-pub use self::termion::{AlternateScreenBackend, MouseBackend, RawBackend, TermionBackend};
+pub use self::termion::TermionBackend;
 
 #[cfg(feature = "crossterm")]
 mod crossterm;
