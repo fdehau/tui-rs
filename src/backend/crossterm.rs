@@ -66,7 +66,7 @@ impl Backend for CrosstermBackend {
         let mut last_x = 0;
         for (x, y, cell) in content {
             if y != last_y || x != last_x + 1 {
-                cursor.goto(x + 1, y + 1);
+                cursor.goto(x, y);
             }
             last_x = x;
             last_y = y;
