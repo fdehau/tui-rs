@@ -155,7 +155,7 @@ impl<'a> Widget for BarChart<'a> {
                         chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
                         chart_area.top() + j,
                     ).set_symbol(symbol)
-                        .set_style(self.style);
+                    .set_style(self.style);
                 }
 
                 if d.1 > 8 {

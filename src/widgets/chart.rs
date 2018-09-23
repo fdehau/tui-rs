@@ -456,8 +456,7 @@ where
                                 coords: dataset.data,
                                 color: dataset.style.fg,
                             });
-                        })
-                        .draw(graph_area, buf);
+                        }).draw(graph_area, buf);
                 }
             }
         }
