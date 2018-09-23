@@ -1,3 +1,4 @@
+extern crate failure;
 /// A simple example demonstrating how to handle user input. This is
 /// a bit out of the scope of the library as it does not provide any
 /// input handling out of the box. However, it may helps some to get
@@ -12,27 +13,35 @@
 extern crate termion;
 extern crate tui;
 
+#[allow(dead_code)]
+mod util;
+
 use std::io;
-use std::sync::mpsc;
-use std::thread;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::backend::AlternateScreenBackend;
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
 
+use util::event::{Event, Events};
+
+/// App holds the state of the application
 struct App {
+    /// Current size of the terminal
     size: Rect,
+    /// Current value of the input box
     input: String,
+    /// History of recorded messages
     messages: Vec<String>,
 }
 
-impl App {
-    fn new() -> App {
+impl Default for App {
+    fn default() -> App {
         App {
             size: Rect::default(),
             input: String::new(),
@@ -41,89 +50,68 @@ impl App {
     }
 }
 
-enum Event {
-    Input(event::Key),
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     // Terminal initialization
-    let backend = AlternateScreenBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
+    // Setup event handlers
+    let events = Events::new();
 
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    // App
-    let mut app = App::new();
-
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app).unwrap();
+    // Create default app state
+    let mut app = App::default();
 
     loop {
-        let size = terminal.size().unwrap();
+        // Handle resize
+        let size = terminal.size()?;
         if app.size != size {
-            terminal.resize(size).unwrap();
+            terminal.resize(size)?;
             app.size = size;
         }
 
-        let evt = rx.recv().unwrap();
-        match evt {
+        // Draw UI
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+                .split(app.size);
+            Paragraph::new([Text::raw(&app.input)].iter())
+                .style(Style::default().fg(Color::Yellow))
+                .block(Block::default().borders(Borders::ALL).title("Input"))
+                .render(&mut f, chunks[0]);
+            let messages = app
+                .messages
+                .iter()
+                .enumerate()
+                .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
+            List::new(messages)
+                .block(Block::default().borders(Borders::ALL).title("Messages"))
+                .render(&mut f, chunks[1]);
+        })?;
+
+        // Handle input
+        match events.next()? {
             Event::Input(input) => match input {
-                event::Key::Char('q') => {
+                Key::Char('q') => {
                     break;
                 }
-                event::Key::Char('\n') => {
+                Key::Char('\n') => {
                     app.messages.push(app.input.drain(..).collect());
                 }
-                event::Key::Char(c) => {
+                Key::Char(c) => {
                     app.input.push(c);
                 }
-                event::Key::Backspace => {
+                Key::Backspace => {
                     app.input.pop();
                 }
                 _ => {}
             },
+            _ => {}
         }
-        draw(&mut terminal, &app).unwrap();
     }
-
-    terminal.show_cursor().unwrap();
-    terminal.clear().unwrap();
-}
-
-fn draw(t: &mut Terminal<AlternateScreenBackend>, app: &App) -> Result<(), io::Error> {
-    t.draw(|mut f| {
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .margin(2)
-            .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-            .split(app.size);
-        Paragraph::new([Text::raw(&app.input)].iter())
-            .style(Style::default().fg(Color::Yellow))
-            .block(Block::default().borders(Borders::ALL).title("Input"))
-            .render(&mut f, chunks[0]);
-        List::new(
-            app.messages
-                .iter()
-                .enumerate()
-                .map(|(i, m)| Text::raw(format!("{}: {}", i, m))),
-        ).block(Block::default().borders(Borders::ALL).title("Messages"))
-            .render(&mut f, chunks[1]);
-    })
+    Ok(())
 }

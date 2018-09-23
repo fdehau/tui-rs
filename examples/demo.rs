@@ -1,20 +1,19 @@
-#[macro_use]
+extern crate failure;
 extern crate log;
 extern crate stderrlog;
 extern crate termion;
 extern crate tui;
 
+#[allow(dead_code)]
 mod util;
 
 use std::io;
-use std::sync::mpsc;
-use std::thread;
-use std::time;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::backend::MouseBackend;
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::{IntoRawMode, RawTerminal};
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
@@ -24,7 +23,10 @@ use tui::widgets::{
 };
 use tui::{Frame, Terminal};
 
-use util::*;
+use util::event::{Event, Events};
+use util::{RandomSignal, SinSignal, TabsState};
+
+type Backend = TermionBackend<AlternateScreen<MouseTerminal<RawTerminal<io::Stdout>>>>;
 
 struct Server<'a> {
     name: &'a str,
@@ -38,7 +40,7 @@ struct App<'a> {
     items: Vec<&'a str>,
     events: Vec<(&'a str, &'a str)>,
     selected: usize,
-    tabs: MyTabs<'a>,
+    tabs: TabsState<'a>,
     show_chart: bool,
     progress: u16,
     data: Vec<u64>,
@@ -51,18 +53,20 @@ struct App<'a> {
     servers: Vec<Server<'a>>,
 }
 
-enum Event {
-    Input(event::Key),
-    Tick,
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     stderrlog::new()
         .module(module_path!())
         .verbosity(4)
-        .init()
-        .unwrap();
-    info!("Start");
+        .init()?;
+
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
+
+    let events = Events::new();
 
     let mut rand_signal = RandomSignal::new(0, 100);
     let mut sin_signal = SinSignal::new(0.2, 3.0, 18.0);
@@ -104,15 +108,12 @@ fn main() {
             ("Event26", "INFO"),
         ],
         selected: 0,
-        tabs: MyTabs {
-            titles: vec!["Tab0", "Tab1"],
-            selection: 0,
-        },
+        tabs: TabsState::new(vec!["Tab0", "Tab1"]),
         show_chart: true,
         progress: 0,
-        data: rand_signal.clone().take(300).collect(),
-        data2: sin_signal.clone().take(100).collect(),
-        data3: sin_signal2.clone().take(200).collect(),
+        data: rand_signal.by_ref().take(300).collect(),
+        data2: sin_signal.by_ref().take(100).collect(),
+        data3: sin_signal2.by_ref().take(200).collect(),
         data4: vec![
             ("B1", 9),
             ("B2", 12),
@@ -169,68 +170,53 @@ fn main() {
             },
         ],
     };
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
-
-    for _ in 0..100 {
-        sin_signal.next();
-    }
-    for _ in 0..200 {
-        sin_signal2.next();
-    }
-
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    thread::spawn(move || {
-        let tx = tx.clone();
-        loop {
-            tx.send(Event::Tick).unwrap();
-            thread::sleep(time::Duration::from_millis(250));
-        }
-    });
-
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
 
     loop {
-        let size = terminal.size().unwrap();
+        let size = terminal.size()?;
         if size != app.size {
-            terminal.resize(size).unwrap();
+            terminal.resize(size)?;
             app.size = size;
         }
-        draw(&mut terminal, &app).unwrap();
-        let evt = rx.recv().unwrap();
-        match evt {
+
+        // Draw UI
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+                .split(app.size);
+            Tabs::default()
+                .block(Block::default().borders(Borders::ALL).title("Tabs"))
+                .titles(&app.tabs.titles)
+                .style(Style::default().fg(Color::Green))
+                .highlight_style(Style::default().fg(Color::Yellow))
+                .select(app.tabs.index)
+                .render(&mut f, chunks[0]);
+            match app.tabs.index {
+                0 => draw_first_tab(&mut f, &app, chunks[1]),
+                1 => draw_second_tab(&mut f, &app, chunks[1]),
+                _ => {}
+            };
+        })?;
+
+        match events.next()? {
             Event::Input(input) => match input {
-                event::Key::Char('q') => {
+                Key::Char('q') => {
                     break;
                 }
-                event::Key::Up => {
+                Key::Up => {
                     if app.selected > 0 {
                         app.selected -= 1
                     };
                 }
-                event::Key::Down => if app.selected < app.items.len() - 1 {
+                Key::Down => if app.selected < app.items.len() - 1 {
                     app.selected += 1;
                 },
-                event::Key::Left => {
+                Key::Left => {
                     app.tabs.previous();
                 }
-                event::Key::Right => {
+                Key::Right => {
                     app.tabs.next();
                 }
-                event::Key::Char('t') => {
+                Key::Char('t') => {
                     app.show_chart = !app.show_chart;
                 }
                 _ => {}
@@ -263,50 +249,26 @@ fn main() {
             }
         }
     }
-    terminal.show_cursor().unwrap();
-    terminal.clear().unwrap();
+    terminal.show_cursor()?;
+    Ok(())
 }
 
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-    t.draw(|mut f| {
-        let chunks = Layout::default()
-            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-            .split(app.size);
-        Tabs::default()
-            .block(Block::default().borders(Borders::ALL).title("Tabs"))
-            .titles(&app.tabs.titles)
-            .style(Style::default().fg(Color::Green))
-            .highlight_style(Style::default().fg(Color::Yellow))
-            .select(app.tabs.selection)
-            .render(&mut f, chunks[0]);
-        match app.tabs.selection {
-            0 => {
-                draw_first_tab(&mut f, app, chunks[1]);
-            }
-            1 => {
-                draw_second_tab(&mut f, app, chunks[1]);
-            }
-            _ => {}
-        };
-    })
-}
-
-fn draw_first_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
+fn draw_first_tab(f: &mut Frame<Backend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints(
             [
                 Constraint::Length(7),
                 Constraint::Min(7),
                 Constraint::Length(7),
-            ].as_ref(),
-        )
-        .split(area);
+            ]
+                .as_ref(),
+        ).split(area);
     draw_gauges(f, app, chunks[0]);
     draw_charts(f, app, chunks[1]);
     draw_text(f, chunks[2]);
 }
 
-fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
+fn draw_gauges(f: &mut Frame<Backend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints([Constraint::Length(2), Constraint::Length(3)].as_ref())
         .margin(1)
@@ -322,8 +284,7 @@ fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                 .fg(Color::Magenta)
                 .bg(Color::Black)
                 .modifier(Modifier::Italic),
-        )
-        .label(&format!("{} / 100", app.progress))
+        ).label(&format!("{} / 100", app.progress))
         .percent(app.progress)
         .render(f, chunks[0]);
     Sparkline::default()
@@ -333,7 +294,7 @@ fn draw_gauges(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
         .render(f, chunks[1]);
 }
 
-fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
+fn draw_charts(f: &mut Frame<Backend>, app: &App, area: Rect) {
     let constraints = if app.show_chart {
         vec![Constraint::Percentage(50), Constraint::Percentage(50)]
     } else {
@@ -388,8 +349,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                     .fg(Color::Black)
                     .bg(Color::Green)
                     .modifier(Modifier::Italic),
-            )
-            .label_style(Style::default().fg(Color::Yellow))
+            ).label_style(Style::default().fg(Color::Yellow))
             .style(Style::default().fg(Color::Green))
             .render(f, chunks[1]);
     }
@@ -400,8 +360,7 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                     .title("Chart")
                     .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
                     .borders(Borders::ALL),
-            )
-            .x_axis(
+            ).x_axis(
                 Axis::default()
                     .title("X Axis")
                     .style(Style::default().fg(Color::Gray))
@@ -412,16 +371,14 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                         &format!("{}", (app.window[0] + app.window[1]) / 2.0),
                         &format!("{}", app.window[1]),
                     ]),
-            )
-            .y_axis(
+            ).y_axis(
                 Axis::default()
                     .title("Y Axis")
                     .style(Style::default().fg(Color::Gray))
                     .labels_style(Style::default().modifier(Modifier::Italic))
                     .bounds([-20.0, 20.0])
                     .labels(&["-20", "0", "20"]),
-            )
-            .datasets(&[
+            ).datasets(&[
                 Dataset::default()
                     .name("data2")
                     .marker(Marker::Dot)
@@ -432,12 +389,11 @@ fn draw_charts(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                     .marker(Marker::Braille)
                     .style(Style::default().fg(Color::Yellow))
                     .data(&app.data3),
-            ])
-            .render(f, chunks[1]);
+            ]).render(f, chunks[1]);
     }
 }
 
-fn draw_text(f: &mut Frame<MouseBackend>, area: Rect) {
+fn draw_text(f: &mut Frame<Backend>, area: Rect) {
     let text = [
         Text::raw("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
         Text::styled("under", Style::default().fg(Color::Red)),
@@ -461,29 +417,28 @@ fn draw_text(f: &mut Frame<MouseBackend>, area: Rect) {
                 .borders(Borders::ALL)
                 .title("Footer")
                 .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
-        )
-        .wrap(true)
+        ).wrap(true)
         .render(f, area);
 }
 
-fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
+fn draw_second_tab(f: &mut Frame<Backend>, app: &App, area: Rect) {
     let chunks = Layout::default()
         .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
         .direction(Direction::Horizontal)
         .split(area);
     let up_style = Style::default().fg(Color::Green);
     let failure_style = Style::default().fg(Color::Red);
-    Table::new(
-        ["Server", "Location", "Status"].into_iter(),
-        app.servers.iter().map(|s| {
-            let style = if s.status == "Up" {
-                up_style
-            } else {
-                failure_style
-            };
-            Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
-        }),
-    ).block(Block::default().title("Servers").borders(Borders::ALL))
+    let header = ["Server", "Location", "Status"];
+    let rows = app.servers.iter().map(|s| {
+        let style = if s.status == "Up" {
+            up_style
+        } else {
+            failure_style
+        };
+        Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
+    });
+    Table::new(header.into_iter(), rows)
+        .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[15, 15, 10])
         .render(f, chunks[0]);
@@ -515,8 +470,7 @@ fn draw_second_tab(f: &mut Frame<MouseBackend>, app: &App, area: Rect) {
                 };
                 ctx.print(server.coords.1, server.coords.0, "X", color);
             }
-        })
-        .x_bounds([-180.0, 180.0])
+        }).x_bounds([-180.0, 180.0])
         .y_bounds([-90.0, 90.0])
         .render(f, chunks[1]);
 }

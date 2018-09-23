@@ -39,8 +39,7 @@ fn draw(t: &mut Terminal<RustboxBackend>) {
                     .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Magenta)),
-            )
-            .text("It {yellow works}!")
+            ).text("It {yellow works}!")
             .render(&mut f, &size);
     }
 

@@ -1,20 +1,25 @@
+extern crate failure;
 extern crate termion;
 extern crate tui;
 
+#[allow(dead_code)]
+mod util;
+
 use std::io;
-use std::sync::mpsc;
-use std::thread;
-use std::time;
+use std::time::Duration;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::backend::MouseBackend;
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::Color;
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
+
+use util::event::{Config, Event, Events};
 
 struct App {
     size: Rect,
@@ -43,7 +48,7 @@ impl App {
         }
     }
 
-    fn advance(&mut self) {
+    fn update(&mut self) {
         if self.ball.left() < self.playground.left() || self.ball.right() > self.playground.right()
         {
             self.dir_x = !self.dir_x;
@@ -67,138 +72,110 @@ impl App {
     }
 }
 
-enum Event {
-    Input(event::Key),
-    Tick,
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
-    let clock_tx = tx.clone();
-
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    // Tick
-    thread::spawn(move || loop {
-        clock_tx.send(Event::Tick).unwrap();
-        thread::sleep(time::Duration::from_millis(500));
-    });
+    // Setup event handlers
+    let config = Config {
+        tick_rate: Duration::from_millis(100),
+        ..Default::default()
+    };
+    let events = Events::with_config(config);
 
     // App
     let mut app = App::new();
 
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app).unwrap();
-
     loop {
-        let size = terminal.size().unwrap();
+        let size = terminal.size()?;
         if size != app.size {
-            terminal.resize(size).unwrap();
+            terminal.resize(size)?;
             app.size = size;
         }
 
-        let evt = rx.recv().unwrap();
-        match evt {
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(app.size);
+            Canvas::default()
+                .block(Block::default().borders(Borders::ALL).title("World"))
+                .paint(|ctx| {
+                    ctx.draw(&Map {
+                        color: Color::White,
+                        resolution: MapResolution::High,
+                    });
+                    ctx.print(app.x, -app.y, "You are here", Color::Yellow);
+                }).x_bounds([-180.0, 180.0])
+                .y_bounds([-90.0, 90.0])
+                .render(&mut f, chunks[0]);
+            Canvas::default()
+                .block(Block::default().borders(Borders::ALL).title("Pong"))
+                .paint(|ctx| {
+                    ctx.draw(&Line {
+                        x1: f64::from(app.ball.left()),
+                        y1: f64::from(app.ball.top()),
+                        x2: f64::from(app.ball.right()),
+                        y2: f64::from(app.ball.top()),
+                        color: Color::Yellow,
+                    });
+                    ctx.draw(&Line {
+                        x1: f64::from(app.ball.right()),
+                        y1: f64::from(app.ball.top()),
+                        x2: f64::from(app.ball.right()),
+                        y2: f64::from(app.ball.bottom()),
+                        color: Color::Yellow,
+                    });
+                    ctx.draw(&Line {
+                        x1: f64::from(app.ball.right()),
+                        y1: f64::from(app.ball.bottom()),
+                        x2: f64::from(app.ball.left()),
+                        y2: f64::from(app.ball.bottom()),
+                        color: Color::Yellow,
+                    });
+                    ctx.draw(&Line {
+                        x1: f64::from(app.ball.left()),
+                        y1: f64::from(app.ball.bottom()),
+                        x2: f64::from(app.ball.left()),
+                        y2: f64::from(app.ball.top()),
+                        color: Color::Yellow,
+                    });
+                }).x_bounds([10.0, 110.0])
+                .y_bounds([10.0, 110.0])
+                .render(&mut f, chunks[1]);
+        })?;
+
+        match events.next()? {
             Event::Input(input) => match input {
-                event::Key::Char('q') => {
+                Key::Char('q') => {
                     break;
                 }
-                event::Key::Down => {
+                Key::Down => {
                     app.y += 1.0;
                 }
-                event::Key::Up => {
+                Key::Up => {
                     app.y -= 1.0;
                 }
-                event::Key::Right => {
+                Key::Right => {
                     app.x += 1.0;
                 }
-                event::Key::Left => {
+                Key::Left => {
                     app.x -= 1.0;
                 }
 
                 _ => {}
             },
             Event::Tick => {
-                app.advance();
+                app.update();
             }
         }
-        draw(&mut terminal, &app).unwrap();
     }
 
-    terminal.show_cursor().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-    t.draw(|mut f| {
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-            .split(app.size);
-        Canvas::default()
-            .block(Block::default().borders(Borders::ALL).title("World"))
-            .paint(|ctx| {
-                ctx.draw(&Map {
-                    color: Color::White,
-                    resolution: MapResolution::High,
-                });
-                ctx.print(app.x, -app.y, "You are here", Color::Yellow);
-            })
-            .x_bounds([-180.0, 180.0])
-            .y_bounds([-90.0, 90.0])
-            .render(&mut f, chunks[0]);
-        Canvas::default()
-            .block(Block::default().borders(Borders::ALL).title("List"))
-            .paint(|ctx| {
-                ctx.draw(&Line {
-                    x1: f64::from(app.ball.left()),
-                    y1: f64::from(app.ball.top()),
-                    x2: f64::from(app.ball.right()),
-                    y2: f64::from(app.ball.top()),
-                    color: Color::Yellow,
-                });
-                ctx.draw(&Line {
-                    x1: f64::from(app.ball.right()),
-                    y1: f64::from(app.ball.top()),
-                    x2: f64::from(app.ball.right()),
-                    y2: f64::from(app.ball.bottom()),
-                    color: Color::Yellow,
-                });
-                ctx.draw(&Line {
-                    x1: f64::from(app.ball.right()),
-                    y1: f64::from(app.ball.bottom()),
-                    x2: f64::from(app.ball.left()),
-                    y2: f64::from(app.ball.bottom()),
-                    color: Color::Yellow,
-                });
-                ctx.draw(&Line {
-                    x1: f64::from(app.ball.left()),
-                    y1: f64::from(app.ball.bottom()),
-                    x2: f64::from(app.ball.left()),
-                    y2: f64::from(app.ball.top()),
-                    color: Color::Yellow,
-                });
-            })
-            .x_bounds([10.0, 110.0])
-            .y_bounds([10.0, 110.0])
-            .render(&mut f, chunks[1]);
-    })
+    terminal.show_cursor()?;
+    Ok(())
 }

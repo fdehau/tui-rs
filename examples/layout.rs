@@ -1,19 +1,24 @@
+extern crate failure;
 extern crate log;
 extern crate stderrlog;
 extern crate termion;
 extern crate tui;
 
+#[allow(dead_code)]
+mod util;
+
 use std::io;
-use std::sync::mpsc;
-use std::thread;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::backend::MouseBackend;
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
+
+use util::event::{Event, Events};
 
 struct App {
     size: Rect,
@@ -27,81 +32,59 @@ impl App {
     }
 }
 
-enum Event {
-    Input(event::Key),
-}
-
-fn main() {
-    stderrlog::new().verbosity(4).init().unwrap();
+fn main() -> Result<(), failure::Error> {
+    stderrlog::new().verbosity(4).init()?;
 
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
-
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
+    let events = Events::new();
 
     // App
     let mut app = App::new();
 
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app).unwrap();
-
     loop {
-        let size = terminal.size().unwrap();
+        let size = terminal.size()?;
         if size != app.size {
-            terminal.resize(size).unwrap();
+            terminal.resize(size)?;
             app.size = size;
         }
 
-        let evt = rx.recv().unwrap();
-        match evt {
-            Event::Input(input) => if let event::Key::Char('q') = input {
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(
+                    [
+                        Constraint::Percentage(10),
+                        Constraint::Percentage(80),
+                        Constraint::Percentage(10),
+                    ]
+                        .as_ref(),
+                ).split(app.size);
+
+            Block::default()
+                .title("Block")
+                .borders(Borders::ALL)
+                .render(&mut f, chunks[0]);
+            Block::default()
+                .title("Block 2")
+                .borders(Borders::ALL)
+                .render(&mut f, chunks[2]);
+        })?;
+
+        match events.next()? {
+            Event::Input(input) => if let Key::Char('q') = input {
                 break;
             },
+            _ => {}
         }
-        draw(&mut terminal, &app).unwrap();
     }
 
-    terminal.show_cursor().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) -> Result<(), io::Error> {
-    t.draw(|mut f| {
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Percentage(80),
-                    Constraint::Percentage(10),
-                ].as_ref(),
-            )
-            .split(app.size);
-
-        Block::default()
-            .title("Block")
-            .borders(Borders::ALL)
-            .render(&mut f, chunks[0]);
-        Block::default()
-            .title("Block 2")
-            .borders(Borders::ALL)
-            .render(&mut f, chunks[2]);
-    })
+    terminal.show_cursor()?;
+    Ok(())
 }

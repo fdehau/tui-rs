@@ -73,7 +73,7 @@ build-examples: ## Build all examples
 run-examples: ## Run all examples
 	@for file in examples/*.rs; do \
 	  name=$$(basename $${file//.rs/}); \
-	  $(CARGO) run --example $$name; \
+	  $(CARGO) run --features=termion,crossterm --example $$name; \
 	  done;
 
 # ================================ Doc ========================================

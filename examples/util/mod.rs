@@ -1,6 +1,6 @@
-#![allow(dead_code)]
-
 extern crate rand;
+
+pub mod event;
 
 use self::rand::distributions::{IndependentSample, Range};
 
@@ -54,21 +54,24 @@ impl Iterator for SinSignal {
     }
 }
 
-pub struct MyTabs<'a> {
+pub struct TabsState<'a> {
     pub titles: Vec<&'a str>,
-    pub selection: usize,
+    pub index: usize,
 }
 
-impl<'a> MyTabs<'a> {
+impl<'a> TabsState<'a> {
+    pub fn new(titles: Vec<&'a str>) -> TabsState {
+        TabsState { titles, index: 0 }
+    }
     pub fn next(&mut self) {
-        self.selection = (self.selection + 1) % self.titles.len();
+        self.index = (self.index + 1) % self.titles.len();
     }
 
     pub fn previous(&mut self) {
-        if self.selection > 0 {
-            self.selection -= 1;
+        if self.index > 0 {
+            self.index -= 1;
         } else {
-            self.selection = self.titles.len() - 1;
+            self.index = self.titles.len() - 1;
         }
     }
 }
