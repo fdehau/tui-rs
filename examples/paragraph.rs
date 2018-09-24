@@ -102,6 +102,5 @@ fn main() -> Result<(), failure::Error> {
             _ => {}
         }
     }
-    terminal.show_cursor()?;
     Ok(())
 }

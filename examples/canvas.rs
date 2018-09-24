@@ -176,6 +176,5 @@ fn main() -> Result<(), failure::Error> {
         }
     }
 
-    terminal.show_cursor()?;
     Ok(())
 }

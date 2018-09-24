@@ -17,6 +17,8 @@ where
     buffers: [Buffer; 2],
     /// Index of the current buffer in the previous array
     current: usize,
+    /// Whether the cursor is currently hidden
+    hidden_cursor: bool,
 }
 
 pub struct Frame<'a, B: 'a>
@@ -39,18 +41,33 @@ where
     }
 }
 
+impl<B> Drop for Terminal<B>
+where
+    B: Backend,
+{
+    fn drop(&mut self) {
+        // Attempt to restore the cursor state
+        if self.hidden_cursor {
+            if let Err(_) = self.show_cursor() {
+                error!("Failed to show the cursor");
+            }
+        }
+    }
+}
+
 impl<B> Terminal<B>
 where
     B: Backend,
 {
     /// Wrapper around Termion initialization. Each buffer is initialized with a blank string and
     /// default colors for the foreground and the background
-    pub fn new(backend: B) -> Result<Terminal<B>, io::Error> {
+    pub fn new(backend: B) -> io::Result<Terminal<B>> {
         let size = backend.size()?;
         Ok(Terminal {
             backend,
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
+            hidden_cursor: false,
         })
     }
 
@@ -72,7 +89,7 @@ where
 
     /// Builds a string representing the minimal escape sequences and characters set necessary to
     /// update the UI and writes it to stdout.
-    pub fn flush(&mut self) -> Result<(), io::Error> {
+    pub fn flush(&mut self) -> io::Result<()> {
         let width = self.buffers[self.current].area.width;
         let content = self.buffers[self.current]
             .content
@@ -94,7 +111,7 @@ where
 
     /// Updates the interface so that internal buffers matches the current size of the terminal.
     /// This leads to a full redraw of the screen.
-    pub fn resize(&mut self, area: Rect) -> Result<(), io::Error> {
+    pub fn resize(&mut self, area: Rect) -> io::Result<()> {
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].reset();
         self.buffers[1 - self.current].resize(area);
@@ -102,7 +119,7 @@ where
     }
 
     /// Flushes the current internal state and prepares the interface for the next draw call
-    pub fn draw<F>(&mut self, f: F) -> Result<(), io::Error>
+    pub fn draw<F>(&mut self, f: F) -> io::Result<()>
     where
         F: FnOnce(Frame<B>),
     {
@@ -120,16 +137,20 @@ where
         Ok(())
     }
 
-    pub fn hide_cursor(&mut self) -> Result<(), io::Error> {
-        self.backend.hide_cursor()
+    pub fn hide_cursor(&mut self) -> io::Result<()> {
+        self.backend.hide_cursor()?;
+        self.hidden_cursor = true;
+        Ok(())
     }
-    pub fn show_cursor(&mut self) -> Result<(), io::Error> {
-        self.backend.show_cursor()
+    pub fn show_cursor(&mut self) -> io::Result<()> {
+        self.backend.show_cursor()?;
+        self.hidden_cursor = false;
+        Ok(())
     }
-    pub fn clear(&mut self) -> Result<(), io::Error> {
+    pub fn clear(&mut self) -> io::Result<()> {
         self.backend.clear()
     }
-    pub fn size(&self) -> Result<Rect, io::Error> {
+    pub fn size(&self) -> io::Result<Rect> {
         self.backend.size()
     }
 }
