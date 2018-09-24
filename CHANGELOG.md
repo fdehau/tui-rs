@@ -2,7 +2,13 @@
 
 ## To be released
 
-## v0.3.2-beta.2 - 2018-09-23
+## v0.3.0-beta.3 - 2018-09-24
+
+### Changed
+
+* `show_cursor` is called when `Terminal` is dropped if the cursor is hidden.
+
+## v0.3.0-beta.2 - 2018-09-23
 
 ### Changed
 
@@ -28,7 +34,7 @@ let backend = TermionBackend::new(stdout);
 The resulting code is more verbose but it works with all combinations of
 additional `termion` features.
 
-## v0.3.1-beta.1 - 2018-09-08
+## v0.3.0-beta.1 - 2018-09-08
 
 ### Changed
 
