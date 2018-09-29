@@ -51,6 +51,10 @@ fn main() -> Result<(), failure::Error> {
             app.size = size;
         }
 
+        let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
+        long_line.insert_str(0, "Very long line: ");
+        long_line.push('\n');
+
         terminal.draw(|mut f| {
             Block::default()
                 .style(Style::default().bg(Color::White))
@@ -76,6 +80,7 @@ fn main() -> Result<(), failure::Error> {
                     "This a longer line\n",
                     Style::default().modifier(Modifier::CrossedOut),
                 ),
+                Text::raw(&long_line),
                 Text::styled(
                     "This a line\n",
                     Style::default().fg(Color::Green).modifier(Modifier::Italic),

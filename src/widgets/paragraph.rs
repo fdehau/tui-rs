@@ -166,19 +166,23 @@ where
                 y += 1;
                 continue;
             }
-            if x >= text_area.width && self.wrapping {
-                x = match self.alignment {
-                    Alignment::Center => {
-                        (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
-                    }
+            if x >= text_area.width {
+                if !self.wrapping {
+                    continue; // Truncate the remainder of the line.
+                } else {
+                    x = match self.alignment {
+                        Alignment::Center => {
+                            (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
+                        }
 
-                    Alignment::Right => {
-                        (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
-                    }
-                    Alignment::Left => 0,
-                };
-                y += 1;
-                remove_leading_whitespaces = true
+                        Alignment::Right => {
+                            (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
+                        }
+                        Alignment::Left => 0,
+                    };
+                    y += 1;
+                    remove_leading_whitespaces = true
+                }
             }
 
             if remove_leading_whitespaces && string == " " {
