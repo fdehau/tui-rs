@@ -87,7 +87,7 @@ where
         }
 
         self.background(&list_area, buf, self.style.bg);
-
+        let mut offset = 0;
         for (i, item) in self
             .items
             .by_ref()
@@ -102,10 +102,14 @@ where
             };
             match item {
                 Text::Raw(ref v) => {
-                    buf.set_stringn(x, y, v, list_area.width as usize, Style::default());
+                    let inc = v.chars().filter(|c| c == &'\n').count() as u16;
+                    buf.set_stringn(x, y + offset, v, list_area.width as usize, Style::default());
+                    offset += inc;
                 }
                 Text::Styled(ref v, s) => {
-                    buf.set_stringn(x, y, v, list_area.width as usize, s);
+                    let inc = v.chars().filter(|c| c == &'\n').count() as u16;
+                    buf.set_stringn(x, y + offset, v, list_area.width as usize, s);
+                    offset += inc;
                 }
             };
         }

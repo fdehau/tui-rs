@@ -246,14 +246,19 @@ impl Buffer {
     where
         S: AsRef<str>,
     {
-        let mut index = self.index_of(x, y);
-        let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
-        let max_index = min((self.area.right() - x) as usize, limit);
-        for s in graphemes.take(max_index) {
-            self.content[index].symbol.clear();
-            self.content[index].symbol.push_str(s);
-            self.content[index].style = style;
-            index += 1;
+        let mut y = y;
+        let strings = string.as_ref().split('\n');
+        for string in strings {
+            let mut index = self.index_of(x, y);
+            let graphemes = UnicodeSegmentation::graphemes(string, true);
+            let max_index = min((self.area.right() - x) as usize, limit);
+            for s in graphemes.take(max_index) {
+                self.content[index].symbol.clear();
+                self.content[index].symbol.push_str(s);
+                self.content[index].style = style;
+                index += 1;
+            }
+            y += 1;
         }
     }
 
