@@ -240,7 +240,8 @@ impl<'b> Widget for SelectableList<'b> {
                 } else {
                     Text::styled(item, self.style)
                 }
-            }).skip(offset as usize);
+            })
+            .skip(offset as usize);
         List::new(items)
             .block(self.block.unwrap_or_default())
             .style(self.style)
