@@ -48,8 +48,8 @@ where
     fn drop(&mut self) {
         // Attempt to restore the cursor state
         if self.hidden_cursor {
-            if let Err(_) = self.show_cursor() {
-                error!("Failed to show the cursor");
+            if let Err(err) = self.show_cursor() {
+                error!("Failed to show the cursor: {}", err);
             }
         }
     }
