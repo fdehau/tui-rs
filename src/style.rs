@@ -20,6 +20,33 @@ pub enum Color {
     Rgb(u8, u8, u8),
 }
 
+impl Color {
+    /// Returns a short code associated with the color, used for debug purpose
+    /// only
+    pub(crate) fn code(&self) -> &str {
+        match self {
+            Color::Reset => "X",
+            Color::Black => "b",
+            Color::Red => "r",
+            Color::Green => "c",
+            Color::Yellow => "y",
+            Color::Blue => "b",
+            Color::Magenta => "m",
+            Color::Cyan => "c",
+            Color::Gray => "g",
+            Color::DarkGray => "G",
+            Color::LightRed => "R",
+            Color::LightGreen => "G",
+            Color::LightYellow => "Y",
+            Color::LightBlue => "B",
+            Color::LightMagenta => "M",
+            Color::LightCyan => "C",
+            Color::White => "w",
+            Color::Rgb(_, _, _) => "o",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Modifier {
     Blink,
@@ -38,6 +65,31 @@ pub enum Modifier {
     NoUnderline,
     Reset,
     Underline,
+}
+
+impl Modifier {
+    /// Returns a short code associated with the color, used for debug purpose
+    /// only
+    pub(crate) fn code(&self) -> &str {
+        match self {
+            Modifier::Blink => "bl",
+            Modifier::Bold => "bo",
+            Modifier::CrossedOut => "cr",
+            Modifier::Faint => "fa",
+            Modifier::Framed => "fr",
+            Modifier::Invert => "in",
+            Modifier::Italic => "it",
+            Modifier::NoBlink => "BL",
+            Modifier::NoBold => "BO",
+            Modifier::NoCrossedOut => "CR",
+            Modifier::NoFaint => "FA",
+            Modifier::NoInvert => "IN",
+            Modifier::NoItalic => "IT",
+            Modifier::NoUnderline => "UN",
+            Modifier::Reset => "re",
+            Modifier::Underline => "un",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

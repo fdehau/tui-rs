@@ -1,7 +1,9 @@
 use std::cmp::min;
+use std::fmt;
 use std::usize;
 
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use layout::Rect;
 use style::{Color, Modifier, Style};
@@ -93,7 +95,7 @@ impl Default for Cell {
 /// assert_eq!(buf.get(5, 0).symbol, "x");
 /// # }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Buffer {
     /// The area represented by this buffer
     pub area: Rect,
@@ -108,6 +110,34 @@ impl Default for Buffer {
             area: Default::default(),
             content: Vec::new(),
         }
+    }
+}
+
+impl fmt::Debug for Buffer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "Buffer: {:?}", self.area)?;
+        f.write_str("Content\n")?;
+        for cells in self.content.chunks(self.area.width as usize) {
+            for cell in cells {
+                f.write_str(&cell.symbol)?;
+            }
+            f.write_str("\n")?;
+        }
+        f.write_str("Style\n")?;
+        for cells in self.content.chunks(self.area.width as usize) {
+            f.write_str("|")?;
+            for cell in cells {
+                write!(
+                    f,
+                    "{} {} {}|",
+                    cell.style.fg.code(),
+                    cell.style.bg.code(),
+                    cell.style.modifier.code()
+                )?;
+            }
+            f.write_str("\n")?;
+        }
+        Ok(())
     }
 }
 
@@ -126,6 +156,29 @@ impl Buffer {
             content.push(cell.clone());
         }
         Buffer { area, content }
+    }
+
+    /// Returns a Buffer containing the given lines
+    pub fn with_lines<S>(lines: Vec<S>) -> Buffer
+    where
+        S: AsRef<str>,
+    {
+        let height = lines.len() as u16;
+        let width = lines.iter().fold(0, |acc, item| {
+            std::cmp::max(acc, item.as_ref().width() as u16)
+        });
+        let mut buffer = Buffer::empty(Rect {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        });
+        let mut y = 0;
+        for line in &lines {
+            buffer.set_string(0, y, line, Style::default());
+            y += 1;
+        }
+        buffer
     }
 
     /// Returns the content of the buffer as a slice
