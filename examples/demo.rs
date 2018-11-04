@@ -11,7 +11,7 @@ use std::io;
 
 use termion::event::Key;
 use termion::input::MouseTerminal;
-use termion::raw::{IntoRawMode};
+use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::{Backend, TermionBackend};
 use tui::layout::{Constraint, Direction, Layout, Rect};
