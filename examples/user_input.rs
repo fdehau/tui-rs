@@ -12,12 +12,14 @@ extern crate failure;
 ///   messages
 extern crate termion;
 extern crate tui;
+extern crate unicode_width;
 
 #[allow(dead_code)]
 mod util;
 
-use std::io;
+use std::io::{self, Write};
 
+use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
@@ -27,6 +29,7 @@ use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
+use unicode_width::UnicodeWidthStr;
 
 use util::event::{Event, Events};
 
@@ -57,7 +60,6 @@ fn main() -> Result<(), failure::Error> {
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     // Setup event handlers
     let events = Events::new();
@@ -93,6 +95,13 @@ fn main() -> Result<(), failure::Error> {
                 .block(Block::default().borders(Borders::ALL).title("Messages"))
                 .render(&mut f, chunks[1]);
         })?;
+
+        // Put the cursor back inside the input box
+        write!(
+            terminal.backend_mut(),
+            "{}",
+            Goto(4 + app.input.width() as u16, 4)
+        )?;
 
         // Handle input
         match events.next()? {

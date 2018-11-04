@@ -11,9 +11,9 @@ use std::io;
 
 use termion::event::Key;
 use termion::input::MouseTerminal;
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
+use tui::backend::{Backend, TermionBackend};
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
@@ -25,8 +25,6 @@ use tui::{Frame, Terminal};
 
 use util::event::{Event, Events};
 use util::{RandomSignal, SinSignal, TabsState};
-
-type Backend = TermionBackend<AlternateScreen<MouseTerminal<RawTerminal<io::Stdout>>>>;
 
 struct Server<'a> {
     name: &'a str,
@@ -252,7 +250,10 @@ fn main() -> Result<(), failure::Error> {
     Ok(())
 }
 
-fn draw_first_tab(f: &mut Frame<Backend>, app: &App, area: Rect) {
+fn draw_first_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
+{
     let chunks = Layout::default()
         .constraints(
             [
@@ -267,7 +268,10 @@ fn draw_first_tab(f: &mut Frame<Backend>, app: &App, area: Rect) {
     draw_text(f, chunks[2]);
 }
 
-fn draw_gauges(f: &mut Frame<Backend>, app: &App, area: Rect) {
+fn draw_gauges<B>(f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
+{
     let chunks = Layout::default()
         .constraints([Constraint::Length(2), Constraint::Length(3)].as_ref())
         .margin(1)
@@ -293,7 +297,10 @@ fn draw_gauges(f: &mut Frame<Backend>, app: &App, area: Rect) {
         .render(f, chunks[1]);
 }
 
-fn draw_charts(f: &mut Frame<Backend>, app: &App, area: Rect) {
+fn draw_charts<B>(f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
+{
     let constraints = if app.show_chart {
         vec![Constraint::Percentage(50), Constraint::Percentage(50)]
     } else {
@@ -392,7 +399,10 @@ fn draw_charts(f: &mut Frame<Backend>, app: &App, area: Rect) {
     }
 }
 
-fn draw_text(f: &mut Frame<Backend>, area: Rect) {
+fn draw_text<B>(f: &mut Frame<B>, area: Rect)
+where
+    B: Backend,
+{
     let text = [
         Text::raw("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
         Text::styled("under", Style::default().fg(Color::Red)),
@@ -420,7 +430,10 @@ fn draw_text(f: &mut Frame<Backend>, area: Rect) {
         .render(f, area);
 }
 
-fn draw_second_tab(f: &mut Frame<Backend>, app: &App, area: Rect) {
+fn draw_second_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
+{
     let chunks = Layout::default()
         .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
         .direction(Direction::Horizontal)
