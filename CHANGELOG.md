@@ -2,6 +2,12 @@
 
 ## To be released
 
+## v0.3.0 - 2018-11-04
+
+### Added
+
+* Add experimental test backend
+
 ## v0.3.0-beta.3 - 2018-09-24
 
 ### Changed

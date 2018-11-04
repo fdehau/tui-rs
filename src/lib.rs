@@ -34,7 +34,7 @@
 //!
 //! ```toml
 //! [dependencies.tui]
-//! version = "0.2.0"
+//! version = "0.3.0"
 //! default-features = false
 //! features = ['rustbox']
 //! ```
