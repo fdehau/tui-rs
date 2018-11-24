@@ -279,12 +279,25 @@ impl Default for Rect {
 }
 
 impl Rect {
+    /// Creates a new rect, with width and height limited to keep the area under max u16.
+    /// If clipped, aspect ratio will be preserved.
     pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
+        let max_area = u16::max_value();
+        let (clipped_width, clipped_height) =
+            if u32::from(width) * u32::from(height) > u32::from(max_area) {
+                let aspect_ratio = f64::from(width) / f64::from(height);
+                let max_area_f = f64::from(max_area);
+                let height_f = (max_area_f / aspect_ratio).sqrt();
+                let width_f = height_f * aspect_ratio;
+                (width_f as u16, height_f as u16)
+            } else {
+                (width, height)
+            };
         Rect {
             x,
             y,
-            width,
-            height,
+            width: clipped_width,
+            height: clipped_height,
         }
     }
 
@@ -353,4 +366,47 @@ impl Rect {
             && self.y < other.y + other.height
             && self.y + self.height > other.y
     }
+}
+
+#[test]
+fn test_rect_size_truncation() {
+    for width in 256u16..300u16 {
+        for height in 256u16..300u16 {
+            let rect = Rect::new(0, 0, width, height);
+            rect.area(); // Should not panic.
+            assert!(rect.width < width || rect.height < height);
+            // The target dimensions are rounded down so the math will not be too precise
+            // but let's make sure the ratios don't diverge crazily.
+            assert!(
+                (f64::from(rect.width) / f64::from(rect.height)
+                    - f64::from(width) / f64::from(height)).abs()
+                    < 1.0
+            )
+        }
+    }
+
+    // One dimension below 255, one above. Area above max u16.
+    let width = 900;
+    let height = 100;
+    let rect = Rect::new(0, 0, width, height);
+    assert_ne!(rect.width, 900);
+    assert_ne!(rect.height, 100);
+    assert!(rect.width < width || rect.height < height);
+}
+
+#[test]
+fn test_rect_size_preservation() {
+    for width in 0..256u16 {
+        for height in 0..256u16 {
+            let rect = Rect::new(0, 0, width, height);
+            rect.area(); // Should not panic.
+            assert_eq!(rect.width, width);
+            assert_eq!(rect.height, height);
+        }
+    }
+
+    // One dimension below 255, one above. Area below max u16.
+    let rect = Rect::new(0, 0, 300, 100);
+    assert_eq!(rect.width, 300);
+    assert_eq!(rect.height, 100);
 }
