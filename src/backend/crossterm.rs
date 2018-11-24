@@ -45,12 +45,7 @@ impl Backend for CrosstermBackend {
     fn size(&self) -> io::Result<Rect> {
         let terminal = crossterm::terminal::terminal(&self.screen);
         let (width, height) = terminal.terminal_size();
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width,
-            height,
-        })
+        Ok(Rect::new(0, 0, width, height))
     }
 
     fn flush(&mut self) -> io::Result<()> {

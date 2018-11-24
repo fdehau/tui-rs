@@ -57,12 +57,23 @@ impl Backend for RustboxBackend {
         Ok(())
     }
     fn size(&self) -> Result<Rect, io::Error> {
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width: self.rustbox.width() as u16,
-            height: self.rustbox.height() as u16,
-        })
+        let term_width = self.rustbox.width();
+        let term_height = self.rustbox.height();
+        let max = u16::max_value();
+        Ok(Rect::new(
+            0,
+            0,
+            if term_width > usize::from(max) {
+                max
+            } else {
+                term_width as u16
+            },
+            if term_height > usize::from(max) {
+                max
+            } else {
+                term_height as u16
+            },
+        ))
     }
     fn flush(&mut self) -> Result<(), io::Error> {
         self.rustbox.present();

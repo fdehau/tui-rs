@@ -16,12 +16,7 @@ impl TestBackend {
         TestBackend {
             width,
             height,
-            buffer: Buffer::empty(Rect {
-                x: 0,
-                y: 0,
-                width,
-                height,
-            }),
+            buffer: Buffer::empty(Rect::new(0, 0, width, height)),
             cursor: false,
         }
     }
@@ -55,12 +50,7 @@ impl Backend for TestBackend {
         Ok(())
     }
     fn size(&self) -> Result<Rect, io::Error> {
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width: self.width,
-            height: self.height,
-        })
+        Ok(Rect::new(0, 0, self.width, self.height))
     }
     fn flush(&mut self) -> Result<(), io::Error> {
         Ok(())

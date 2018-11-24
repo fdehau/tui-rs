@@ -112,12 +112,7 @@ where
     /// Return the size of the terminal
     fn size(&self) -> io::Result<Rect> {
         let terminal = try!(termion::terminal_size());
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width: terminal.0,
-            height: terminal.1,
-        })
+        Ok(Rect::new(0, 0, terminal.0, terminal.1))
     }
 
     fn flush(&mut self) -> io::Result<()> {
