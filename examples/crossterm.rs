@@ -47,7 +47,7 @@ fn main() -> Result<(), failure::Error> {
                 ).render(&mut f, size);
         })?;
 
-        let input = crossterm::input(terminal.backend().screen());
+        let input = crossterm::input();
         match input.read_char()? {
             'q' => {
                 break;

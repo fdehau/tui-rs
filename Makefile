@@ -1,5 +1,4 @@
-# Makefile for the tui-rs project (https://github.com/fdehau/tui-rs)
-
+SHELL=/bin/bash
 
 # ================================ Cargo ======================================
 
@@ -72,7 +71,7 @@ build-examples: ## Build all examples
 .PHONY: run-examples
 run-examples: ## Run all examples
 	@for file in examples/*.rs; do \
-	  name=$$(basename $${file//.rs/}); \
+	  name=$$(basename $${file/.rs/}); \
 	  $(CARGO) run --features=termion,crossterm --example $$name; \
 	  done;
 

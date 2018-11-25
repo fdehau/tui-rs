@@ -25,25 +25,25 @@ impl CrosstermBackend {
 
 impl Backend for CrosstermBackend {
     fn clear(&mut self) -> io::Result<()> {
-        let terminal = crossterm::terminal::terminal(&self.screen);
+        let terminal = crossterm::terminal::terminal();
         terminal.clear(crossterm::terminal::ClearType::All);
         Ok(())
     }
 
     fn hide_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor(&self.screen);
+        let cursor = crossterm::cursor();
         cursor.hide();
         Ok(())
     }
 
     fn show_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor(&self.screen);
+        let cursor = crossterm::cursor();
         cursor.show();
         Ok(())
     }
 
     fn size(&self) -> io::Result<Rect> {
-        let terminal = crossterm::terminal::terminal(&self.screen);
+        let terminal = crossterm::terminal::terminal();
         let (width, height) = terminal.terminal_size();
         Ok(Rect::new(0, 0, width, height))
     }
@@ -56,7 +56,7 @@ impl Backend for CrosstermBackend {
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
-        let cursor = crossterm::cursor(&self.screen);
+        let cursor = crossterm::cursor();
         let mut last_y = 0;
         let mut last_x = 0;
         for (x, y, cell) in content {

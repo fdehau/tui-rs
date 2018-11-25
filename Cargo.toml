@@ -27,11 +27,11 @@ unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5", optional = true }
 rustbox = { version = "0.11", optional = true }
-crossterm = { version = "0.4", optional = true }
+crossterm = { version = "0.5", optional = true }
 
 [dev-dependencies]
 stderrlog = "0.4"
-rand = "0.4"
+rand = "0.6"
 failure = "0.1"
 
 [[example]]
