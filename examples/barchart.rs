@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{BarChart, Block, Borders, Widget};
 use tui::Terminal;
@@ -20,14 +20,12 @@ use tui::Terminal;
 use util::event::{Event, Events};
 
 struct App<'a> {
-    size: Rect,
     data: Vec<(&'a str, u64)>,
 }
 
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            size: Rect::default(),
             data: vec![
                 ("B1", 9),
                 ("B2", 12),
@@ -80,16 +78,12 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if app.size != size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(app.size);
+                .split(size);
             BarChart::default()
                 .block(Block::default().title("Data1").borders(Borders::ALL))
                 .data(&app.data)

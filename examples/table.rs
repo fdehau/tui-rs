@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Layout, Rect};
+use tui::layout::{Constraint, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Row, Table, Widget};
 use tui::Terminal;
@@ -20,7 +20,6 @@ use tui::Terminal;
 use util::event::{Event, Events};
 
 struct App<'a> {
-    size: Rect,
     items: Vec<Vec<&'a str>>,
     selected: usize,
 }
@@ -28,7 +27,6 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            size: Rect::default(),
             items: vec![
                 vec!["Row12", "Row12", "Row13"],
                 vec!["Row21", "Row22", "Row23"],
@@ -59,10 +57,6 @@ fn main() -> Result<(), failure::Error> {
     // Input
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
@@ -79,7 +73,7 @@ fn main() -> Result<(), failure::Error> {
             let rects = Layout::default()
                 .constraints([Constraint::Percentage(100)].as_ref())
                 .margin(5)
-                .split(app.size);
+                .split(size);
             Table::new(header.into_iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
                 .widths(&[10, 10, 10])
