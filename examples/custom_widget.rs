@@ -20,18 +20,6 @@ use tui::Terminal;
 
 use util::event::{Event, Events};
 
-struct App {
-    size: Rect,
-}
-
-impl Default for App {
-    fn default() -> App {
-        App {
-            size: Rect::default(),
-        }
-    }
-}
-
 struct Label<'a> {
     text: &'a str,
 }
@@ -65,17 +53,11 @@ fn main() -> Result<(), failure::Error> {
 
     let events = Events::new();
 
-    let mut app = App::default();
-
     loop {
         let size = terminal.size()?;
-        if app.size != size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
-            Label::default().text("Test").render(&mut f, app.size);
+            Label::default().text("Test").render(&mut f, size);
         })?;
 
         match events.next()? {

@@ -34,7 +34,6 @@ struct Server<'a> {
 }
 
 struct App<'a> {
-    size: Rect,
     items: Vec<&'a str>,
     events: Vec<(&'a str, &'a str)>,
     selected: usize,
@@ -71,7 +70,6 @@ fn main() -> Result<(), failure::Error> {
     let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
 
     let mut app = App {
-        size: Rect::default(),
         items: vec![
             "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
             "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
@@ -171,16 +169,12 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         // Draw UI
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-                .split(app.size);
+                .split(size);
             Tabs::default()
                 .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)

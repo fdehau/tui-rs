@@ -22,7 +22,6 @@ use tui::Terminal;
 use util::event::{Config, Event, Events};
 
 struct App {
-    size: Rect,
     x: f64,
     y: f64,
     ball: Rect,
@@ -36,7 +35,6 @@ struct App {
 impl App {
     fn new() -> App {
         App {
-            size: Default::default(),
             x: 0.0,
             y: 0.0,
             ball: Rect::new(10, 30, 10, 10),
@@ -93,16 +91,12 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(app.size);
+                .split(size);
             Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("World"))
                 .paint(|ctx| {

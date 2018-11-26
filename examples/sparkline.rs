@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Sparkline, Widget};
 use tui::Terminal;
@@ -21,7 +21,6 @@ use util::event::{Event, Events};
 use util::RandomSignal;
 
 struct App {
-    size: Rect,
     signal: RandomSignal,
     data1: Vec<u64>,
     data2: Vec<u64>,
@@ -35,7 +34,6 @@ impl App {
         let data2 = signal.by_ref().take(200).collect::<Vec<u64>>();
         let data3 = signal.by_ref().take(200).collect::<Vec<u64>>();
         App {
-            size: Rect::default(),
             signal,
             data1,
             data2,
@@ -73,10 +71,6 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let chunks = Layout::default()
@@ -90,7 +84,7 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Min(0),
                     ]
                         .as_ref(),
-                ).split(app.size);
+                ).split(size);
             Sparkline::default()
                 .block(
                     Block::default()

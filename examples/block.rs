@@ -11,24 +11,12 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
 use util::event::{Event, Events};
-
-struct App {
-    size: Rect,
-}
-
-impl Default for App {
-    fn default() -> App {
-        App {
-            size: Rect::default(),
-        }
-    }
-}
 
 fn main() -> Result<(), failure::Error> {
     // Terminal initialization
@@ -39,18 +27,11 @@ fn main() -> Result<(), failure::Error> {
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
-    // Create default app state
-    let mut app = App::default();
-
     // Setup event handlers
     let events = Events::new();
 
     loop {
         let size = terminal.size()?;
-        if app.size != size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             // Wrapping block for a group
@@ -61,7 +42,7 @@ fn main() -> Result<(), failure::Error> {
                 .direction(Direction::Vertical)
                 .margin(4)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(app.size);
+                .split(size);
             {
                 let chunks = Layout::default()
                     .direction(Direction::Horizontal)

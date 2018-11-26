@@ -25,7 +25,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
@@ -35,8 +35,6 @@ use util::event::{Event, Events};
 
 /// App holds the state of the application
 struct App {
-    /// Current size of the terminal
-    size: Rect,
     /// Current value of the input box
     input: String,
     /// History of recorded messages
@@ -46,7 +44,6 @@ struct App {
 impl Default for App {
     fn default() -> App {
         App {
-            size: Rect::default(),
             input: String::new(),
             messages: Vec::new(),
         }
@@ -70,10 +67,6 @@ fn main() -> Result<(), failure::Error> {
     loop {
         // Handle resize
         let size = terminal.size()?;
-        if app.size != size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         // Draw UI
         terminal.draw(|mut f| {
@@ -81,7 +74,7 @@ fn main() -> Result<(), failure::Error> {
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-                .split(app.size);
+                .split(size);
             Paragraph::new([Text::raw(&app.input)].iter())
                 .style(Style::default().fg(Color::Yellow))
                 .block(Block::default().borders(Borders::ALL).title("Input"))
