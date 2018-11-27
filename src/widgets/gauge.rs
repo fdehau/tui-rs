@@ -22,7 +22,7 @@ use widgets::{Block, Widget};
 /// ```
 pub struct Gauge<'a> {
     block: Option<Block<'a>>,
-    percent: u16,
+    ratio: f64,
     label: Option<&'a str>,
     style: Style,
 }
@@ -31,7 +31,7 @@ impl<'a> Default for Gauge<'a> {
     fn default() -> Gauge<'a> {
         Gauge {
             block: None,
-            percent: 0,
+            ratio: 0.0,
             label: None,
             style: Default::default(),
         }
@@ -45,7 +45,21 @@ impl<'a> Gauge<'a> {
     }
 
     pub fn percent(mut self, percent: u16) -> Gauge<'a> {
-        self.percent = percent;
+        assert!(
+            percent <= 100,
+            "Percentage should be between 0 and 100 inclusively."
+        );
+        self.ratio = f64::from(percent) / 100.0;
+        self
+    }
+
+    /// Sets ratio ([0.0, 1.0]) directly.
+    pub fn ratio(mut self, ratio: f64) -> Gauge<'a> {
+        assert!(
+            ratio <= 1.0 && ratio >= 0.0,
+            "Ratio should be between 0 and 1 inclusively."
+        );
+        self.ratio = ratio;
         self
     }
 
@@ -78,7 +92,7 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         let center = gauge_area.height / 2 + gauge_area.top();
-        let width = (gauge_area.width * self.percent) / 100;
+        let width = (f64::from(gauge_area.width) * self.ratio).round() as u16;
         let end = gauge_area.left() + width;
         for y in gauge_area.top()..gauge_area.bottom() {
             // Gauge
@@ -88,7 +102,7 @@ impl<'a> Widget for Gauge<'a> {
 
             if y == center {
                 // Label
-                let precent_label = format!("{}%", self.percent);
+                let precent_label = format!("{}%", (self.ratio * 100.0).round());
                 let label = self.label.unwrap_or(&precent_label);
                 let label_width = label.width() as u16;
                 let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
@@ -102,5 +116,28 @@ impl<'a> Widget for Gauge<'a> {
                     .set_bg(self.style.fg);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn gauge_invalid_percentage() {
+        Gauge::default().percent(110);
+    }
+
+    #[test]
+    #[should_panic]
+    fn gauge_invalid_ratio_upper_bound() {
+        Gauge::default().ratio(1.1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn gauge_invalid_ratio_lower_bound() {
+        Gauge::default().ratio(-0.5);
     }
 }
