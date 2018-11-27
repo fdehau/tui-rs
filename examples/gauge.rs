@@ -22,7 +22,7 @@ use util::event::{Event, Events};
 struct App {
     progress1: u16,
     progress2: u16,
-    progress3: u16,
+    progress3: f64,
     progress4: u16,
 }
 
@@ -31,7 +31,7 @@ impl App {
         App {
             progress1: 0,
             progress2: 0,
-            progress3: 0,
+            progress3: 0.0,
             progress4: 0,
         }
     }
@@ -45,9 +45,9 @@ impl App {
         if self.progress2 > 100 {
             self.progress2 = 0;
         }
-        self.progress3 += 1;
-        if self.progress3 > 100 {
-            self.progress3 = 0;
+        self.progress3 += 0.001;
+        if self.progress3 > 1.0 {
+            self.progress3 = 0.0;
         }
         self.progress4 += 3;
         if self.progress4 > 100 {
@@ -98,12 +98,12 @@ fn main() -> Result<(), failure::Error> {
                 .label(&format!("{}/100", app.progress2))
                 .render(&mut f, chunks[1]);
             Gauge::default()
-                .block(Block::default().title("Gauge2").borders(Borders::ALL))
+                .block(Block::default().title("Gauge3").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
-                .percent(app.progress3)
+                .ratio(app.progress3)
                 .render(&mut f, chunks[2]);
             Gauge::default()
-                .block(Block::default().title("Gauge3").borders(Borders::ALL))
+                .block(Block::default().title("Gauge4").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
                 .percent(app.progress4)
                 .label(&format!("{}/100", app.progress2))
