@@ -116,14 +116,12 @@ impl Default for Buffer {
 impl fmt::Debug for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "Buffer: {:?}", self.area)?;
-        f.write_str("Content\n")?;
+        f.write_str("Content (quoted lines):\n")?;
         for cells in self.content.chunks(self.area.width as usize) {
-            for cell in cells {
-                f.write_str(&cell.symbol)?;
-            }
-            f.write_str("\n")?;
+            let line: String = cells.iter().map(|cell| &cell.symbol[..]).collect();
+            f.write_fmt(format_args!("{:?},\n", line))?;
         }
-        f.write_str("Style\n")?;
+        f.write_str("Style:\n")?;
         for cells in self.content.chunks(self.area.width as usize) {
             f.write_str("|")?;
             for cell in cells {
