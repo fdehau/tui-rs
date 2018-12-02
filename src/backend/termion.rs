@@ -70,7 +70,7 @@ where
         let mut last_x = 0;
         let mut inst = 0;
         for (x, y, cell) in content {
-            if y != last_y || x != last_x + 1 {
+            if y != last_y || x != last_x + 1 || inst == 0 {
                 string.push_str(&format!("{}", termion::cursor::Goto(x + 1, y + 1)));
                 inst += 1;
             }

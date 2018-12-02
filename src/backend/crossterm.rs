@@ -59,9 +59,11 @@ impl Backend for CrosstermBackend {
         let cursor = crossterm::cursor();
         let mut last_y = 0;
         let mut last_x = 0;
+        let mut first = true;
         for (x, y, cell) in content {
-            if y != last_y || x != last_x + 1 {
+            if y != last_y || x != last_x + 1 || first {
                 cursor.goto(x, y);
+                first = false;
             }
             last_x = x;
             last_y = y;
