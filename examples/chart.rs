@@ -12,7 +12,6 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
 use tui::Terminal;
@@ -21,7 +20,6 @@ use util::event::{Event, Events};
 use util::SinSignal;
 
 struct App {
-    size: Rect,
     signal1: SinSignal,
     data1: Vec<(f64, f64)>,
     signal2: SinSignal,
@@ -36,7 +34,6 @@ impl App {
         let data1 = signal1.by_ref().take(200).collect::<Vec<(f64, f64)>>();
         let data2 = signal2.by_ref().take(200).collect::<Vec<(f64, f64)>>();
         App {
-            size: Rect::default(),
             signal1,
             data1,
             signal2,
@@ -75,10 +72,6 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if app.size != size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             Chart::default()
@@ -116,7 +109,7 @@ fn main() -> Result<(), failure::Error> {
                         .marker(Marker::Braille)
                         .style(Style::default().fg(Color::Yellow))
                         .data(&app.data2),
-                ]).render(&mut f, app.size);
+                ]).render(&mut f, size);
         })?;
 
         match events.next()? {

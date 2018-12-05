@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Tabs, Widget};
 use tui::Terminal;
@@ -21,7 +21,6 @@ use util::event::{Event, Events};
 use util::TabsState;
 
 struct App<'a> {
-    size: Rect,
     tabs: TabsState<'a>,
 }
 
@@ -38,28 +37,23 @@ fn main() -> Result<(), failure::Error> {
 
     // App
     let mut app = App {
-        size: Rect::default(),
         tabs: TabsState::new(vec!["Tab0", "Tab1", "Tab2", "Tab3"]),
     };
 
     // Main loop
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(5)
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-                .split(app.size);
+                .split(size);
 
             Block::default()
                 .style(Style::default().bg(Color::White))
-                .render(&mut f, app.size);
+                .render(&mut f, size);
             Tabs::default()
                 .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)

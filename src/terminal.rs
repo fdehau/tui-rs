@@ -19,6 +19,7 @@ where
     current: usize,
     /// Whether the cursor is currently hidden
     hidden_cursor: bool,
+    prev_size: Option<Rect>,
 }
 
 pub struct Frame<'a, B: 'a>
@@ -68,6 +69,7 @@ where
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
             hidden_cursor: false,
+            prev_size: None,
         })
     }
 
@@ -115,6 +117,7 @@ where
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].reset();
         self.buffers[1 - self.current].resize(area);
+        self.prev_size = Some(area);
         self.backend.clear()
     }
 
@@ -123,6 +126,12 @@ where
     where
         F: FnOnce(Frame<B>),
     {
+        // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
+        // and the terminal (if growing), which may OOB.
+        let size = self.size()?;
+        if self.prev_size != Some(size) {
+            self.resize(size)?;
+        }
         f(self.get_frame());
 
         // Draw to stdout

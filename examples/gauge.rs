@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Gauge, Widget};
 use tui::Terminal;
@@ -20,7 +20,6 @@ use tui::Terminal;
 use util::event::{Event, Events};
 
 struct App {
-    size: Rect,
     progress1: u16,
     progress2: u16,
     progress3: f64,
@@ -30,7 +29,6 @@ struct App {
 impl App {
     fn new() -> App {
         App {
-            size: Rect::default(),
             progress1: 0,
             progress2: 0,
             progress3: 0.0,
@@ -73,10 +71,6 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let chunks = Layout::default()
@@ -90,7 +84,8 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Percentage(25),
                     ]
                         .as_ref(),
-                ).split(app.size);
+                ).split(size);
+
             Gauge::default()
                 .block(Block::default().title("Gauge1").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))

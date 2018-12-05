@@ -12,7 +12,7 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Corner, Direction, Layout, Rect};
+use tui::layout::{Constraint, Corner, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
 use tui::Terminal;
@@ -20,7 +20,6 @@ use tui::Terminal;
 use util::event::{Event, Events};
 
 struct App<'a> {
-    size: Rect,
     items: Vec<&'a str>,
     selected: Option<usize>,
     events: Vec<(&'a str, &'a str)>,
@@ -33,7 +32,6 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            size: Rect::default(),
             items: vec![
                 "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
                 "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
@@ -97,16 +95,12 @@ fn main() -> Result<(), failure::Error> {
 
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(app.size);
+                .split(size);
 
             let style = Style::default().fg(Color::Black).bg(Color::White);
             SelectableList::default()

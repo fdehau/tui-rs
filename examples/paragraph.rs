@@ -12,24 +12,12 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Paragraph, Text, Widget};
 use tui::Terminal;
 
 use util::event::{Event, Events};
-
-struct App {
-    size: Rect,
-}
-
-impl Default for App {
-    fn default() -> App {
-        App {
-            size: Rect::default(),
-        }
-    }
-}
 
 fn main() -> Result<(), failure::Error> {
     // Terminal initialization
@@ -42,14 +30,8 @@ fn main() -> Result<(), failure::Error> {
 
     let events = Events::new();
 
-    let mut app = App::default();
-
     loop {
         let size = terminal.size()?;
-        if size != app.size {
-            terminal.resize(size)?;
-            app.size = size;
-        }
 
         let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
         long_line.insert_str(0, "Very long line: ");
