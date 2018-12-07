@@ -14,7 +14,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Paragraph, Text, Widget};
+use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
 
 use util::event::{Event, Events};
@@ -34,8 +34,9 @@ fn main() -> Result<(), failure::Error> {
         terminal.draw(|mut f| {
             let size = f.size();
 
-            let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
-            long_line.insert_str(0, "Very long line: ");
+            // Words made "loooong" to demonstrate line breaking.
+            let s = "Veeeeeeeeeeeeeeeery loooooooooooooooooong striiiiiiiiiiiiiiiiiiiiiiiiiing. ";
+            let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
             long_line.push('\n');
 
             Block::default()
@@ -47,9 +48,10 @@ fn main() -> Result<(), failure::Error> {
                 .margin(5)
                 .constraints(
                     [
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(30),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
                     ]
                     .as_ref(),
                 )
@@ -70,17 +72,28 @@ fn main() -> Result<(), failure::Error> {
                 ),
             ];
 
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .title_style(Style::default().modifier(Modifier::Bold));
             Paragraph::new(text.iter())
+                .block(block.clone().title("Left, no wrap"))
                 .alignment(Alignment::Left)
                 .render(&mut f, chunks[0]);
             Paragraph::new(text.iter())
-                .alignment(Alignment::Center)
+                .block(block.clone().title("Left, wrap"))
+                .alignment(Alignment::Left)
                 .wrap(true)
                 .render(&mut f, chunks[1]);
             Paragraph::new(text.iter())
-                .alignment(Alignment::Right)
+                .block(block.clone().title("Center, wrap"))
+                .alignment(Alignment::Center)
                 .wrap(true)
                 .render(&mut f, chunks[2]);
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Right, wrap"))
+                .alignment(Alignment::Right)
+                .wrap(true)
+                .render(&mut f, chunks[3]);
         })?;
 
         match events.next()? {
