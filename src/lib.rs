@@ -82,8 +82,8 @@
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
-//!     let size = terminal.size()?;
 //!     terminal.draw(|mut f| {
+//!         let size = f.size();
 //!         Block::default()
 //!             .title("Block")
 //!             .borders(Borders::ALL)
@@ -113,7 +113,6 @@
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
-//!     let size = terminal.size()?;
 //!     terminal.draw(|mut f| {
 //!         let chunks = Layout::default()
 //!             .direction(Direction::Vertical)
@@ -125,7 +124,7 @@
 //!                     Constraint::Percentage(10)
 //!                 ].as_ref()
 //!             )
-//!             .split(size);
+//!             .split(f.size());
 //!         Block::default()
 //!              .title("Block")
 //!              .borders(Borders::ALL)
