@@ -166,7 +166,9 @@ where
                 y += 1;
                 continue;
             }
-            if x >= text_area.width {
+            let token_end_index = x + string.width() as u16 - 1;
+            let last_column_index = text_area.width - 1;
+            if token_end_index > last_column_index {
                 if !self.wrapping {
                     continue; // Truncate the remainder of the line.
                 } else {

@@ -3,7 +3,6 @@ use std::fmt;
 use std::usize;
 
 use unicode_segmentation::UnicodeSegmentation;
-use unicode_width::UnicodeWidthStr;
 
 use layout::Rect;
 use style::{Color, Modifier, Style};
@@ -163,7 +162,10 @@ impl Buffer {
     {
         let height = lines.len() as u16;
         let width = lines.iter().fold(0, |acc, item| {
-            std::cmp::max(acc, item.as_ref().width() as u16)
+            std::cmp::max(
+                acc,
+                UnicodeSegmentation::graphemes(item.as_ref(), true).count() as u16,
+            )
         });
         let mut buffer = Buffer::empty(Rect {
             x: 0,
