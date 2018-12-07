@@ -83,14 +83,16 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Length(7),
                         Constraint::Min(0),
                     ]
-                        .as_ref(),
-                ).split(size);
+                    .as_ref(),
+                )
+                .split(size);
             Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data1")
                         .borders(Borders::LEFT | Borders::RIGHT),
-                ).data(&app.data1)
+                )
+                .data(&app.data1)
                 .style(Style::default().fg(Color::Yellow))
                 .render(&mut f, chunks[0]);
             Sparkline::default()
@@ -98,7 +100,8 @@ fn main() -> Result<(), failure::Error> {
                     Block::default()
                         .title("Data2")
                         .borders(Borders::LEFT | Borders::RIGHT),
-                ).data(&app.data2)
+                )
+                .data(&app.data2)
                 .style(Style::default().bg(Color::Green))
                 .render(&mut f, chunks[1]);
             // Multiline
@@ -107,15 +110,18 @@ fn main() -> Result<(), failure::Error> {
                     Block::default()
                         .title("Data3")
                         .borders(Borders::LEFT | Borders::RIGHT),
-                ).data(&app.data3)
+                )
+                .data(&app.data3)
                 .style(Style::default().fg(Color::Red))
                 .render(&mut f, chunks[2]);
         })?;
 
         match events.next()? {
-            Event::Input(input) => if input == Key::Char('q') {
-                break;
-            },
+            Event::Input(input) => {
+                if input == Key::Char('q') {
+                    break;
+                }
+            }
             Event::Tick => {
                 app.update();
             }

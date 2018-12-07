@@ -16,9 +16,11 @@ fn main() -> Result<(), failure::Error> {
     loop {
         draw(&mut terminal)?;
         match terminal.backend().rustbox().poll_event(false) {
-            Ok(rustbox::Event::KeyEvent(key)) => if key == Key::Char('q') {
-                break;
-            },
+            Ok(rustbox::Event::KeyEvent(key)) => {
+                if key == Key::Char('q') {
+                    break;
+                }
+            }
             Err(e) => panic!("{}", e.description()),
             _ => {}
         };
@@ -41,6 +43,7 @@ fn draw(t: &mut Terminal<RustboxBackend>) -> Result<(), std::io::Error> {
                     .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Magenta)),
-            ).render(&mut f, size)
+            )
+            .render(&mut f, size)
     })
 }

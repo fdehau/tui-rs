@@ -199,9 +199,11 @@ fn main() -> Result<(), failure::Error> {
                         app.selected -= 1
                     };
                 }
-                Key::Down => if app.selected < app.items.len() - 1 {
-                    app.selected += 1;
-                },
+                Key::Down => {
+                    if app.selected < app.items.len() - 1 {
+                        app.selected += 1;
+                    }
+                }
                 Key::Left => {
                     app.tabs.previous();
                 }
@@ -255,8 +257,9 @@ where
                 Constraint::Min(7),
                 Constraint::Length(7),
             ]
-                .as_ref(),
-        ).split(area);
+            .as_ref(),
+        )
+        .split(area);
     draw_gauges(f, app, chunks[0]);
     draw_charts(f, app, chunks[1]);
     draw_text(f, chunks[2]);
@@ -281,7 +284,8 @@ where
                 .fg(Color::Magenta)
                 .bg(Color::Black)
                 .modifier(Modifier::Italic),
-        ).label(&format!("{} / 100", app.progress))
+        )
+        .label(&format!("{} / 100", app.progress))
         .percent(app.progress)
         .render(f, chunks[0]);
     Sparkline::default()
@@ -349,7 +353,8 @@ where
                     .fg(Color::Black)
                     .bg(Color::Green)
                     .modifier(Modifier::Italic),
-            ).label_style(Style::default().fg(Color::Yellow))
+            )
+            .label_style(Style::default().fg(Color::Yellow))
             .style(Style::default().fg(Color::Green))
             .render(f, chunks[1]);
     }
@@ -360,7 +365,8 @@ where
                     .title("Chart")
                     .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
                     .borders(Borders::ALL),
-            ).x_axis(
+            )
+            .x_axis(
                 Axis::default()
                     .title("X Axis")
                     .style(Style::default().fg(Color::Gray))
@@ -371,14 +377,16 @@ where
                         &format!("{}", (app.window[0] + app.window[1]) / 2.0),
                         &format!("{}", app.window[1]),
                     ]),
-            ).y_axis(
+            )
+            .y_axis(
                 Axis::default()
                     .title("Y Axis")
                     .style(Style::default().fg(Color::Gray))
                     .labels_style(Style::default().modifier(Modifier::Italic))
                     .bounds([-20.0, 20.0])
                     .labels(&["-20", "0", "20"]),
-            ).datasets(&[
+            )
+            .datasets(&[
                 Dataset::default()
                     .name("data2")
                     .marker(Marker::Dot)
@@ -389,7 +397,8 @@ where
                     .marker(Marker::Braille)
                     .style(Style::default().fg(Color::Yellow))
                     .data(&app.data3),
-            ]).render(f, chunks[1]);
+            ])
+            .render(f, chunks[1]);
     }
 }
 
@@ -420,7 +429,8 @@ where
                 .borders(Borders::ALL)
                 .title("Footer")
                 .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
-        ).wrap(true)
+        )
+        .wrap(true)
         .render(f, area);
 }
 
@@ -476,7 +486,8 @@ where
                 };
                 ctx.print(server.coords.1, server.coords.0, "X", color);
             }
-        }).x_bounds([-180.0, 180.0])
+        })
+        .x_bounds([-180.0, 180.0])
         .y_bounds([-90.0, 90.0])
         .render(f, chunks[1]);
 }

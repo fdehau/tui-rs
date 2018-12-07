@@ -428,24 +428,26 @@ where
 
         for dataset in self.datasets {
             match dataset.marker {
-                Marker::Dot => for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
-                    !(x < self.x_axis.bounds[0]
-                        || x > self.x_axis.bounds[1]
-                        || y < self.y_axis.bounds[0]
-                        || y > self.y_axis.bounds[1])
-                }) {
-                    let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1)
-                        / (self.y_axis.bounds[1] - self.y_axis.bounds[0]))
-                        as u16;
-                    let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1)
-                        / (self.x_axis.bounds[1] - self.x_axis.bounds[0]))
-                        as u16;
+                Marker::Dot => {
+                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
+                        !(x < self.x_axis.bounds[0]
+                            || x > self.x_axis.bounds[1]
+                            || y < self.y_axis.bounds[0]
+                            || y > self.y_axis.bounds[1])
+                    }) {
+                        let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1)
+                            / (self.y_axis.bounds[1] - self.y_axis.bounds[0]))
+                            as u16;
+                        let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1)
+                            / (self.x_axis.bounds[1] - self.x_axis.bounds[0]))
+                            as u16;
 
-                    buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
-                        .set_symbol(symbols::DOT)
-                        .set_fg(dataset.style.fg)
-                        .set_bg(dataset.style.bg);
-                },
+                        buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
+                            .set_symbol(symbols::DOT)
+                            .set_fg(dataset.style.fg)
+                            .set_bg(dataset.style.bg);
+                    }
+                }
                 Marker::Braille => {
                     Canvas::default()
                         .background_color(self.style.bg)
@@ -456,7 +458,8 @@ where
                                 coords: dataset.data,
                                 color: dataset.style.fg,
                             });
-                        }).draw(graph_area, buf);
+                        })
+                        .draw(graph_area, buf);
                 }
             }
         }

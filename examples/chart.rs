@@ -80,7 +80,8 @@ fn main() -> Result<(), failure::Error> {
                         .title("Chart")
                         .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
                         .borders(Borders::ALL),
-                ).x_axis(
+                )
+                .x_axis(
                     Axis::default()
                         .title("X Axis")
                         .style(Style::default().fg(Color::Gray))
@@ -91,14 +92,16 @@ fn main() -> Result<(), failure::Error> {
                             &format!("{}", (app.window[0] + app.window[1]) / 2.0),
                             &format!("{}", app.window[1]),
                         ]),
-                ).y_axis(
+                )
+                .y_axis(
                     Axis::default()
                         .title("Y Axis")
                         .style(Style::default().fg(Color::Gray))
                         .labels_style(Style::default().modifier(Modifier::Italic))
                         .bounds([-20.0, 20.0])
                         .labels(&["-20", "0", "20"]),
-                ).datasets(&[
+                )
+                .datasets(&[
                     Dataset::default()
                         .name("data2")
                         .marker(Marker::Dot)
@@ -109,13 +112,16 @@ fn main() -> Result<(), failure::Error> {
                         .marker(Marker::Braille)
                         .style(Style::default().fg(Color::Yellow))
                         .data(&app.data2),
-                ]).render(&mut f, size);
+                ])
+                .render(&mut f, size);
         })?;
 
         match events.next()? {
-            Event::Input(input) => if input == Key::Char('q') {
-                break;
-            },
+            Event::Input(input) => {
+                if input == Key::Char('q') {
+                    break;
+                }
+            }
             Event::Tick => {
                 app.update();
             }

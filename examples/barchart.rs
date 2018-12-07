@@ -117,9 +117,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(input) => if input == Key::Char('q') {
-                break;
-            },
+            Event::Input(input) => {
+                if input == Key::Char('q') {
+                    break;
+                }
+            }
             Event::Tick => {
                 app.update();
             }

@@ -60,7 +60,8 @@ fn main() -> Result<(), failure::Error> {
                             .fg(Color::White)
                             .bg(Color::Red)
                             .modifier(Modifier::Bold),
-                    ).render(&mut f, chunks[1]);
+                    )
+                    .render(&mut f, chunks[1]);
             }
             {
                 let chunks = Layout::default()
@@ -80,9 +81,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(key) => if key == Key::Char('q') {
-                break;
-            },
+            Event::Input(key) => {
+                if key == Key::Char('q') {
+                    break;
+                }
+            }
             _ => {}
         }
     }

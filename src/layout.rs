@@ -379,7 +379,8 @@ fn test_rect_size_truncation() {
             // but let's make sure the ratios don't diverge crazily.
             assert!(
                 (f64::from(rect.width) / f64::from(rect.height)
-                    - f64::from(width) / f64::from(height)).abs()
+                    - f64::from(width) / f64::from(height))
+                .abs()
                     < 1.0
             )
         }

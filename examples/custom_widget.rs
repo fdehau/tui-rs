@@ -61,9 +61,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(key) => if key == Key::Char('q') {
-                break;
-            },
+            Event::Input(key) => {
+                if key == Key::Char('q') {
+                    break;
+                }
+            }
             _ => {}
         }
     }
