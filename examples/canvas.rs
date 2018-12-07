@@ -90,13 +90,11 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::new();
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(size);
+                .split(f.size());
             Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("World"))
                 .paint(|ctx| {

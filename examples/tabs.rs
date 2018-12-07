@@ -42,9 +42,8 @@ fn main() -> Result<(), failure::Error> {
 
     // Main loop
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
+            let size = f.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(5)

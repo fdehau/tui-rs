@@ -56,8 +56,6 @@ fn main() -> Result<(), failure::Error> {
 
     // Input
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
             let normal_style = Style::default().fg(Color::White);
@@ -73,7 +71,7 @@ fn main() -> Result<(), failure::Error> {
             let rects = Layout::default()
                 .constraints([Constraint::Percentage(100)].as_ref())
                 .margin(5)
-                .split(size);
+                .split(f.size());
             Table::new(header.into_iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
                 .widths(&[10, 10, 10])

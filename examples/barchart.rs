@@ -77,13 +77,12 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::new();
 
     loop {
-        let size = terminal.size()?;
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(size);
+                .split(f.size());
             BarChart::default()
                 .block(Block::default().title("Data1").borders(Borders::ALL))
                 .data(&app.data)

@@ -30,12 +30,12 @@ fn main() -> Result<(), failure::Error> {
 }
 
 fn draw(t: &mut Terminal<RustboxBackend>) -> Result<(), std::io::Error> {
-    let size = t.size()?;
     let text = [
         Text::raw("It "),
         Text::styled("works", Style::default().fg(Color::Yellow)),
     ];
     t.draw(|mut f| {
+        let size = f.size();
         Paragraph::new(text.iter())
             .block(
                 Block::default()
