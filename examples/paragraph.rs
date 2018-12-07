@@ -31,13 +31,13 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::new();
 
     loop {
-        let size = terminal.size()?;
-
-        let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
-        long_line.insert_str(0, "Very long line: ");
-        long_line.push('\n');
-
         terminal.draw(|mut f| {
+            let size = f.size();
+
+            let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
+            long_line.insert_str(0, "Very long line: ");
+            long_line.push('\n');
+
             Block::default()
                 .style(Style::default().bg(Color::White))
                 .render(&mut f, size);

@@ -65,16 +65,13 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::default();
 
     loop {
-        // Handle resize
-        let size = terminal.size()?;
-
         // Draw UI
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-                .split(size);
+                .split(f.size());
             Paragraph::new([Text::raw(&app.input)].iter())
                 .style(Style::default().fg(Color::Yellow))
                 .block(Block::default().borders(Borders::ALL).title("Input"))

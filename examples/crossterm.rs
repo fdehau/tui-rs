@@ -13,9 +13,8 @@ fn main() -> Result<(), failure::Error> {
     terminal.hide_cursor()?;
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
+            let size = f.size();
             let text = [
                 Text::raw("It "),
                 Text::styled("works", Style::default().fg(Color::Yellow)),

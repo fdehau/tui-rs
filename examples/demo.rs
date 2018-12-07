@@ -168,13 +168,11 @@ fn main() -> Result<(), failure::Error> {
     };
 
     loop {
-        let size = terminal.size()?;
-
         // Draw UI
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-                .split(size);
+                .split(f.size());
             Tabs::default()
                 .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)

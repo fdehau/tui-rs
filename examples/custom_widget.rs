@@ -54,9 +54,8 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::new();
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
+            let size = f.size();
             Label::default().text("Test").render(&mut f, size);
         })?;
 

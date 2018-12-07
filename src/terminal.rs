@@ -19,9 +19,11 @@ where
     current: usize,
     /// Whether the cursor is currently hidden
     hidden_cursor: bool,
-    prev_size: Option<Rect>,
+    /// Terminal size used for rendering.
+    known_size: Rect,
 }
 
+/// Represents a consistent terminal interface for rendering.
 pub struct Frame<'a, B: 'a>
 where
     B: Backend,
@@ -33,6 +35,11 @@ impl<'a, B> Frame<'a, B>
 where
     B: Backend,
 {
+    /// Terminal size, guaranteed not to change when rendering.
+    pub fn size(&self) -> Rect {
+        self.terminal.known_size
+    }
+
     /// Calls the draw method of a given widget on the current buffer
     pub fn render<W>(&mut self, widget: &mut W, area: Rect)
     where
@@ -69,10 +76,11 @@ where
             buffers: [Buffer::empty(size), Buffer::empty(size)],
             current: 0,
             hidden_cursor: false,
-            prev_size: None,
+            known_size: size,
         })
     }
 
+    /// Get a Frame object which provides a consistent view into the terminal state for rendering.
     pub fn get_frame(&mut self) -> Frame<B> {
         Frame { terminal: self }
     }
@@ -111,27 +119,36 @@ where
         self.backend.draw(content)
     }
 
-    /// Updates the interface so that internal buffers matches the current size of the terminal.
-    /// This leads to a full redraw of the screen.
+    /// Updates the Terminal so that internal buffers match the requested size. Requested size will
+    /// be saved so the size can remain consistent when rendering.
+    /// This leads to a full clear of the screen.
     pub fn resize(&mut self, area: Rect) -> io::Result<()> {
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].reset();
         self.buffers[1 - self.current].resize(area);
-        self.prev_size = Some(area);
+        self.known_size = area;
         self.backend.clear()
     }
 
-    /// Flushes the current internal state and prepares the interface for the next draw call
+    /// Queries the backend for size and resizes if it doesn't match the previous size.
+    pub fn autoresize(&mut self) -> io::Result<()> {
+        let size = self.size()?;
+        if self.known_size != size {
+            self.resize(size)?;
+        }
+        Ok(())
+    }
+
+    /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
+    /// and prepares for the next draw call.
     pub fn draw<F>(&mut self, f: F) -> io::Result<()>
     where
         F: FnOnce(Frame<B>),
     {
         // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
         // and the terminal (if growing), which may OOB.
-        let size = self.size()?;
-        if self.prev_size != Some(size) {
-            self.resize(size)?;
-        }
+        self.autoresize()?;
+
         f(self.get_frame());
 
         // Draw to stdout
@@ -159,6 +176,7 @@ where
     pub fn clear(&mut self) -> io::Result<()> {
         self.backend.clear()
     }
+    /// Queries the real size of the backend.
     pub fn size(&self) -> io::Result<Rect> {
         self.backend.size()
     }

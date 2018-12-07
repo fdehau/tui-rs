@@ -70,8 +70,6 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::new();
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -85,7 +83,7 @@ fn main() -> Result<(), failure::Error> {
                     ]
                     .as_ref(),
                 )
-                .split(size);
+                .split(f.size());
             Sparkline::default()
                 .block(
                     Block::default()

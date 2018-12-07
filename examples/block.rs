@@ -31,18 +31,17 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::new();
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
             // Wrapping block for a group
             // Just draw the block and the group on the same area and build the group
             // with at least a margin of 1
+            let size = f.size();
             Block::default().borders(Borders::ALL).render(&mut f, size);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-                .split(size);
+                .split(f.size());
             {
                 let chunks = Layout::default()
                     .direction(Direction::Horizontal)

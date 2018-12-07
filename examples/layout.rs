@@ -34,8 +34,6 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::new();
 
     loop {
-        let size = terminal.size()?;
-
         terminal.draw(|mut f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -47,7 +45,7 @@ fn main() -> Result<(), failure::Error> {
                     ]
                     .as_ref(),
                 )
-                .split(size);
+                .split(f.size());
 
             Block::default()
                 .title("Block")
