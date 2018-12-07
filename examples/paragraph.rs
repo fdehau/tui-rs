@@ -51,8 +51,9 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Percentage(30),
                         Constraint::Percentage(30),
                     ]
-                        .as_ref(),
-                ).split(size);
+                    .as_ref(),
+                )
+                .split(size);
 
             let text = [
                 Text::raw("This a line\n"),
@@ -83,9 +84,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(key) => if key == Key::Char('q') {
-                break;
-            },
+            Event::Input(key) => {
+                if key == Key::Char('q') {
+                    break;
+                }
+            }
             _ => {}
         }
     }

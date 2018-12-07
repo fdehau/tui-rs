@@ -105,7 +105,8 @@ fn main() -> Result<(), failure::Error> {
                         resolution: MapResolution::High,
                     });
                     ctx.print(app.x, -app.y, "You are here", Color::Yellow);
-                }).x_bounds([-180.0, 180.0])
+                })
+                .x_bounds([-180.0, 180.0])
                 .y_bounds([-90.0, 90.0])
                 .render(&mut f, chunks[0]);
             Canvas::default()
@@ -139,7 +140,8 @@ fn main() -> Result<(), failure::Error> {
                         y2: f64::from(app.ball.top()),
                         color: Color::Yellow,
                     });
-                }).x_bounds([10.0, 110.0])
+                })
+                .x_bounds([10.0, 110.0])
                 .y_bounds([10.0, 110.0])
                 .render(&mut f, chunks[1]);
         })?;

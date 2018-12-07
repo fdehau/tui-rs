@@ -154,7 +154,8 @@ impl<'a> Widget for BarChart<'a> {
                     buf.get_mut(
                         chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
                         chart_area.top() + j,
-                    ).set_symbol(symbol)
+                    )
+                    .set_symbol(symbol)
                     .set_style(self.style);
                 }
 

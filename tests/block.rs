@@ -27,7 +27,8 @@ fn it_draws_a_block() {
                         height: 8,
                     },
                 );
-        }).unwrap();
+        })
+        .unwrap();
     let mut expected = Buffer::with_lines(vec![
         "┌Title─┐  ",
         "│      │  ",

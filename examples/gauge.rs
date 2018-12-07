@@ -83,8 +83,9 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Percentage(25),
                         Constraint::Percentage(25),
                     ]
-                        .as_ref(),
-                ).split(size);
+                    .as_ref(),
+                )
+                .split(size);
 
             Gauge::default()
                 .block(Block::default().title("Gauge1").borders(Borders::ALL))
@@ -111,9 +112,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(input) => if input == Key::Char('q') {
-                break;
-            },
+            Event::Input(input) => {
+                if input == Key::Char('q') {
+                    break;
+                }
+            }
             Event::Tick => {
                 app.update();
             }

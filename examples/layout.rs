@@ -45,8 +45,9 @@ fn main() -> Result<(), failure::Error> {
                         Constraint::Percentage(80),
                         Constraint::Percentage(10),
                     ]
-                        .as_ref(),
-                ).split(size);
+                    .as_ref(),
+                )
+                .split(size);
 
             Block::default()
                 .title("Block")
@@ -59,9 +60,11 @@ fn main() -> Result<(), failure::Error> {
         })?;
 
         match events.next()? {
-            Event::Input(input) => if let Key::Char('q') = input {
-                break;
-            },
+            Event::Input(input) => {
+                if let Key::Char('q') = input {
+                    break;
+                }
+            }
             _ => {}
         }
     }

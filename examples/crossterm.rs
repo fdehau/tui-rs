@@ -27,7 +27,8 @@ fn main() -> Result<(), failure::Error> {
                         .title_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                         .borders(Borders::ALL)
                         .border_style(Style::default().fg(Color::Magenta)),
-                ).render(&mut f, size);
+                )
+                .render(&mut f, size);
         })?;
 
         let input = crossterm::input();

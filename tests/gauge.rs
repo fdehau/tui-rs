@@ -28,7 +28,8 @@ fn gauge_render() {
                 .block(Block::default().title("Ratio").borders(Borders::ALL))
                 .ratio(0.2113139343131)
                 .render(&mut f, chunks[1]);
-        }).unwrap();
+        })
+        .unwrap();
     let expected = Buffer::with_lines(vec![
         "                                        ",
         "                                        ",

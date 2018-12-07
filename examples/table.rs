@@ -91,11 +91,13 @@ fn main() -> Result<(), failure::Error> {
                         app.selected = 0;
                     }
                 }
-                Key::Up => if app.selected > 0 {
-                    app.selected -= 1;
-                } else {
-                    app.selected = app.items.len() - 1;
-                },
+                Key::Up => {
+                    if app.selected > 0 {
+                        app.selected -= 1;
+                    } else {
+                        app.selected = app.items.len() - 1;
+                    }
+                }
                 _ => {}
             },
             _ => {}
