@@ -30,12 +30,13 @@ fn main() -> Result<(), failure::Error> {
 
     let events = Events::new();
 
+    let mut scroll: u16 = 0;
     loop {
         terminal.draw(|mut f| {
             let size = f.size();
 
             // Words made "loooong" to demonstrate line breaking.
-            let s = "Veeeeeeeeeeeeeeeery loooooooooooooooooong striiiiiiiiiiiiiiiiiiiiiiiiiing. ";
+            let s = "Veeeeeeeeeeeeeeeery    loooooooooooooooooong   striiiiiiiiiiiiiiiiiiiiiiiiiing.   ";
             let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
             long_line.push('\n');
 
@@ -58,16 +59,16 @@ fn main() -> Result<(), failure::Error> {
                 .split(size);
 
             let text = [
-                Text::raw("This a line\n"),
-                Text::styled("This a line\n", Style::default().fg(Color::Red)),
-                Text::styled("This a line\n", Style::default().bg(Color::Blue)),
+                Text::raw("This is a line \n"),
+                Text::styled("This is a line   \n", Style::default().fg(Color::Red)),
+                Text::styled("This is a line\n", Style::default().bg(Color::Blue)),
                 Text::styled(
-                    "This a longer line\n",
+                    "This is a longer line\n",
                     Style::default().modifier(Modifier::CrossedOut),
                 ),
-                Text::raw(&long_line),
+                Text::styled(&long_line, Style::default().bg(Color::Green)),
                 Text::styled(
-                    "This a line\n",
+                    "This is a line\n",
                     Style::default().fg(Color::Green).modifier(Modifier::Italic),
                 ),
             ];
@@ -88,6 +89,7 @@ fn main() -> Result<(), failure::Error> {
                 .block(block.clone().title("Center, wrap"))
                 .alignment(Alignment::Center)
                 .wrap(true)
+                .scroll(scroll)
                 .render(&mut f, chunks[2]);
             Paragraph::new(text.iter())
                 .block(block.clone().title("Right, wrap"))
@@ -95,6 +97,9 @@ fn main() -> Result<(), failure::Error> {
                 .wrap(true)
                 .render(&mut f, chunks[3]);
         })?;
+
+        scroll += 1;
+        scroll %= 10;
 
         match events.next()? {
             Event::Input(key) => {

@@ -4,43 +4,81 @@ extern crate tui;
 
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
+use tui::layout::Alignment;
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
 
+const SAMPLE_STRING: &str =
+    "The library is based on the principle of immediate rendering with \
+     intermediate buffers. This means that at each new frame you should build all widgets that are \
+     supposed to be part of the UI. While providing a great flexibility for rich and \
+     interactive UI, this may introduce overhead for highly dynamic content.";
+
 #[test]
-fn paragraph_render_single_width() {
-    let backend = TestBackend::new(20, 10);
-    let mut terminal = Terminal::new(backend).unwrap();
+fn paragraph_render_wrap() {
+    let render = |alignment| {
+        let backend = TestBackend::new(20, 10);
+        let mut terminal = Terminal::new(backend).unwrap();
 
-    let s = "The library is based on the principle of immediate rendering with intermediate \
-             buffers. This means that at each new frame you should build all widgets that are \
-             supposed to be part of the UI. While providing a great flexibility for rich and \
-             interactive UI, this may introduce overhead for highly dynamic content.";
+        terminal
+            .draw(|mut f| {
+                let size = f.size();
+                let text = [Text::raw(SAMPLE_STRING)];
+                Paragraph::new(text.iter())
+                    .block(Block::default().borders(Borders::ALL))
+                    .alignment(alignment)
+                    .wrap(true)
+                    .render(&mut f, size);
+            })
+            .unwrap();
+        terminal.backend().buffer().clone()
+    };
 
-    terminal
-        .draw(|mut f| {
-            let size = f.size();
-            let text = [Text::raw(s)];
-            Paragraph::new(text.iter())
-                .block(Block::default().borders(Borders::ALL))
-                .wrap(true)
-                .render(&mut f, size);
-        })
-        .unwrap();
-
-    let expected = Buffer::with_lines(vec![
-        "┌──────────────────┐",
-        "│The library is bas│",
-        "│ed on the principl│",
-        "│e of immediate ren│",
-        "│dering with interm│",
-        "│ediate buffers. Th│",
-        "│is means that at e│",
-        "│ach new frame you │",
-        "│should build all w│",
-        "└──────────────────┘",
-    ]);
-    assert_eq!(&expected, terminal.backend().buffer());
+    assert_eq!(
+        render(Alignment::Left),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│The library is    │",
+            "│based on the      │",
+            "│principle of      │",
+            "│immediate         │",
+            "│rendering with    │",
+            "│intermediate      │",
+            "│buffers. This     │",
+            "│means that at each│",
+            "└──────────────────┘",
+        ])
+    );
+    assert_eq!(
+        render(Alignment::Right),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│    The library is│",
+            "│      based on the│",
+            "│      principle of│",
+            "│         immediate│",
+            "│    rendering with│",
+            "│      intermediate│",
+            "│     buffers. This│",
+            "│means that at each│",
+            "└──────────────────┘",
+        ])
+    );
+    assert_eq!(
+        render(Alignment::Center),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│  The library is  │",
+            "│   based on the   │",
+            "│   principle of   │",
+            "│     immediate    │",
+            "│  rendering with  │",
+            "│   intermediate   │",
+            "│   buffers. This  │",
+            "│means that at each│",
+            "└──────────────────┘",
+        ])
+    );
 }
 
 #[test]
@@ -49,7 +87,6 @@ fn paragraph_render_double_width() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let s = "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点では、";
-
     terminal
         .draw(|mut f| {
             let size = f.size();
@@ -85,7 +122,6 @@ fn paragraph_render_mixed_width() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let s = "aコンピュータ上で文字を扱う場合、";
-
     terminal
         .draw(|mut f| {
             let size = f.size();
