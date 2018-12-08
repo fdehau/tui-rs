@@ -7,6 +7,7 @@ mod chart;
 mod gauge;
 mod list;
 mod paragraph;
+mod reflow;
 mod sparkline;
 mod table;
 mod tabs;

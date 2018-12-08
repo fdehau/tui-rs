@@ -1,12 +1,20 @@
 use either::Either;
-use itertools::{multipeek, MultiPeek};
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 use buffer::Buffer;
 use layout::{Alignment, Rect};
 use style::Style;
+use widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
 use widgets::{Block, Text, Widget};
+
+fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
+    match alignment {
+        Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
+        Alignment::Right => text_area_width.saturating_sub(line_width),
+        Alignment::Left => 0,
+    }
+}
 
 /// A widget to display some text.
 ///
@@ -96,7 +104,7 @@ where
     }
 }
 
-impl<'a, 't, T> Widget for Paragraph<'a, 't, T>
+impl<'a, 't, 'b, T> Widget for Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
@@ -116,94 +124,37 @@ where
         self.background(&text_area, buf, self.style.bg);
 
         let style = self.style;
-        let styled = self.text.by_ref().flat_map(|t| match *t {
+        let mut styled = self.text.by_ref().flat_map(|t| match *t {
             Text::Raw(ref d) => {
                 let data: &'t str = d; // coerce to &str
-                Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| (g, style)))
+                Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| Styled(g, style)))
             }
             Text::Styled(ref d, s) => {
                 let data: &'t str = d; // coerce to &str
-                Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| (g, s)))
+                Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| Styled(g, s)))
             }
         });
-        let mut styled = multipeek(styled);
 
-        fn get_cur_line_len<'a, I: Iterator<Item = (&'a str, Style)>>(
-            styled: &mut MultiPeek<I>,
-        ) -> u16 {
-            let mut line_len = 0;
-            while match &styled.peek() {
-                Some(&(x, _)) => x != "\n",
-                None => false,
-            } {
-                line_len += 1;
-            }
-            line_len
-        };
-
-        let mut x = match self.alignment {
-            Alignment::Center => {
-                (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
-            }
-            Alignment::Right => (text_area.width).saturating_sub(get_cur_line_len(&mut styled)),
-            Alignment::Left => 0,
+        let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
+            Box::new(WordWrapper::new(&mut styled, text_area.width))
+        } else {
+            Box::new(LineTruncator::new(&mut styled, text_area.width))
         };
         let mut y = 0;
-
-        let mut remove_leading_whitespaces = false;
-        while let Some((string, style)) = styled.next() {
-            if string == "\n" {
-                x = match self.alignment {
-                    Alignment::Center => {
-                        (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
-                    }
-
-                    Alignment::Right => {
-                        (text_area.width).saturating_sub(get_cur_line_len(&mut styled))
-                    }
-                    Alignment::Left => 0,
-                };
-                y += 1;
-                continue;
-            }
-            let token_end_index = x + string.width() as u16 - 1;
-            let last_column_index = text_area.width - 1;
-            if token_end_index > last_column_index {
-                if !self.wrapping {
-                    continue; // Truncate the remainder of the line.
-                } else {
-                    x = match self.alignment {
-                        Alignment::Center => {
-                            (text_area.width / 2).saturating_sub(get_cur_line_len(&mut styled) / 2)
-                        }
-
-                        Alignment::Right => {
-                            (text_area.width).saturating_sub(get_cur_line_len(&mut styled) + 1)
-                        }
-                        Alignment::Left => 0,
-                    };
-                    y += 1;
-                    remove_leading_whitespaces = true
+        while let Some((current_line, current_line_width)) = line_composer.next_line() {
+            if y >= self.scroll {
+                let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
+                for Styled(symbol, style) in current_line {
+                    buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
+                        .set_symbol(symbol)
+                        .set_style(*style);
+                    x += symbol.width() as u16;
                 }
             }
-
-            if remove_leading_whitespaces && string == " " {
-                continue;
-            }
-            remove_leading_whitespaces = false;
-
-            if y > text_area.height + self.scroll - 1 {
+            y += 1;
+            if y >= text_area.height + self.scroll {
                 break;
             }
-
-            if y < self.scroll {
-                continue;
-            }
-
-            buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
-                .set_symbol(string)
-                .set_style(style);
-            x += string.width() as u16;
         }
     }
 }
