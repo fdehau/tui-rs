@@ -1,5 +1,3 @@
-use either::Either;
-use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
@@ -123,17 +121,11 @@ where
         self.background(text_area, buf, self.style.bg);
 
         let style = self.style;
-        let mut styled = self.text.by_ref().flat_map(|t| match *t {
-            Text::Raw(ref d) => {
-                let data: &'t str = d; // coerce to &str
-                Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| Styled(g, style)))
-            }
-            Text::Styled(ref d, s) => {
-                let data: &'t str = d; // coerce to &str
-                Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| Styled(g, s)))
-            }
-        });
-
+        let mut styled = self
+            .text
+            .by_ref()
+            .flat_map(|t| t.styled_graphemes(style))
+            .map(|(symbol, style)| Styled(symbol, style));
         let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
             Box::new(WordWrapper::new(&mut styled, text_area.width))
         } else {

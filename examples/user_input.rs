@@ -22,7 +22,7 @@ use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
+use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
 use unicode_width::UnicodeWidthStr;
@@ -76,7 +76,13 @@ fn main() -> Result<(), failure::Error> {
                 .messages
                 .iter()
                 .enumerate()
-                .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
+                .map(|(i, m)| {
+                    Text::with_styles(vec![
+                        (format!("{}", i), Style::default().modifier(Modifier::BOLD)),
+                        (format!(" : {}", m), Style::default()),
+                    ])
+                })
+                .collect();
             List::new(messages)
                 .block(Block::default().borders(Borders::ALL).title("Messages"))
                 .render(&mut f, chunks[1]);

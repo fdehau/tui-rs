@@ -5,8 +5,8 @@ use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{
-    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Text, Widget,
+    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row, Sparkline,
+    Table, Tabs, Text, Widget,
 };
 use tui::{Frame, Terminal};
 
@@ -103,28 +103,35 @@ where
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .direction(Direction::Horizontal)
                 .split(chunks[0]);
-            SelectableList::default()
+            let items = app.tasks.items.iter().map(|i| Text::raw(*i)).collect();
+            List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.tasks.items)
                 .select(Some(app.tasks.selected))
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
                 .highlight_symbol(">")
                 .render(f, chunks[0]);
-            let info_style = Style::default().fg(Color::White);
+            let info_style = Style::default().fg(Color::Blue);
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
             let critical_style = Style::default().fg(Color::Red);
-            let events = app.logs.items.iter().map(|&(evt, level)| {
-                Text::styled(
-                    format!("{}: {}", level, evt),
-                    match level {
+            let events = app
+                .logs
+                .items
+                .iter()
+                .map(|&(evt, level)| {
+                    let level_style = match level {
                         "ERROR" => error_style,
                         "CRITICAL" => critical_style,
                         "WARNING" => warning_style,
-                        _ => info_style,
-                    },
-                )
-            });
+                        "INFO" => info_style,
+                        _ => Style::default(),
+                    };
+                    Text::with_styles(vec![
+                        (format!("{:<10}", level), level_style),
+                        (format!(" : {}", evt), Style::default()),
+                    ])
+                })
+                .collect();
             List::new(events)
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .render(f, chunks[1]);

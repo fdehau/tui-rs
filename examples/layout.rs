@@ -15,6 +15,10 @@ use tui::Terminal;
 use crate::util::event::{Event, Events};
 
 fn main() -> Result<(), failure::Error> {
+    stderrlog::new()
+        .module(module_path!())
+        .verbosity(4)
+        .init()?;
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -40,7 +44,7 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
 
             Block::default()
-                .title("Block")
+                .title("Block 1")
                 .borders(Borders::ALL)
                 .render(&mut f, chunks[0]);
             Block::default()

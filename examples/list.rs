@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Corner, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
+use tui::widgets::{Block, Borders, List, Text, Widget};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -29,13 +29,34 @@ impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
             items: vec![
-                "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
-                "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
-                "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
+                "Item1\nItem11\nItem12",
+                "Item2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222",
+                "Item3",
+                "Item4",
+                "Item5",
+                "Item6",
+                "Item7",
+                "Item8",
+                "Item9",
+                "Item10",
+                "Item11",
+                "Item12",
+                "Item13",
+                "Item14",
+                "Item15",
+                "Item16",
+                "Item17",
+                "Item18",
+                "Item19",
+                "Item20",
+                "Item21",
+                "Item22",
+                "Item23",
+                "Item24",
             ],
             selected: None,
             events: vec![
-                ("Event1", "INFO"),
+                ("Event1\nlorem ipsum", "INFO"),
                 ("Event2", "INFO"),
                 ("Event3", "CRITICAL"),
                 ("Event4", "ERROR"),
@@ -62,7 +83,7 @@ impl<'a> App<'a> {
                 ("Event25", "INFO"),
                 ("Event26", "INFO"),
             ],
-            info_style: Style::default().fg(Color::White),
+            info_style: Style::default().fg(Color::Blue),
             warning_style: Style::default().fg(Color::Yellow),
             error_style: Style::default().fg(Color::Magenta),
             critical_style: Style::default().fg(Color::Red),
@@ -97,26 +118,39 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
 
             let style = Style::default().fg(Color::Black).bg(Color::White);
-            SelectableList::default()
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(app.selected)
-                .style(style)
-                .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
-                .highlight_symbol(">")
-                .render(&mut f, chunks[0]);
             {
-                let events = app.events.iter().map(|&(evt, level)| {
-                    Text::styled(
-                        format!("{}: {}", level, evt),
-                        match level {
+                let items = app
+                    .items
+                    .iter()
+                    .map(|i| Text::raw(*i))
+                    .collect::<Vec<Text>>();
+                List::new(items)
+                    .block(Block::default().borders(Borders::ALL).title("List"))
+                    .style(style)
+                    .select(app.selected)
+                    .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
+                    .highlight_symbol(">")
+                    .render(&mut f, chunks[0]);
+            }
+            {
+                let events = app
+                    .events
+                    .iter()
+                    .map(|&(evt, level)| {
+                        let level_style = match level {
                             "ERROR" => app.error_style,
                             "CRITICAL" => app.critical_style,
                             "WARNING" => app.warning_style,
-                            _ => app.info_style,
-                        },
-                    )
-                });
+                            "INFO" => app.info_style,
+                            _ => Default::default(),
+                        };
+                        Text::with_styles(vec![
+                            (format!("{:<10}", level), level_style),
+                            (" : ".to_owned(), Default::default()),
+                            (evt.to_owned(), Default::default()),
+                        ])
+                    })
+                    .collect();
                 List::new(events)
                     .block(Block::default().borders(Borders::ALL).title("List"))
                     .start_corner(Corner::BottomLeft)

@@ -26,18 +26,20 @@ fn it_draws_a_block() {
                 );
         })
         .unwrap();
-    let mut expected = Buffer::with_lines(vec![
-        "┌Title─┐  ",
-        "│      │  ",
-        "│      │  ",
-        "│      │  ",
-        "│      │  ",
-        "│      │  ",
-        "│      │  ",
-        "└──────┘  ",
-        "          ",
-        "          ",
-    ]);
+    let mut expected = Buffer::with_lines(
+        vec![
+            "┌Title─┐  ",
+            "│      │  ",
+            "│      │  ",
+            "│      │  ",
+            "│      │  ",
+            "│      │  ",
+            "│      │  ",
+            "└──────┘  ",
+            "          ",
+            "          ",
+        ]
+    );
     for x in 1..=5 {
         expected.get_mut(x, 0).set_fg(Color::LightBlue);
     }

@@ -1,5 +1,7 @@
 use bitflags::bitflags;
+use either::Either;
 use std::borrow::Cow;
+use unicode_segmentation::UnicodeSegmentation;
 
 mod barchart;
 mod block;
@@ -17,7 +19,7 @@ pub use self::barchart::BarChart;
 pub use self::block::Block;
 pub use self::chart::{Axis, Chart, Dataset, Marker};
 pub use self::gauge::Gauge;
-pub use self::list::{List, SelectableList};
+pub use self::list::List;
 pub use self::paragraph::Paragraph;
 pub use self::sparkline::Sparkline;
 pub use self::table::{Row, Table};
@@ -49,16 +51,57 @@ bitflags! {
 
 pub enum Text<'b> {
     Raw(Cow<'b, str>),
-    Styled(Cow<'b, str>, Style),
+    Styled(Vec<(Cow<'b, str>, Style)>),
 }
 
 impl<'b> Text<'b> {
-    pub fn raw<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
+    pub fn raw<D>(data: D) -> Text<'b>
+    where
+        D: Into<Cow<'b, str>>,
+    {
         Text::Raw(data.into())
     }
 
-    pub fn styled<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
-        Text::Styled(data.into(), style)
+    pub fn styled<D>(data: D, style: Style) -> Text<'b>
+    where
+        D: Into<Cow<'b, str>>,
+    {
+        Text::Styled(vec![(data.into(), style)])
+    }
+
+    pub fn with_styles<D>(items: Vec<(D, Style)>) -> Text<'b>
+    where
+        D: Into<Cow<'b, str>>,
+    {
+        Text::Styled(items.into_iter().map(|i| (i.0.into(), i.1)).collect())
+    }
+
+    pub fn height(&self) -> u16 {
+        match self {
+            Text::Raw(ref d) => d.lines().count() as u16,
+            Text::Styled(items) => {
+                items
+                    .iter()
+                    .flat_map(|i| i.0.chars())
+                    .filter(|i| i == &'\n')
+                    .count() as u16
+                    + 1
+            }
+        }
+    }
+
+    pub fn styled_graphemes(
+        &self,
+        default_style: Style,
+    ) -> Either<impl Iterator<Item = (&str, Style)>, impl Iterator<Item = (&str, Style)>> {
+        match self {
+            Text::Raw(d) => Either::Left(
+                UnicodeSegmentation::graphemes(&**d, true).map(move |g| (g, default_style)),
+            ),
+            Text::Styled(items) => Either::Right(items.iter().flat_map(|item| {
+                UnicodeSegmentation::graphemes(&*item.0, true).map(move |g| (g, item.1))
+            })),
+        }
     }
 }
 

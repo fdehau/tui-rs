@@ -1,5 +1,6 @@
-use crate::style::Style;
 use unicode_width::UnicodeWidthStr;
+
+use crate::style::Style;
 
 const NBSP: &str = "\u{00a0}";
 
