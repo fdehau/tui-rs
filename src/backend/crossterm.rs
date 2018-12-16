@@ -75,8 +75,11 @@ impl Backend for CrosstermBackend {
             if let Some(color) = cell.style.bg.into() {
                 s = s.on(color)
             }
-            if let Some(attr) = cell.style.modifier.into() {
-                s = s.attr(attr)
+            #[cfg(unix)]
+            {
+                if let Some(attr) = cell.style.modifier.into() {
+                    s = s.attr(attr)
+                }
             }
             s.paint(&self.screen);
         }
