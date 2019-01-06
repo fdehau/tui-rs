@@ -1,11 +1,9 @@
-extern crate crossterm;
-
 use std::io;
 
-use backend::Backend;
-use buffer::Cell;
-use layout::Rect;
-use style::{Color, Modifier};
+use crate::backend::Backend;
+use crate::buffer::Cell;
+use crate::layout::Rect;
+use crate::style::{Color, Modifier};
 
 pub struct CrosstermBackend {
     screen: crossterm::Screen,

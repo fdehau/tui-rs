@@ -10,6 +10,7 @@ repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
 exclude = ["assets/*", ".travis.yml"]
 autoexamples = true
+edition = "2018"
 
 [badges]
 travis-ci = { repository = "fdehau/tui-rs" }

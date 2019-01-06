@@ -1,10 +1,10 @@
 use std::fmt::Display;
 use std::iter::Iterator;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::widgets::{Block, Widget};
 
 /// Holds data to be displayed in a Table widget
 pub enum Row<D, I>

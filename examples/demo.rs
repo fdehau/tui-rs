@@ -1,9 +1,3 @@
-extern crate failure;
-extern crate log;
-extern crate stderrlog;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -23,8 +17,8 @@ use tui::widgets::{
 };
 use tui::{Frame, Terminal};
 
-use util::event::{Event, Events};
-use util::{RandomSignal, SinSignal, TabsState};
+use crate::util::event::{Event, Events};
+use crate::util::{RandomSignal, SinSignal, TabsState};
 
 struct Server<'a> {
     name: &'a str,

@@ -1,6 +1,3 @@
-extern crate tui;
-extern crate unicode_width;
-
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Rect;

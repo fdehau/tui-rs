@@ -1,12 +1,11 @@
-extern crate termion;
-
+use log::debug;
 use std::io;
 use std::io::Write;
 
 use super::Backend;
-use buffer::Cell;
-use layout::Rect;
-use style::{Color, Modifier, Style};
+use crate::buffer::Cell;
+use crate::layout::Rect;
+use crate::style::{Color, Modifier, Style};
 
 pub struct TermionBackend<W>
 where
@@ -111,7 +110,7 @@ where
 
     /// Return the size of the terminal
     fn size(&self) -> io::Result<Rect> {
-        let terminal = try!(termion::terminal_size());
+        let terminal = r#try!(termion::terminal_size());
         Ok(Rect::new(0, 0, terminal.0, terminal.1))
     }
 

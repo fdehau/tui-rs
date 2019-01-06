@@ -2,12 +2,12 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols;
-use widgets::canvas::{Canvas, Points};
-use widgets::{Block, Borders, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols;
+use crate::widgets::canvas::{Canvas, Points};
+use crate::widgets::{Block, Borders, Widget};
 
 /// An X or Y axis for the chart widget
 pub struct Axis<'a, L>
@@ -166,7 +166,6 @@ impl Default for ChartLayout {
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker};
 /// # use tui::style::{Style, Color};
 /// # fn main() {

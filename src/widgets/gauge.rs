@@ -1,16 +1,15 @@
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::{Color, Style};
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::{Color, Style};
+use crate::widgets::{Block, Widget};
 
 /// A widget to display a task progress.
 ///
 /// # Examples:
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Widget, Gauge, Block, Borders};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {

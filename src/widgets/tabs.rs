@@ -1,17 +1,16 @@
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols::line;
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::line;
+use crate::widgets::{Block, Widget};
 
 /// A widget to display available tabs in a multiple panels context.
 ///
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Tabs};
 /// # use tui::style::{Style, Color};
 /// # fn main() {

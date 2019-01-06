@@ -13,9 +13,6 @@
 //! backend is available.
 //!
 //! ```rust,no_run
-//! extern crate tui;
-//! extern crate termion;
-//!
 //! use std::io;
 //! use tui::Terminal;
 //! use tui::backend::TermionBackend;
@@ -42,7 +39,6 @@
 //! and then create the terminal in a similar way:
 //!
 //! ```rust,ignore
-//! extern crate tui;
 //!
 //! use tui::Terminal;
 //! use tui::backend::RustboxBackend;
@@ -68,8 +64,6 @@
 //! The following example renders a block of the size of the terminal:
 //!
 //! ```rust,no_run
-//! extern crate tui;
-//! extern crate termion;
 //!
 //! use std::io;
 //! use termion::raw::IntoRawMode;
@@ -99,8 +93,6 @@
 //! full customization. And `Layout` is no exception:
 //!
 //! ```rust,no_run
-//! extern crate tui;
-//! extern crate termion;
 //!
 //! use std::io;
 //! use termion::raw::IntoRawMode;
@@ -141,16 +133,6 @@
 //! that by default the computed layout tries to fill the available space
 //! completely. So if for any reason you might need a blank space somewhere, try to
 //! pass an additional constraint and don't use the corresponding area.
-
-#[macro_use]
-extern crate bitflags;
-extern crate cassowary;
-extern crate either;
-extern crate itertools;
-#[macro_use]
-extern crate log;
-extern crate unicode_segmentation;
-extern crate unicode_width;
 
 pub mod backend;
 pub mod buffer;

@@ -2,18 +2,17 @@ use std::cmp::{max, min};
 
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols::bar;
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::bar;
+use crate::widgets::{Block, Widget};
 
 /// Display multiple bars in a single widgets
 ///
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, BarChart};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
