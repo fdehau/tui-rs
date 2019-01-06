@@ -1,9 +1,10 @@
+use log::error;
 use std::io;
 
-use backend::Backend;
-use buffer::Buffer;
-use layout::Rect;
-use widgets::Widget;
+use crate::backend::Backend;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::widgets::Widget;
 
 /// Interface to the terminal backed by Termion
 #[derive(Debug)]

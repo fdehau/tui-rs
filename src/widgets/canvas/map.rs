@@ -1,7 +1,7 @@
-use style::Color;
-use widgets::canvas::points::PointsIterator;
-use widgets::canvas::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
-use widgets::canvas::Shape;
+use crate::style::Color;
+use crate::widgets::canvas::points::PointsIterator;
+use crate::widgets::canvas::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
+use crate::widgets::canvas::Shape;
 
 #[derive(Clone, Copy)]
 pub enum MapResolution {

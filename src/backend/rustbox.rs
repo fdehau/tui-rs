@@ -1,11 +1,10 @@
-extern crate rustbox;
-
+use log::debug;
 use std::io;
 
 use super::Backend;
-use buffer::Cell;
-use layout::Rect;
-use style::{Color, Modifier};
+use crate::buffer::Cell;
+use crate::layout::Rect;
+use crate::style::{Color, Modifier};
 
 pub struct RustboxBackend {
     rustbox: rustbox::RustBox,
@@ -13,7 +12,7 @@ pub struct RustboxBackend {
 
 impl RustboxBackend {
     pub fn new() -> Result<RustboxBackend, rustbox::InitError> {
-        let rustbox = try!(rustbox::RustBox::init(Default::default()));
+        let rustbox = r#try!(rustbox::RustBox::init(Default::default()));
         Ok(RustboxBackend { rustbox: rustbox })
     }
 

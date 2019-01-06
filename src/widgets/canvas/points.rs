@@ -1,7 +1,7 @@
 use std::slice;
 
 use super::Shape;
-use style::Color;
+use crate::style::Color;
 
 /// A shape to draw a group of points with the given color
 pub struct Points<'a> {

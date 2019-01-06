@@ -4,8 +4,8 @@ use std::usize;
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use layout::Rect;
-use style::{Color, Modifier, Style};
+use crate::layout::Rect;
+use crate::style::{Color, Modifier, Style};
 
 /// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
@@ -73,7 +73,6 @@ impl Default for Cell {
 /// # Examples:
 ///
 /// ```
-/// # extern crate tui;
 /// use tui::buffer::{Buffer, Cell};
 /// use tui::layout::Rect;
 /// use tui::style::{Color, Style, Modifier};

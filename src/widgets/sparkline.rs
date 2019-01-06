@@ -1,17 +1,16 @@
 use std::cmp::min;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols::bar;
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::bar;
+use crate::widgets::{Block, Widget};
 
 /// Widget to render a sparkline over one or more lines.
 ///
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Sparkline};
 /// # use tui::style::{Style, Color};
 /// # fn main() {

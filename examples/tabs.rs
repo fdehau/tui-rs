@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -17,8 +13,8 @@ use tui::style::{Color, Style};
 use tui::widgets::{Block, Borders, Tabs, Widget};
 use tui::Terminal;
 
-use util::event::{Event, Events};
-use util::TabsState;
+use crate::util::event::{Event, Events};
+use crate::util::TabsState;
 
 struct App<'a> {
     tabs: TabsState<'a>,

@@ -7,10 +7,10 @@ pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
 pub use self::points::Points;
 
-use buffer::Buffer;
-use layout::Rect;
-use style::{Color, Style};
-use widgets::{Block, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::{Color, Style};
+use crate::widgets::{Block, Widget};
 
 pub const DOTS: [[u16; 2]; 4] = [
     [0x0001, 0x0008],
@@ -132,7 +132,6 @@ impl<'a> Context<'a> {
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders};
 /// # use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
 /// # use tui::style::Color;

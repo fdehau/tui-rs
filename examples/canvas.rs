@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -19,7 +15,7 @@ use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
-use util::event::{Config, Event, Events};
+use crate::util::event::{Config, Event, Events};
 
 struct App {
     x: f64,

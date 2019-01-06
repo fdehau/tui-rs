@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -18,7 +14,7 @@ use tui::style::Style;
 use tui::widgets::Widget;
 use tui::Terminal;
 
-use util::event::{Event, Events};
+use crate::util::event::{Event, Events};
 
 struct Label<'a> {
     text: &'a str,

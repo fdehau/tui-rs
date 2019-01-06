@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Alignment;

@@ -1,7 +1,3 @@
-extern crate crossterm;
-extern crate failure;
-extern crate tui;
-
 use tui::backend::CrosstermBackend;
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};

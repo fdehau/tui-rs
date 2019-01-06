@@ -1,5 +1,5 @@
 use super::Shape;
-use style::Color;
+use crate::style::Color;
 
 /// Shape to draw a line from (x1, y1) to (x2, y2) with the given color
 pub struct Line {

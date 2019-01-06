@@ -1,3 +1,4 @@
+use bitflags::bitflags;
 use std::borrow::Cow;
 
 mod barchart;
@@ -22,11 +23,11 @@ pub use self::sparkline::Sparkline;
 pub use self::table::{Row, Table};
 pub use self::tabs::Tabs;
 
-use backend::Backend;
-use buffer::Buffer;
-use layout::Rect;
-use style::{Color, Style};
-use terminal::Frame;
+use crate::backend::Backend;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::{Color, Style};
+use crate::terminal::Frame;
 
 /// Bitflags that can be composed to set the visible borders essentially on the block widget.
 bitflags! {

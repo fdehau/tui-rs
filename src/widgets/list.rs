@@ -3,10 +3,10 @@ use std::iter::Iterator;
 
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::{Corner, Rect};
-use style::Style;
-use widgets::{Block, Text, Widget};
+use crate::buffer::Buffer;
+use crate::layout::{Corner, Rect};
+use crate::style::Style;
+use crate::widgets::{Block, Text, Widget};
 
 pub struct List<'b, L>
 where
@@ -117,7 +117,6 @@ where
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, SelectableList};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
