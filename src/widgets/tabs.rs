@@ -19,7 +19,7 @@ use crate::widgets::{Block, Widget};
 ///     .block(Block::default().title("Tabs").borders(Borders::ALL))
 ///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
 ///     .style(Style::default().fg(Color::White))
-///     .highlight_style(Style::default().fg(Color::Yellow));
+///     .highlight_style(Style::default().fg(Color::Yellow))
 ///     .divider(DOT);
 /// # }
 /// ```
