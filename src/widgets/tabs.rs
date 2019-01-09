@@ -14,12 +14,14 @@ use widgets::{Block, Widget};
 /// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Tabs};
 /// # use tui::style::{Style, Color};
+/// # use tui::symbols::{DOT};
 /// # fn main() {
 /// Tabs::default()
 ///     .block(Block::default().title("Tabs").borders(Borders::ALL))
 ///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
 ///     .style(Style::default().fg(Color::White))
 ///     .highlight_style(Style::default().fg(Color::Yellow));
+///     .divider(DOT);
 /// # }
 /// ```
 pub struct Tabs<'a, T>
@@ -36,6 +38,8 @@ where
     style: Style,
     /// The style used to display the selected item
     highlight_style: Style,
+    /// Tab divider
+    divider: &'a str,
 }
 
 impl<'a, T> Default for Tabs<'a, T>
@@ -49,6 +53,7 @@ where
             selected: 0,
             style: Default::default(),
             highlight_style: Default::default(),
+            divider: line::VERTICAL,
         }
     }
 }
@@ -81,6 +86,11 @@ where
         self.highlight_style = style;
         self
     }
+
+    pub fn divider(mut self, divider: &'a str) -> Tabs<'a, T> {
+        self.divider = divider;
+        self
+    }
 }
 
 impl<'a, T> Widget for Tabs<'a, T>
@@ -103,6 +113,7 @@ where
         self.background(&tabs_area, buf, self.style.bg);
 
         let mut x = tabs_area.left();
+        let divider_width = self.divider.chars().count() as u16;
         for (title, style) in self.titles.iter().enumerate().map(|(i, t)| {
             if i == self.selected {
                 (t, self.highlight_style)
@@ -120,10 +131,10 @@ where
                     break;
                 } else {
                     buf.get_mut(x, tabs_area.top())
-                        .set_symbol(line::VERTICAL)
+                        .set_symbol(self.divider)
                         .set_fg(self.style.fg)
                         .set_bg(self.style.bg);
-                    x += 1;
+                    x += divider_width;
                 }
             }
         }
