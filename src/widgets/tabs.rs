@@ -113,7 +113,7 @@ where
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();
-        let divider_width = self.divider.chars().count() as u16;
+        let divider_width = self.divider.width() as u16;
         for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
             let lt = i + 1 == titles_length;
             if i == self.selected {
@@ -131,10 +131,7 @@ where
                 if x >= tabs_area.right() || last_title {
                     break;
                 } else {
-                    buf.get_mut(x, tabs_area.top())
-                        .set_symbol(self.divider)
-                        .set_fg(self.style.fg)
-                        .set_bg(self.style.bg);
+                    buf.set_string(x, tabs_area.top(), self.divider, style);
                     x += divider_width;
                 }
             }
