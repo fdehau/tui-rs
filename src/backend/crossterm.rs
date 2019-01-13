@@ -4,6 +4,7 @@ use crate::backend::Backend;
 use crate::buffer::Cell;
 use crate::layout::Rect;
 use crate::style::{Color, Modifier};
+use crossterm::error::ErrorKind;
 
 pub struct CrosstermBackend {
     screen: crossterm::Screen,
@@ -21,27 +22,45 @@ impl CrosstermBackend {
     }
 }
 
+// TODO: consider associated Error type on Backend to allow custom error types
+// per backend
+fn convert_error(error: ErrorKind) -> io::Error {
+    match error {
+        ErrorKind::IoError(err) => err,
+        ErrorKind::FmtError(err) => {
+            io::Error::new(io::ErrorKind::Other, format!("Invalid formatting: {}", err))
+        }
+        ErrorKind::ResizingTerminalFailure(err) => io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to resize terminal: {}", err),
+        ),
+        _ => io::Error::new(io::ErrorKind::Other, "Unknown crossterm error"),
+    }
+}
+
 impl Backend for CrosstermBackend {
     fn clear(&mut self) -> io::Result<()> {
-        let terminal = crossterm::terminal::terminal();
-        terminal.clear(crossterm::terminal::ClearType::All);
+        let terminal = crossterm::terminal();
+        terminal
+            .clear(crossterm::ClearType::All)
+            .map_err(convert_error)?;
         Ok(())
     }
 
     fn hide_cursor(&mut self) -> io::Result<()> {
         let cursor = crossterm::cursor();
-        cursor.hide();
+        cursor.hide().map_err(convert_error)?;
         Ok(())
     }
 
     fn show_cursor(&mut self) -> io::Result<()> {
         let cursor = crossterm::cursor();
-        cursor.show();
+        cursor.show().map_err(convert_error)?;
         Ok(())
     }
 
     fn size(&self) -> io::Result<Rect> {
-        let terminal = crossterm::terminal::terminal();
+        let terminal = crossterm::terminal();
         let (width, height) = terminal.terminal_size();
         Ok(Rect::new(0, 0, width, height))
     }
@@ -55,12 +74,13 @@ impl Backend for CrosstermBackend {
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
         let cursor = crossterm::cursor();
+        let crossterm = crossterm::Crossterm::from_screen(&self.screen);
         let mut last_y = 0;
         let mut last_x = 0;
         let mut first = true;
         for (x, y, cell) in content {
             if y != last_y || x != last_x + 1 || first {
-                cursor.goto(x, y);
+                cursor.goto(x, y).map_err(convert_error)?;
                 first = false;
             }
             last_x = x;
@@ -76,7 +96,7 @@ impl Backend for CrosstermBackend {
             if let Some(attr) = cell.style.modifier.into() {
                 s = s.attr(attr)
             }
-            s.paint(&self.screen);
+            crossterm.paint(s).map_err(convert_error)?;
         }
         Ok(())
     }
