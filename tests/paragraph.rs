@@ -95,18 +95,15 @@ fn paragraph_render_double_width() {
         .unwrap();
 
     let expected = Buffer::with_lines(vec![
-        // This is "OK" - these are double-width characters. In terminal each occupies 2 spaces,
-        // which means the buffer contains a Cell with a full grapheme in it, followed by a vacant
-        // one. Here however, we have plain text, so each character is visibly followed by a space.
         "┌────────┐",
-        "│コ ン ピ ュ │",
-        "│ー タ 上 で │",
-        "│文 字 を 扱 │",
-        "│う 場 合 、 │",
-        "│典 型 的 に │",
-        "│は 文 字 に │",
-        "│よ る 通 信 │",
-        "│を 行 う 場 │",
+        "│コンピュ│",
+        "│ータ上で│",
+        "│文字を扱│",
+        "│う場合、│",
+        "│典型的に│",
+        "│は文字に│",
+        "│よる通信│",
+        "│を行う場│",
         "└────────┘",
     ]);
     assert_eq!(&expected, terminal.backend().buffer());
@@ -132,11 +129,11 @@ fn paragraph_render_mixed_width() {
     let expected = Buffer::with_lines(vec![
         // The internal width is 8 so only 4 slots for double-width characters.
         "┌────────┐",
-        "│aコ ン ピ  │", // Here we have 1 latin character so only 3 double-width ones can fit.
-        "│ュ ー タ 上 │",
-        "│で 文 字 を │",
-        "│扱 う 場 合 │",
-        "│、       │",
+        "│aコンピ │", // Here we have 1 latin character so only 3 double-width ones can fit.
+        "│ュータ上│",
+        "│で文字を│",
+        "│扱う場合│",
+        "│、      │",
         "└────────┘",
     ]);
     assert_eq!(&expected, terminal.backend().buffer());

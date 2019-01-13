@@ -98,26 +98,13 @@ where
         &mut self.backend
     }
 
-    /// Builds a string representing the minimal escape sequences and characters set necessary to
-    /// update the UI and writes it to stdout.
+    /// Obtains a difference between the previous and the current buffer and passes it to the
+    /// current backend for drawing.
     pub fn flush(&mut self) -> io::Result<()> {
-        let width = self.buffers[self.current].area.width;
-        let content = self.buffers[self.current]
-            .content
-            .iter()
-            .zip(self.buffers[1 - self.current].content.iter())
-            .enumerate()
-            .filter_map(|(i, (c, p))| {
-                if c != p {
-                    let i = i as u16;
-                    let x = i % width;
-                    let y = i / width;
-                    Some((x, y, c))
-                } else {
-                    None
-                }
-            });
-        self.backend.draw(content)
+        let previous_buffer = &self.buffers[1 - self.current];
+        let current_buffer = &self.buffers[self.current];
+        let updates = previous_buffer.diff(current_buffer);
+        self.backend.draw(updates.into_iter())
     }
 
     /// Updates the Terminal so that internal buffers match the requested size. Requested size will

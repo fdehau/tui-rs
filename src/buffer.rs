@@ -3,6 +3,7 @@ use std::fmt;
 use std::usize;
 
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use crate::layout::Rect;
 use crate::style::{Color, Modifier, Style};
@@ -116,8 +117,25 @@ impl fmt::Debug for Buffer {
         writeln!(f, "Buffer: {:?}", self.area)?;
         f.write_str("Content (quoted lines):\n")?;
         for cells in self.content.chunks(self.area.width as usize) {
-            let line: String = cells.iter().map(|cell| &cell.symbol[..]).collect();
-            f.write_fmt(format_args!("{:?},\n", line))?;
+            let mut line = String::new();
+            let mut overwritten = vec![];
+            let mut skip: usize = 0;
+            for (x, c) in cells.iter().enumerate() {
+                if skip == 0 {
+                    line.push_str(&c.symbol);
+                } else {
+                    overwritten.push((x, &c.symbol))
+                }
+                skip = std::cmp::max(skip, c.symbol.width()).saturating_sub(1);
+            }
+            f.write_fmt(format_args!("{:?},", line))?;
+            if !overwritten.is_empty() {
+                f.write_fmt(format_args!(
+                    " Hidden by multi-width symbols: {:?}",
+                    overwritten
+                ))?;
+            }
+            f.write_str("\n")?;
         }
         f.write_str("Style:\n")?;
         for cells in self.content.chunks(self.area.width as usize) {
@@ -161,10 +179,7 @@ impl Buffer {
     {
         let height = lines.len() as u16;
         let width = lines.iter().fold(0, |acc, item| {
-            std::cmp::max(
-                acc,
-                UnicodeSegmentation::graphemes(item.as_ref(), true).count() as u16,
-            )
+            std::cmp::max(acc, item.as_ref().width() as u16)
         });
         let mut buffer = Buffer::empty(Rect {
             x: 0,
@@ -294,18 +309,30 @@ impl Buffer {
 
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line
-    pub fn set_stringn<S>(&mut self, x: u16, y: u16, string: S, limit: usize, style: Style)
+    pub fn set_stringn<S>(&mut self, x: u16, y: u16, string: S, width: usize, style: Style)
     where
         S: AsRef<str>,
     {
         let mut index = self.index_of(x, y);
+        let mut x_offset = x as usize;
         let graphemes = UnicodeSegmentation::graphemes(string.as_ref(), true);
-        let max_index = min((self.area.right() - x) as usize, limit);
-        for s in graphemes.take(max_index) {
-            self.content[index].symbol.clear();
-            self.content[index].symbol.push_str(s);
-            self.content[index].style = style;
-            index += 1;
+        let max_offset = min(self.area.right() as usize, width.saturating_add(x as usize));
+        for s in graphemes {
+            let width = s.width();
+            // `x_offset + width > max_offset` could be integer overflow on 32-bit machines if we
+            // change dimenstions to usize or u32 and someone resizes the terminal to 1x2^32.
+            if width > max_offset.saturating_sub(x_offset) {
+                break;
+            }
+
+            self.content[index].set_symbol(s);
+            self.content[index].set_style(style);
+            // Reset following cells if multi-width (they would be hidden by the grapheme),
+            for i in index + 1..index + width {
+                self.content[i].reset();
+            }
+            index += width;
+            x_offset += width;
         }
     }
 
@@ -361,11 +388,71 @@ impl Buffer {
         }
         self.area = area;
     }
+
+    /// Builds a minimal sequence of coordinates and Cells necessary to update the UI from
+    /// self to other.
+    ///
+    /// We're assuming that buffers are well-formed, that is no double-width cell is followed by
+    /// a non-blank cell.
+    ///
+    /// # Multi-width characters handling:
+    ///
+    /// ```text
+    /// (Index:) `01`
+    /// Prev:    `コ`
+    /// Next:    `aa`
+    /// Updates: `0: a, 1: a'
+    /// ```
+    ///
+    /// ```text
+    /// (Index:) `01`
+    /// Prev:    `a `
+    /// Next:    `コ`
+    /// Updates: `0: コ` (double width symbol at index 0 - skip index 1)
+    /// ```
+    ///
+    /// ```text
+    /// (Index:) `012`
+    /// Prev:    `aaa`
+    /// Next:    `aコ`
+    /// Updates: `0: a, 1: コ` (double width symbol at index 1 - skip index 2)
+    /// ```
+    pub fn diff<'a>(&self, other: &'a Buffer) -> Vec<(u16, u16, &'a Cell)> {
+        let previous_buffer = &self.content;
+        let next_buffer = &other.content;
+        let width = self.area.width;
+
+        let mut updates: Vec<(u16, u16, &Cell)> = vec![];
+        // Cells invalidated by drawing/replacing preceeding multi-width characters:
+        let mut invalidated: usize = 0;
+        // Cells from the current buffer to skip due to preceeding multi-width characters taking their
+        // place (the skipped cells should be blank anyway):
+        let mut to_skip: usize = 0;
+        for (i, (current, previous)) in next_buffer.iter().zip(previous_buffer.iter()).enumerate() {
+            if (current != previous || invalidated > 0) && to_skip == 0 {
+                let x = i as u16 % width;
+                let y = i as u16 / width;
+                updates.push((x, y, &next_buffer[i]));
+            }
+
+            to_skip = current.symbol.width().saturating_sub(1);
+
+            let affected_width = std::cmp::max(current.symbol.width(), previous.symbol.width());
+            invalidated = std::cmp::max(affected_width, invalidated).saturating_sub(1);
+        }
+        updates
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn cell(s: &str) -> Cell {
+        let mut cell = Cell::default();
+        cell.set_symbol(s);
+        cell
+    }
 
     #[test]
     fn it_translates_to_and_from_coordinates() {
@@ -399,5 +486,150 @@ mod tests {
 
         // width is 10; zero-indexed means that 10 would be the 11th cell.
         buf.index_of(10, 0);
+    }
+
+    #[test]
+    fn buffer_set_string() {
+        let area = Rect::new(0, 0, 5, 1);
+        let mut buffer = Buffer::empty(area);
+
+        // Zero-width
+        buffer.set_stringn(0, 0, "aaa", 0, Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["     "]));
+
+        buffer.set_string(0, 0, "aaa", Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["aaa  "]));
+
+        // Width limit:
+        buffer.set_stringn(0, 0, "bbbbbbbbbbbbbb", 4, Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["bbbb "]));
+
+        buffer.set_string(0, 0, "12345", Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["12345"]));
+
+        // Width truncation:
+        buffer.set_string(0, 0, "123456", Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["12345"]));
+    }
+
+    #[test]
+    fn buffer_set_string_double_width() {
+        let area = Rect::new(0, 0, 5, 1);
+        let mut buffer = Buffer::empty(area);
+        buffer.set_string(0, 0, "コン", Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["コン "]));
+
+        // Only 1 space left.
+        buffer.set_string(0, 0, "コンピ", Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["コン "]));
+    }
+
+    #[test]
+    fn buffer_with_lines() {
+        let buffer = Buffer::with_lines(vec![
+            "┌────────┐",
+            "│コンピュ│",
+            "│ーa 上で│",
+            "└────────┘",
+        ]);
+        assert_eq!(buffer.area.x, 0);
+        assert_eq!(buffer.area.y, 0);
+        assert_eq!(buffer.area.width, 10);
+        assert_eq!(buffer.area.height, 4);
+    }
+
+    #[test]
+    fn buffer_diffing_empty_empty() {
+        let area = Rect::new(0, 0, 40, 40);
+        let prev = Buffer::empty(area);
+        let next = Buffer::empty(area);
+        let diff = prev.diff(&next);
+        assert_eq!(diff, vec![]);
+    }
+
+    #[test]
+    fn buffer_diffing_empty_filled() {
+        let area = Rect::new(0, 0, 40, 40);
+        let prev = Buffer::empty(area);
+        let next = Buffer::filled(area, Cell::default().set_symbol("a"));
+        let diff = prev.diff(&next);
+        assert_eq!(diff.len(), 40 * 40);
+    }
+
+    #[test]
+    fn buffer_diffing_filled_filled() {
+        let area = Rect::new(0, 0, 40, 40);
+        let prev = Buffer::filled(area, Cell::default().set_symbol("a"));
+        let next = Buffer::filled(area, Cell::default().set_symbol("a"));
+        let diff = prev.diff(&next);
+        assert_eq!(diff, vec![]);
+    }
+
+    #[test]
+    fn buffer_diffing_single_width() {
+        let prev = Buffer::with_lines(vec![
+            "          ",
+            "┌Title─┐  ",
+            "│      │  ",
+            "│      │  ",
+            "└──────┘  ",
+        ]);
+        let next = Buffer::with_lines(vec![
+            "          ",
+            "┌TITLE─┐  ",
+            "│      │  ",
+            "│      │  ",
+            "└──────┘  ",
+        ]);
+        let diff = prev.diff(&next);
+        assert_eq!(
+            diff,
+            vec![
+                (2, 1, &cell("I")),
+                (3, 1, &cell("T")),
+                (4, 1, &cell("L")),
+                (5, 1, &cell("E")),
+            ]
+        );
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn buffer_diffing_multi_width() {
+        let prev = Buffer::with_lines(vec![
+            "┌Title─┐  ",
+            "└──────┘  ",
+        ]);
+        let next = Buffer::with_lines(vec![
+            "┌称号──┐  ",
+            "└──────┘  ",
+        ]);
+        let diff = prev.diff(&next);
+        assert_eq!(
+            diff,
+            vec![
+                (1, 0, &cell("称")),
+                // Skipped "i"
+                (3, 0, &cell("号")),
+                // Skipped "l"
+                (5, 0, &cell("─")),
+            ]
+        );
+    }
+
+    #[test]
+    fn buffer_diffing_multi_width_offset() {
+        let prev = Buffer::with_lines(vec!["┌称号──┐"]);
+        let next = Buffer::with_lines(vec!["┌─称号─┐"]);
+
+        let diff = prev.diff(&next);
+        assert_eq!(
+            diff,
+            vec![
+                (1, 0, &cell("─")),
+                (2, 0, &cell("称")),
+                (4, 0, &cell("号")),
+            ]
+        );
     }
 }
