@@ -1,6 +1,8 @@
 # Changelog
 
-## To be released
+## v0.3.1 - To be released
+
+* Upgraded to Rust 2018 edition
 
 ## v0.3.0 - 2018-11-04
 

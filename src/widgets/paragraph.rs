@@ -2,11 +2,11 @@ use either::Either;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use buffer::Buffer;
-use layout::{Alignment, Rect};
-use style::Style;
-use widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
-use widgets::{Block, Text, Widget};
+use crate::buffer::Buffer;
+use crate::layout::{Alignment, Rect};
+use crate::style::Style;
+use crate::widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
+use crate::widgets::{Block, Text, Widget};
 
 fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
     match alignment {
@@ -21,7 +21,6 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Paragraph, Text};
 /// # use tui::style::{Style, Color};
 /// # use tui::layout::{Alignment};

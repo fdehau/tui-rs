@@ -1,5 +1,3 @@
-extern crate tui;
-
 use tui::backend::{Backend, TestBackend};
 use tui::Terminal;
 

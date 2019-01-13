@@ -1,6 +1,3 @@
-extern crate rustbox;
-extern crate tui;
-
 use rustbox::Key;
 use std::error::Error;
 

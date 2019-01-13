@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -16,8 +12,8 @@ use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
 use tui::Terminal;
 
-use util::event::{Event, Events};
-use util::SinSignal;
+use crate::util::event::{Event, Events};
+use crate::util::SinSignal;
 
 struct App {
     signal1: SinSignal,

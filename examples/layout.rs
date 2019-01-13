@@ -1,9 +1,3 @@
-extern crate failure;
-extern crate log;
-extern crate stderrlog;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -18,7 +12,7 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
-use util::event::{Event, Events};
+use crate::util::event::{Event, Events};
 
 fn main() -> Result<(), failure::Error> {
     stderrlog::new().verbosity(4).init()?;

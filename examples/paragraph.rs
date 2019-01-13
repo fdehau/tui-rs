@@ -1,7 +1,3 @@
-extern crate failure;
-extern crate termion;
-extern crate tui;
-
 #[allow(dead_code)]
 mod util;
 
@@ -17,7 +13,7 @@ use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
 
-use util::event::{Event, Events};
+use crate::util::event::{Event, Events};
 
 fn main() -> Result<(), failure::Error> {
     // Terminal initialization

@@ -1,9 +1,7 @@
-extern crate rand;
-
 pub mod event;
 
-use self::rand::distributions::{Distribution, Uniform};
-use self::rand::rngs::ThreadRng;
+use rand::distributions::{Distribution, Uniform};
+use rand::rngs::ThreadRng;
 
 #[derive(Clone)]
 pub struct RandomSignal {

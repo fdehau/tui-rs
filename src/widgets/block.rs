@@ -1,8 +1,8 @@
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols::line;
-use widgets::{Borders, Widget};
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::line;
+use crate::widgets::{Borders, Widget};
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
@@ -10,7 +10,6 @@ use widgets::{Borders, Widget};
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders};
 /// # use tui::style::{Style, Color};
 /// # fn main() {

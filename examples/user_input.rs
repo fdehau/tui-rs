@@ -1,4 +1,3 @@
-extern crate failure;
 /// A simple example demonstrating how to handle user input. This is
 /// a bit out of the scope of the library as it does not provide any
 /// input handling out of the box. However, it may helps some to get
@@ -10,9 +9,6 @@ extern crate failure;
 ///   * Pressing Backspace erases a character
 ///   * Pressing Enter pushes the current input in the history of previous
 ///   messages
-extern crate termion;
-extern crate tui;
-extern crate unicode_width;
 
 #[allow(dead_code)]
 mod util;
@@ -31,7 +27,7 @@ use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
 use unicode_width::UnicodeWidthStr;
 
-use util::event::{Event, Events};
+use crate::util::event::{Event, Events};
 
 /// App holds the state of the application
 struct App {

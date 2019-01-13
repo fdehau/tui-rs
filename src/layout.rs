@@ -82,7 +82,6 @@ impl Layout {
     ///
     /// # Examples
     /// ```
-    /// # extern crate tui;
     /// # use tui::layout::{Rect, Constraint, Direction, Layout};
     ///
     /// # fn main() {
