@@ -11,7 +11,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::Color;
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
+use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
@@ -106,32 +106,8 @@ fn main() -> Result<(), failure::Error> {
             Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("Pong"))
                 .paint(|ctx| {
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.left()),
-                        y1: f64::from(app.ball.top()),
-                        x2: f64::from(app.ball.right()),
-                        y2: f64::from(app.ball.top()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.right()),
-                        y1: f64::from(app.ball.top()),
-                        x2: f64::from(app.ball.right()),
-                        y2: f64::from(app.ball.bottom()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.right()),
-                        y1: f64::from(app.ball.bottom()),
-                        x2: f64::from(app.ball.left()),
-                        y2: f64::from(app.ball.bottom()),
-                        color: Color::Yellow,
-                    });
-                    ctx.draw(&Line {
-                        x1: f64::from(app.ball.left()),
-                        y1: f64::from(app.ball.bottom()),
-                        x2: f64::from(app.ball.left()),
-                        y2: f64::from(app.ball.top()),
+                    ctx.draw(&Rectangle {
+                        rect: app.ball,
                         color: Color::Yellow,
                     });
                 })

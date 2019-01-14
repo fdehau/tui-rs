@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::{Backend, TermionBackend};
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution};
+use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{
     Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
     SelectableList, Sparkline, Table, Tabs, Text, Widget,
@@ -459,6 +459,15 @@ where
                 resolution: MapResolution::High,
             });
             ctx.layer();
+            ctx.draw(&Rectangle {
+                rect: Rect {
+                    x: 0,
+                    y: 30,
+                    width: 10,
+                    height: 10,
+                },
+                color: Color::Yellow,
+            });
             for (i, s1) in app.servers.iter().enumerate() {
                 for s2 in &app.servers[i + 1..] {
                     ctx.draw(&Line {
