@@ -1,11 +1,13 @@
 mod line;
 mod map;
 mod points;
+mod rectangle;
 mod world;
 
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
 pub use self::points::Points;
+pub use self::rectangle::Rectangle;
 
 use crate::buffer::Buffer;
 use crate::layout::Rect;
@@ -133,7 +135,8 @@ impl<'a> Context<'a> {
 ///
 /// ```
 /// # use tui::widgets::{Block, Borders};
-/// # use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
+/// # use tui::layout::Rect;
+/// # use tui::widgets::canvas::{Canvas, Shape, Line, Rectangle, Map, MapResolution};
 /// # use tui::style::Color;
 /// # fn main() {
 /// Canvas::default()
@@ -141,23 +144,25 @@ impl<'a> Context<'a> {
 ///     .x_bounds([-180.0, 180.0])
 ///     .y_bounds([-90.0, 90.0])
 ///     .paint(|ctx| {
-///         ctx.draw(&Map{
+///         ctx.draw(&Map {
 ///             resolution: MapResolution::High,
 ///             color: Color::White
 ///         });
 ///         ctx.layer();
-///         ctx.draw(&Line{
+///         ctx.draw(&Line {
 ///             x1: 0.0,
 ///             y1: 10.0,
 ///             x2: 10.0,
 ///             y2: 10.0,
 ///             color: Color::White,
 ///         });
-///         ctx.draw(&Line{
-///             x1: 10.0,
-///             y1: 10.0,
-///             x2: 20.0,
-///             y2: 20.0,
+///         ctx.draw(&Rectangle {
+///             rect: Rect {
+///                 x: 10,
+///                 y: 20,
+///                 width: 10,
+///                 height: 10,
+///             },
 ///             color: Color::Red
 ///         });
 ///     });

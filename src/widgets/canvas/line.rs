@@ -23,6 +23,7 @@ pub struct LineIterator {
 
 impl Iterator for LineIterator {
     type Item = (f64, f64);
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.current < self.end {
             let pos = (
@@ -40,6 +41,7 @@ impl Iterator for LineIterator {
 impl<'a> IntoIterator for &'a Line {
     type Item = (f64, f64);
     type IntoIter = LineIterator;
+
     fn into_iter(self) -> Self::IntoIter {
         let dx = self.x1.max(self.x2) - self.x1.min(self.x2);
         let dy = self.y1.max(self.y2) - self.y1.min(self.y2);
@@ -63,6 +65,7 @@ impl<'a> Shape<'a> for Line {
     fn color(&self) -> Color {
         self.color
     }
+
     fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a> {
         Box::new(self.into_iter())
     }
