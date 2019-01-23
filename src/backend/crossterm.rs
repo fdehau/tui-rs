@@ -108,6 +108,7 @@ impl From<Color> for Option<crossterm::Color> {
 }
 
 impl From<Modifier> for Option<crossterm::Attribute> {
+    #[cfg(unix)]
     fn from(modifier: Modifier) -> Option<crossterm::Attribute> {
         match modifier {
             Modifier::Blink => Some(crossterm::Attribute::SlowBlink),
@@ -116,6 +117,15 @@ impl From<Modifier> for Option<crossterm::Attribute> {
             Modifier::Faint => Some(crossterm::Attribute::Dim),
             Modifier::Invert => Some(crossterm::Attribute::Reverse),
             Modifier::Italic => Some(crossterm::Attribute::Italic),
+            Modifier::Underline => Some(crossterm::Attribute::Underlined),
+            _ => None,
+        }
+    }
+
+    #[cfg(windows)]
+    fn from(modifier: Modifier) -> Option<crossterm::Attribute> {
+        match modifier {
+            Modifier::Bold => Some(crossterm::Attribute::Bold),
             Modifier::Underline => Some(crossterm::Attribute::Underlined),
             _ => None,
         }
