@@ -18,6 +18,7 @@ appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
 default = ["termion"]
+curses = ["easycurses", "pancurses"]
 
 [dependencies]
 bitflags = "1.0"
@@ -30,6 +31,8 @@ unicode-width = "0.1"
 termion = { version = "1.5", optional = true }
 rustbox = { version = "0.11", optional = true }
 crossterm = { version = "0.6", optional = true }
+easycurses = { version = "0.12.2", optional = true }
+pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
 
 [dev-dependencies]
 stderrlog = "0.4"
@@ -51,3 +54,8 @@ required-features = ["rustbox"]
 name = "crossterm_demo"
 path = "examples/crossterm_demo.rs"
 required-features = ["crossterm"]
+
+[[example]]
+name = "curses"
+path = "examples/curses.rs"
+required-features = ["curses"]

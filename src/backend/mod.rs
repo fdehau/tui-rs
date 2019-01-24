@@ -18,6 +18,11 @@ mod crossterm;
 #[cfg(feature = "crossterm")]
 pub use self::crossterm::CrosstermBackend;
 
+#[cfg(feature = "curses")]
+mod curses;
+#[cfg(feature = "curses")]
+pub use self::curses::CursesBackend;
+
 mod test;
 pub use self::test::TestBackend;
 
