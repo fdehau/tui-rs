@@ -87,7 +87,7 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         if self.style.bg != Color::Reset {
-            self.background(&gauge_area, buf, self.style.bg);
+            self.background(gauge_area, buf, self.style.bg);
         }
 
         let center = gauge_area.height / 2 + gauge_area.top();

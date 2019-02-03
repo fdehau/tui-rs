@@ -13,7 +13,7 @@ pub struct RustboxBackend {
 impl RustboxBackend {
     pub fn new() -> Result<RustboxBackend, rustbox::InitError> {
         let rustbox = r#try!(rustbox::RustBox::init(Default::default()));
-        Ok(RustboxBackend { rustbox: rustbox })
+        Ok(RustboxBackend { rustbox })
     }
 
     pub fn with_rustbox(instance: rustbox::RustBox) -> RustboxBackend {

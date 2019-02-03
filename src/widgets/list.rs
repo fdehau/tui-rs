@@ -86,7 +86,7 @@ where
             return;
         }
 
-        self.background(&list_area, buf, self.style.bg);
+        self.background(list_area, buf, self.style.bg);
 
         for (i, item) in self
             .items
