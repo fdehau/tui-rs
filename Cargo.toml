@@ -22,7 +22,7 @@ default = ["termion"]
 [dependencies]
 bitflags = "1.0"
 cassowary = "0.3"
-itertools = "0.7"
+itertools = "0.8"
 log = "0.4"
 either = "1.5"
 unicode-segmentation = "1.2"
