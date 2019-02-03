@@ -71,7 +71,7 @@ build-examples: ## Build all examples
 run-examples: ## Run all examples
 	@for file in examples/*.rs; do \
 	  name=$$(basename $${file/.rs/}); \
-	  $(CARGO) run --all-features --example $$name; \
+	  $(CARGO) run --all-features --release --example $$name; \
 	  done;
 
 # ================================ Doc ========================================
