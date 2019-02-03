@@ -19,7 +19,7 @@ can either choose from:
   - [rustbox](https://github.com/gchp/rustbox)
   - [crossterm](https://github.com/TimonPost/crossterm)
 
-However, some features may only be available in one of the two.
+However, some features may only be available in one of the three.
 
 The library is based on the principle of immediate rendering with intermediate
 buffers. This means that at each new frame you should build all widgets that are
