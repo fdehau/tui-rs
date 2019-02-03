@@ -103,7 +103,7 @@ impl<'a> Widget for Block<'a> {
             return;
         }
 
-        self.background(&area, buf, self.style.bg);
+        self.background(area, buf, self.style.bg);
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {

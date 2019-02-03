@@ -10,11 +10,17 @@ pub struct CrosstermBackend {
     screen: crossterm::Screen,
 }
 
-impl CrosstermBackend {
-    pub fn new() -> CrosstermBackend {
+impl Default for CrosstermBackend {
+    fn default() -> CrosstermBackend {
         CrosstermBackend {
             screen: crossterm::Screen::default(),
         }
+    }
+}
+
+impl CrosstermBackend {
+    pub fn new() -> CrosstermBackend {
+        CrosstermBackend::default()
     }
 
     pub fn screen(&self) -> &crossterm::Screen {

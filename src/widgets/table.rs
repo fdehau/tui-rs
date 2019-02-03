@@ -167,7 +167,7 @@ where
         };
 
         // Set the background
-        self.background(&table_area, buf, self.style.bg);
+        self.background(table_area, buf, self.style.bg);
 
         // Save widths of the columns that will fit in the given area
         let mut x = 0;

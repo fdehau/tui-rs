@@ -109,7 +109,7 @@ where
             return;
         }
 
-        self.background(&tabs_area, buf, self.style.bg);
+        self.background(tabs_area, buf, self.style.bg);
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();

@@ -187,10 +187,8 @@ impl Buffer {
             width,
             height,
         });
-        let mut y = 0;
-        for line in &lines {
-            buffer.set_string(0, y, line, Style::default());
-            y += 1;
+        for (y, line) in lines.iter().enumerate() {
+            buffer.set_string(0, y as u16, line, Style::default());
         }
         buffer
     }
