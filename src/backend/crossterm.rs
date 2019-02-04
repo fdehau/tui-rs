@@ -16,8 +16,8 @@ impl CrosstermBackend {
         }
     }
 
-    pub fn with_crossterm(scr: crossterm::Screen) -> CrosstermBackend {
-        CrosstermBackend { screen: scr }
+    pub fn with_screen(screen: crossterm::Screen) -> CrosstermBackend {
+        CrosstermBackend { screen: screen }
     }
 
     pub fn screen(&self) -> &crossterm::Screen {
