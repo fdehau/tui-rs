@@ -356,7 +356,7 @@ where
             return;
         }
 
-        self.background(&chart_area, buf, self.style.bg);
+        self.background(chart_area, buf, self.style.bg);
 
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();

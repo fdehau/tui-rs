@@ -120,7 +120,7 @@ impl<'a> Widget for BarChart<'a> {
             return;
         }
 
-        self.background(&chart_area, buf, self.style.bg);
+        self.background(chart_area, buf, self.style.bg);
 
         let max = self
             .max

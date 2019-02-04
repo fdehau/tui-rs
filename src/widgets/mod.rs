@@ -68,7 +68,7 @@ pub trait Widget {
     /// implement a custom widget.
     fn draw(&mut self, area: Rect, buf: &mut Buffer);
     /// Helper method to quickly set the background of all cells inside the specified area.
-    fn background(&self, area: &Rect, buf: &mut Buffer, color: Color) {
+    fn background(&self, area: Rect, buf: &mut Buffer, color: Color) {
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
                 buf.get_mut(x, y).set_bg(color);

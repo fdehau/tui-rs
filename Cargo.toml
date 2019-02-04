@@ -1,6 +1,6 @@
 [package]
 name = "tui"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
@@ -14,6 +14,7 @@ edition = "2018"
 
 [badges]
 travis-ci = { repository = "fdehau/tui-rs" }
+appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
 default = ["termion"]
@@ -21,19 +22,20 @@ default = ["termion"]
 [dependencies]
 bitflags = "1.0"
 cassowary = "0.3"
-itertools = "0.7"
+itertools = "0.8"
 log = "0.4"
 either = "1.5"
 unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5", optional = true }
 rustbox = { version = "0.11", optional = true }
-crossterm = { version = "0.5", optional = true }
+crossterm = { version = "0.6", optional = true }
 
 [dev-dependencies]
 stderrlog = "0.4"
 rand = "0.6"
 failure = "0.1"
+structopt = "0.2"
 
 [[example]]
 name = "rustbox"

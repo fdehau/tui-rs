@@ -15,8 +15,6 @@ use tui::Terminal;
 use crate::util::event::{Event, Events};
 
 fn main() -> Result<(), failure::Error> {
-    stderrlog::new().verbosity(4).init()?;
-
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);

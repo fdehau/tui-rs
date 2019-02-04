@@ -120,7 +120,7 @@ where
             return;
         }
 
-        self.background(&text_area, buf, self.style.bg);
+        self.background(text_area, buf, self.style.bg);
 
         let style = self.style;
         let mut styled = self.text.by_ref().flat_map(|t| match *t {

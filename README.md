@@ -1,6 +1,7 @@
 # tui-rs
 
 [![Build Status](https://travis-ci.org/fdehau/tui-rs.svg?branch=master)](https://travis-ci.org/fdehau/tui-rs)
+[![Build status](https://ci.appveyor.com/api/projects/status/t724mb1q31xpyxy5/branch/master?svg=true)](https://ci.appveyor.com/project/fdehau/tui-rs/branch/master)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 
@@ -18,7 +19,7 @@ can either choose from:
   - [rustbox](https://github.com/gchp/rustbox)
   - [crossterm](https://github.com/TimonPost/crossterm)
 
-However, some features may only be available in one of the two.
+However, some features may only be available in one of the three.
 
 The library is based on the principle of immediate rendering with intermediate
 buffers. This means that at each new frame you should build all widgets that are

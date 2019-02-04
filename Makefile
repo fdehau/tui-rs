@@ -51,28 +51,27 @@ fmt: ## Check the format of the source code
 	cargo fmt --all -- --check
 
 .PHONY: clippy
-clippy: RUST_CHANNEL = nightly
 clippy: ## Check the style of the source code and catch common errors
-	$(CARGO) clippy --features="termion rustbox"
+	$(CARGO) clippy --all-features
 
 
 # ================================ Test =======================================
 
 .PHONY: test
 test: ## Run the tests
-	$(CARGO) test --features=termion,crossterm
+	$(CARGO) test --all-features
 
 # =============================== Examples ====================================
 
 .PHONY: build-examples
 build-examples: ## Build all examples
-	@$(CARGO) build --examples --features=termion,crossterm
+	@$(CARGO) build --examples --all-features
 
 .PHONY: run-examples
 run-examples: ## Run all examples
 	@for file in examples/*.rs; do \
 	  name=$$(basename $${file/.rs/}); \
-	  $(CARGO) run --features=termion,crossterm --example $$name; \
+	  $(CARGO) run --all-features --release --example $$name; \
 	  done;
 
 # ================================ Doc ========================================

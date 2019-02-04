@@ -11,7 +11,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::Color;
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
+use tui::widgets::canvas::{Canvas, Map, MapResolution, Rectangle};
 use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 

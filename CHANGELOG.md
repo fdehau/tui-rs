@@ -1,9 +1,28 @@
 # Changelog
 
-##  To be released
+## To be released
 
-* Added a new shape: Rectangle
-* Upgraded to Rust 2018 edition
+## v0.4.0 - 2019-02-03
+
+### Added
+
+* Add a new canvas shape: `Rectangle`.
+* Official support of `Crossterm` backend.
+* Make it possible to choose the divider between `Tabs`.
+* Add word wrapping on Paragraph.
+* The gauge widget accepts a ratio (f64 between 0 and 1) in addition of a
+percentage.
+
+### Changed
+
+* Upgrade to Rust 2018 edition.
+
+### Fixed
+
+* Fix rendering of double-width characters.
+* Fix race condition on the size of the terminal and expose a size that is
+safe to use when drawing through `Frame::size`.
+* Prevent unsigned int overflow on large screens.
 
 ## v0.3.0 - 2018-11-04
 

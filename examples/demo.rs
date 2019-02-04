@@ -2,7 +2,9 @@
 mod util;
 
 use std::io;
+use std::time::Duration;
 
+use structopt::StructOpt;
 use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
@@ -17,7 +19,7 @@ use tui::widgets::{
 };
 use tui::{Frame, Terminal};
 
-use crate::util::event::{Event, Events};
+use crate::util::event::{Config, Event, Events};
 use crate::util::{RandomSignal, SinSignal, TabsState};
 
 struct Server<'a> {
@@ -44,11 +46,18 @@ struct App<'a> {
     servers: Vec<Server<'a>>,
 }
 
+#[derive(Debug, StructOpt)]
+struct Cli {
+    #[structopt(long = "tick-rate", default_value = "250")]
+    tick_rate: u64,
+    #[structopt(long = "log")]
+    log: bool,
+}
+
 fn main() -> Result<(), failure::Error> {
-    stderrlog::new()
-        .module(module_path!())
-        .verbosity(4)
-        .init()?;
+    let cli = Cli::from_args();
+
+    stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
 
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -57,7 +66,10 @@ fn main() -> Result<(), failure::Error> {
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
-    let events = Events::new();
+    let events = Events::with_config(Config {
+        tick_rate: Duration::from_millis(cli.tick_rate),
+        ..Config::default()
+    });
 
     let mut rand_signal = RandomSignal::new(0, 100);
     let mut sin_signal = SinSignal::new(0.2, 3.0, 18.0);
