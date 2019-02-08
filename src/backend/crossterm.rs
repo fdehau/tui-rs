@@ -8,12 +8,20 @@ use crossterm::error::ErrorKind;
 
 pub struct CrosstermBackend {
     screen: crossterm::Screen,
+    crossterm: crossterm::Crossterm,
+    // Need to keep the AlternateScreen around even when not using it directly,
+    // see https://github.com/TimonPost/crossterm/issues/88
+    alternate_screen: Option<crossterm::AlternateScreen>,
 }
 
 impl Default for CrosstermBackend {
     fn default() -> CrosstermBackend {
+        let screen = crossterm::Screen::default();
+        let crossterm = crossterm::Crossterm::from_screen(&screen);
         CrosstermBackend {
-            screen: crossterm::Screen::default(),
+            screen,
+            crossterm,
+            alternate_screen: None,
         }
     }
 }
@@ -24,11 +32,37 @@ impl CrosstermBackend {
     }
 
     pub fn with_screen(screen: crossterm::Screen) -> CrosstermBackend {
-        CrosstermBackend { screen: screen }
+        let crossterm = crossterm::Crossterm::from_screen(&screen);
+        CrosstermBackend {
+            screen,
+            crossterm,
+            alternate_screen: None,
+        }
+    }
+
+    pub fn with_alternate_screen(screen: crossterm::Screen, raw_mode: bool) -> Result<CrosstermBackend, io::Error> {
+        let alternate_screen = screen.enable_alternate_modes(raw_mode)?;
+        let crossterm = crossterm::Crossterm::from_screen(&alternate_screen.screen);
+        Ok(CrosstermBackend {
+            screen,
+            crossterm,
+            alternate_screen: Some(alternate_screen),
+        })
     }
 
     pub fn screen(&self) -> &crossterm::Screen {
         &self.screen
+    }
+
+    pub fn alternate_screen(&self) -> Option<&crossterm::AlternateScreen> {
+        match &self.alternate_screen {
+            Some(alt_screen) => Some(&alt_screen),
+            None => None,
+        }
+    }
+
+    pub fn crossterm(&self) -> &crossterm::Crossterm {
+        &self.crossterm
     }
 }
 
@@ -50,7 +84,7 @@ fn convert_error(error: ErrorKind) -> io::Error {
 
 impl Backend for CrosstermBackend {
     fn clear(&mut self) -> io::Result<()> {
-        let terminal = crossterm::terminal();
+        let terminal = self.crossterm.terminal();
         terminal
             .clear(crossterm::ClearType::All)
             .map_err(convert_error)?;
@@ -58,13 +92,13 @@ impl Backend for CrosstermBackend {
     }
 
     fn hide_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor();
+        let cursor = self.crossterm.cursor();
         cursor.hide().map_err(convert_error)?;
         Ok(())
     }
 
     fn show_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor();
+        let cursor = self.crossterm.cursor();
         cursor.show().map_err(convert_error)?;
         Ok(())
     }
@@ -80,7 +114,7 @@ impl Backend for CrosstermBackend {
     }
 
     fn size(&self) -> io::Result<Rect> {
-        let terminal = crossterm::terminal();
+        let terminal = self.crossterm.terminal();
         let (width, height) = terminal.terminal_size();
         Ok(Rect::new(0, 0, width, height))
     }
@@ -93,8 +127,7 @@ impl Backend for CrosstermBackend {
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
-        let cursor = crossterm::cursor();
-        let crossterm = crossterm::Crossterm::from_screen(&self.screen);
+        let cursor = self.crossterm.cursor();
         let mut last_y = 0;
         let mut last_x = 0;
         let mut first = true;
@@ -105,8 +138,7 @@ impl Backend for CrosstermBackend {
             }
             last_x = x;
             last_y = y;
-
-            let mut s = crossterm::style(&cell.symbol);
+            let mut s = self.crossterm.style(&cell.symbol);
             if let Some(color) = cell.style.fg.into() {
                 s = s.with(color)
             }
@@ -116,7 +148,7 @@ impl Backend for CrosstermBackend {
             if let Some(attr) = cell.style.modifier.into() {
                 s = s.attr(attr)
             }
-            crossterm.paint(s).map_err(convert_error)?;
+            self.crossterm.paint(s).map_err(convert_error)?;
         }
         Ok(())
     }
