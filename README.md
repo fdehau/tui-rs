@@ -36,7 +36,16 @@ you may rely on the previously cited libraries to achieve such features.
 
 ### Demo
 
-The [source code](examples/demo.rs) of the demo gif.
+The demo shown in the gif can be run with all available backends
+(`exmples/*_demo.rs` files). For example to see the `termion` version one could
+run:
+
+```
+cargo run --example termion_demo --release --tick-rate 200
+```
+
+The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
+application state is in [examples/demo/app.rs](examples/demo/app.rs).
 
 ### Widgets
 
@@ -55,6 +64,8 @@ The library comes with the following list of widgets:
 
 Click on each item to see the source of the example. Run the examples with with 
 cargo (e.g. to run the demo `cargo run --example demo`), and quit by pressing `q`.
+
+You can run all examples by running `make run-examples`.
 
 ### Third-party widgets
 

@@ -1,15 +1,6 @@
-#[allow(dead_code)]
-mod util;
-
 use std::io;
-use std::time::Duration;
 
-use structopt::StructOpt;
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::{Backend, TermionBackend};
+use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
@@ -19,235 +10,26 @@ use tui::widgets::{
 };
 use tui::{Frame, Terminal};
 
-use crate::util::event::{Config, Event, Events};
-use crate::util::{RandomSignal, SinSignal, TabsState};
+use crate::demo::App;
 
-struct Server<'a> {
-    name: &'a str,
-    location: &'a str,
-    coords: (f64, f64),
-    status: &'a str,
-}
-
-struct App<'a> {
-    items: Vec<&'a str>,
-    events: Vec<(&'a str, &'a str)>,
-    selected: usize,
-    tabs: TabsState<'a>,
-    show_chart: bool,
-    progress: u16,
-    data: Vec<u64>,
-    data2: Vec<(f64, f64)>,
-    data3: Vec<(f64, f64)>,
-    data4: Vec<(&'a str, u64)>,
-    window: [f64; 2],
-    colors: [Color; 2],
-    color_index: usize,
-    servers: Vec<Server<'a>>,
-}
-
-#[derive(Debug, StructOpt)]
-struct Cli {
-    #[structopt(long = "tick-rate", default_value = "250")]
-    tick_rate: u64,
-    #[structopt(long = "log")]
-    log: bool,
-}
-
-fn main() -> Result<(), failure::Error> {
-    let cli = Cli::from_args();
-
-    stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
-
-    let stdout = io::stdout().into_raw_mode()?;
-    let stdout = MouseTerminal::from(stdout);
-    let stdout = AlternateScreen::from(stdout);
-    let backend = TermionBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
-
-    let events = Events::with_config(Config {
-        tick_rate: Duration::from_millis(cli.tick_rate),
-        ..Config::default()
-    });
-
-    let mut rand_signal = RandomSignal::new(0, 100);
-    let mut sin_signal = SinSignal::new(0.2, 3.0, 18.0);
-    let mut sin_signal2 = SinSignal::new(0.1, 2.0, 10.0);
-
-    let mut app = App {
-        items: vec![
-            "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
-            "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
-            "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
-        ],
-        events: vec![
-            ("Event1", "INFO"),
-            ("Event2", "INFO"),
-            ("Event3", "CRITICAL"),
-            ("Event4", "ERROR"),
-            ("Event5", "INFO"),
-            ("Event6", "INFO"),
-            ("Event7", "WARNING"),
-            ("Event8", "INFO"),
-            ("Event9", "INFO"),
-            ("Event10", "INFO"),
-            ("Event11", "CRITICAL"),
-            ("Event12", "INFO"),
-            ("Event13", "INFO"),
-            ("Event14", "INFO"),
-            ("Event15", "INFO"),
-            ("Event16", "INFO"),
-            ("Event17", "ERROR"),
-            ("Event18", "ERROR"),
-            ("Event19", "INFO"),
-            ("Event20", "INFO"),
-            ("Event21", "WARNING"),
-            ("Event22", "INFO"),
-            ("Event23", "INFO"),
-            ("Event24", "WARNING"),
-            ("Event25", "INFO"),
-            ("Event26", "INFO"),
-        ],
-        selected: 0,
-        tabs: TabsState::new(vec!["Tab0", "Tab1"]),
-        show_chart: true,
-        progress: 0,
-        data: rand_signal.by_ref().take(300).collect(),
-        data2: sin_signal.by_ref().take(100).collect(),
-        data3: sin_signal2.by_ref().take(200).collect(),
-        data4: vec![
-            ("B1", 9),
-            ("B2", 12),
-            ("B3", 5),
-            ("B4", 8),
-            ("B5", 2),
-            ("B6", 4),
-            ("B7", 5),
-            ("B8", 9),
-            ("B9", 14),
-            ("B10", 15),
-            ("B11", 1),
-            ("B12", 0),
-            ("B13", 4),
-            ("B14", 6),
-            ("B15", 4),
-            ("B16", 6),
-            ("B17", 4),
-            ("B18", 7),
-            ("B19", 13),
-            ("B20", 8),
-            ("B21", 11),
-            ("B22", 9),
-            ("B23", 3),
-            ("B24", 5),
-        ],
-        window: [0.0, 20.0],
-        colors: [Color::Magenta, Color::Red],
-        color_index: 0,
-        servers: vec![
-            Server {
-                name: "NorthAmerica-1",
-                location: "New York City",
-                coords: (40.71, -74.00),
-                status: "Up",
-            },
-            Server {
-                name: "Europe-1",
-                location: "Paris",
-                coords: (48.85, 2.35),
-                status: "Failure",
-            },
-            Server {
-                name: "SouthAmerica-1",
-                location: "São Paulo",
-                coords: (-23.54, -46.62),
-                status: "Up",
-            },
-            Server {
-                name: "Asia-1",
-                location: "Singapore",
-                coords: (1.35, 103.86),
-                status: "Up",
-            },
-        ],
-    };
-
-    loop {
-        // Draw UI
-        terminal.draw(|mut f| {
-            let chunks = Layout::default()
-                .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-                .split(f.size());
-            Tabs::default()
-                .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                .titles(&app.tabs.titles)
-                .style(Style::default().fg(Color::Green))
-                .highlight_style(Style::default().fg(Color::Yellow))
-                .select(app.tabs.index)
-                .render(&mut f, chunks[0]);
-            match app.tabs.index {
-                0 => draw_first_tab(&mut f, &app, chunks[1]),
-                1 => draw_second_tab(&mut f, &app, chunks[1]),
-                _ => {}
-            };
-        })?;
-
-        match events.next()? {
-            Event::Input(input) => match input {
-                Key::Char('q') => {
-                    break;
-                }
-                Key::Up => {
-                    if app.selected > 0 {
-                        app.selected -= 1
-                    };
-                }
-                Key::Down => {
-                    if app.selected < app.items.len() - 1 {
-                        app.selected += 1;
-                    }
-                }
-                Key::Left => {
-                    app.tabs.previous();
-                }
-                Key::Right => {
-                    app.tabs.next();
-                }
-                Key::Char('t') => {
-                    app.show_chart = !app.show_chart;
-                }
-                _ => {}
-            },
-            Event::Tick => {
-                app.progress += 5;
-                if app.progress > 100 {
-                    app.progress = 0;
-                }
-                app.data.insert(0, rand_signal.next().unwrap());
-                app.data.pop();
-                for _ in 0..5 {
-                    app.data2.remove(0);
-                    app.data2.push(sin_signal.next().unwrap());
-                }
-                for _ in 0..10 {
-                    app.data3.remove(0);
-                    app.data3.push(sin_signal2.next().unwrap());
-                }
-                let i = app.data4.pop().unwrap();
-                app.data4.insert(0, i);
-                app.window[0] += 1.0;
-                app.window[1] += 1.0;
-                let i = app.events.pop().unwrap();
-                app.events.insert(0, i);
-                app.color_index += 1;
-                if app.color_index >= app.colors.len() {
-                    app.color_index = 0;
-                }
-            }
-        }
-    }
-    Ok(())
+pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &App) -> Result<(), io::Error> {
+    terminal.draw(|mut f| {
+        let chunks = Layout::default()
+            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+            .split(f.size());
+        Tabs::default()
+            .block(Block::default().borders(Borders::ALL).title(app.title))
+            .titles(&app.tabs.titles)
+            .style(Style::default().fg(Color::Green))
+            .highlight_style(Style::default().fg(Color::Yellow))
+            .select(app.tabs.index)
+            .render(&mut f, chunks[0]);
+        match app.tabs.index {
+            0 => draw_first_tab(&mut f, &app, chunks[1]),
+            1 => draw_second_tab(&mut f, &app, chunks[1]),
+            _ => {}
+        };
+    })
 }
 
 fn draw_first_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
@@ -295,7 +77,7 @@ where
     Sparkline::default()
         .block(Block::default().title("Sparkline:"))
         .style(Style::default().fg(Color::Green))
-        .data(&app.data)
+        .data(&app.sparkline.points)
         .render(f, chunks[1]);
 }
 
@@ -323,8 +105,8 @@ where
                 .split(chunks[0]);
             SelectableList::default()
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(Some(app.selected))
+                .items(&app.tasks.items)
+                .select(Some(app.tasks.selected))
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
                 .highlight_symbol(">")
                 .render(f, chunks[0]);
@@ -332,7 +114,7 @@ where
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
             let critical_style = Style::default().fg(Color::Red);
-            let events = app.events.iter().map(|&(evt, level)| {
+            let events = app.logs.items.iter().map(|&(evt, level)| {
                 Text::styled(
                     format!("{}: {}", level, evt),
                     match level {
@@ -349,7 +131,7 @@ where
         }
         BarChart::default()
             .block(Block::default().borders(Borders::ALL).title("Bar chart"))
-            .data(&app.data4)
+            .data(&app.barchart)
             .bar_width(3)
             .bar_gap(2)
             .value_style(
@@ -375,11 +157,11 @@ where
                     .title("X Axis")
                     .style(Style::default().fg(Color::Gray))
                     .labels_style(Style::default().modifier(Modifier::Italic))
-                    .bounds(app.window)
+                    .bounds(app.signals.window)
                     .labels(&[
-                        &format!("{}", app.window[0]),
-                        &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                        &format!("{}", app.window[1]),
+                        &format!("{}", app.signals.window[0]),
+                        &format!("{}", (app.signals.window[0] + app.signals.window[1]) / 2.0),
+                        &format!("{}", app.signals.window[1]),
                     ]),
             )
             .y_axis(
@@ -395,12 +177,12 @@ where
                     .name("data2")
                     .marker(Marker::Dot)
                     .style(Style::default().fg(Color::Cyan))
-                    .data(&app.data2),
+                    .data(&app.signals.sin1.points),
                 Dataset::default()
                     .name("data3")
                     .marker(Marker::Braille)
                     .style(Style::default().fg(Color::Yellow))
-                    .data(&app.data3),
+                    .data(&app.signals.sin2.points),
             ])
             .render(f, chunks[1]);
     }

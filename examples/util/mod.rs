@@ -1,3 +1,4 @@
+#[cfg(feature = "termion")]
 pub mod event;
 
 use rand::distributions::{Distribution, Uniform};
