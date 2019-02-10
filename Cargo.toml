@@ -38,11 +38,16 @@ failure = "0.1"
 structopt = "0.2"
 
 [[example]]
-name = "rustbox"
-path = "examples/rustbox.rs"
+name = "termion_demo"
+path = "examples/termion_demo.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "rustbox_demo"
+path = "examples/rustbox_demo.rs"
 required-features = ["rustbox"]
 
 [[example]]
-name = "crossterm"
-path = "examples/crossterm.rs"
+name = "crossterm_demo"
+path = "examples/crossterm_demo.rs"
 required-features = ["crossterm"]
