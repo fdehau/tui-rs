@@ -66,7 +66,8 @@ where
 
     /// Sets cursor position (0-based index)
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Goto(x + 1, y + 1))
+        write!(self.stdout, "{}", termion::cursor::Goto(x + 1, y + 1))?;
+        self.stdout.flush()
     }
 
     fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
