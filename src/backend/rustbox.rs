@@ -51,6 +51,13 @@ impl Backend for RustboxBackend {
     fn show_cursor(&mut self) -> Result<(), io::Error> {
         Ok(())
     }
+    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+        Err(io::Error::from(io::ErrorKind::Other))
+    }
+    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+        self.rustbox.set_cursor(x as isize, y as isize);
+        Ok(())
+    }
     fn clear(&mut self) -> Result<(), io::Error> {
         self.rustbox.clear();
         Ok(())
