@@ -69,6 +69,16 @@ impl Backend for CrosstermBackend {
         Ok(())
     }
 
+    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+        let cursor = crossterm::cursor();
+        Ok(cursor.pos())
+    }
+
+    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+        let cursor = crossterm::cursor();
+        cursor.goto(x, y).map_err(convert_error)
+    }
+
     fn size(&self) -> io::Result<Rect> {
         let terminal = crossterm::terminal();
         let (width, height) = terminal.terminal_size();

@@ -9,6 +9,7 @@ pub struct TestBackend {
     buffer: Buffer,
     height: u16,
     cursor: bool,
+    pos: (u16, u16),
 }
 
 impl TestBackend {
@@ -18,6 +19,7 @@ impl TestBackend {
             height,
             buffer: Buffer::empty(Rect::new(0, 0, width, height)),
             cursor: false,
+            pos: (0, 0),
         }
     }
 
@@ -44,6 +46,13 @@ impl Backend for TestBackend {
     }
     fn show_cursor(&mut self) -> Result<(), io::Error> {
         self.cursor = true;
+        Ok(())
+    }
+    fn get_cursor(&mut self) -> Result<(u16, u16), io::Error> {
+        Ok(self.pos)
+    }
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), io::Error> {
+        self.pos = (x, y);
         Ok(())
     }
     fn clear(&mut self) -> Result<(), io::Error> {
