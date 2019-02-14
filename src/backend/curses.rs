@@ -16,26 +16,20 @@ pub struct CursesBackend {
 }
 
 impl CursesBackend {
-    pub fn new() -> Result<CursesBackend, String> {
-        match easycurses::EasyCurses::initialize_system() {
-            Some(mut curses) => {
-                curses.set_echo(false);
-                curses.set_input_timeout(easycurses::TimeoutMode::Never);
-                curses.set_input_mode(easycurses::InputMode::RawCharacter);
-                curses.set_keypad_enabled(true);
-                Ok(CursesBackend { curses })
-            }
-            None => Err(String::from(
-                "Can't initialize curses, make sure it is not running already.",
-            )),
-        }
+    pub fn new() -> Option<CursesBackend> {
+        let curses = easycurses::EasyCurses::initialize_system()?;
+        Some(CursesBackend { curses })
     }
 
-    pub fn get_curses_window(&self) -> &easycurses::EasyCurses {
+    pub fn with_curses(curses: easycurses::EasyCurses) -> CursesBackend {
+        CursesBackend { curses }
+    }
+
+    pub fn get_curses(&self) -> &easycurses::EasyCurses {
         &self.curses
     }
 
-    pub fn get_curses_window_mut(&mut self) -> &mut easycurses::EasyCurses {
+    pub fn get_curses_mut(&mut self) -> &mut easycurses::EasyCurses {
         &mut self.curses
     }
 }
