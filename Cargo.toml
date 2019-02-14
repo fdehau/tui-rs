@@ -56,11 +56,6 @@ path = "examples/crossterm_demo.rs"
 required-features = ["crossterm"]
 
 [[example]]
-name = "curses"
-path = "examples/curses.rs"
-required-features = ["curses"]
-
-[[example]]
 name = "curses_demo"
 path = "examples/curses_demo.rs"
 required-features = ["curses"]
