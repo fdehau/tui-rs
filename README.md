@@ -41,7 +41,7 @@ The demo shown in the gif can be run with all available backends
 run:
 
 ```
-cargo run --example termion_demo --release --tick-rate 200
+cargo run --example termion_demo --release -- --tick-rate 200
 ```
 
 The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
