@@ -4,12 +4,12 @@ use crate::backend::Backend;
 use crate::buffer::Cell;
 use crate::layout::Rect;
 use crate::style::{Color, Modifier, Style};
+use unicode_segmentation::UnicodeSegmentation;
+use crate::symbols::{bar, block};
 #[cfg(unix)]
-use crate::symbols::{bar, block, line, DOT};
+use crate::symbols::{line, DOT};
 #[cfg(unix)]
 use pancurses::ToChtype;
-#[cfg(unix)]
-use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
     curses: easycurses::EasyCurses,
@@ -137,58 +137,70 @@ struct CursesStyle {
 /// Deals with lack of unicode support for ncurses on unix
 fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
     for grapheme in symbol.graphemes(true) {
-        let ch = convert_to_curses_char(grapheme);
+        let ch = match grapheme {
+            line::TOP_RIGHT => pancurses::ACS_URCORNER(),
+            line::VERTICAL => pancurses::ACS_VLINE(),
+            line::HORIZONTAL => pancurses::ACS_HLINE(),
+            line::TOP_LEFT => pancurses::ACS_ULCORNER(),
+            line::BOTTOM_RIGHT => pancurses::ACS_LRCORNER(),
+            line::BOTTOM_LEFT => pancurses::ACS_LLCORNER(),
+            line::VERTICAL_LEFT => pancurses::ACS_RTEE(),
+            line::VERTICAL_RIGHT => pancurses::ACS_LTEE(),
+            line::HORIZONTAL_DOWN => pancurses::ACS_TTEE(),
+            line::HORIZONTAL_UP => pancurses::ACS_BTEE(),
+            block::FULL => pancurses::ACS_BLOCK(),
+            block::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
+            block::THREE_QUATERS => pancurses::ACS_BLOCK(),
+            block::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
+            block::HALF => pancurses::ACS_BLOCK(),
+            block::THREE_EIGHTHS => ' ' as u64,
+            block::ONE_QUATER => ' ' as u64,
+            block::ONE_EIGHTH => ' ' as u64,
+            bar::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
+            bar::THREE_QUATERS => pancurses::ACS_BLOCK(),
+            bar::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
+            bar::HALF => pancurses::ACS_BLOCK(),
+            bar::THREE_EIGHTHS => pancurses::ACS_S9(),
+            bar::ONE_QUATER => pancurses::ACS_S9(),
+            bar::ONE_EIGHTH => pancurses::ACS_S9(),
+            DOT => pancurses::ACS_BULLET(),
+            unicode_char => {
+                if unicode_char.is_ascii() {
+                    let mut chars = unicode_char.chars();
+                    if let Some(ch) = chars.next() {
+                        ch.to_chtype()
+                    } else {
+                        pancurses::ACS_BLOCK()
+                    }
+                } else {
+                    pancurses::ACS_BLOCK()
+                }
+            }
+        };
         curses.win.addch(ch);
     }
 }
 
 #[cfg(windows)]
 fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
-    curses.print(symbol);
-}
-
-#[cfg(unix)]
-/// Unicode to ASCII / ncurses extended characters
-fn convert_to_curses_char(unicode: &str) -> pancurses::chtype {
-    match unicode {
-        line::TOP_RIGHT => pancurses::ACS_URCORNER(),
-        line::VERTICAL => pancurses::ACS_VLINE(),
-        line::HORIZONTAL => pancurses::ACS_HLINE(),
-        line::TOP_LEFT => pancurses::ACS_ULCORNER(),
-        line::BOTTOM_RIGHT => pancurses::ACS_LRCORNER(),
-        line::BOTTOM_LEFT => pancurses::ACS_LLCORNER(),
-        line::VERTICAL_LEFT => pancurses::ACS_RTEE(),
-        line::VERTICAL_RIGHT => pancurses::ACS_LTEE(),
-        line::HORIZONTAL_DOWN => pancurses::ACS_TTEE(),
-        line::HORIZONTAL_UP => pancurses::ACS_BTEE(),
-        block::FULL => pancurses::ACS_BLOCK(),
-        block::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
-        block::THREE_QUATERS => pancurses::ACS_BLOCK(),
-        block::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
-        block::HALF => pancurses::ACS_BLOCK(),
-        block::THREE_EIGHTHS => pancurses::ACS_BLOCK(),
-        block::ONE_QUATER => pancurses::ACS_BLOCK(),
-        block::ONE_EIGHTH => pancurses::ACS_BLOCK(),
-        bar::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
-        bar::THREE_QUATERS => pancurses::ACS_BLOCK(),
-        bar::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
-        bar::HALF => pancurses::ACS_BLOCK(),
-        bar::THREE_EIGHTHS => pancurses::ACS_BLOCK(),
-        bar::ONE_QUATER => pancurses::ACS_BLOCK(),
-        bar::ONE_EIGHTH => pancurses::ACS_BLOCK(),
-        DOT => pancurses::ACS_BULLET(),
-        unicode_char => {
-            if unicode_char.is_ascii() {
-                let mut chars = unicode_char.chars();
-                if let Some(ch) = chars.next() {
-                    ch.to_chtype()
-                } else {
-                    pancurses::ACS_BLOCK()
-                }
-            } else {
-                pancurses::ACS_BLOCK()
-            }
-        }
+    for grapheme in symbol.graphemes(true) {
+        let ch = match grapheme {
+            block::SEVEN_EIGHTHS => block::FULL,
+            block::THREE_QUATERS => block::FULL,
+            block::FIVE_EIGHTHS => block::HALF,
+            block::THREE_EIGHTHS => block::HALF,
+            block::ONE_QUATER => block::HALF,
+            block::ONE_EIGHTH => " ",
+            bar::SEVEN_EIGHTHS => bar::FULL,
+            bar::THREE_QUATERS => bar::FULL,
+            bar::FIVE_EIGHTHS => bar::HALF,
+            bar::THREE_EIGHTHS => bar::HALF,
+            bar::ONE_QUATER => bar::HALF,
+            bar::ONE_EIGHTH => " ",
+            ch => ch,
+        };
+        // curses.win.addch(ch);
+        curses.print(ch);
     }
 }
 
