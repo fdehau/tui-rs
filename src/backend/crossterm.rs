@@ -7,7 +7,7 @@ use crate::style::{Color, Modifier};
 use crossterm::error::ErrorKind;
 
 pub struct CrosstermBackend {
-    screen: crossterm::Screen,
+    screen: Option<crossterm::Screen>,
     crossterm: crossterm::Crossterm,
     // Need to keep the AlternateScreen around even when not using it directly,
     // see https://github.com/TimonPost/crossterm/issues/88
@@ -19,7 +19,7 @@ impl Default for CrosstermBackend {
         let screen = crossterm::Screen::default();
         let crossterm = crossterm::Crossterm::from_screen(&screen);
         CrosstermBackend {
-            screen,
+            screen: Some(screen),
             crossterm,
             alternate_screen: None,
         }
@@ -34,24 +34,26 @@ impl CrosstermBackend {
     pub fn with_screen(screen: crossterm::Screen) -> CrosstermBackend {
         let crossterm = crossterm::Crossterm::from_screen(&screen);
         CrosstermBackend {
-            screen,
+            screen: Some(screen),
             crossterm,
             alternate_screen: None,
         }
     }
 
-    pub fn with_alternate_screen(screen: crossterm::Screen, raw_mode: bool) -> Result<CrosstermBackend, io::Error> {
-        let alternate_screen = screen.enable_alternate_modes(raw_mode)?;
+    pub fn with_alternate_screen(alternate_screen: crossterm::AlternateScreen) -> Result<CrosstermBackend, io::Error> {
         let crossterm = crossterm::Crossterm::from_screen(&alternate_screen.screen);
         Ok(CrosstermBackend {
-            screen,
+            screen: None,
             crossterm,
             alternate_screen: Some(alternate_screen),
         })
     }
 
-    pub fn screen(&self) -> &crossterm::Screen {
-        &self.screen
+    pub fn screen(&self) -> Option<&crossterm::Screen> {
+        match &self.screen {
+            Some(screen) => Some(&screen),
+            None => None,
+        }
     }
 
     pub fn alternate_screen(&self) -> Option<&crossterm::AlternateScreen> {
