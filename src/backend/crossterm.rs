@@ -24,7 +24,7 @@ impl CrosstermBackend {
     }
 
     pub fn with_screen(screen: crossterm::Screen) -> CrosstermBackend {
-        CrosstermBackend { screen: screen }
+        CrosstermBackend { screen }
     }
 
     pub fn screen(&self) -> &crossterm::Screen {
@@ -49,36 +49,6 @@ fn convert_error(error: ErrorKind) -> io::Error {
 }
 
 impl Backend for CrosstermBackend {
-    fn clear(&mut self) -> io::Result<()> {
-        let terminal = crossterm::terminal();
-        terminal
-            .clear(crossterm::ClearType::All)
-            .map_err(convert_error)?;
-        Ok(())
-    }
-
-    fn hide_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor();
-        cursor.hide().map_err(convert_error)?;
-        Ok(())
-    }
-
-    fn show_cursor(&mut self) -> io::Result<()> {
-        let cursor = crossterm::cursor();
-        cursor.show().map_err(convert_error)?;
-        Ok(())
-    }
-
-    fn size(&self) -> io::Result<Rect> {
-        let terminal = crossterm::terminal();
-        let (width, height) = terminal.terminal_size();
-        Ok(Rect::new(0, 0, width, height))
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
-
     fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
@@ -108,6 +78,36 @@ impl Backend for CrosstermBackend {
             }
             crossterm.paint(s).map_err(convert_error)?;
         }
+        Ok(())
+    }
+
+    fn hide_cursor(&mut self) -> io::Result<()> {
+        let cursor = crossterm::cursor();
+        cursor.hide().map_err(convert_error)?;
+        Ok(())
+    }
+
+    fn show_cursor(&mut self) -> io::Result<()> {
+        let cursor = crossterm::cursor();
+        cursor.show().map_err(convert_error)?;
+        Ok(())
+    }
+
+    fn clear(&mut self) -> io::Result<()> {
+        let terminal = crossterm::terminal();
+        terminal
+            .clear(crossterm::ClearType::All)
+            .map_err(convert_error)?;
+        Ok(())
+    }
+
+    fn size(&self) -> io::Result<Rect> {
+        let terminal = crossterm::terminal();
+        let (width, height) = terminal.terminal_size();
+        Ok(Rect::new(0, 0, width, height))
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }
 }

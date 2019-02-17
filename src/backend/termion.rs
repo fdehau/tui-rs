@@ -40,25 +40,6 @@ impl<W> Backend for TermionBackend<W>
 where
     W: Write,
 {
-    /// Clears the entire screen and move the cursor to the top left of the screen
-    fn clear(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::clear::All)?;
-        write!(self.stdout, "{}", termion::cursor::Goto(1, 1))?;
-        self.stdout.flush()
-    }
-
-    /// Hides cursor
-    fn hide_cursor(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Hide)?;
-        self.stdout.flush()
-    }
-
-    /// Shows cursor
-    fn show_cursor(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Show)?;
-        self.stdout.flush()
-    }
-
     fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
@@ -106,6 +87,25 @@ where
             Color::Reset.termion_bg(),
             Modifier::Reset.termion_modifier()
         )
+    }
+
+    /// Hides cursor
+    fn hide_cursor(&mut self) -> io::Result<()> {
+        write!(self.stdout, "{}", termion::cursor::Hide)?;
+        self.stdout.flush()
+    }
+
+    /// Shows cursor
+    fn show_cursor(&mut self) -> io::Result<()> {
+        write!(self.stdout, "{}", termion::cursor::Show)?;
+        self.stdout.flush()
+    }
+
+    /// Clears the entire screen and move the cursor to the top left of the screen
+    fn clear(&mut self) -> io::Result<()> {
+        write!(self.stdout, "{}", termion::clear::All)?;
+        write!(self.stdout, "{}", termion::cursor::Goto(1, 1))?;
+        self.stdout.flush()
     }
 
     /// Return the size of the terminal
