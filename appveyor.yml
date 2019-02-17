@@ -13,7 +13,7 @@ install:
   - rustc -Vv
   - cargo -V
 
-build: false
+build: off
 
 test_script:
   - cargo build --no-default-features --features crossterm
