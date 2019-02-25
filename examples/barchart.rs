@@ -97,7 +97,7 @@ fn main() -> Result<(), failure::Error> {
                     .bar_width(5)
                     .bar_gap(3)
                     .style(Style::default().fg(Color::Green))
-                    .value_style(Style::default().bg(Color::Green).modifier(Modifier::Bold))
+                    .value_style(Style::default().bg(Color::Green).modifier(Modifier::BOLD))
                     .render(&mut f, chunks[0]);
                 BarChart::default()
                     .block(Block::default().title("Data3").borders(Borders::ALL))
@@ -106,7 +106,7 @@ fn main() -> Result<(), failure::Error> {
                     .bar_width(7)
                     .bar_gap(0)
                     .value_style(Style::default().bg(Color::Red))
-                    .label_style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
+                    .label_style(Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC))
                     .render(&mut f, chunks[1]);
             }
         })?;

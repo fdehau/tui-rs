@@ -69,7 +69,7 @@ where
             Style::default()
                 .fg(Color::Magenta)
                 .bg(Color::Black)
-                .modifier(Modifier::Italic),
+                .modifier(Modifier::ITALIC),
         )
         .label(&format!("{} / 100", app.progress))
         .percent(app.progress)
@@ -107,7 +107,7 @@ where
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .items(&app.tasks.items)
                 .select(Some(app.tasks.selected))
-                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
+                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
                 .highlight_symbol(">")
                 .render(f, chunks[0]);
             let info_style = Style::default().fg(Color::White);
@@ -138,7 +138,7 @@ where
                 Style::default()
                     .fg(Color::Black)
                     .bg(Color::Green)
-                    .modifier(Modifier::Italic),
+                    .modifier(Modifier::ITALIC),
             )
             .label_style(Style::default().fg(Color::Yellow))
             .style(Style::default().fg(Color::Green))
@@ -149,14 +149,14 @@ where
             .block(
                 Block::default()
                     .title("Chart")
-                    .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
+                    .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::BOLD))
                     .borders(Borders::ALL),
             )
             .x_axis(
                 Axis::default()
                     .title("X Axis")
                     .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .labels_style(Style::default().modifier(Modifier::ITALIC))
                     .bounds(app.signals.window)
                     .labels(&[
                         &format!("{}", app.signals.window[0]),
@@ -168,7 +168,7 @@ where
                 Axis::default()
                     .title("Y Axis")
                     .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::Italic))
+                    .labels_style(Style::default().modifier(Modifier::ITALIC))
                     .bounds([-20.0, 20.0])
                     .labels(&["-20", "0", "20"]),
             )
@@ -200,13 +200,13 @@ where
         Text::raw(" "),
         Text::styled("rainbow", Style::default().fg(Color::Blue)),
         Text::raw(".\nOh and if you didn't "),
-        Text::styled("notice", Style::default().modifier(Modifier::Italic)),
+        Text::styled("notice", Style::default().modifier(Modifier::ITALIC)),
         Text::raw(" you can "),
-        Text::styled("automatically", Style::default().modifier(Modifier::Bold)),
+        Text::styled("automatically", Style::default().modifier(Modifier::BOLD)),
         Text::raw(" "),
-        Text::styled("wrap", Style::default().modifier(Modifier::Invert)),
+        Text::styled("wrap", Style::default().modifier(Modifier::REVERSED)),
         Text::raw(" your "),
-        Text::styled("text", Style::default().modifier(Modifier::Underline)),
+        Text::styled("text", Style::default().modifier(Modifier::UNDERLINED)),
         Text::raw(".\nOne more thing is that it should display unicode characters: 10€")
     ];
     Paragraph::new(text.iter())
@@ -214,7 +214,7 @@ where
             Block::default()
                 .borders(Borders::ALL)
                 .title("Footer")
-                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::Bold)),
+                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD)),
         )
         .wrap(true)
         .render(f, area);

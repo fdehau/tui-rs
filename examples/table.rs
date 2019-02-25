@@ -53,7 +53,7 @@ fn main() -> Result<(), failure::Error> {
     // Input
     loop {
         terminal.draw(|mut f| {
-            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::Bold);
+            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
             let normal_style = Style::default().fg(Color::White);
             let header = ["Header1", "Header2", "Header3"];
             let rows = app.items.iter().enumerate().map(|(i, item)| {
