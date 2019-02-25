@@ -24,6 +24,7 @@ pub enum Direction {
 pub enum Constraint {
     // TODO: enforce range 0 - 100
     Percentage(u16),
+    Ratio(u32, u32),
     Length(u16),
     Max(u16),
     Min(u16),
@@ -159,6 +160,11 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     Constraint::Percentage(v) => {
                         elements[i].width | EQ(WEAK) | (f64::from(v * dest_area.width) / 100.0)
                     }
+                    Constraint::Ratio(n, d) => {
+                        elements[i].width
+                            | EQ(WEAK)
+                            | (f64::from(dest_area.width) * f64::from(n) / f64::from(d))
+                    }
                     Constraint::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
                 });
@@ -175,6 +181,11 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     Constraint::Length(v) => elements[i].height | EQ(WEAK) | f64::from(v),
                     Constraint::Percentage(v) => {
                         elements[i].height | EQ(WEAK) | (f64::from(v * dest_area.height) / 100.0)
+                    }
+                    Constraint::Ratio(n, d) => {
+                        elements[i].height
+                            | EQ(WEAK)
+                            | (f64::from(dest_area.height) * f64::from(n) / f64::from(d))
                     }
                     Constraint::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
