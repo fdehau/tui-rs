@@ -99,7 +99,7 @@ fn main() -> Result<(), failure::Error> {
                 .render(&mut f, chunks[2]);
             Gauge::default()
                 .block(Block::default().title("Gauge4").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Cyan).modifier(Modifier::Italic))
+                .style(Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC))
                 .percent(app.progress4)
                 .label(&format!("{}/100", app.progress2))
                 .render(&mut f, chunks[3]);

@@ -60,18 +60,18 @@ fn main() -> Result<(), failure::Error> {
                 Text::styled("This is a line\n", Style::default().bg(Color::Blue)),
                 Text::styled(
                     "This is a longer line\n",
-                    Style::default().modifier(Modifier::CrossedOut),
+                    Style::default().modifier(Modifier::CROSSED_OUT),
                 ),
                 Text::styled(&long_line, Style::default().bg(Color::Green)),
                 Text::styled(
                     "This is a line\n",
-                    Style::default().fg(Color::Green).modifier(Modifier::Italic),
+                    Style::default().fg(Color::Green).modifier(Modifier::ITALIC),
                 ),
             ];
 
             let block = Block::default()
                 .borders(Borders::ALL)
-                .title_style(Style::default().modifier(Modifier::Bold));
+                .title_style(Style::default().modifier(Modifier::BOLD));
             Paragraph::new(text.iter())
                 .block(block.clone().title("Left, no wrap"))
                 .alignment(Alignment::Left)

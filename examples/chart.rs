@@ -73,14 +73,14 @@ fn main() -> Result<(), failure::Error> {
                 .block(
                     Block::default()
                         .title("Chart")
-                        .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::Bold))
+                        .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::BOLD))
                         .borders(Borders::ALL),
                 )
                 .x_axis(
                     Axis::default()
                         .title("X Axis")
-                        .style(Style::default().fg(Color::Gray))
-                        .labels_style(Style::default().modifier(Modifier::Italic))
+                        .style(Style::default().fg(Color::White))
+                        .labels_style(Style::default().modifier(Modifier::ITALIC))
                         .bounds(app.window)
                         .labels(&[
                             &format!("{}", app.window[0]),
@@ -91,8 +91,8 @@ fn main() -> Result<(), failure::Error> {
                 .y_axis(
                     Axis::default()
                         .title("Y Axis")
-                        .style(Style::default().fg(Color::Gray))
-                        .labels_style(Style::default().modifier(Modifier::Italic))
+                        .style(Style::default().fg(Color::White))
+                        .labels_style(Style::default().modifier(Modifier::ITALIC))
                         .bounds([-20.0, 20.0])
                         .labels(&["-20", "0", "20"]),
                 )

@@ -15,7 +15,7 @@ use crate::widgets::{Block, Widget};
 /// # fn main() {
 /// Gauge::default()
 ///     .block(Block::default().borders(Borders::ALL).title("Progress"))
-///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::Italic))
+///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::ITALIC))
 ///     .percent(20);
 /// # }
 /// ```

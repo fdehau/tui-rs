@@ -21,7 +21,7 @@ use crate::widgets::{Block, Widget};
 ///     .bar_width(3)
 ///     .bar_gap(1)
 ///     .style(Style::default().fg(Color::Yellow).bg(Color::Red))
-///     .value_style(Style::default().fg(Color::Red).modifier(Modifier::Bold))
+///     .value_style(Style::default().fg(Color::Red).modifier(Modifier::BOLD))
 ///     .label_style(Style::default().fg(Color::White))
 ///     .data(&[("B0", 0), ("B1", 2), ("B2", 4), ("B3", 3)])
 ///     .max(4);

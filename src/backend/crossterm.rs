@@ -149,9 +149,8 @@ impl Backend for CrosstermBackend {
             if let Some(color) = cell.style.bg.into() {
                 s = s.on(color)
             }
-            if let Some(attr) = cell.style.modifier.into() {
-                s = s.attr(attr)
-            }
+            s.object_style.attrs = cell.style.modifier.into();
+
             self.crossterm.paint(s).map_err(convert_error)?;
         }
         Ok(())
@@ -178,32 +177,59 @@ impl From<Color> for Option<crossterm::Color> {
             Color::LightMagenta => Some(crossterm::Color::Magenta),
             Color::LightCyan => Some(crossterm::Color::Cyan),
             Color::White => Some(crossterm::Color::White),
+            Color::Indexed(i) => Some(crossterm::Color::AnsiValue(i)),
             Color::Rgb(r, g, b) => Some(crossterm::Color::Rgb { r, g, b }),
         }
     }
 }
 
-impl From<Modifier> for Option<crossterm::Attribute> {
+impl From<Modifier> for Vec<crossterm::Attribute> {
     #[cfg(unix)]
-    fn from(modifier: Modifier) -> Option<crossterm::Attribute> {
-        match modifier {
-            Modifier::Blink => Some(crossterm::Attribute::SlowBlink),
-            Modifier::Bold => Some(crossterm::Attribute::Bold),
-            Modifier::CrossedOut => Some(crossterm::Attribute::CrossedOut),
-            Modifier::Faint => Some(crossterm::Attribute::Dim),
-            Modifier::Invert => Some(crossterm::Attribute::Reverse),
-            Modifier::Italic => Some(crossterm::Attribute::Italic),
-            Modifier::Underline => Some(crossterm::Attribute::Underlined),
-            _ => None,
+    fn from(modifier: Modifier) -> Vec<crossterm::Attribute> {
+        let mut result = Vec::new();
+
+        if modifier.contains(Modifier::BOLD) {
+            result.push(crossterm::Attribute::Bold)
         }
+        if modifier.contains(Modifier::DIM) {
+            result.push(crossterm::Attribute::Dim)
+        }
+        if modifier.contains(Modifier::ITALIC) {
+            result.push(crossterm::Attribute::Italic)
+        }
+        if modifier.contains(Modifier::UNDERLINED) {
+            result.push(crossterm::Attribute::Underlined)
+        }
+        if modifier.contains(Modifier::SLOW_BLINK) {
+            result.push(crossterm::Attribute::SlowBlink)
+        }
+        if modifier.contains(Modifier::RAPID_BLINK) {
+            result.push(crossterm::Attribute::RapidBlink)
+        }
+        if modifier.contains(Modifier::REVERSED) {
+            result.push(crossterm::Attribute::Reverse)
+        }
+        if modifier.contains(Modifier::HIDDEN) {
+            result.push(crossterm::Attribute::Hidden)
+        }
+        if modifier.contains(Modifier::CROSSED_OUT) {
+            result.push(crossterm::Attribute::CrossedOut)
+        }
+
+        result
     }
 
     #[cfg(windows)]
-    fn from(modifier: Modifier) -> Option<crossterm::Attribute> {
-        match modifier {
-            Modifier::Bold => Some(crossterm::Attribute::Bold),
-            Modifier::Underline => Some(crossterm::Attribute::Underlined),
-            _ => None,
+    fn from(modifier: Modifier) -> Vec<crossterm::Attribute> {
+        let mut result = Vec::new();
+
+        if modifier.contains(Modifier::BOLD) {
+            result.push(crossterm::Attribute::Bold)
         }
+        if modifier.contains(Modifier::UNDERLINED) {
+            result.push(crossterm::Attribute::Underlined)
+        }
+
+        result
     }
 }

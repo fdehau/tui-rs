@@ -54,7 +54,7 @@ fn main() -> Result<(), failure::Error> {
                         Style::default()
                             .fg(Color::White)
                             .bg(Color::Red)
-                            .modifier(Modifier::Bold),
+                            .modifier(Modifier::BOLD),
                     )
                     .render(&mut f, chunks[1]);
             }

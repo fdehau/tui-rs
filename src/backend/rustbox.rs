@@ -103,6 +103,7 @@ impl Into<rustbox::Color> for Color {
             Color::Cyan | Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
             Color::Blue | Color::LightBlue => rustbox::Color::Blue,
+            Color::Indexed(i) => rustbox::Color::Byte(i as u16),
             Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
         }
     }
@@ -110,11 +111,16 @@ impl Into<rustbox::Color> for Color {
 
 impl Into<rustbox::Style> for Modifier {
     fn into(self) -> rustbox::Style {
-        match self {
-            Modifier::Bold => rustbox::RB_BOLD,
-            Modifier::Underline => rustbox::RB_UNDERLINE,
-            Modifier::Invert => rustbox::RB_REVERSE,
-            _ => rustbox::RB_NORMAL,
+        let mut result = rustbox::Style::empty();
+        if self.contains(Modifier::BOLD) {
+            result.insert(rustbox::RB_BOLD);
         }
+        if self.contains(Modifier::UNDERLINED) {
+            result.insert(rustbox::RB_UNDERLINE);
+        }
+        if self.contains(Modifier::REVERSED) {
+            result.insert(rustbox::RB_REVERSE);
+        }
+        result
     }
 }

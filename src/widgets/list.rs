@@ -125,7 +125,7 @@ where
 ///     .items(&["Item 1", "Item 2", "Item 3"])
 ///     .select(Some(1))
 ///     .style(Style::default().fg(Color::White))
-///     .highlight_style(Style::default().modifier(Modifier::Italic))
+///     .highlight_style(Style::default().modifier(Modifier::ITALIC))
 ///     .highlight_symbol(">>");
 /// # }
 /// ```

@@ -88,7 +88,7 @@ impl Default for Cell {
 ///     style: Style {
 ///         fg: Color::Red,
 ///         bg: Color::White,
-///         modifier: Modifier::Reset
+///         modifier: Modifier::empty()
 ///     }});
 /// buf.get_mut(5, 0).set_char('x');
 /// assert_eq!(buf.get(5, 0).symbol, "x");
