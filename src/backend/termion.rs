@@ -206,7 +206,14 @@ impl fmt::Display for ModifierDiff {
             write!(f, "{}", termion::style::NoInvert)?;
         }
         if remove.contains(style::Modifier::BOLD) {
-            write!(f, "{}", termion::style::NoBold)?;
+            // XXX: the termion NoBold flag actually enables double-underline on ECMA-48 compliant
+            // terminals, and NoFaint additionally disables bold... so we use this trick to get
+            // the right semantics.
+            write!(f, "{}", termion::style::NoFaint)?;
+
+            if self.to.contains(style::Modifier::DIM) {
+                write!(f, "{}", termion::style::Faint)?;
+            }
         }
         if remove.contains(style::Modifier::ITALIC) {
             write!(f, "{}", termion::style::NoItalic)?;
@@ -216,6 +223,12 @@ impl fmt::Display for ModifierDiff {
         }
         if remove.contains(style::Modifier::DIM) {
             write!(f, "{}", termion::style::NoFaint)?;
+
+            // XXX: the NoFaint flag additionally disables bold as well, so we need to re-enable it
+            // here if we want it.
+            if self.to.contains(style::Modifier::BOLD) {
+                write!(f, "{}", termion::style::Bold)?;
+            }
         }
         if remove.contains(style::Modifier::CROSSED_OUT) {
             write!(f, "{}", termion::style::NoCrossedOut)?;
