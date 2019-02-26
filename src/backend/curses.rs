@@ -112,6 +112,14 @@ impl Backend for CursesBackend {
             .set_cursor_visibility(easycurses::CursorVisibility::Visible);
         Ok(())
     }
+    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+        let (x, y) = self.curses.get_cursor_rc();
+        Ok((x as u16, y as u16))
+    }
+    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+        self.curses.move_rc(x as i32, y as i32);
+        Ok(())
+    }
     fn clear(&mut self) -> io::Result<()> {
         self.curses.clear();
         // self.curses.refresh();
@@ -153,9 +161,9 @@ fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
             block::THREE_QUATERS => pancurses::ACS_BLOCK(),
             block::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
             block::HALF => pancurses::ACS_BLOCK(),
-            block::THREE_EIGHTHS => ' ' as u64,
-            block::ONE_QUATER => ' ' as u64,
-            block::ONE_EIGHTH => ' ' as u64,
+            block::THREE_EIGHTHS => ' ' as u32,
+            block::ONE_QUATER => ' ' as u32,
+            block::ONE_EIGHTH => ' ' as u32,
             bar::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
             bar::THREE_QUATERS => pancurses::ACS_BLOCK(),
             bar::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
