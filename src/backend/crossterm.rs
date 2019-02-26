@@ -40,7 +40,9 @@ impl CrosstermBackend {
         }
     }
 
-    pub fn with_alternate_screen(alternate_screen: crossterm::AlternateScreen) -> Result<CrosstermBackend, io::Error> {
+    pub fn with_alternate_screen(
+        alternate_screen: crossterm::AlternateScreen,
+    ) -> Result<CrosstermBackend, io::Error> {
         let crossterm = crossterm::Crossterm::from_screen(&alternate_screen.screen);
         Ok(CrosstermBackend {
             screen: None,

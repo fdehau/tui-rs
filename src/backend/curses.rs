@@ -4,12 +4,12 @@ use crate::backend::Backend;
 use crate::buffer::Cell;
 use crate::layout::Rect;
 use crate::style::{Color, Modifier, Style};
-use unicode_segmentation::UnicodeSegmentation;
 use crate::symbols::{bar, block};
 #[cfg(unix)]
 use crate::symbols::{line, DOT};
 #[cfg(unix)]
 use pancurses::ToChtype;
+use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
     curses: easycurses::EasyCurses,
@@ -35,7 +35,7 @@ impl CursesBackend {
 }
 
 impl Backend for CursesBackend {
-    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+    fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -102,17 +102,17 @@ impl Backend for CursesBackend {
         ));
         Ok(())
     }
-    fn hide_cursor(&mut self) -> Result<(), io::Error> {
+    fn hide_cursor(&mut self) -> io::Result<()> {
         self.curses
             .set_cursor_visibility(easycurses::CursorVisibility::Invisible);
         Ok(())
     }
-    fn show_cursor(&mut self) -> Result<(), io::Error> {
+    fn show_cursor(&mut self) -> io::Result<()> {
         self.curses
             .set_cursor_visibility(easycurses::CursorVisibility::Visible);
         Ok(())
     }
-    fn clear(&mut self) -> Result<(), io::Error> {
+    fn clear(&mut self) -> io::Result<()> {
         self.curses.clear();
         // self.curses.refresh();
         Ok(())
@@ -121,7 +121,7 @@ impl Backend for CursesBackend {
         let (nrows, ncols) = self.curses.get_row_col_count();
         Ok(Rect::new(0, 0, ncols as u16, nrows as u16))
     }
-    fn flush(&mut self) -> Result<(), io::Error> {
+    fn flush(&mut self) -> io::Result<()> {
         self.curses.refresh();
         Ok(())
     }

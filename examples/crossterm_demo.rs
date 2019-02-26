@@ -7,10 +7,10 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
+use crossterm;
 use structopt::StructOpt;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
-use crossterm;
 
 use crate::demo::{ui, App};
 
