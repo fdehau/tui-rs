@@ -8,7 +8,7 @@ use crate::symbols::{bar, block};
 #[cfg(unix)]
 use crate::symbols::{line, DOT};
 #[cfg(unix)]
-use pancurses::ToChtype;
+use pancurses::{chtype, ToChtype};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
@@ -161,9 +161,9 @@ fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
             block::THREE_QUATERS => pancurses::ACS_BLOCK(),
             block::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
             block::HALF => pancurses::ACS_BLOCK(),
-            block::THREE_EIGHTHS => ' '.into(),
-            block::ONE_QUATER => ' '.into(),
-            block::ONE_EIGHTH => ' '.into(),
+            block::THREE_EIGHTHS => ' ' as chtype,
+            block::ONE_QUATER => ' ' as chtype,
+            block::ONE_EIGHTH => ' ' as chtype,
             bar::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
             bar::THREE_QUATERS => pancurses::ACS_BLOCK(),
             bar::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
