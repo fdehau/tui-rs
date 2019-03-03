@@ -44,12 +44,11 @@ impl Backend for CursesBackend {
         let mut style = Style {
             fg: Color::Reset,
             bg: Color::Reset,
-            modifier: Modifier::Reset,
+            modifier: Modifier::empty(),
         };
         let mut curses_style = CursesStyle {
             fg: easycurses::Color::White,
             bg: easycurses::Color::Black,
-            attribute: pancurses::Attribute::Normal,
         };
         let mut update_color = false;
         for (col, row, cell) in content {
@@ -60,12 +59,7 @@ impl Backend for CursesBackend {
             last_col = col;
             last_row = row;
             if cell.style.modifier != style.modifier {
-                if curses_style.attribute != pancurses::Attribute::Normal {
-                    self.curses.win.attroff(curses_style.attribute);
-                }
-                let attribute: pancurses::Attribute = cell.style.modifier.into();
-                self.curses.win.attron(attribute);
-                curses_style.attribute = attribute;
+                apply_modifier_diff(&mut self.curses.win, style.modifier, cell.style.modifier);
                 style.modifier = cell.style.modifier;
             };
             if cell.style.fg != style.fg {
@@ -138,7 +132,6 @@ impl Backend for CursesBackend {
 struct CursesStyle {
     fg: easycurses::Color,
     bg: easycurses::Color,
-    attribute: pancurses::Attribute,
 }
 
 #[cfg(unix)]
@@ -224,22 +217,67 @@ impl From<Color> for Option<easycurses::Color> {
             Color::Cyan | Color::LightCyan => Some(easycurses::Color::Cyan),
             Color::White | Color::Gray | Color::DarkGray => Some(easycurses::Color::White),
             Color::Blue | Color::LightBlue => Some(easycurses::Color::Blue),
+            Color::Indexed(_) => None,
             Color::Rgb(_, _, _) => None,
         }
     }
 }
 
-impl From<Modifier> for pancurses::Attribute {
-    fn from(modifier: Modifier) -> pancurses::Attribute {
-        match modifier {
-            Modifier::Blink => pancurses::Attribute::Blink,
-            Modifier::Bold => pancurses::Attribute::Bold,
-            Modifier::CrossedOut => pancurses::Attribute::Strikeout,
-            Modifier::Faint => pancurses::Attribute::Dim,
-            Modifier::Invert => pancurses::Attribute::Reverse,
-            Modifier::Italic => pancurses::Attribute::Italic,
-            Modifier::Underline => pancurses::Attribute::Underline,
-            _ => pancurses::Attribute::Normal,
-        }
+fn apply_modifier_diff(win: &mut pancurses::Window, from: Modifier, to: Modifier) {
+    remove_modifier(win, from - to);
+    add_modifier(win, to - from);
+}
+
+fn remove_modifier(win: &mut pancurses::Window, remove: Modifier) {
+    if remove.contains(Modifier::BOLD) {
+        win.attroff(pancurses::Attribute::Bold);
+    }
+    if remove.contains(Modifier::DIM) {
+        win.attroff(pancurses::Attribute::Dim);
+    }
+    if remove.contains(Modifier::ITALIC) {
+        win.attroff(pancurses::Attribute::Italic);
+    }
+    if remove.contains(Modifier::UNDERLINED) {
+        win.attroff(pancurses::Attribute::Underline);
+    }
+    if remove.contains(Modifier::SLOW_BLINK) || remove.contains(Modifier::RAPID_BLINK) {
+        win.attroff(pancurses::Attribute::Blink);
+    }
+    if remove.contains(Modifier::REVERSED) {
+        win.attroff(pancurses::Attribute::Reverse);
+    }
+    if remove.contains(Modifier::HIDDEN) {
+        win.attroff(pancurses::Attribute::Invisible);
+    }
+    if remove.contains(Modifier::CROSSED_OUT) {
+        win.attroff(pancurses::Attribute::Strikeout);
+    }
+}
+
+fn add_modifier(win: &mut pancurses::Window, add: Modifier) {
+    if add.contains(Modifier::BOLD) {
+        win.attron(pancurses::Attribute::Bold);
+    }
+    if add.contains(Modifier::DIM) {
+        win.attron(pancurses::Attribute::Dim);
+    }
+    if add.contains(Modifier::ITALIC) {
+        win.attron(pancurses::Attribute::Italic);
+    }
+    if add.contains(Modifier::UNDERLINED) {
+        win.attron(pancurses::Attribute::Underline);
+    }
+    if add.contains(Modifier::SLOW_BLINK) || add.contains(Modifier::RAPID_BLINK) {
+        win.attron(pancurses::Attribute::Blink);
+    }
+    if add.contains(Modifier::REVERSED) {
+        win.attron(pancurses::Attribute::Reverse);
+    }
+    if add.contains(Modifier::HIDDEN) {
+        win.attron(pancurses::Attribute::Invisible);
+    }
+    if add.contains(Modifier::CROSSED_OUT) {
+        win.attron(pancurses::Attribute::Strikeout);
     }
 }
