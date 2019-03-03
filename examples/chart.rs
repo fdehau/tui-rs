@@ -79,7 +79,7 @@ fn main() -> Result<(), failure::Error> {
                 .x_axis(
                     Axis::default()
                         .title("X Axis")
-                        .style(Style::default().fg(Color::White))
+                        .style(Style::default().fg(Color::Gray))
                         .labels_style(Style::default().modifier(Modifier::ITALIC))
                         .bounds(app.window)
                         .labels(&[
@@ -91,7 +91,7 @@ fn main() -> Result<(), failure::Error> {
                 .y_axis(
                     Axis::default()
                         .title("Y Axis")
-                        .style(Style::default().fg(Color::White))
+                        .style(Style::default().fg(Color::Gray))
                         .labels_style(Style::default().modifier(Modifier::ITALIC))
                         .bounds([-20.0, 20.0])
                         .labels(&["-20", "0", "20"]),
