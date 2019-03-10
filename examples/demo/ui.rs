@@ -69,7 +69,7 @@ where
             Style::default()
                 .fg(Color::Magenta)
                 .bg(Color::Black)
-                .modifier(Modifier::ITALIC),
+                .modifier(Modifier::ITALIC | Modifier::BOLD),
         )
         .label(&format!("{} / 100", app.progress))
         .percent(app.progress)
@@ -229,7 +229,9 @@ where
         .direction(Direction::Horizontal)
         .split(area);
     let up_style = Style::default().fg(Color::Green);
-    let failure_style = Style::default().fg(Color::Red);
+    let failure_style = Style::default()
+        .fg(Color::Red)
+        .modifier(Modifier::RAPID_BLINK | Modifier::CROSSED_OUT);
     let header = ["Server", "Location", "Status"];
     let rows = app.servers.iter().map(|s| {
         let style = if s.status == "Up" {
