@@ -360,28 +360,24 @@ impl Buffer {
         self.content.resize(area.area() as usize, cell.clone());
 
         // Move original content to the appropriate space
-        let offset_x = self.area.x - area.x;
-        let offset_y = self.area.y - area.y;
         let size = self.area.area() as usize;
         for i in (0..size).rev() {
             let (x, y) = self.pos_of(i);
             // New index in content
-            let k = ((y + offset_y) * area.width + (x + offset_x)) as usize;
-            self.content[k] = self.content[i].clone();
+            let k = ((y - area.y) * area.width + x - area.x) as usize;
             if i != k {
+                self.content[k] = self.content[i].clone();
                 self.content[i] = cell.clone();
             }
         }
 
         // Push content of the other buffer into this one (may erase previous
         // data)
-        let offset_x = other.area.x - area.x;
-        let offset_y = other.area.y - area.y;
         let size = other.area.area() as usize;
         for i in 0..size {
             let (x, y) = other.pos_of(i);
             // New index in content
-            let k = ((y + offset_y) * area.width + (x + offset_x)) as usize;
+            let k = ((y - area.y) * area.width + x - area.x) as usize;
             self.content[k] = other.content[i].clone();
         }
         self.area = area;
@@ -629,5 +625,87 @@ mod tests {
                 (4, 0, &cell("号")),
             ]
         );
+    }
+
+    #[test]
+    fn buffer_merge() {
+        let mut one = Buffer::filled(
+            Rect {
+                x: 0,
+                y: 0,
+                width: 2,
+                height: 2,
+            },
+            Cell::default().set_symbol("1"),
+        );
+        let two = Buffer::filled(
+            Rect {
+                x: 0,
+                y: 2,
+                width: 2,
+                height: 2,
+            },
+            Cell::default().set_symbol("2"),
+        );
+        one.merge(&two);
+        assert_eq!(one, Buffer::with_lines(vec!["11", "11", "22", "22"]));
+    }
+
+    #[test]
+    fn buffer_merge2() {
+        let mut one = Buffer::filled(
+            Rect {
+                x: 2,
+                y: 2,
+                width: 2,
+                height: 2,
+            },
+            Cell::default().set_symbol("1"),
+        );
+        let two = Buffer::filled(
+            Rect {
+                x: 0,
+                y: 0,
+                width: 2,
+                height: 2,
+            },
+            Cell::default().set_symbol("2"),
+        );
+        one.merge(&two);
+        assert_eq!(
+            one,
+            Buffer::with_lines(vec!["22  ", "22  ", "  11", "  11"])
+        );
+    }
+
+    #[test]
+    fn buffer_merge3() {
+        let mut one = Buffer::filled(
+            Rect {
+                x: 3,
+                y: 3,
+                width: 2,
+                height: 2,
+            },
+            Cell::default().set_symbol("1"),
+        );
+        let two = Buffer::filled(
+            Rect {
+                x: 1,
+                y: 1,
+                width: 3,
+                height: 4,
+            },
+            Cell::default().set_symbol("2"),
+        );
+        one.merge(&two);
+        let mut merged = Buffer::with_lines(vec!["222 ", "222 ", "2221", "2221"]);
+        merged.area = Rect {
+            x: 1,
+            y: 1,
+            width: 4,
+            height: 4,
+        };
+        assert_eq!(one, merged);
     }
 }
