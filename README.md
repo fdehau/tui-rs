@@ -20,7 +20,7 @@ can either choose from:
   - [crossterm](https://github.com/TimonPost/crossterm)
   - [pancurses](https://github.com/ihalila/pancurses)
 
-However, some features may only be available in one of the three.
+However, some features may only be available in one of the four.
 
 The library is based on the principle of immediate rendering with intermediate
 buffers. This means that at each new frame you should build all widgets that are
