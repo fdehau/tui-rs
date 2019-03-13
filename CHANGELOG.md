@@ -2,9 +2,9 @@
 
 ## To be released
 
-## v0.5.0 - 2019-03-10
+## v0.5.0 - 2019-03-10
 
-### Added
+### Added
 
 * Add a new curses backend (with Windows support thanks to `pancurses`).
 * Add `Backend::get_cursor` and `Backend::set_cursor` methods to query and
@@ -14,7 +14,7 @@ set the position of the cursor.
 * Add `Ratio` as a new variant of layout `Constraint`. It can be used to define
 exact ratios constraints.
 
-### Changed
+### Changed
 
 * Add support for multiple modifiers on the same `Style` by changing `Modifier`
 from an enum to a bitflags struct.
@@ -33,7 +33,7 @@ let style = Style::default().modifier(Modifier::ITALIC);
 let style = Style::default().modifier(Modifier::ITALIC | Modifier::BOLD);
 ```
 
-### Fixed
+### Fixed
 
 * Ensure correct behavoir of the alternate screens with the `Crossterm` backend.
 * Fix out of bounds panic when two `Buffer` are merged.
