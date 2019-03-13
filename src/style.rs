@@ -68,7 +68,7 @@ bitflags! {
 impl Modifier {
     /// Returns a short code associated with the color, used for debug purpose
     /// only
-    pub(crate) fn code(&self) -> String {
+    pub(crate) fn code(self) -> String {
         use std::fmt::Write;
 
         let mut result = String::new();
