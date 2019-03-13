@@ -16,17 +16,16 @@ use tui::widgets::{Block, Borders, Widget};
 use tui::Terminal;
 
 use crate::util::event::{Config, Event, Events};
-use image::{FilterType, RgbImage};
+use image::RgbImage;
 use std::collections::HashMap;
 use std::path::Path;
 
-pub fn open<P>(path: P, width: u16, height: u16) -> RgbImage
+pub fn open<P>(path: P) -> RgbImage
 where
     P: AsRef<Path>,
 {
     let img = image::open(path).unwrap();
-    img.resize_exact(width as u32, height as u32, FilterType::CatmullRom)
-        .to_rgb()
+    img.to_rgb()
 }
 
 pub fn group_by_color(img: RgbImage) -> HashMap<(u8, u8, u8), Vec<(f64, f64)>> {
@@ -66,10 +65,9 @@ fn main() -> Result<(), failure::Error> {
     };
     let events = Events::with_config(config);
 
-    let size = terminal.size().unwrap();
-    let width = size.width;
-    let height = size.height;
-    let img = open("assets/Hummingbird_by_Shu_Le.png", width, height);
+    let img = open("assets/Hummingbird_by_Shu_Le.png");
+    let width = img.width();
+    let height = img.height();
     let img_data = group_by_color(img);
 
     loop {
