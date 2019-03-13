@@ -25,7 +25,7 @@ where
     P: AsRef<Path>,
 {
     let img = image::open(path).unwrap();
-    img.resize_to_fill(width as u32, height as u32, FilterType::Gaussian)
+    img.resize_exact(width as u32, height as u32, FilterType::CatmullRom)
         .to_rgb()
 }
 
@@ -67,7 +67,9 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::with_config(config);
 
     let size = terminal.size().unwrap();
-    let img = open("assets/Hummingbird_by_Shu_Le.jpg", size.width, size.height);
+    let width = size.width;
+    let height = size.height;
+    let img = open("assets/Hummingbird_by_Shu_Le.png", width, height);
     let img_data = group_by_color(img);
 
     loop {
@@ -77,9 +79,13 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
 
             Canvas::default()
-                .block(Block::default().borders(Borders::NONE))
-                .x_bounds([0.0, size.width as f64])
-                .y_bounds([0.0, size.height as f64])
+                .block(
+                    Block::default()
+                        .title(format!("{}x{}", width, height).as_str())
+                        .borders(Borders::NONE),
+                )
+                .x_bounds([0.0, (width - 1) as f64])
+                .y_bounds([0.0, (height - 1) as f64])
                 .paint(|ctx| {
                     for color in img_data.keys() {
                         if let Some(points) = img_data.get(&color) {
