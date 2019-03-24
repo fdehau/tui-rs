@@ -5,12 +5,34 @@
 //!
 //! # Get started
 //!
+//! ## Adding `tui` as a dependency
+//!
+//! ```toml
+//! [dependencies]
+//! tui = "0.5"
+//! termion = "1.5"
+//! ```
+//!
+//! The crate is using the `termion` backend by default but if for some reason you might want to use
+//! the `rustbox` backend instead, you need the to replace your dependency specification by:
+//!
+//! ```toml
+//! [dependencies]
+//! rustbox = "0.11"
+//!
+//! [dependencies.tui]
+//! version = "0.5"
+//! default-features = false
+//! features = ['rustbox']
+//! ```
+//!
+//! The same logic applies for all other available backends.
+//!
 //! ## Creating a `Terminal`
 //!
-//! Every application using `tui` should start by instantiating a `Terminal`. It is
-//! a light abstraction over available backends that provides basic functionalities
-//! such as clearing the screen, hiding the cursor, etc. By default only the `termion`
-//! backend is available.
+//! Every application using `tui` should start by instantiating a `Terminal`. It is a light
+//! abstraction over available backends that provides basic functionalities such as clearing the
+//! screen, hiding the cursor, etc.
 //!
 //! ```rust,no_run
 //! use std::io;
@@ -26,20 +48,10 @@
 //! }
 //! ```
 //!
-//! If for some reason, you might want to use the `rustbox` backend instead, you
-//! need the to replace your `tui` dependency specification by:
-//!
-//! ```toml
-//! [dependencies.tui]
-//! version = "0.3.0"
-//! default-features = false
-//! features = ['rustbox']
-//! ```
-//!
-//! and then create the terminal in a similar way:
+//! If you had previously chosen `rustbox` as a backend, the terminal can be created in a similar
+//! way:
 //!
 //! ```rust,ignore
-//!
 //! use tui::Terminal;
 //! use tui::backend::RustboxBackend;
 //!
@@ -50,21 +62,22 @@
 //! }
 //! ```
 //!
+//! You may also refer to the examples to find out how to create a `Terminal` for each available
+//! backend.
+//!
 //! ## Building a User Interface (UI)
 //!
-//! Every component of your interface will be implementing the `Widget` trait.
-//! The library comes with a predefined set of widgets that should met most of
-//! your use cases. You are also free to implement your owns.
+//! Every component of your interface will be implementing the `Widget` trait.  The library comes
+//! with a predefined set of widgets that should met most of your use cases. You are also free to
+//! implement your owns.
 //!
-//! Each widget follows a builder pattern API providing a default configuration
-//! along with methods to customize them. The widget is then registered using
-//! its `render` method that take a `Frame` instance and an area to draw
-//! to.
+//! Each widget follows a builder pattern API providing a default configuration along with methods
+//! to customize them. The widget is then registered using its `render` method that take a `Frame`
+//! instance and an area to draw to.
 //!
 //! The following example renders a block of the size of the terminal:
 //!
 //! ```rust,no_run
-//!
 //! use std::io;
 //! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
@@ -93,7 +106,6 @@
 //! full customization. And `Layout` is no exception:
 //!
 //! ```rust,no_run
-//!
 //! use std::io;
 //! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
@@ -129,10 +141,10 @@
 //! }
 //! ```
 //!
-//! This let you describe responsive terminal UI by nesting layouts. You should note
-//! that by default the computed layout tries to fill the available space
-//! completely. So if for any reason you might need a blank space somewhere, try to
-//! pass an additional constraint and don't use the corresponding area.
+//! This let you describe responsive terminal UI by nesting layouts. You should note that by
+//! default the computed layout tries to fill the available space completely. So if for any reason
+//! you might need a blank space somewhere, try to pass an additional constraint and don't use the
+//! corresponding area.
 
 pub mod backend;
 pub mod buffer;
