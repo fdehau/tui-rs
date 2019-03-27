@@ -56,7 +56,7 @@ The library comes with the following list of widgets:
   * [Gauge](examples/gauge.rs)
   * [Sparkline](examples/sparkline.rs)
   * [Chart](examples/chart.rs)
-  * [BarChart](examples/bar_chart.rs)
+  * [BarChart](examples/barchart.rs)
   * [List](examples/list.rs)
   * [Table](examples/table.rs)
   * [Paragraph](examples/paragraph.rs)
