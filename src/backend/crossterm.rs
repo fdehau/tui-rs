@@ -135,6 +135,10 @@ impl Backend for CrosstermBackend {
         let mut last_y = 0;
         let mut last_x = 0;
         let mut first = true;
+
+        let stdout = io::stdout();
+        let mut handle = stdout.lock();
+
         for (x, y, cell) in content {
             if y != last_y || x != last_x + 1 || first {
                 cursor.goto(x, y).map_err(convert_error)?;
@@ -151,7 +155,7 @@ impl Backend for CrosstermBackend {
             }
             s.object_style.attrs = cell.style.modifier.into();
 
-            self.crossterm.paint(s).map_err(convert_error)?;
+           write!(handle, "{}", s);
         }
         Ok(())
     }
