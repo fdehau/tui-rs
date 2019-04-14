@@ -2,6 +2,12 @@
 
 ## To be released
 
+## v0.5.1 - 2019-04-14
+
+### Fixed
+
+* Fix a panic in the Sparkline widget
+
 ## v0.5.0 - 2019-03-10
 
 ### Added
