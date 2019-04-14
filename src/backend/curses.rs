@@ -54,7 +54,7 @@ impl Backend for CursesBackend {
         for (col, row, cell) in content {
             // eprintln!("{:?}", cell);
             if row != last_row || col != last_col + 1 {
-                self.curses.move_rc(row as i32, col as i32);
+                self.curses.move_rc(i32::from(row), i32::from(col));
             }
             last_col = col;
             last_row = row;
@@ -111,7 +111,7 @@ impl Backend for CursesBackend {
         Ok((x as u16, y as u16))
     }
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        self.curses.move_rc(x as i32, y as i32);
+        self.curses.move_rc(i32::from(x), i32::from(y));
         Ok(())
     }
     fn clear(&mut self) -> io::Result<()> {

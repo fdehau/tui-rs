@@ -103,7 +103,7 @@ impl Into<rustbox::Color> for Color {
             Color::Cyan | Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
             Color::Blue | Color::LightBlue => rustbox::Color::Blue,
-            Color::Indexed(i) => rustbox::Color::Byte(i as u16),
+            Color::Indexed(i) => rustbox::Color::Byte(u16::from(i)),
             Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
         }
     }
