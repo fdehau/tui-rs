@@ -82,7 +82,8 @@ fn paragraph_render_double_width() {
     let backend = TestBackend::new(10, 10);
     let mut terminal = Terminal::new(backend).unwrap();
 
-    let s = "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点では、";
+    let s =
+        "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点では、";
     terminal
         .draw(|mut f| {
             let size = f.size();
