@@ -89,7 +89,13 @@ impl<'a> Widget for Sparkline<'a> {
             .data
             .iter()
             .take(max_index)
-            .map(|e| e * u64::from(spark_area.height) * 8 / max)
+            .map(|e| {
+                if max != 0 {
+                    e * u64::from(spark_area.height) * 8 / max
+                } else {
+                    0
+                }
+            })
             .collect::<Vec<u64>>();
         for j in (0..spark_area.height).rev() {
             for (i, d) in data.iter_mut().enumerate() {
@@ -116,5 +122,26 @@ impl<'a> Widget for Sparkline<'a> {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_does_not_panic_if_max_is_zero() {
+        let mut widget = Sparkline::default().data(&[0, 0, 0]);
+        let area = Rect::new(0, 0, 3, 1);
+        let mut buffer = Buffer::empty(area);
+        widget.draw(area, &mut buffer);
+    }
+
+    #[test]
+    fn it_does_not_panic_if_max_is_set_to_zero() {
+        let mut widget = Sparkline::default().data(&[0, 1, 2]).max(0);
+        let area = Rect::new(0, 0, 3, 1);
+        let mut buffer = Buffer::empty(area);
+        widget.draw(area, &mut buffer);
     }
 }
