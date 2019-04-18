@@ -1,26 +1,21 @@
 use std::io;
 
 use crate::backend::Backend;
-use crate::buffer::Cell;
-use crate::layout::Rect;
+use crate::{buffer::Cell, layout::Rect};
 use crate::style::{Color, Modifier};
-use crossterm::error::ErrorKind;
+use crossterm::{ErrorKind, AlternateScreen, Crossterm};
+use std::io::{stdout, Write};
 
 pub struct CrosstermBackend {
-    screen: Option<crossterm::Screen>,
-    crossterm: crossterm::Crossterm,
-    // Need to keep the AlternateScreen around even when not using it directly,
-    // see https://github.com/TimonPost/crossterm/issues/88
     alternate_screen: Option<crossterm::AlternateScreen>,
+    crossterm: Crossterm
 }
 
 impl Default for CrosstermBackend {
     fn default() -> CrosstermBackend {
-        let screen = crossterm::Screen::default();
-        let crossterm = crossterm::Crossterm::from_screen(&screen);
+        AlternateScreen::to_alternate(true);
         CrosstermBackend {
-            screen: Some(screen),
-            crossterm,
+            crossterm: Crossterm::new(),
             alternate_screen: None,
         }
     }
@@ -31,31 +26,13 @@ impl CrosstermBackend {
         CrosstermBackend::default()
     }
 
-    pub fn with_screen(screen: crossterm::Screen) -> CrosstermBackend {
-        let crossterm = crossterm::Crossterm::from_screen(&screen);
-        CrosstermBackend {
-            screen: Some(screen),
-            crossterm,
-            alternate_screen: None,
-        }
-    }
-
     pub fn with_alternate_screen(
         alternate_screen: crossterm::AlternateScreen,
     ) -> Result<CrosstermBackend, io::Error> {
-        let crossterm = crossterm::Crossterm::from_screen(&alternate_screen.screen);
         Ok(CrosstermBackend {
-            screen: None,
-            crossterm,
+            crossterm: Crossterm::new(),
             alternate_screen: Some(alternate_screen),
         })
-    }
-
-    pub fn screen(&self) -> Option<&crossterm::Screen> {
-        match &self.screen {
-            Some(screen) => Some(&screen),
-            None => None,
-        }
     }
 
     pub fn alternate_screen(&self) -> Option<&crossterm::AlternateScreen> {
@@ -135,6 +112,10 @@ impl Backend for CrosstermBackend {
         let mut last_y = 0;
         let mut last_x = 0;
         let mut first = true;
+
+        let stdout = stdout();
+        let mut handle = stdout.lock();
+
         for (x, y, cell) in content {
             if y != last_y || x != last_x + 1 || first {
                 cursor.goto(x, y).map_err(convert_error)?;
@@ -151,7 +132,7 @@ impl Backend for CrosstermBackend {
             }
             s.object_style.attrs = cell.style.modifier.into();
 
-            self.crossterm.paint(s).map_err(convert_error)?;
+            write!(handle, "{}", s)?;
         }
         Ok(())
     }
