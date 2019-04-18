@@ -31,9 +31,7 @@ fn main() -> Result<(), failure::Error> {
     let cli = Cli::from_args();
     stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
 
-    let screen = crossterm::Screen::default();
-    let alternate_screen = screen.enable_alternate_modes(true)?;
-    let backend = CrosstermBackend::with_alternate_screen(alternate_screen)?;
+    let backend = CrosstermBackend::new();
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
