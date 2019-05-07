@@ -3,7 +3,7 @@ use std::io;
 use crate::backend::Backend;
 use crate::{buffer::Cell, layout::Rect};
 use crate::style::{Color, Modifier};
-use crossterm::{ErrorKind, AlternateScreen, Crossterm};
+use crossterm::{ErrorKind, Crossterm};
 use std::io::{stdout, Write};
 
 pub struct CrosstermBackend {
@@ -13,7 +13,6 @@ pub struct CrosstermBackend {
 
 impl Default for CrosstermBackend {
     fn default() -> CrosstermBackend {
-        AlternateScreen::to_alternate(true);
         CrosstermBackend {
             crossterm: Crossterm::new(),
             alternate_screen: None,

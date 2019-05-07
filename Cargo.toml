@@ -17,7 +17,7 @@ travis-ci = { repository = "fdehau/tui-rs" }
 appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
-default = ["crossterm"]
+default = ["termion"]
 curses = ["easycurses", "pancurses"]
 
 [dependencies]
