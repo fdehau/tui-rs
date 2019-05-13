@@ -1,14 +1,14 @@
 use std::io;
 
 use crate::backend::Backend;
-use crate::{buffer::Cell, layout::Rect};
 use crate::style::{Color, Modifier};
-use crossterm::{ErrorKind, Crossterm};
+use crate::{buffer::Cell, layout::Rect};
+use crossterm::{Crossterm, ErrorKind};
 use std::io::{stdout, Write};
 
 pub struct CrosstermBackend {
     alternate_screen: Option<crossterm::AlternateScreen>,
-    crossterm: Crossterm
+    crossterm: Crossterm,
 }
 
 impl Default for CrosstermBackend {
@@ -65,9 +65,7 @@ fn convert_error(error: ErrorKind) -> io::Error {
 impl Backend for CrosstermBackend {
     fn clear(&mut self) -> io::Result<()> {
         let terminal = self.crossterm.terminal();
-        terminal
-            .clear(crossterm::ClearType::All)
-            .map_err(convert_error)?;
+        terminal.clear(crossterm::ClearType::All)?;
         Ok(())
     }
 
