@@ -2,6 +2,12 @@
 
 ## To be released
 
+## v0.6.0 - 2019-05-18
+
+### Changed
+
+* Update crossterm backend
+
 ## v0.5.1 - 2019-04-14
 
 ### Fixed
