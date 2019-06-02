@@ -88,6 +88,8 @@ fn main() -> Result<(), failure::Error> {
             "{}",
             Goto(4 + app.input.width() as u16, 4)
         )?;
+        // stdout is buffered, flush it to see the effect immediately when hitting backspace
+        io::stdout().flush().ok();
 
         // Handle input
         match events.next()? {
