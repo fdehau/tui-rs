@@ -94,7 +94,8 @@ impl Backend for CrosstermBackend {
     fn size(&self) -> io::Result<Rect> {
         let terminal = self.crossterm.terminal();
         let (width, height) = terminal.terminal_size();
-        Ok(Rect::new(0, 0, width, height))
+        // crossterm reports max 0-based col/row index instead of count
+        Ok(Rect::new(0, 0, width + 1, height + 1))
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -147,7 +148,7 @@ impl From<Color> for Option<crossterm::Color> {
             Color::Magenta => Some(crossterm::Color::DarkMagenta),
             Color::Cyan => Some(crossterm::Color::DarkCyan),
             Color::Gray => Some(crossterm::Color::Grey),
-            Color::DarkGray => Some(crossterm::Color::Grey),
+            Color::DarkGray => Some(crossterm::Color::DarkGrey),
             Color::LightRed => Some(crossterm::Color::Red),
             Color::LightGreen => Some(crossterm::Color::Green),
             Color::LightBlue => Some(crossterm::Color::Blue),
