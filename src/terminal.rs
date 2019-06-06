@@ -127,18 +127,21 @@ where
         Ok(())
     }
 
-    /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
-    /// and prepares for the next draw call.
-    pub fn draw<F>(&mut self, f: F) -> io::Result<()>
-    where
-        F: FnOnce(Frame<B>),
-    {
+    /// Prepare for the terminal being drawn to by synchronizing the terminal size.
+    /// Returns the currently known size of the terminal, which represents the rectangle
+    /// one can draw into.
+    ///
+    /// Use in conjunction with custom components which do not implement the `Widget` trait.
+    pub fn pre_draw(&mut self) -> io::Result<Rect> {
         // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
         // and the terminal (if growing), which may OOB.
         self.autoresize()?;
+        Ok(self.known_size)
+    }
 
-        f(self.get_frame());
-
+    /// Flushes the current internal state and prepares for the next draw call.
+    /// Should be called after `pre_draw()`, and after custom rendering has taken place.
+    pub fn post_draw(&mut self) -> io::Result<()> {
         // Draw to stdout
         self.flush()?;
 
@@ -149,6 +152,17 @@ where
         // Flush
         self.backend.flush()?;
         Ok(())
+    }
+
+    /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
+    /// and prepares for the next draw call.
+    pub fn draw<F>(&mut self, f: F) -> io::Result<()>
+    where
+        F: FnOnce(Frame<B>),
+    {
+        self.pre_draw()?;
+        f(self.get_frame());
+        self.post_draw()
     }
 
     pub fn hide_cursor(&mut self) -> io::Result<()> {
