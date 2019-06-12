@@ -107,11 +107,11 @@ impl Backend for CursesBackend {
         Ok(())
     }
     fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
-        let (x, y) = self.curses.get_cursor_rc();
+        let (y, x) = self.curses.get_cursor_rc();
         Ok((x as u16, y as u16))
     }
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        self.curses.move_rc(i32::from(x), i32::from(y));
+        self.curses.move_rc(i32::from(y), i32::from(x));
         Ok(())
     }
     fn clear(&mut self) -> io::Result<()> {
