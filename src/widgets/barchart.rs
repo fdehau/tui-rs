@@ -132,7 +132,7 @@ impl<'a> Widget for BarChart<'a> {
         let mut data = self.data
             .iter()
             .take(max_index)
-            .map(|&(l, v)| (l, v * u64::from(chart_area.height) * 8 / max))
+            .map(|&(l, v)| (l, v * u64::from(chart_area.height) * 8 / std::cmp::max(max, 1)))
             .collect::<Vec<(&str, u64)>>();
         for j in (0..chart_area.height - 1).rev() {
             for (i, d) in data.iter_mut().enumerate() {
