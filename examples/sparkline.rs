@@ -1,25 +1,22 @@
-extern crate termion;
-extern crate tui;
-
+#[allow(dead_code)]
 mod util;
-use util::*;
 
 use std::io;
-use std::thread;
-use std::time;
-use std::sync::mpsc;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::Terminal;
-use tui::backend::MouseBackend;
-use tui::widgets::{Block, Borders, Sparkline, Widget};
-use tui::layout::{Direction, Group, Rect, Size};
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, Sparkline, Widget};
+use tui::Terminal;
+
+use crate::util::event::{Event, Events};
+use crate::util::RandomSignal;
 
 struct App {
-    size: Rect,
     signal: RandomSignal,
     data1: Vec<u64>,
     data2: Vec<u64>,
@@ -33,15 +30,14 @@ impl App {
         let data2 = signal.by_ref().take(200).collect::<Vec<u64>>();
         let data3 = signal.by_ref().take(200).collect::<Vec<u64>>();
         App {
-            size: Rect::default(),
-            signal: signal,
-            data1: data1,
-            data2: data2,
-            data3: data3,
+            signal,
+            data1,
+            data2,
+            data3,
         }
     }
 
-    fn advance(&mut self) {
+    fn update(&mut self) {
         let value = self.signal.next().unwrap();
         self.data1.pop();
         self.data1.insert(0, value);
@@ -54,76 +50,36 @@ impl App {
     }
 }
 
-enum Event {
-    Input(event::Key),
-    Tick,
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
-    let clock_tx = tx.clone();
+    // Setup event handlers
+    let events = Events::new();
 
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    // Tick
-    thread::spawn(move || loop {
-        clock_tx.send(Event::Tick).unwrap();
-        thread::sleep(time::Duration::from_millis(500));
-    });
-
-    // App
+    // Create default app state
     let mut app = App::new();
 
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
-
     loop {
-        let size = terminal.size().unwrap();
-        if size != app.size {
-            terminal.resize(size).unwrap();
-            app.size = size;
-        }
-
-        let evt = rx.recv().unwrap();
-        match evt {
-            Event::Input(input) => if input == event::Key::Char('q') {
-                break;
-            },
-            Event::Tick => {
-                app.advance();
-            }
-        }
-        draw(&mut terminal, &app);
-    }
-
-    terminal.show_cursor().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[Size::Fixed(3), Size::Fixed(3), Size::Fixed(7), Size::Min(0)])
-        .render(t, &app.size, |t, chunks| {
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints(
+                    [
+                        Constraint::Length(3),
+                        Constraint::Length(3),
+                        Constraint::Length(7),
+                        Constraint::Min(0),
+                    ]
+                    .as_ref(),
+                )
+                .split(f.size());
             Sparkline::default()
                 .block(
                     Block::default()
@@ -132,7 +88,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 )
                 .data(&app.data1)
                 .style(Style::default().fg(Color::Yellow))
-                .render(t, &chunks[0]);
+                .render(&mut f, chunks[0]);
             Sparkline::default()
                 .block(
                     Block::default()
@@ -141,7 +97,7 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 )
                 .data(&app.data2)
                 .style(Style::default().bg(Color::Green))
-                .render(t, &chunks[1]);
+                .render(&mut f, chunks[1]);
             // Multiline
             Sparkline::default()
                 .block(
@@ -151,8 +107,20 @@ fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
                 )
                 .data(&app.data3)
                 .style(Style::default().fg(Color::Red))
-                .render(t, &chunks[2]);
-        });
+                .render(&mut f, chunks[2]);
+        })?;
 
-    t.draw().unwrap();
+        match events.next()? {
+            Event::Input(input) => {
+                if input == Key::Char('q') {
+                    break;
+                }
+            }
+            Event::Tick => {
+                app.update();
+            }
+        }
+    }
+
+    Ok(())
 }

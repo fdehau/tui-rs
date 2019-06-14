@@ -1,11 +1,10 @@
-extern crate rustbox;
-
+use log::debug;
 use std::io;
 
 use super::Backend;
-use buffer::Cell;
-use layout::Rect;
-use style::{Color, Modifier};
+use crate::buffer::Cell;
+use crate::layout::Rect;
+use crate::style::{Color, Modifier};
 
 pub struct RustboxBackend {
     rustbox: rustbox::RustBox,
@@ -13,8 +12,8 @@ pub struct RustboxBackend {
 
 impl RustboxBackend {
     pub fn new() -> Result<RustboxBackend, rustbox::InitError> {
-        let rustbox = try!(rustbox::RustBox::init(Default::default()));
-        Ok(RustboxBackend { rustbox: rustbox })
+        let rustbox = r#try!(rustbox::RustBox::init(Default::default()));
+        Ok(RustboxBackend { rustbox })
     }
 
     pub fn with_rustbox(instance: rustbox::RustBox) -> RustboxBackend {
@@ -52,17 +51,35 @@ impl Backend for RustboxBackend {
     fn show_cursor(&mut self) -> Result<(), io::Error> {
         Ok(())
     }
+    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+        Err(io::Error::from(io::ErrorKind::Other))
+    }
+    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+        self.rustbox.set_cursor(x as isize, y as isize);
+        Ok(())
+    }
     fn clear(&mut self) -> Result<(), io::Error> {
         self.rustbox.clear();
         Ok(())
     }
     fn size(&self) -> Result<Rect, io::Error> {
-        Ok(Rect {
-            x: 0,
-            y: 0,
-            width: self.rustbox.width() as u16,
-            height: self.rustbox.height() as u16,
-        })
+        let term_width = self.rustbox.width();
+        let term_height = self.rustbox.height();
+        let max = u16::max_value();
+        Ok(Rect::new(
+            0,
+            0,
+            if term_width > usize::from(max) {
+                max
+            } else {
+                term_width as u16
+            },
+            if term_height > usize::from(max) {
+                max
+            } else {
+                term_height as u16
+            },
+        ))
     }
     fn flush(&mut self) -> Result<(), io::Error> {
         self.rustbox.present();
@@ -85,6 +102,8 @@ impl Into<rustbox::Color> for Color {
             Color::Magenta | Color::LightMagenta => rustbox::Color::Magenta,
             Color::Cyan | Color::LightCyan => rustbox::Color::Cyan,
             Color::White => rustbox::Color::White,
+            Color::Blue | Color::LightBlue => rustbox::Color::Blue,
+            Color::Indexed(i) => rustbox::Color::Byte(u16::from(i)),
             Color::Rgb(r, g, b) => rustbox::Color::Byte(rgb_to_byte(r, g, b)),
         }
     }
@@ -92,11 +111,16 @@ impl Into<rustbox::Color> for Color {
 
 impl Into<rustbox::Style> for Modifier {
     fn into(self) -> rustbox::Style {
-        match self {
-            Modifier::Bold => rustbox::RB_BOLD,
-            Modifier::Underline => rustbox::RB_UNDERLINE,
-            Modifier::Invert => rustbox::RB_REVERSE,
-            _ => rustbox::RB_NORMAL,
+        let mut result = rustbox::Style::empty();
+        if self.contains(Modifier::BOLD) {
+            result.insert(rustbox::RB_BOLD);
         }
+        if self.contains(Modifier::UNDERLINED) {
+            result.insert(rustbox::RB_UNDERLINE);
+        }
+        if self.contains(Modifier::REVERSED) {
+            result.insert(rustbox::RB_REVERSE);
+        }
+        result
     }
 }

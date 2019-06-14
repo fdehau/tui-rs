@@ -1,23 +1,26 @@
 # tui-rs
 
 [![Build Status](https://travis-ci.org/fdehau/tui-rs.svg?branch=master)](https://travis-ci.org/fdehau/tui-rs)
+[![Build status](https://ci.appveyor.com/api/projects/status/t724mb1q31xpyxy5/branch/master?svg=true)](https://ci.appveyor.com/project/fdehau/tui-rs/branch/master)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 
-<img src="./docs/demo.gif" alt="Demo cast under Linux Termite with Inconsolata font 12pt">
+<img src="./assets/demo.gif" alt="Demo cast under Linux Termite with Inconsolata font 12pt">
 
 `tui-rs` is a [Rust](https://www.rust-lang.org) library to build rich terminal
 user interfaces and dashboards. It is heavily inspired by the `Javascript`
 library [blessed-contrib](https://github.com/yaronn/blessed-contrib) and the
 `Go` library [termui](https://github.com/gizak/termui).
 
-The library itself supports two different backends to draw to the terminal. You
+The library itself supports four different backends to draw to the terminal. You
 can either choose from:
 
   - [termion](https://github.com/ticki/termion)
   - [rustbox](https://github.com/gchp/rustbox)
+  - [crossterm](https://github.com/TimonPost/crossterm)
+  - [pancurses](https://github.com/ihalila/pancurses)
 
-However, some features may only be available in one of the two.
+However, some features may only be available in one of the four.
 
 The library is based on the principle of immediate rendering with intermediate
 buffers. This means that at each new frame you should build all widgets that are
@@ -32,6 +35,19 @@ you may rely on the previously cited libraries to achieve such features.
 
 ### [Documentation](https://docs.rs/tui)
 
+### Demo
+
+The demo shown in the gif can be run with all available backends
+(`exmples/*_demo.rs` files). For example to see the `termion` version one could
+run:
+
+```
+cargo run --example termion_demo --release -- --tick-rate 200
+```
+
+The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
+application state is in [examples/demo/app.rs](examples/demo/app.rs).
+
 ### Widgets
 
 The library comes with the following list of widgets:
@@ -40,7 +56,7 @@ The library comes with the following list of widgets:
   * [Gauge](examples/gauge.rs)
   * [Sparkline](examples/sparkline.rs)
   * [Chart](examples/chart.rs)
-  * [BarChart](examples/bar_chart.rs)
+  * [BarChart](examples/barchart.rs)
   * [List](examples/list.rs)
   * [Table](examples/table.rs)
   * [Paragraph](examples/paragraph.rs)
@@ -50,14 +66,17 @@ The library comes with the following list of widgets:
 Click on each item to see the source of the example. Run the examples with with 
 cargo (e.g. to run the demo `cargo run --example demo`), and quit by pressing `q`.
 
-### Demo
+You can run all examples by running `make run-examples`.
 
-The [source code](examples/demo.rs) of the demo gif.
+### Third-party widgets
+
+* [tui-logger](https://github.com/gin66/tui-logger)
+
+### Alternatives
+
+You might want to checkout [Cursive](https://github.com/gyscos/Cursive) for an
+alternative solution to build text user interfaces in Rust.
 
 ## License
 
 [MIT](LICENSE)
-
-## Author
-
-Florian Dehau

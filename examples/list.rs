@@ -1,24 +1,23 @@
-extern crate termion;
-extern crate tui;
+#[allow(dead_code)]
+mod util;
 
 use std::io;
-use std::thread;
-use std::time;
-use std::sync::mpsc;
 
-use termion::event;
-use termion::input::TermRead;
-
-use tui::Terminal;
-use tui::backend::MouseBackend;
-use tui::widgets::{Block, Borders, Item, List, SelectableList, Widget};
-use tui::layout::{Direction, Group, Rect, Size};
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
+use tui::layout::{Constraint, Corner, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
+use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
+use tui::Terminal;
+
+use crate::util::event::{Event, Events};
 
 struct App<'a> {
-    size: Rect,
     items: Vec<&'a str>,
-    selected: usize,
+    selected: Option<usize>,
     events: Vec<(&'a str, &'a str)>,
     info_style: Style,
     warning_style: Style,
@@ -29,13 +28,12 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            size: Rect::default(),
             items: vec![
                 "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
                 "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
                 "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
             ],
-            selected: 0,
+            selected: None,
             events: vec![
                 ("Event1", "INFO"),
                 ("Event2", "INFO"),
@@ -77,113 +75,92 @@ impl<'a> App<'a> {
     }
 }
 
-enum Event {
-    Input(event::Key),
-    Tick,
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
-    let clock_tx = tx.clone();
-
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    // Tick
-    thread::spawn(move || loop {
-        clock_tx.send(Event::Tick).unwrap();
-        thread::sleep(time::Duration::from_millis(500));
-    });
+    let events = Events::new();
 
     // App
     let mut app = App::new();
 
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
-
     loop {
-        let size = terminal.size().unwrap();
-        if size != app.size {
-            terminal.resize(size).unwrap();
-            app.size = size;
-        }
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .split(f.size());
 
-        let evt = rx.recv().unwrap();
-        match evt {
+            let style = Style::default().fg(Color::Black).bg(Color::White);
+            SelectableList::default()
+                .block(Block::default().borders(Borders::ALL).title("List"))
+                .items(&app.items)
+                .select(app.selected)
+                .style(style)
+                .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
+                .highlight_symbol(">")
+                .render(&mut f, chunks[0]);
+            {
+                let events = app.events.iter().map(|&(evt, level)| {
+                    Text::styled(
+                        format!("{}: {}", level, evt),
+                        match level {
+                            "ERROR" => app.error_style,
+                            "CRITICAL" => app.critical_style,
+                            "WARNING" => app.warning_style,
+                            _ => app.info_style,
+                        },
+                    )
+                });
+                List::new(events)
+                    .block(Block::default().borders(Borders::ALL).title("List"))
+                    .start_corner(Corner::BottomLeft)
+                    .render(&mut f, chunks[1]);
+            }
+        })?;
+
+        match events.next()? {
             Event::Input(input) => match input {
-                event::Key::Char('q') => {
+                Key::Char('q') => {
                     break;
                 }
-                event::Key::Down => {
-                    app.selected += 1;
-                    if app.selected > app.items.len() - 1 {
-                        app.selected = 0;
+                Key::Left => {
+                    app.selected = None;
+                }
+                Key::Down => {
+                    app.selected = if let Some(selected) = app.selected {
+                        if selected >= app.items.len() - 1 {
+                            Some(0)
+                        } else {
+                            Some(selected + 1)
+                        }
+                    } else {
+                        Some(0)
                     }
                 }
-                event::Key::Up => if app.selected > 0 {
-                    app.selected -= 1;
-                } else {
-                    app.selected = app.items.len() - 1;
-                },
+                Key::Up => {
+                    app.selected = if let Some(selected) = app.selected {
+                        if selected > 0 {
+                            Some(selected - 1)
+                        } else {
+                            Some(app.items.len() - 1)
+                        }
+                    } else {
+                        Some(0)
+                    }
+                }
                 _ => {}
             },
             Event::Tick => {
                 app.advance();
             }
         }
-        draw(&mut terminal, &app);
     }
 
-    terminal.show_cursor().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Horizontal)
-        .sizes(&[Size::Percent(50), Size::Percent(50)])
-        .render(t, &app.size, |t, chunks| {
-            SelectableList::default()
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(app.selected)
-                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::Bold))
-                .highlight_symbol(">")
-                .render(t, &chunks[0]);
-            {
-                let events = app.events.iter().map(|&(evt, level)| {
-                    Item::StyledData(
-                        format!("{}: {}", level, evt),
-                        match level {
-                            "ERROR" => &app.error_style,
-                            "CRITICAL" => &app.critical_style,
-                            "WARNING" => &app.warning_style,
-                            _ => &app.info_style,
-                        },
-                    )
-                });
-                List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List"))
-                    .render(t, &chunks[1]);
-            }
-        });
-
-    t.draw().unwrap();
+    Ok(())
 }

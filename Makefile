@@ -1,5 +1,4 @@
-# Makefile for the tui-rs project (https://github.com/fdehau/tui-rs)
-
+SHELL=/bin/bash
 
 # ================================ Cargo ======================================
 
@@ -21,67 +20,64 @@ endif
 
 # ================================ Help =======================================
 
-
+.PHONY: help
 help: ## Print all the available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 
-# ================================ Tools ======================================
-
-
-install-tools: install-rustfmt install-clippy ## Install tools dependencies
-
-INSTALL_RUSTFMT = ./scripts/tools/install.sh --name=rustfmt-nightly
-ifndef CI
-  INSTALL_RUSTFMT += --channel=nightly
-endif
-install-rustfmt: ## Intall rustfmt
-	$(INSTALL_RUSTFMT)
-
-INSTALL_CLIPPY = ./scripts/tools/install.sh --name=clippy
-ifndef CI
-  INSTALL_CLIPPY += --channel=nightly
-endif
-install-clippy: ## Intall rustfmt
-	$(INSTALL_CLIPPY)
-
-
 # =============================== Build =======================================
 
+.PHONY: check
 check: ## Validate the project code
 	$(CARGO) check
 
+.PHONY: build
 build: ## Build the project in debug mode
 	$(CARGO) build $(CARGO_FLAGS)
 
+.PHONY: release
 release: CARGO_FLAGS += --release
 release: build ## Build the project in release mode
 
 
 # ================================ Lint =======================================
 
-RUSTFMT_WRITEMODE ?= 'diff'
-
+.PHONY: lint
 lint: fmt clippy ## Lint project files
 
+.PHONY: fmt
 fmt: ## Check the format of the source code
-	cargo fmt -- --write-mode=$(RUSTFMT_WRITEMODE)
+	cargo fmt --all -- --check
 
-clippy: RUST_CHANNEL = nightly
+.PHONY: clippy
 clippy: ## Check the style of the source code and catch common errors
-	$(CARGO) clippy --features="termion rustbox"
+	$(CARGO) clippy --all-features
 
 
 # ================================ Test =======================================
 
-
+.PHONY: test
 test: ## Run the tests
-	$(CARGO) test
+	$(CARGO) test --all-features
+
+# =============================== Examples ====================================
+
+.PHONY: build-examples
+build-examples: ## Build all examples
+	@$(CARGO) build --examples --all-features
+
+.PHONY: run-examples
+run-examples: ## Run all examples
+	@for file in examples/*.rs; do \
+	  name=$$(basename $${file/.rs/}); \
+	  $(CARGO) run --all-features --release --example $$name; \
+	  done;
 
 # ================================ Doc ========================================
 
 
+.PHONY: doc
 doc: ## Build the documentation (available at ./target/doc)
 	$(CARGO) doc
 
@@ -90,22 +86,28 @@ doc: ## Build the documentation (available at ./target/doc)
 
 # Requires watchman and watchman-make (https://facebook.github.io/watchman/docs/install.html)
 
+.PHONY: watch
 watch: ## Watch file changes and build the project if any
 	watchman-make -p 'src/**/*.rs' -t check build
 
+.PHONY: watch-test
 watch-test: ## Watch files changes and run the tests if any
 	watchman-make -p 'src/**/*.rs' 'tests/**/*.rs' 'examples/**/*.rs' -t test
 
+.PHONY: watch-doc
 watch-doc: ## Watch file changes and rebuild the documentation if any
 	watchman-make -p 'src/**/*.rs' -t doc
 
 # ================================= Pipelines =================================
 
+.PHONY: stable
 stable: RUST_CHANNEL = stable
 stable: build test ## Run build and tests for stable
 
+.PHONY: beta
 beta: RUST_CHANNEL = beta
 beta: build test ## Run build and tests for beta
 
+.PHONY: nightly
 nightly: RUST_CHANNEL = nightly
-nightly: install-tools build lint test ## Run build, lint and tests for nightly
+nightly: build lint test ## Run build, lint and tests for nightly

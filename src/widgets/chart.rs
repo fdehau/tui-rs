@@ -2,12 +2,12 @@ use std::cmp::max;
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Borders, Widget};
-use widgets::canvas::{Canvas, Points};
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols;
+use crate::widgets::canvas::{Canvas, Points};
+use crate::widgets::{Block, Borders, Widget};
 
 /// An X or Y axis for the chart widget
 pub struct Axis<'a, L>
@@ -166,7 +166,6 @@ impl Default for ChartLayout {
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
@@ -175,13 +174,13 @@ impl Default for ChartLayout {
 ///     .x_axis(Axis::default()
 ///         .title("X Axis")
 ///         .title_style(Style::default().fg(Color::Red))
-///         .style(Style::default().fg(Color::Gray))
+///         .style(Style::default().fg(Color::White))
 ///         .bounds([0.0, 10.0])
 ///         .labels(&["0.0", "5.0", "10.0"]))
 ///     .y_axis(Axis::default()
 ///         .title("Y Axis")
 ///         .title_style(Style::default().fg(Color::Red))
-///         .style(Style::default().fg(Color::Gray))
+///         .style(Style::default().fg(Color::White))
 ///         .bounds([0.0, 10.0])
 ///         .labels(&["0.0", "5.0", "10.0"]))
 ///     .datasets(&[Dataset::default()
@@ -195,6 +194,7 @@ impl Default for ChartLayout {
 ///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
 /// # }
+/// ```
 pub struct Chart<'a, LX, LY>
 where
     LX: AsRef<str> + 'a,
@@ -233,34 +233,34 @@ where
     LX: AsRef<str>,
     LY: AsRef<str>,
 {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Chart<'a, LX, LY> {
+    pub fn block(mut self, block: Block<'a>) -> Chart<'a, LX, LY> {
         self.block = Some(block);
         self
     }
 
-    pub fn style(&mut self, style: Style) -> &mut Chart<'a, LX, LY> {
+    pub fn style(mut self, style: Style) -> Chart<'a, LX, LY> {
         self.style = style;
         self
     }
 
-    pub fn x_axis(&mut self, axis: Axis<'a, LX>) -> &mut Chart<'a, LX, LY> {
+    pub fn x_axis(mut self, axis: Axis<'a, LX>) -> Chart<'a, LX, LY> {
         self.x_axis = axis;
         self
     }
 
-    pub fn y_axis(&mut self, axis: Axis<'a, LY>) -> &mut Chart<'a, LX, LY> {
+    pub fn y_axis(mut self, axis: Axis<'a, LY>) -> Chart<'a, LX, LY> {
         self.y_axis = axis;
         self
     }
 
-    pub fn datasets(&mut self, datasets: &'a [Dataset<'a>]) -> &mut Chart<'a, LX, LY> {
+    pub fn datasets(mut self, datasets: &'a [Dataset<'a>]) -> Chart<'a, LX, LY> {
         self.datasets = datasets;
         self
     }
 
     /// Compute the internal layout of the chart given the area. If the area is too small some
     /// elements may be automatically hidden
-    fn layout(&self, area: &Rect) -> ChartLayout {
+    fn layout(&self, area: Rect) -> ChartLayout {
         let mut layout = ChartLayout::default();
         if area.height == 0 || area.width == 0 {
             return layout;
@@ -279,7 +279,7 @@ where
                 .fold(0, |acc, l| max(l.as_ref().width(), acc))
                 as u16;
             if let Some(x_labels) = self.x_axis.labels {
-                if x_labels.len() > 0 {
+                if !x_labels.is_empty() {
                     max_width = max(max_width, x_labels[0].as_ref().width() as u16);
                 }
             }
@@ -322,6 +322,7 @@ where
             let legend_height = self.datasets.len() as u16 + 2;
             if legend_width < layout.graph_area.width / 3
                 && legend_height < layout.graph_area.height / 3
+                && inner_width > 0
             {
                 layout.legend_area = Some(Rect::new(
                     layout.graph_area.right() - legend_width,
@@ -340,31 +341,31 @@ where
     LX: AsRef<str>,
     LY: AsRef<str>,
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
-        let layout = self.layout(&chart_area);
+        let layout = self.layout(chart_area);
         let graph_area = layout.graph_area;
         if graph_area.width < 1 || graph_area.height < 1 {
             return;
         }
 
-        self.background(&chart_area, buf, self.style.bg);
+        self.background(chart_area, buf, self.style.bg);
 
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
-            buf.set_string(x, y, title, &self.x_axis.style);
+            buf.set_string(x, y, title, self.x_axis.style);
         }
 
         if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
-            buf.set_string(x, y, title, &self.y_axis.style);
+            buf.set_string(x, y, title, self.y_axis.style);
         }
 
         if let Some(y) = layout.label_x {
@@ -378,7 +379,7 @@ where
                             - label.as_ref().width() as u16,
                         y,
                         label.as_ref(),
-                        &self.x_axis.labels_style,
+                        self.x_axis.labels_style,
                     );
                 }
             }
@@ -394,7 +395,7 @@ where
                         x,
                         graph_area.bottom() - 1 - dy,
                         label.as_ref(),
-                        &self.y_axis.labels_style,
+                        self.y_axis.labels_style,
                     );
                 }
             }
@@ -426,23 +427,26 @@ where
 
         for dataset in self.datasets {
             match dataset.marker {
-                Marker::Dot => for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
-                    !(x < self.x_axis.bounds[0] || x > self.x_axis.bounds[1]
-                        || y < self.y_axis.bounds[0]
-                        || y > self.y_axis.bounds[1])
-                }) {
-                    let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1)
-                        / (self.y_axis.bounds[1] - self.y_axis.bounds[0]))
-                        as u16;
-                    let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1)
-                        / (self.x_axis.bounds[1] - self.x_axis.bounds[0]))
-                        as u16;
+                Marker::Dot => {
+                    for &(x, y) in dataset.data.iter().filter(|&&(x, y)| {
+                        !(x < self.x_axis.bounds[0]
+                            || x > self.x_axis.bounds[1]
+                            || y < self.y_axis.bounds[0]
+                            || y > self.y_axis.bounds[1])
+                    }) {
+                        let dy = ((self.y_axis.bounds[1] - y) * f64::from(graph_area.height - 1)
+                            / (self.y_axis.bounds[1] - self.y_axis.bounds[0]))
+                            as u16;
+                        let dx = ((x - self.x_axis.bounds[0]) * f64::from(graph_area.width - 1)
+                            / (self.x_axis.bounds[1] - self.x_axis.bounds[0]))
+                            as u16;
 
-                    buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
-                        .set_symbol(symbols::DOT)
-                        .set_fg(dataset.style.fg)
-                        .set_bg(dataset.style.bg);
-                },
+                        buf.get_mut(graph_area.left() + dx, graph_area.top() + dy)
+                            .set_symbol(symbols::DOT)
+                            .set_fg(dataset.style.fg)
+                            .set_bg(dataset.style.bg);
+                    }
+                }
                 Marker::Braille => {
                     Canvas::default()
                         .background_color(self.style.bg)
@@ -454,7 +458,7 @@ where
                                 color: dataset.style.fg,
                             });
                         })
-                        .draw(&graph_area, buf);
+                        .draw(graph_area, buf);
                 }
             }
         }
@@ -462,13 +466,13 @@ where
         if let Some(legend_area) = layout.legend_area {
             Block::default()
                 .borders(Borders::ALL)
-                .draw(&legend_area, buf);
+                .draw(legend_area, buf);
             for (i, dataset) in self.datasets.iter().enumerate() {
                 buf.set_string(
                     legend_area.x + 1,
                     legend_area.y + 1 + i as u16,
                     dataset.name,
-                    &dataset.style,
+                    dataset.style,
                 );
             }
         }

@@ -9,123 +9,107 @@
 ///   * Pressing Backspace erases a character
 ///   * Pressing Enter pushes the current input in the history of previous
 ///   messages
-extern crate termion;
-extern crate tui;
 
-use std::io;
-use std::thread;
-use std::sync::mpsc;
+#[allow(dead_code)]
+mod util;
 
-use termion::event;
-use termion::input::TermRead;
+use std::io::{self, Write};
 
-use tui::Terminal;
-use tui::backend::MouseBackend;
-use tui::widgets::{Block, Borders, Item, List, Paragraph, Widget};
-use tui::layout::{Direction, Group, Rect, Size};
+use termion::cursor::Goto;
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
+use tui::Terminal;
+use unicode_width::UnicodeWidthStr;
 
+use crate::util::event::{Event, Events};
+
+/// App holds the state of the application
 struct App {
-    size: Rect,
+    /// Current value of the input box
     input: String,
+    /// History of recorded messages
     messages: Vec<String>,
 }
 
-impl App {
-    fn new() -> App {
+impl Default for App {
+    fn default() -> App {
         App {
-            size: Rect::default(),
             input: String::new(),
             messages: Vec::new(),
         }
     }
 }
 
-enum Event {
-    Input(event::Key),
-}
-
-fn main() {
+fn main() -> Result<(), failure::Error> {
     // Terminal initialization
-    let backend = MouseBackend::new().unwrap();
-    let mut terminal = Terminal::new(backend).unwrap();
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
 
-    // Channels
-    let (tx, rx) = mpsc::channel();
-    let input_tx = tx.clone();
+    // Setup event handlers
+    let events = Events::new();
 
-    // Input
-    thread::spawn(move || {
-        let stdin = io::stdin();
-        for c in stdin.keys() {
-            let evt = c.unwrap();
-            input_tx.send(Event::Input(evt)).unwrap();
-            if evt == event::Key::Char('q') {
-                break;
-            }
-        }
-    });
-
-    // App
-    let mut app = App::new();
-
-    // First draw call
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
-    app.size = terminal.size().unwrap();
-    draw(&mut terminal, &app);
+    // Create default app state
+    let mut app = App::default();
 
     loop {
-        let size = terminal.size().unwrap();
-        if app.size != size {
-            terminal.resize(size).unwrap();
-            app.size = size;
-        }
+        // Draw UI
+        terminal.draw(|mut f| {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+                .split(f.size());
+            Paragraph::new([Text::raw(&app.input)].iter())
+                .style(Style::default().fg(Color::Yellow))
+                .block(Block::default().borders(Borders::ALL).title("Input"))
+                .render(&mut f, chunks[0]);
+            let messages = app
+                .messages
+                .iter()
+                .enumerate()
+                .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
+            List::new(messages)
+                .block(Block::default().borders(Borders::ALL).title("Messages"))
+                .render(&mut f, chunks[1]);
+        })?;
 
-        let evt = rx.recv().unwrap();
-        match evt {
+        // Put the cursor back inside the input box
+        write!(
+            terminal.backend_mut(),
+            "{}",
+            Goto(4 + app.input.width() as u16, 4)
+        )?;
+        // stdout is buffered, flush it to see the effect immediately when hitting backspace
+        io::stdout().flush().ok();
+
+        // Handle input
+        match events.next()? {
             Event::Input(input) => match input {
-                event::Key::Char('q') => {
+                Key::Char('q') => {
                     break;
                 }
-                event::Key::Char('\n') => {
+                Key::Char('\n') => {
                     app.messages.push(app.input.drain(..).collect());
                 }
-                event::Key::Char(c) => {
+                Key::Char(c) => {
                     app.input.push(c);
                 }
-                event::Key::Backspace => {
+                Key::Backspace => {
                     app.input.pop();
                 }
                 _ => {}
             },
+            _ => {}
         }
-        draw(&mut terminal, &app);
     }
-
-    terminal.show_cursor().unwrap();
-    terminal.clear().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, app: &App) {
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .sizes(&[Size::Fixed(3), Size::Min(1)])
-        .render(t, &app.size, |t, chunks| {
-            Paragraph::default()
-                .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title("Input"))
-                .text(&app.input)
-                .render(t, &chunks[0]);
-            List::new(
-                app.messages
-                    .iter()
-                    .enumerate()
-                    .map(|(i, m)| Item::Data(format!("{}: {}", i, m))),
-            ).block(Block::default().borders(Borders::ALL).title("Messages"))
-                .render(t, &chunks[1]);
-        });
-
-    t.draw().unwrap();
+    Ok(())
 }

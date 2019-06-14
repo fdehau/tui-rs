@@ -1,5 +1,5 @@
 use super::Shape;
-use style::Color;
+use crate::style::Color;
 
 /// Shape to draw a line from (x1, y1) to (x2, y2) with the given color
 pub struct Line {
@@ -23,6 +23,7 @@ pub struct LineIterator {
 
 impl Iterator for LineIterator {
     type Item = (f64, f64);
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.current < self.end {
             let pos = (
@@ -40,6 +41,7 @@ impl Iterator for LineIterator {
 impl<'a> IntoIterator for &'a Line {
     type Item = (f64, f64);
     type IntoIter = LineIterator;
+
     fn into_iter(self) -> Self::IntoIter {
         let dx = self.x1.max(self.x2) - self.x1.min(self.x2);
         let dy = self.y1.max(self.y2) - self.y1.min(self.y2);
@@ -49,12 +51,12 @@ impl<'a> IntoIterator for &'a Line {
         LineIterator {
             x: self.x1,
             y: self.y1,
-            dx: dx,
-            dy: dy,
-            dir_x: dir_x,
-            dir_y: dir_y,
+            dx,
+            dy,
+            dir_x,
+            dir_y,
             current: 0.0,
-            end: end,
+            end,
         }
     }
 }
@@ -63,6 +65,7 @@ impl<'a> Shape<'a> for Line {
     fn color(&self) -> Color {
         self.color
     }
+
     fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a> {
         Box::new(self.into_iter())
     }

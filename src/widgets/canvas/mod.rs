@@ -1,16 +1,18 @@
-mod points;
 mod line;
 mod map;
+mod points;
+mod rectangle;
 mod world;
 
-pub use self::points::Points;
 pub use self::line::Line;
 pub use self::map::{Map, MapResolution};
+pub use self::points::Points;
+pub use self::rectangle::Rectangle;
 
-use style::{Color, Style};
-use buffer::Buffer;
-use widgets::{Block, Widget};
-use layout::Rect;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::{Color, Style};
+use crate::widgets::{Block, Widget};
 
 pub const DOTS: [[u16; 2]; 4] = [
     [0x0001, 0x0008],
@@ -116,12 +118,7 @@ impl<'a> Context<'a> {
 
     /// Print a string on the canvas at the given position
     pub fn print(&mut self, x: f64, y: f64, text: &'a str, color: Color) {
-        self.labels.push(Label {
-            x: x,
-            y: y,
-            text: text,
-            color: color,
-        });
+        self.labels.push(Label { x, y, text, color });
     }
 
     /// Push the last layer if necessary
@@ -137,9 +134,9 @@ impl<'a> Context<'a> {
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders};
-/// # use tui::widgets::canvas::{Canvas, Shape, Line, Map, MapResolution};
+/// # use tui::layout::Rect;
+/// # use tui::widgets::canvas::{Canvas, Shape, Line, Rectangle, Map, MapResolution};
 /// # use tui::style::Color;
 /// # fn main() {
 /// Canvas::default()
@@ -147,23 +144,25 @@ impl<'a> Context<'a> {
 ///     .x_bounds([-180.0, 180.0])
 ///     .y_bounds([-90.0, 90.0])
 ///     .paint(|ctx| {
-///         ctx.draw(&Map{
+///         ctx.draw(&Map {
 ///             resolution: MapResolution::High,
 ///             color: Color::White
 ///         });
 ///         ctx.layer();
-///         ctx.draw(&Line{
+///         ctx.draw(&Line {
 ///             x1: 0.0,
 ///             y1: 10.0,
 ///             x2: 10.0,
 ///             y2: 10.0,
 ///             color: Color::White,
 ///         });
-///         ctx.draw(&Line{
-///             x1: 10.0,
-///             y1: 10.0,
-///             x2: 20.0,
-///             y2: 20.0,
+///         ctx.draw(&Rectangle {
+///             rect: Rect {
+///                 x: 10,
+///                 y: 20,
+///                 width: 10,
+///                 height: 10,
+///             },
 ///             color: Color::Red
 ///         });
 ///     });
@@ -199,26 +198,26 @@ impl<'a, F> Canvas<'a, F>
 where
     F: Fn(&mut Context),
 {
-    pub fn block(&mut self, block: Block<'a>) -> &mut Canvas<'a, F> {
+    pub fn block(mut self, block: Block<'a>) -> Canvas<'a, F> {
         self.block = Some(block);
         self
     }
-    pub fn x_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
+    pub fn x_bounds(mut self, bounds: [f64; 2]) -> Canvas<'a, F> {
         self.x_bounds = bounds;
         self
     }
-    pub fn y_bounds(&mut self, bounds: [f64; 2]) -> &mut Canvas<'a, F> {
+    pub fn y_bounds(mut self, bounds: [f64; 2]) -> Canvas<'a, F> {
         self.y_bounds = bounds;
         self
     }
 
     /// Store the closure that will be used to draw to the Canvas
-    pub fn paint(&mut self, f: F) -> &mut Canvas<'a, F> {
+    pub fn paint(mut self, f: F) -> Canvas<'a, F> {
         self.painter = Some(f);
         self
     }
 
-    pub fn background_color(&'a mut self, color: Color) -> &mut Canvas<'a, F> {
+    pub fn background_color(mut self, color: Color) -> Canvas<'a, F> {
         self.background_color = color;
         self
     }
@@ -228,13 +227,13 @@ impl<'a, F> Widget for Canvas<'a, F>
 where
     F: Fn(&mut Context),
 {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let canvas_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         let width = canvas_area.width as usize;
@@ -277,7 +276,9 @@ where
             // Finally draw the labels
             let style = Style::default().bg(self.background_color);
             for label in ctx.labels.iter().filter(|l| {
-                !(l.x < self.x_bounds[0] || l.x > self.x_bounds[1] || l.y < self.y_bounds[0]
+                !(l.x < self.x_bounds[0]
+                    || l.x > self.x_bounds[1]
+                    || l.y < self.y_bounds[0]
                     || l.y > self.y_bounds[1])
             }) {
                 let dy = ((self.y_bounds[1] - label.y) * f64::from(canvas_area.height - 1)
@@ -288,7 +289,7 @@ where
                     dx + canvas_area.left(),
                     dy + canvas_area.top(),
                     label.text,
-                    &style.fg(label.color),
+                    style.fg(label.color),
                 );
             }
         }

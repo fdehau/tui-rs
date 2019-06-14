@@ -5,18 +5,17 @@ rust:
   - beta
   - nightly
 
-env:
-  - NO_RUSTUP=1
-
 cache: cargo
 
 matrix:
+  fast_finish: true
   allow_failures:
     - rust: nightly
-    - rust: beta
 
 before_script:
-  - ./scripts/travis/before_script.sh
+  - rustup component add rustfmt-preview
 
 script:
-  - ./scripts/travis/script.sh
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then make fmt; fi
+  - make build
+  - make test

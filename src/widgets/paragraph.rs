@@ -1,29 +1,45 @@
+use either::Either;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
-use buffer::Buffer;
-use layout::Rect;
-use style::{Color, Modifier, Style};
+use crate::buffer::Buffer;
+use crate::layout::{Alignment, Rect};
+use crate::style::Style;
+use crate::widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
+use crate::widgets::{Block, Text, Widget};
 
-/// A widget to display some text. You can specify colors using commands embedded in
-/// the text such as "{[color] [text]}".
+fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
+    match alignment {
+        Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
+        Alignment::Right => text_area_width.saturating_sub(line_width),
+        Alignment::Left => 0,
+    }
+}
+
+/// A widget to display some text.
 ///
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
-/// # use tui::widgets::{Block, Borders, Paragraph};
+/// # use tui::widgets::{Block, Borders, Paragraph, Text};
 /// # use tui::style::{Style, Color};
+/// # use tui::layout::{Alignment};
 /// # fn main() {
-/// Paragraph::default()
+/// let text = [
+///     Text::raw("First line\n"),
+///     Text::styled("Second line\n", Style::default().fg(Color::Red))
+/// ];
+/// Paragraph::new(text.iter())
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
-///     .wrap(true)
-///     .text("First line\nSecond line\n{red Colored text}.");
+///     .alignment(Alignment::Center)
+///     .wrap(true);
 /// # }
 /// ```
-pub struct Paragraph<'a> {
+pub struct Paragraph<'a, 't, T>
+where
+    T: Iterator<Item = &'t Text<'t>>,
+{
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
     /// Widget style
@@ -31,244 +47,113 @@ pub struct Paragraph<'a> {
     /// Wrap the text or not
     wrapping: bool,
     /// The text to display
-    text: &'a str,
+    text: T,
     /// Should we parse the text for embedded commands
     raw: bool,
     /// Scroll
     scroll: u16,
+    /// Aligenment of the text
+    alignment: Alignment,
 }
 
-impl<'a> Default for Paragraph<'a> {
-    fn default() -> Paragraph<'a> {
+impl<'a, 't, T> Paragraph<'a, 't, T>
+where
+    T: Iterator<Item = &'t Text<'t>>,
+{
+    pub fn new(text: T) -> Paragraph<'a, 't, T> {
         Paragraph {
             block: None,
             style: Default::default(),
             wrapping: false,
             raw: false,
-            text: "",
+            text,
             scroll: 0,
+            alignment: Alignment::Left,
         }
     }
-}
 
-impl<'a> Paragraph<'a> {
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut Paragraph<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Paragraph<'a, 't, T> {
         self.block = Some(block);
         self
     }
 
-    pub fn text(&mut self, text: &'a str) -> &mut Paragraph<'a> {
-        self.text = text;
-        self
-    }
-
-    pub fn style(&mut self, style: Style) -> &mut Paragraph<'a> {
+    pub fn style(mut self, style: Style) -> Paragraph<'a, 't, T> {
         self.style = style;
         self
     }
 
-    pub fn wrap(&mut self, flag: bool) -> &mut Paragraph<'a> {
+    pub fn wrap(mut self, flag: bool) -> Paragraph<'a, 't, T> {
         self.wrapping = flag;
         self
     }
 
-    pub fn raw(&mut self, flag: bool) -> &mut Paragraph<'a> {
+    pub fn raw(mut self, flag: bool) -> Paragraph<'a, 't, T> {
         self.raw = flag;
         self
     }
 
-    pub fn scroll(&mut self, offset: u16) -> &mut Paragraph<'a> {
+    pub fn scroll(mut self, offset: u16) -> Paragraph<'a, 't, T> {
         self.scroll = offset;
+        self
+    }
+
+    pub fn alignment(mut self, alignment: Alignment) -> Paragraph<'a, 't, T> {
+        self.alignment = alignment;
         self
     }
 }
 
-struct Parser<'a, T>
+impl<'a, 't, 'b, T> Widget for Paragraph<'a, 't, T>
 where
-    T: Iterator<Item = &'a str>,
+    T: Iterator<Item = &'t Text<'t>>,
 {
-    text: T,
-    mark: bool,
-    cmd_string: String,
-    style: Style,
-    base_style: Style,
-    escaping: bool,
-    styling: bool,
-}
-
-impl<'a, T> Parser<'a, T>
-where
-    T: Iterator<Item = &'a str>,
-{
-    fn new(text: T, base_style: Style) -> Parser<'a, T> {
-        Parser {
-            text: text,
-            mark: false,
-            cmd_string: String::from(""),
-            style: base_style,
-            base_style: base_style,
-            escaping: false,
-            styling: false,
-        }
-    }
-
-    fn update_style(&mut self) {
-        for cmd in self.cmd_string.split(';') {
-            let args = cmd.split('=').collect::<Vec<&str>>();
-            if let Some(first) = args.get(0) {
-                match *first {
-                    "fg" => if let Some(snd) = args.get(1) {
-                        self.style.fg = Parser::<T>::str_to_color(snd);
-                    },
-                    "bg" => if let Some(snd) = args.get(1) {
-                        self.style.bg = Parser::<T>::str_to_color(snd);
-                    },
-                    "mod" => if let Some(snd) = args.get(1) {
-                        self.style.modifier = Parser::<T>::str_to_modifier(snd);
-                    },
-                    _ => {}
-                }
-            }
-        }
-    }
-
-    fn str_to_color(string: &str) -> Color {
-        match string {
-            "black" => Color::Black,
-            "red" => Color::Red,
-            "green" => Color::Green,
-            "yellow" => Color::Yellow,
-            "magenta" => Color::Magenta,
-            "cyan" => Color::Cyan,
-            "gray" => Color::Gray,
-            "dark_gray" => Color::DarkGray,
-            "light_red" => Color::LightRed,
-            "light_green" => Color::LightGreen,
-            "light_yellow" => Color::LightYellow,
-            "light_magenta" => Color::LightMagenta,
-            "light_cyan" => Color::LightCyan,
-            "white" => Color::White,
-            _ => Color::Reset,
-        }
-    }
-
-    fn str_to_modifier(string: &str) -> Modifier {
-        match string {
-            "bold" => Modifier::Bold,
-            "italic" => Modifier::Italic,
-            "underline" => Modifier::Underline,
-            "invert" => Modifier::Invert,
-            "crossed_out" => Modifier::CrossedOut,
-            _ => Modifier::Reset,
-        }
-    }
-
-    fn reset(&mut self) {
-        self.styling = false;
-        self.mark = false;
-        self.style = self.base_style;
-        self.cmd_string.clear();
-    }
-}
-
-impl<'a, T> Iterator for Parser<'a, T>
-where
-    T: Iterator<Item = &'a str>,
-{
-    type Item = (&'a str, Style);
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.text.next() {
-            Some(s) => if s == "\\" {
-                if self.escaping {
-                    Some((s, self.style))
-                } else {
-                    self.escaping = true;
-                    self.next()
-                }
-            } else if s == "{" {
-                if self.escaping {
-                    self.escaping = false;
-                    Some((s, self.style))
-                } else if self.mark {
-                    Some((s, self.style))
-                } else {
-                    self.style = self.base_style;
-                    self.mark = true;
-                    self.next()
-                }
-            } else if s == "}" && self.mark {
-                self.reset();
-                self.next()
-            } else if s == " " && self.mark {
-                if self.styling {
-                    Some((s, self.style))
-                } else {
-                    self.styling = true;
-                    self.update_style();
-                    self.next()
-                }
-            } else if self.mark && !self.styling {
-                self.cmd_string.push_str(s);
-                self.next()
-            } else {
-                Some((s, self.style))
-            },
-            None => None,
-        }
-    }
-}
-
-impl<'a> Widget for Paragraph<'a> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let text_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         if text_area.height < 1 {
             return;
         }
 
-        self.background(&text_area, buf, self.style.bg);
+        self.background(text_area, buf, self.style.bg);
 
-        let mut x = 0;
-        let mut y = 0;
-        let graphemes = UnicodeSegmentation::graphemes(self.text, true);
-        let styled: Box<Iterator<Item = (&str, Style)>> = if self.raw {
-            Box::new(graphemes.map(|g| (g, self.style)))
+        let style = self.style;
+        let mut styled = self.text.by_ref().flat_map(|t| match *t {
+            Text::Raw(ref d) => {
+                let data: &'t str = d; // coerce to &str
+                Either::Left(UnicodeSegmentation::graphemes(data, true).map(|g| Styled(g, style)))
+            }
+            Text::Styled(ref d, s) => {
+                let data: &'t str = d; // coerce to &str
+                Either::Right(UnicodeSegmentation::graphemes(data, true).map(move |g| Styled(g, s)))
+            }
+        });
+
+        let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
+            Box::new(WordWrapper::new(&mut styled, text_area.width))
         } else {
-            Box::new(Parser::new(graphemes, self.style))
+            Box::new(LineTruncator::new(&mut styled, text_area.width))
         };
-
-        for (string, style) in styled {
-            if string == "\n" {
-                x = 0;
-                y += 1;
-                continue;
-            }
-            if x >= text_area.width {
-                if self.wrapping {
-                    x = 0;
-                    y += 1;
+        let mut y = 0;
+        while let Some((current_line, current_line_width)) = line_composer.next_line() {
+            if y >= self.scroll {
+                let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
+                for Styled(symbol, style) in current_line {
+                    buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
+                        .set_symbol(symbol)
+                        .set_style(*style);
+                    x += symbol.width() as u16;
                 }
-                continue;
             }
-
-            if y > text_area.height + self.scroll - 1 {
+            y += 1;
+            if y >= text_area.height + self.scroll {
                 break;
             }
-
-            if y < self.scroll {
-                continue;
-            }
-
-            buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
-                .set_symbol(string)
-                .set_style(style);
-            x += string.width() as u16;
         }
     }
 }

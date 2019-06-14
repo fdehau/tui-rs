@@ -1,19 +1,19 @@
-#![allow(dead_code)]
+#[cfg(feature = "termion")]
+pub mod event;
 
-extern crate rand;
-
-use self::rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Uniform};
+use rand::rngs::ThreadRng;
 
 #[derive(Clone)]
 pub struct RandomSignal {
-    range: Range<u64>,
-    rng: rand::ThreadRng,
+    distribution: Uniform<u64>,
+    rng: ThreadRng,
 }
 
 impl RandomSignal {
     pub fn new(lower: u64, upper: u64) -> RandomSignal {
         RandomSignal {
-            range: Range::new(lower, upper),
+            distribution: Uniform::new(lower, upper),
             rng: rand::thread_rng(),
         }
     }
@@ -22,7 +22,7 @@ impl RandomSignal {
 impl Iterator for RandomSignal {
     type Item = u64;
     fn next(&mut self) -> Option<u64> {
-        Some(self.range.ind_sample(&mut self.rng))
+        Some(self.distribution.sample(&mut self.rng))
     }
 }
 
@@ -38,9 +38,9 @@ impl SinSignal {
     pub fn new(interval: f64, period: f64, scale: f64) -> SinSignal {
         SinSignal {
             x: 0.0,
-            interval: interval,
-            period: period,
-            scale: scale,
+            interval,
+            period,
+            scale,
         }
     }
 }
@@ -54,21 +54,24 @@ impl Iterator for SinSignal {
     }
 }
 
-pub struct MyTabs<'a> {
+pub struct TabsState<'a> {
     pub titles: Vec<&'a str>,
-    pub selection: usize,
+    pub index: usize,
 }
 
-impl<'a> MyTabs<'a> {
+impl<'a> TabsState<'a> {
+    pub fn new(titles: Vec<&'a str>) -> TabsState {
+        TabsState { titles, index: 0 }
+    }
     pub fn next(&mut self) {
-        self.selection = (self.selection + 1) % self.titles.len();
+        self.index = (self.index + 1) % self.titles.len();
     }
 
     pub fn previous(&mut self) {
-        if self.selection > 0 {
-            self.selection -= 1;
+        if self.index > 0 {
+            self.index -= 1;
         } else {
-            self.selection = self.titles.len() - 1;
+            self.index = self.titles.len() - 1;
         }
     }
 }

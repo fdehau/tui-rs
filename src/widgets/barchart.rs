@@ -2,18 +2,17 @@ use std::cmp::{max, min};
 
 use unicode_width::UnicodeWidthStr;
 
-use widgets::{Block, Widget};
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use symbols::bar;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::bar;
+use crate::widgets::{Block, Widget};
 
 /// Display multiple bars in a single widgets
 ///
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders, BarChart};
 /// # use tui::style::{Style, Color, Modifier};
 /// # fn main() {
@@ -22,7 +21,7 @@ use symbols::bar;
 ///     .bar_width(3)
 ///     .bar_gap(1)
 ///     .style(Style::default().fg(Color::Yellow).bg(Color::Red))
-///     .value_style(Style::default().fg(Color::Red).modifier(Modifier::Bold))
+///     .value_style(Style::default().fg(Color::Red).modifier(Modifier::BOLD))
 ///     .label_style(Style::default().fg(Color::White))
 ///     .data(&[("B0", 0), ("B1", 2), ("B2", 4), ("B3", 3)])
 ///     .max(4);
@@ -67,7 +66,7 @@ impl<'a> Default for BarChart<'a> {
 }
 
 impl<'a> BarChart<'a> {
-    pub fn data(&'a mut self, data: &'a [(&'a str, u64)]) -> &mut BarChart<'a> {
+    pub fn data(mut self, data: &'a [(&'a str, u64)]) -> BarChart<'a> {
         self.data = data;
         self.values = Vec::with_capacity(self.data.len());
         for &(_, v) in self.data {
@@ -76,60 +75,62 @@ impl<'a> BarChart<'a> {
         self
     }
 
-    pub fn block(&'a mut self, block: Block<'a>) -> &mut BarChart<'a> {
+    pub fn block(mut self, block: Block<'a>) -> BarChart<'a> {
         self.block = Some(block);
         self
     }
-    pub fn max(&'a mut self, max: u64) -> &mut BarChart<'a> {
+    pub fn max(mut self, max: u64) -> BarChart<'a> {
         self.max = Some(max);
         self
     }
 
-    pub fn bar_width(&'a mut self, width: u16) -> &mut BarChart<'a> {
+    pub fn bar_width(mut self, width: u16) -> BarChart<'a> {
         self.bar_width = width;
         self
     }
-    pub fn bar_gap(&'a mut self, gap: u16) -> &mut BarChart<'a> {
+    pub fn bar_gap(mut self, gap: u16) -> BarChart<'a> {
         self.bar_gap = gap;
         self
     }
-    pub fn value_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn value_style(mut self, style: Style) -> BarChart<'a> {
         self.value_style = style;
         self
     }
-    pub fn label_style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn label_style(mut self, style: Style) -> BarChart<'a> {
         self.label_style = style;
         self
     }
-    pub fn style(&'a mut self, style: Style) -> &mut BarChart<'a> {
+    pub fn style(mut self, style: Style) -> BarChart<'a> {
         self.style = style;
         self
     }
 }
 
 impl<'a> Widget for BarChart<'a> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
                 b.draw(area, buf);
                 b.inner(area)
             }
-            None => *area,
+            None => area,
         };
 
         if chart_area.height < 2 {
             return;
         }
 
-        self.background(&chart_area, buf, self.style.bg);
+        self.background(chart_area, buf, self.style.bg);
 
-        let max = self.max
+        let max = self
+            .max
             .unwrap_or_else(|| self.data.iter().fold(0, |acc, &(_, v)| max(v, acc)));
         let max_index = min(
             (chart_area.width / (self.bar_width + self.bar_gap)) as usize,
             self.data.len(),
         );
-        let mut data = self.data
+        let mut data = self
+            .data
             .iter()
             .take(max_index)
             .map(|&(l, v)| (l, v * u64::from(chart_area.height) * 8 / std::cmp::max(max, 1)))
@@ -152,8 +153,9 @@ impl<'a> Widget for BarChart<'a> {
                     buf.get_mut(
                         chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
                         chart_area.top() + j,
-                    ).set_symbol(symbol)
-                        .set_style(self.style);
+                    )
+                    .set_symbol(symbol)
+                    .set_style(self.style);
                 }
 
                 if d.1 > 8 {
@@ -170,11 +172,12 @@ impl<'a> Widget for BarChart<'a> {
                 let width = value_label.width() as u16;
                 if width < self.bar_width {
                     buf.set_string(
-                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap)
+                        chart_area.left()
+                            + i as u16 * (self.bar_width + self.bar_gap)
                             + (self.bar_width - width) / 2,
                         chart_area.bottom() - 2,
                         value_label,
-                        &self.value_style,
+                        self.value_style,
                     );
                 }
             }
@@ -183,7 +186,7 @@ impl<'a> Widget for BarChart<'a> {
                 chart_area.bottom() - 1,
                 label,
                 self.bar_width as usize,
-                &self.label_style,
+                self.label_style,
             );
         }
     }

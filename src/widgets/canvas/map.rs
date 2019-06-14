@@ -1,7 +1,7 @@
-use widgets::canvas::Shape;
-use widgets::canvas::points::PointsIterator;
-use widgets::canvas::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
-use style::Color;
+use crate::style::Color;
+use crate::widgets::canvas::points::PointsIterator;
+use crate::widgets::canvas::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
+use crate::widgets::canvas::Shape;
 
 #[derive(Clone, Copy)]
 pub enum MapResolution {
@@ -10,8 +10,8 @@ pub enum MapResolution {
 }
 
 impl MapResolution {
-    fn data(&self) -> &'static [(f64, f64)] {
-        match *self {
+    fn data(self) -> &'static [(f64, f64)] {
+        match self {
             MapResolution::Low => &WORLD_LOW_RESOLUTION,
             MapResolution::High => &WORLD_HIGH_RESOLUTION,
         }

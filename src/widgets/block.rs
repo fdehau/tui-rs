@@ -1,8 +1,8 @@
-use buffer::Buffer;
-use layout::Rect;
-use style::Style;
-use widgets::{Borders, Widget};
-use symbols::line;
+use crate::buffer::Buffer;
+use crate::layout::Rect;
+use crate::style::Style;
+use crate::symbols::line;
+use crate::widgets::{Borders, Widget};
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
@@ -10,7 +10,6 @@ use symbols::line;
 /// # Examples
 ///
 /// ```
-/// # extern crate tui;
 /// # use tui::widgets::{Block, Borders};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
@@ -75,11 +74,11 @@ impl<'a> Block<'a> {
     }
 
     /// Compute the inner area of a block based on its border visibility rules.
-    pub fn inner(&self, area: &Rect) -> Rect {
+    pub fn inner(&self, area: Rect) -> Rect {
         if area.width < 2 || area.height < 2 {
             return Rect::default();
         }
-        let mut inner = *area;
+        let mut inner = area;
         if self.borders.intersects(Borders::LEFT) {
             inner.x += 1;
             inner.width -= 1;
@@ -99,7 +98,7 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn draw(&mut self, area: &Rect, buf: &mut Buffer) {
+    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
         if area.width < 2 || area.height < 2 {
             return;
         }
@@ -178,7 +177,7 @@ impl<'a> Widget for Block<'a> {
                     area.top(),
                     title,
                     width as usize,
-                    &self.title_style,
+                    self.title_style,
                 );
             }
         }

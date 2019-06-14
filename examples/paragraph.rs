@@ -1,66 +1,110 @@
-extern crate termion;
-extern crate tui;
+#[allow(dead_code)]
+mod util;
 
 use std::io;
-use termion::event;
-use termion::input::TermRead;
 
+use termion::event::Key;
+use termion::input::MouseTerminal;
+use termion::raw::IntoRawMode;
+use termion::screen::AlternateScreen;
+use tui::backend::TermionBackend;
+use tui::layout::{Alignment, Constraint, Direction, Layout};
+use tui::style::{Color, Modifier, Style};
+use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
-use tui::backend::MouseBackend;
-use tui::widgets::{Block, Paragraph, Widget};
-use tui::layout::{Direction, Group, Rect, Size};
-use tui::style::{Color, Style};
 
-fn main() {
-    let mut terminal = Terminal::new(MouseBackend::new().unwrap()).unwrap();
-    let stdin = io::stdin();
-    terminal.clear().unwrap();
-    terminal.hide_cursor().unwrap();
+use crate::util::event::{Event, Events};
 
-    let mut term_size = terminal.size().unwrap();
-    draw(&mut terminal, &term_size);
+fn main() -> Result<(), failure::Error> {
+    // Terminal initialization
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
 
-    for c in stdin.keys() {
-        let size = terminal.size().unwrap();
-        if size != term_size {
-            terminal.resize(size).unwrap();
-            term_size = size;
-        }
+    let events = Events::new();
 
-        draw(&mut terminal, &term_size);
-        let evt = c.unwrap();
-        if evt == event::Key::Char('q') {
-            break;
+    let mut scroll: u16 = 0;
+    loop {
+        terminal.draw(|mut f| {
+            let size = f.size();
+
+            // Words made "loooong" to demonstrate line breaking.
+            let s = "Veeeeeeeeeeeeeeeery    loooooooooooooooooong   striiiiiiiiiiiiiiiiiiiiiiiiiing.   ";
+            let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
+            long_line.push('\n');
+
+            Block::default()
+                .style(Style::default().bg(Color::White))
+                .render(&mut f, size);
+
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(5)
+                .constraints(
+                    [
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                    ]
+                    .as_ref(),
+                )
+                .split(size);
+
+            let text = [
+                Text::raw("This is a line \n"),
+                Text::styled("This is a line   \n", Style::default().fg(Color::Red)),
+                Text::styled("This is a line\n", Style::default().bg(Color::Blue)),
+                Text::styled(
+                    "This is a longer line\n",
+                    Style::default().modifier(Modifier::CROSSED_OUT),
+                ),
+                Text::styled(&long_line, Style::default().bg(Color::Green)),
+                Text::styled(
+                    "This is a line\n",
+                    Style::default().fg(Color::Green).modifier(Modifier::ITALIC),
+                ),
+            ];
+
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .title_style(Style::default().modifier(Modifier::BOLD));
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Left, no wrap"))
+                .alignment(Alignment::Left)
+                .render(&mut f, chunks[0]);
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Left, wrap"))
+                .alignment(Alignment::Left)
+                .wrap(true)
+                .render(&mut f, chunks[1]);
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Center, wrap"))
+                .alignment(Alignment::Center)
+                .wrap(true)
+                .scroll(scroll)
+                .render(&mut f, chunks[2]);
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Right, wrap"))
+                .alignment(Alignment::Right)
+                .wrap(true)
+                .render(&mut f, chunks[3]);
+        })?;
+
+        scroll += 1;
+        scroll %= 10;
+
+        match events.next()? {
+            Event::Input(key) => {
+                if key == Key::Char('q') {
+                    break;
+                }
+            }
+            _ => {}
         }
     }
-    terminal.show_cursor().unwrap();
-}
-
-fn draw(t: &mut Terminal<MouseBackend>, size: &Rect) {
-    Block::default()
-        .style(Style::default().bg(Color::White))
-        .render(t, size);
-
-    Group::default()
-        .direction(Direction::Vertical)
-        .margin(5)
-        .sizes(&[Size::Percent(100)])
-        .render(t, size, |t, chunks| {
-            Group::default()
-                .direction(Direction::Horizontal)
-                .sizes(&[Size::Percent(100)])
-                .render(t, &chunks[0], |t, chunks| {
-                    Paragraph::default()
-                        .text(
-                            "This is a line\n{fg=red This is a line}\n{bg=red This is a \
-                             line}\n{mod=italic This is a line}\n{mod=bold This is a \
-                             line}\n{mod=crossed_out This is a line}\n{mod=invert This is a \
-                             line}\n{mod=underline This is a \
-                             line}\n{bg=green;fg=yellow;mod=italic This is a line}\n",
-                        )
-                        .render(t, &chunks[0]);
-                });
-        });
-
-    t.draw().unwrap();
+    Ok(())
 }
