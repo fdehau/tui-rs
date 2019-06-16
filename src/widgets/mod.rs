@@ -29,8 +29,8 @@ use crate::layout::Rect;
 use crate::style::{Color, Style};
 use crate::terminal::Frame;
 
-/// Bitflags that can be composed to set the visible borders essentially on the block widget.
 bitflags! {
+    /// Bitflags that can be composed to set the visible borders essentially on the block widget.
     pub struct Borders: u32 {
         /// Show no border (default)
         const NONE  = 0b0000_0001;
