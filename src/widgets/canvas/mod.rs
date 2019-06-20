@@ -99,7 +99,7 @@ impl<'a> Context<'a> {
         let top = self.y_bounds[1];
         for (x, y) in shape
             .points()
-            .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top))
+            .filter(|&(x, y)| !(x <= left || x >= right || y <= bottom || y >= top))
         {
             let dy = ((top - y) * f64::from(self.height - 1) * 4.0 / (top - bottom)) as usize;
             let dx = ((x - left) * f64::from(self.width - 1) * 2.0 / (right - left)) as usize;
