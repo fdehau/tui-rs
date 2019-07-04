@@ -159,6 +159,7 @@ fn main() -> Result<(), failure::Error> {
             Event::Tick => {
                 app.advance();
             }
+            _ => (),
         }
     }
 
