@@ -3,18 +3,20 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use termion::event::Key;
+use termion::event::{Key,MouseEvent};
+use termion::event;
 use termion::input::TermRead;
 
-pub enum Event<I> {
-    Input(I),
+pub enum Event {
+    Input(Key),
     Tick,
+    MouseEvent(MouseEvent),
 }
 
 /// A small event handler that wrap termion input and tick events. Each event
 /// type is handled in its own thread and returned to a common `Receiver`
 pub struct Events {
-    rx: mpsc::Receiver<Event<Key>>,
+    rx: mpsc::Receiver<Event>,
     input_handle: thread::JoinHandle<()>,
     tick_handle: thread::JoinHandle<()>,
 }
@@ -45,17 +47,21 @@ impl Events {
             let tx = tx.clone();
             thread::spawn(move || {
                 let stdin = io::stdin();
-                for evt in stdin.keys() {
-                    match evt {
-                        Ok(key) => {
-                            if let Err(_) = tx.send(Event::Input(key)) {
-                                return;
+                for evt in stdin.events(){
+                    if let Ok(evt) = evt{
+                        match evt{
+                            event::Event::Key(key) => {
+                                if let Err(_) = tx.send(Event::Input(key)){
+                                    return;
+                                }
                             }
-                            if key == config.exit_key {
-                                return;
+                            event::Event::Mouse(mouse) => {
+                                if let Err(_) = tx.send(Event::MouseEvent(mouse)){
+                                    return;
+                                }
                             }
+                            event::Event::Unsupported(_) => return,
                         }
-                        Err(_) => {}
                     }
                 }
             })
@@ -77,7 +83,7 @@ impl Events {
         }
     }
 
-    pub fn next(&self) -> Result<Event<Key>, mpsc::RecvError> {
+    pub fn next(&self) -> Result<Event, mpsc::RecvError> {
         self.rx.recv()
     }
 }

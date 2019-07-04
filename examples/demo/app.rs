@@ -1,4 +1,5 @@
 use crate::util::{RandomSignal, SinSignal, TabsState};
+use termion::event::MouseEvent;
 
 const TASKS: [&'static str; 24] = [
     "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10",
@@ -245,5 +246,13 @@ impl<'a> App<'a> {
 
         let event = self.barchart.pop().unwrap();
         self.barchart.insert(0, event);
+    }
+
+    /// just cycle to the tabs when the mouse is pressed
+    pub fn on_mouse(&mut self, me: MouseEvent) {
+        match me{
+            MouseEvent::Press(_,_,_) => self.tabs.next(),
+            _ => (),
+        }
     }
 }

@@ -65,6 +65,9 @@ fn main() -> Result<(), failure::Error> {
             Event::Tick => {
                 app.on_tick();
             }
+            Event::MouseEvent(me) => {
+                app.on_mouse(me);
+            }
         }
         if app.should_quit {
             break;
