@@ -15,7 +15,7 @@ pub trait LineComposer<'a> {
 
 /// A state machine that wraps lines on word boundaries.
 pub struct WordWrapper<'a, 'b> {
-    symbols: &'b mut Iterator<Item = Styled<'a>>,
+    symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
     max_line_width: u16,
     current_line: Vec<Styled<'a>>,
     next_line: Vec<Styled<'a>>,
@@ -23,7 +23,7 @@ pub struct WordWrapper<'a, 'b> {
 
 impl<'a, 'b> WordWrapper<'a, 'b> {
     pub fn new(
-        symbols: &'b mut Iterator<Item = Styled<'a>>,
+        symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
         max_line_width: u16,
     ) -> WordWrapper<'a, 'b> {
         WordWrapper {
@@ -121,14 +121,14 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
 
 /// A state machine that truncates overhanging lines.
 pub struct LineTruncator<'a, 'b> {
-    symbols: &'b mut Iterator<Item = Styled<'a>>,
+    symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
     max_line_width: u16,
     current_line: Vec<Styled<'a>>,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
-        symbols: &'b mut Iterator<Item = Styled<'a>>,
+        symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
         max_line_width: u16,
     ) -> LineTruncator<'a, 'b> {
         LineTruncator {
