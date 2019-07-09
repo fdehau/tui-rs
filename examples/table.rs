@@ -24,7 +24,7 @@ impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
             items: vec![
-                vec!["Row12", "Row12", "Row13"],
+                vec!["Row11", "Row12", "Row13"],
                 vec!["Row21", "Row22", "Row23"],
                 vec!["Row31", "Row32", "Row33"],
                 vec!["Row41", "Row42", "Row43"],
