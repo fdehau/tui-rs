@@ -1,8 +1,10 @@
 use std::fmt::Display;
+use std::iter;
 use std::iter::Iterator;
 
 use crate::buffer::Buffer;
-use crate::layout::Rect;
+use crate::layout;
+use crate::layout::{Alignment, Rect};
 use crate::style::Style;
 use crate::widgets::{Block, Widget};
 
@@ -202,8 +204,14 @@ where
         // Draw header
         if y < table_area.bottom() {
             x = table_area.left();
-            for (w, t) in widths.iter().zip(self.header.by_ref()) {
-                buf.set_string(x, y, format!("{}", t), self.header_style);
+            for ((w, t), a) in widths.iter().zip(self.header.by_ref()).zip(
+                self.header_alignment
+                    .iter()
+                    .chain(iter::repeat(&Alignment::Left)),
+            ) {
+                let header_str = format!("{}", t);
+                let alignment_offset = layout::get_line_offset(header_str.len() as u16, *w, *a);
+                buf.set_string(x + alignment_offset, y, header_str, self.header_style);
                 x += *w + self.column_spacing;
             }
         }
@@ -219,8 +227,21 @@ where
                     Row::StyledData(d, s) => (d, s),
                 };
                 x = table_area.left();
-                for (w, elt) in widths.iter().zip(data) {
-                    buf.set_stringn(x, y + i as u16, format!("{}", elt), *w as usize, style);
+                for ((w, elt), a) in widths
+                    .iter()
+                    .zip(data)
+                    .zip(self.alignment.iter().chain(iter::repeat(&Alignment::Left)))
+                {
+                    let element_str = format!("{}", elt);
+                    let alignment_offset =
+                        layout::get_line_offset(element_str.len() as u16, *w, *a);
+                    buf.set_stringn(
+                        x + alignment_offset,
+                        y + i as u16,
+                        element_str,
+                        *w as usize,
+                        style,
+                    );
                     x += *w + self.column_spacing;
                 }
             }
