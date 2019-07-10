@@ -3,18 +3,11 @@ use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
+use crate::layout;
 use crate::layout::{Alignment, Rect};
 use crate::style::Style;
 use crate::widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
 use crate::widgets::{Block, Text, Widget};
-
-fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
-    match alignment {
-        Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
-        Alignment::Right => text_area_width.saturating_sub(line_width),
-        Alignment::Left => 0,
-    }
-}
 
 /// A widget to display some text.
 ///
@@ -142,7 +135,8 @@ where
         let mut y = 0;
         while let Some((current_line, current_line_width)) = line_composer.next_line() {
             if y >= self.scroll {
-                let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
+                let mut x =
+                    layout::get_line_offset(current_line_width, text_area.width, self.alignment);
                 for Styled(symbol, style) in current_line {
                     buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll)
                         .set_symbol(symbol)

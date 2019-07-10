@@ -37,6 +37,16 @@ pub enum Alignment {
     Right,
 }
 
+/// Get the offset position for a line to display it at a set alignment given the width of the line
+/// and the width of its container
+pub fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
+    match alignment {
+        Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
+        Alignment::Right => text_area_width.saturating_sub(line_width),
+        Alignment::Left => 0,
+    }
+}
+
 // TODO: enforce constraints size once const generics has landed
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Layout {
