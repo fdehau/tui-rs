@@ -483,4 +483,46 @@ mod tests {
         assert_eq!(rect.height, 100);
     }
 
+    #[test]
+    fn test_get_line_offset() {
+        // empty string in empty container
+        assert_eq!(get_line_offset(0, 0, Alignment::Left), 0);
+        assert_eq!(get_line_offset(0, 0, Alignment::Center), 0);
+        assert_eq!(get_line_offset(0, 0, Alignment::Right), 0);
+
+        // empty string in sized container
+        assert_eq!(get_line_offset(0, 10, Alignment::Left), 0);
+        assert_eq!(get_line_offset(0, 10, Alignment::Center), 5);
+        assert_eq!(get_line_offset(0, 10, Alignment::Right), 10);
+
+        // string same size as container
+        assert_eq!(get_line_offset(10, 10, Alignment::Left), 0);
+        assert_eq!(get_line_offset(10, 10, Alignment::Center), 0);
+        assert_eq!(get_line_offset(10, 10, Alignment::Right), 0);
+
+        // 1 char string in even sized container
+        assert_eq!(get_line_offset(1, 10, Alignment::Left), 0);
+        assert_eq!(get_line_offset(1, 10, Alignment::Center), 5);
+        assert_eq!(get_line_offset(1, 10, Alignment::Right), 9);
+
+        // 2 char string in even sized container
+        assert_eq!(get_line_offset(2, 10, Alignment::Left), 0);
+        assert_eq!(get_line_offset(2, 10, Alignment::Center), 4);
+        assert_eq!(get_line_offset(2, 10, Alignment::Right), 8);
+
+        // 1 char string in odd sized container
+        assert_eq!(get_line_offset(1, 9, Alignment::Left), 0);
+        assert_eq!(get_line_offset(1, 9, Alignment::Center), 4);
+        assert_eq!(get_line_offset(1, 9, Alignment::Right), 8);
+
+        // 2 char string in odd sized container
+        assert_eq!(get_line_offset(2, 9, Alignment::Left), 0);
+        assert_eq!(get_line_offset(2, 9, Alignment::Center), 3);
+        assert_eq!(get_line_offset(2, 9, Alignment::Right), 7);
+
+        // string longer than container
+        assert_eq!(get_line_offset(10, 0, Alignment::Left), 0);
+        assert_eq!(get_line_offset(10, 0, Alignment::Center), 0);
+        assert_eq!(get_line_offset(10, 0, Alignment::Right), 0);
+    }
 }
