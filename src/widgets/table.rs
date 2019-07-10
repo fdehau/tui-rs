@@ -64,6 +64,10 @@ where
     column_spacing: u16,
     /// Data to display in each row
     rows: R,
+    /// Alignment of header text
+    header_alignment: &'a [Alignment],
+    /// Alignment of body columns
+    alignment: &'a [Alignment],
 }
 
 impl<'a, T, H, I, D, R> Default for Table<'a, T, H, I, D, R>
@@ -83,6 +87,8 @@ where
             widths: &[],
             rows: R::default(),
             column_spacing: 1,
+            header_alignment: &[],
+            alignment: &[],
         }
     }
 }
@@ -104,6 +110,8 @@ where
             widths: &[],
             rows,
             column_spacing: 1,
+            header_alignment: &[],
+            alignment: &[],
         }
     }
     pub fn block(mut self, block: Block<'a>) -> Table<'a, T, H, I, D, R> {
@@ -144,6 +152,16 @@ where
 
     pub fn column_spacing(mut self, spacing: u16) -> Table<'a, T, H, I, D, R> {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn header_alignment(mut self, alignments: &'a [Alignment]) -> Table<'a, T, H, I, D, R> {
+        self.header_alignment = alignments;
+        self
+    }
+
+    pub fn alignment(mut self, alignments: &'a [Alignment]) -> Table<'a, T, H, I, D, R> {
+        self.alignment = alignments;
         self
     }
 }
