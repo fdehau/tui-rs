@@ -18,23 +18,32 @@ use crate::util::event::{Event, Events};
 
 struct Label<'a> {
     text: &'a str,
+    area: Rect,
 }
 
 impl<'a> Default for Label<'a> {
     fn default() -> Label<'a> {
-        Label { text: "" }
+        Label { text: "", area: Default::default() }
     }
+
 }
 
 impl<'a> Widget for Label<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_string(area.left(), area.top(), self.text, Style::default());
+    fn draw(&mut self, buf: &mut Buffer) {
+        buf.set_string(self.area.left(), self.area.top(), self.text, Style::default());
+    }
+    fn get_area(&self) -> Rect {
+        self.area
     }
 }
 
 impl<'a> Label<'a> {
     fn text(&mut self, text: &'a str) -> &mut Label<'a> {
         self.text = text;
+        self
+    }
+    fn area(&mut self, area: Rect) -> &mut Self {
+        self.area = area;
         self
     }
 }
@@ -52,7 +61,7 @@ fn main() -> Result<(), failure::Error> {
     loop {
         terminal.draw(|mut f| {
             let size = f.size();
-            Label::default().text("Test").render(&mut f, size);
+            Label::default().text("Test").area(size).render(&mut f);
         })?;
 
         match events.next()? {

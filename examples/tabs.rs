@@ -48,31 +48,36 @@ fn main() -> Result<(), failure::Error> {
 
             Block::default()
                 .style(Style::default().bg(Color::White))
-                .render(&mut f, size);
+                .area(size)
+                .render(&mut f);
             Tabs::default()
-                .block(Block::default().borders(Borders::ALL).title("Tabs"))
+                .block(Block::default().borders(Borders::ALL).title("Tabs").area(chunks[0]))
                 .titles(&app.tabs.titles)
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))
                 .highlight_style(Style::default().fg(Color::Yellow))
-                .render(&mut f, chunks[0]);
+                .render(&mut f);
             match app.tabs.index {
                 0 => Block::default()
                     .title("Inner 0")
                     .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
+                    .area(chunks[1])
+                    .render(&mut f),
                 1 => Block::default()
                     .title("Inner 1")
                     .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
+                    .area(chunks[1])
+                    .render(&mut f),
                 2 => Block::default()
                     .title("Inner 2")
                     .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
+                    .area(chunks[1])
+                    .render(&mut f),
                 3 => Block::default()
                     .title("Inner 3")
                     .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
+                    .area(chunks[1])
+                    .render(&mut f),
                 _ => {}
             }
         })?;

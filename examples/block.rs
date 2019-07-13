@@ -32,7 +32,7 @@ fn main() -> Result<(), failure::Error> {
             // Just draw the block and the group on the same area and build the group
             // with at least a margin of 1
             let size = f.size();
-            Block::default().borders(Borders::ALL).render(&mut f, size);
+            Block::default().borders(Borders::ALL).area(size).render(&mut f);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)
@@ -47,7 +47,8 @@ fn main() -> Result<(), failure::Error> {
                     .title("With background")
                     .title_style(Style::default().fg(Color::Yellow))
                     .style(Style::default().bg(Color::Green))
-                    .render(&mut f, chunks[0]);
+                    .area(chunks[0])
+                    .render(&mut f);
                 Block::default()
                     .title("Styled title")
                     .title_style(
@@ -56,7 +57,8 @@ fn main() -> Result<(), failure::Error> {
                             .bg(Color::Red)
                             .modifier(Modifier::BOLD),
                     )
-                    .render(&mut f, chunks[1]);
+                    .area(chunks[1])
+                    .render(&mut f);
             }
             {
                 let chunks = Layout::default()
@@ -66,12 +68,14 @@ fn main() -> Result<(), failure::Error> {
                 Block::default()
                     .title("With borders")
                     .borders(Borders::ALL)
-                    .render(&mut f, chunks[0]);
+                    .area(chunks[0])
+                    .render(&mut f);
                 Block::default()
                     .title("With styled borders")
                     .border_style(Style::default().fg(Color::Cyan))
                     .borders(Borders::LEFT | Borders::RIGHT)
-                    .render(&mut f, chunks[1]);
+                    .area(chunks[1])
+                    .render(&mut f);
             }
         })?;
 

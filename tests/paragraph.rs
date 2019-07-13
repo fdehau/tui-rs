@@ -21,10 +21,11 @@ fn paragraph_render_wrap() {
                 let size = f.size();
                 let text = [Text::raw(SAMPLE_STRING)];
                 Paragraph::new(text.iter())
-                    .block(Block::default().borders(Borders::ALL))
+                    .block(Block::default().borders(Borders::ALL).area(size))
                     .alignment(alignment)
                     .wrap(true)
-                    .render(&mut f, size);
+                    .area(size)
+                    .render(&mut f);
             })
             .unwrap();
         terminal.backend().buffer().clone()
@@ -89,9 +90,10 @@ fn paragraph_render_double_width() {
             let size = f.size();
             let text = [Text::raw(s)];
             Paragraph::new(text.iter())
-                .block(Block::default().borders(Borders::ALL))
+                .block(Block::default().borders(Borders::ALL).area(size))
                 .wrap(true)
-                .render(&mut f, size);
+                .area(size)
+                .render(&mut f);
         })
         .unwrap();
 
@@ -121,9 +123,10 @@ fn paragraph_render_mixed_width() {
             let size = f.size();
             let text = [Text::raw(s)];
             Paragraph::new(text.iter())
-                .block(Block::default().borders(Borders::ALL))
+                .block(Block::default().borders(Borders::ALL).area(size))
                 .wrap(true)
-                .render(&mut f, size);
+                .area(size)
+                .render(&mut f);
         })
         .unwrap();
 

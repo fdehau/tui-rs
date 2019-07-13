@@ -39,6 +39,8 @@ where
     highlight_style: Style,
     /// Tab divider
     divider: &'a str,
+    /// area occupied by this tabs
+    area: Rect,
 }
 
 impl<'a, T> Default for Tabs<'a, T>
@@ -53,6 +55,7 @@ where
             style: Default::default(),
             highlight_style: Default::default(),
             divider: line::VERTICAL,
+            area: Default::default(),
         }
     }
 }
@@ -90,26 +93,36 @@ where
         self.divider = divider;
         self
     }
+
+    pub fn area(mut self, area: Rect) -> Self {
+        self.area = area;
+        self
+    }
+
 }
 
 impl<'a, T> Widget for Tabs<'a, T>
 where
     T: AsRef<str>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+
+    fn get_area(&self) -> Rect {
+        self.area
+    }
+    fn draw(&mut self, buf: &mut Buffer) {
         let tabs_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
-                b.inner(area)
+                b.draw(buf);
+                b.inner()
             }
-            None => area,
+            None => self.area,
         };
 
         if tabs_area.height < 1 {
             return;
         }
 
-        self.background(tabs_area, buf, self.style.bg);
+        self.background(buf, self.style.bg);
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();

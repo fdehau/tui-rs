@@ -16,6 +16,7 @@ where
     items: L,
     style: Style,
     start_corner: Corner,
+    area: Rect,
 }
 
 impl<'b, L> Default for List<'b, L>
@@ -28,6 +29,7 @@ where
             items: L::default(),
             style: Default::default(),
             start_corner: Corner::TopLeft,
+            area: Default::default(),
         }
     }
 }
@@ -42,6 +44,7 @@ where
             items,
             style: Default::default(),
             start_corner: Corner::TopLeft,
+            area: Default::default(),
         }
     }
 
@@ -67,26 +70,35 @@ where
         self.start_corner = corner;
         self
     }
+
+    pub fn area(mut self, area: Rect) -> Self {
+        self.area = area;
+        self
+    }
 }
 
 impl<'b, L> Widget for List<'b, L>
 where
     L: Iterator<Item = Text<'b>>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+
+    fn get_area(&self) -> Rect {
+        self.area
+    }
+    fn draw(&mut self, buf: &mut Buffer) {
         let list_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
-                b.inner(area)
+                b.draw(buf);
+                b.inner()
             }
-            None => area,
+            None => self.area,
         };
 
         if list_area.width < 1 || list_area.height < 1 {
             return;
         }
 
-        self.background(list_area, buf, self.style.bg);
+        self.background(buf, self.style.bg);
 
         for (i, item) in self
             .items
@@ -141,6 +153,7 @@ pub struct SelectableList<'b> {
     highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'b str>,
+    area: Rect,
 }
 
 impl<'b> Default for SelectableList<'b> {
@@ -152,6 +165,7 @@ impl<'b> Default for SelectableList<'b> {
             style: Default::default(),
             highlight_style: Default::default(),
             highlight_symbol: None,
+            area: Default::default(),
         }
     }
 }
@@ -192,10 +206,14 @@ impl<'b> SelectableList<'b> {
 }
 
 impl<'b> Widget for SelectableList<'b> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+
+    fn get_area(&self) -> Rect {
+        self.area
+    }
+    fn draw(&mut self, buf: &mut Buffer) {
         let list_area = match self.block {
-            Some(ref mut b) => b.inner(area),
-            None => area,
+            Some(ref mut b) => b.inner(),
+            None => self.area,
         };
 
         let list_height = list_area.height as usize;
@@ -240,6 +258,6 @@ impl<'b> Widget for SelectableList<'b> {
         List::new(items)
             .block(self.block.unwrap_or_default())
             .style(self.style)
-            .draw(area, buf);
+            .draw(buf);
     }
 }

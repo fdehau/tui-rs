@@ -38,7 +38,8 @@ fn main() -> Result<(), failure::Error> {
 
             Block::default()
                 .style(Style::default().bg(Color::White))
-                .render(&mut f, size);
+                .area(size)
+                .render(&mut f);
 
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -73,25 +74,29 @@ fn main() -> Result<(), failure::Error> {
                 .borders(Borders::ALL)
                 .title_style(Style::default().modifier(Modifier::BOLD));
             Paragraph::new(text.iter())
-                .block(block.clone().title("Left, no wrap"))
+                .block(block.clone().title("Left, no wrap").area(chunks[0]))
                 .alignment(Alignment::Left)
-                .render(&mut f, chunks[0]);
+                .area(chunks[0])
+                .render(&mut f);
             Paragraph::new(text.iter())
-                .block(block.clone().title("Left, wrap"))
+                .block(block.clone().title("Left, wrap").area(chunks[1]))
                 .alignment(Alignment::Left)
                 .wrap(true)
-                .render(&mut f, chunks[1]);
+                .area(chunks[1])
+                .render(&mut f);
             Paragraph::new(text.iter())
-                .block(block.clone().title("Center, wrap"))
+                .block(block.clone().title("Center, wrap").area(chunks[2]))
                 .alignment(Alignment::Center)
                 .wrap(true)
                 .scroll(scroll)
-                .render(&mut f, chunks[2]);
+                .area(chunks[2])
+                .render(&mut f);
             Paragraph::new(text.iter())
-                .block(block.clone().title("Right, wrap"))
+                .block(block.clone().title("Right, wrap").area(chunks[3]))
                 .alignment(Alignment::Right)
                 .wrap(true)
-                .render(&mut f, chunks[3]);
+                .area(chunks[3])
+                .render(&mut f);
         })?;
 
         scroll += 1;

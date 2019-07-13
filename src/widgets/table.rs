@@ -64,6 +64,8 @@ where
     column_spacing: u16,
     /// Data to display in each row
     rows: R,
+    /// area occupied by this table
+    area: Rect,
 }
 
 impl<'a, T, H, I, D, R> Default for Table<'a, T, H, I, D, R>
@@ -83,6 +85,7 @@ where
             widths: &[],
             rows: R::default(),
             column_spacing: 1,
+            area: Default::default(),
         }
     }
 }
@@ -104,8 +107,10 @@ where
             widths: &[],
             rows,
             column_spacing: 1,
+            area: Default::default(),
         }
     }
+
     pub fn block(mut self, block: Block<'a>) -> Table<'a, T, H, I, D, R> {
         self.block = Some(block);
         self
@@ -146,6 +151,12 @@ where
         self.column_spacing = spacing;
         self
     }
+
+    pub fn area(mut self, area: Rect) -> Self {
+        self.area = area;
+        self
+    }
+
 }
 
 impl<'a, T, H, I, D, R> Widget for Table<'a, T, H, I, D, R>
@@ -156,18 +167,22 @@ where
     D: Iterator<Item = I>,
     R: Iterator<Item = Row<D, I>>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
-        // Render block if necessary and get the drawing area
+
+    fn get_area(&self) -> Rect {
+        self.area
+    }
+    fn draw(&mut self, buf: &mut Buffer) {
+        // Render block if necessary and get the drawing self.area
         let table_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
-                b.inner(area)
+                b.draw(buf);
+                b.inner()
             }
-            None => area,
+            None => self.area,
         };
 
         // Set the background
-        self.background(table_area, buf, self.style.bg);
+        self.background(buf, self.style.bg);
 
         // Save widths of the columns that will fit in the given area
         let mut x = 0;

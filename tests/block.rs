@@ -15,14 +15,9 @@ fn it_draws_a_block() {
                 .title("Title")
                 .borders(Borders::ALL)
                 .title_style(Style::default().fg(Color::LightBlue))
+                .area(Rect{ x: 0, y: 0, width: 8, height: 8})
                 .render(
                     &mut f,
-                    Rect {
-                        x: 0,
-                        y: 0,
-                        width: 8,
-                        height: 8,
-                    },
                 );
         })
         .unwrap();

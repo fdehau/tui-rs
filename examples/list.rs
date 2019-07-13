@@ -98,13 +98,13 @@ fn main() -> Result<(), failure::Error> {
 
             let style = Style::default().fg(Color::Black).bg(Color::White);
             SelectableList::default()
-                .block(Block::default().borders(Borders::ALL).title("List"))
+                .block(Block::default().borders(Borders::ALL).title("List").area(chunks[0]))
                 .items(&app.items)
                 .select(app.selected)
                 .style(style)
                 .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
                 .highlight_symbol(">")
-                .render(&mut f, chunks[0]);
+                .render(&mut f);
             {
                 let events = app.events.iter().map(|&(evt, level)| {
                     Text::styled(
@@ -118,9 +118,9 @@ fn main() -> Result<(), failure::Error> {
                     )
                 });
                 List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List"))
+                    .block(Block::default().borders(Borders::ALL).title("List").area(chunks[1]))
                     .start_corner(Corner::BottomLeft)
-                    .render(&mut f, chunks[1]);
+                    .render(&mut f);
             }
         })?;
 

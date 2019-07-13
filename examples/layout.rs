@@ -42,11 +42,13 @@ fn main() -> Result<(), failure::Error> {
             Block::default()
                 .title("Block")
                 .borders(Borders::ALL)
-                .render(&mut f, chunks[0]);
+                .area(chunks[0])
+                .render(&mut f);
             Block::default()
                 .title("Block 2")
                 .borders(Borders::ALL)
-                .render(&mut f, chunks[2]);
+                .area(chunks[2])
+                .render(&mut f);
         })?;
 
         match events.next()? {

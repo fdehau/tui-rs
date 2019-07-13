@@ -69,9 +69,9 @@ fn main() -> Result<(), failure::Error> {
                 .margin(5)
                 .split(f.size());
             Table::new(header.into_iter(), rows)
-                .block(Block::default().borders(Borders::ALL).title("Table"))
+                .block(Block::default().borders(Borders::ALL).title("Table").area(rects[0]))
                 .widths(&[10, 10, 10])
-                .render(&mut f, rects[0]);
+                .render(&mut f);
         })?;
 
         match events.next()? {

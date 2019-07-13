@@ -42,6 +42,8 @@ where
 {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
+    /// area occupied by this paragraph
+    area: Rect,
     /// Widget style
     style: Style,
     /// Wrap the text or not
@@ -60,6 +62,7 @@ impl<'a, 't, T> Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
+
     pub fn new(text: T) -> Paragraph<'a, 't, T> {
         Paragraph {
             block: None,
@@ -69,6 +72,7 @@ where
             text,
             scroll: 0,
             alignment: Alignment::Left,
+            area: Default::default(),
         }
     }
 
@@ -101,26 +105,40 @@ where
         self.alignment = alignment;
         self
     }
+
+    pub fn area(mut self, area: Rect) -> Self {
+        self.area = area;
+        if let Some(block) = self.block{
+            block.area(area);
+        }
+        self
+    }
 }
 
 impl<'a, 't, 'b, T> Widget for Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
-        let text_area = match self.block {
-            Some(ref mut b) => {
-                b.draw(area, buf);
-                b.inner(area)
+
+    fn get_area(&self) -> Rect {
+        match self.block {
+            Some(b) => {
+                b.inner()
             }
-            None => area,
-        };
+            None => self.area,
+        }
+    }
+    fn draw(&mut self,buf: &mut Buffer) {
+        let text_area = self.get_area();
+        if let Some(ref mut b) = self.block{
+            b.draw(buf);
+        }
 
         if text_area.height < 1 {
             return;
         }
 
-        self.background(text_area, buf, self.style.bg);
+        self.background(buf, self.style.bg);
 
         let style = self.style;
         let mut styled = self.text.by_ref().flat_map(|t| match *t {

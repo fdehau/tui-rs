@@ -70,16 +70,16 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
             Paragraph::new([Text::raw(&app.input)].iter())
                 .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title("Input"))
-                .render(&mut f, chunks[0]);
+                .block(Block::default().borders(Borders::ALL).title("Input").area(chunks[0]))
+                .render(&mut f);
             let messages = app
                 .messages
                 .iter()
                 .enumerate()
                 .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
             List::new(messages)
-                .block(Block::default().borders(Borders::ALL).title("Messages"))
-                .render(&mut f, chunks[1]);
+                .block(Block::default().borders(Borders::ALL).title("Messages").area(chunks[1]))
+                .render(&mut f);
         })?;
 
         // Put the cursor back inside the input box

@@ -3,10 +3,9 @@ use std::io;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{
-    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Text, Widget,
+    Block, Borders,List, Paragraph, Row,
+    SelectableList, Table, Tabs, Text, Widget,
 };
 use tui::{Frame, Terminal};
 
@@ -23,7 +22,8 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &App) -> Result<(), io:
             .style(Style::default().fg(Color::Green))
             .highlight_style(Style::default().fg(Color::Yellow))
             .select(app.tabs.index)
-            .render(&mut f, chunks[0]);
+            .area(chunks[0])
+            .render(&mut f);
         match app.tabs.index {
             0 => draw_first_tab(&mut f, &app, chunks[1]),
             1 => draw_second_tab(&mut f, &app, chunks[1]),
@@ -62,23 +62,8 @@ where
     Block::default()
         .borders(Borders::ALL)
         .title("Graphs")
-        .render(f, area);
-    Gauge::default()
-        .block(Block::default().title("Gauge:"))
-        .style(
-            Style::default()
-                .fg(Color::Magenta)
-                .bg(Color::Black)
-                .modifier(Modifier::ITALIC | Modifier::BOLD),
-        )
-        .label(&format!("{} / 100", app.progress))
-        .percent(app.progress)
-        .render(f, chunks[0]);
-    Sparkline::default()
-        .block(Block::default().title("Sparkline:"))
-        .style(Style::default().fg(Color::Green))
-        .data(&app.sparkline.points)
-        .render(f, chunks[1]);
+        .area(area)
+        .render(f);
 }
 
 fn draw_charts<B>(f: &mut Frame<B>, app: &App, area: Rect)
@@ -109,7 +94,7 @@ where
                 .select(Some(app.tasks.selected))
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
                 .highlight_symbol(">")
-                .render(f, chunks[0]);
+                .render(f);
             let info_style = Style::default().fg(Color::White);
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
@@ -126,65 +111,9 @@ where
                 )
             });
             List::new(events)
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .render(f, chunks[1]);
+                .block(Block::default().borders(Borders::ALL).title("List").area(chunks[1]))
+                .render(f);
         }
-        BarChart::default()
-            .block(Block::default().borders(Borders::ALL).title("Bar chart"))
-            .data(&app.barchart)
-            .bar_width(3)
-            .bar_gap(2)
-            .value_style(
-                Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Green)
-                    .modifier(Modifier::ITALIC),
-            )
-            .label_style(Style::default().fg(Color::Yellow))
-            .style(Style::default().fg(Color::Green))
-            .render(f, chunks[1]);
-    }
-    if app.show_chart {
-        Chart::default()
-            .block(
-                Block::default()
-                    .title("Chart")
-                    .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::BOLD))
-                    .borders(Borders::ALL),
-            )
-            .x_axis(
-                Axis::default()
-                    .title("X Axis")
-                    .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::ITALIC))
-                    .bounds(app.signals.window)
-                    .labels(&[
-                        &format!("{}", app.signals.window[0]),
-                        &format!("{}", (app.signals.window[0] + app.signals.window[1]) / 2.0),
-                        &format!("{}", app.signals.window[1]),
-                    ]),
-            )
-            .y_axis(
-                Axis::default()
-                    .title("Y Axis")
-                    .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::ITALIC))
-                    .bounds([-20.0, 20.0])
-                    .labels(&["-20", "0", "20"]),
-            )
-            .datasets(&[
-                Dataset::default()
-                    .name("data2")
-                    .marker(Marker::Dot)
-                    .style(Style::default().fg(Color::Cyan))
-                    .data(&app.signals.sin1.points),
-                Dataset::default()
-                    .name("data3")
-                    .marker(Marker::Braille)
-                    .style(Style::default().fg(Color::Yellow))
-                    .data(&app.signals.sin2.points),
-            ])
-            .render(f, chunks[1]);
     }
 }
 
@@ -214,10 +143,11 @@ where
             Block::default()
                 .borders(Borders::ALL)
                 .title("Footer")
-                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD)),
+                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD))
+                .area(area)
         )
         .wrap(true)
-        .render(f, area);
+        .render(f);
 }
 
 fn draw_second_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
@@ -245,46 +175,7 @@ where
         .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[15, 15, 10])
-        .render(f, chunks[0]);
+        .area(chunks[0])
+        .render(f);
 
-    Canvas::default()
-        .block(Block::default().title("World").borders(Borders::ALL))
-        .paint(|ctx| {
-            ctx.draw(&Map {
-                color: Color::White,
-                resolution: MapResolution::High,
-            });
-            ctx.layer();
-            ctx.draw(&Rectangle {
-                rect: Rect {
-                    x: 0,
-                    y: 30,
-                    width: 10,
-                    height: 10,
-                },
-                color: Color::Yellow,
-            });
-            for (i, s1) in app.servers.iter().enumerate() {
-                for s2 in &app.servers[i + 1..] {
-                    ctx.draw(&Line {
-                        x1: s1.coords.1,
-                        y1: s1.coords.0,
-                        y2: s2.coords.0,
-                        x2: s2.coords.1,
-                        color: Color::Yellow,
-                    });
-                }
-            }
-            for server in &app.servers {
-                let color = if server.status == "Up" {
-                    Color::Green
-                } else {
-                    Color::Red
-                };
-                ctx.print(server.coords.1, server.coords.0, "X", color);
-            }
-        })
-        .x_bounds([-180.0, 180.0])
-        .y_bounds([-90.0, 90.0])
-        .render(f, chunks[1]);
 }

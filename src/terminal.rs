@@ -42,11 +42,11 @@ where
     }
 
     /// Calls the draw method of a given widget on the current buffer
-    pub fn render<W>(&mut self, widget: &mut W, area: Rect)
+    pub fn render<W>(&mut self, widget: &mut W)
     where
         W: Widget,
     {
-        widget.draw(area, self.terminal.current_buffer_mut());
+        widget.draw(self.terminal.current_buffer_mut());
     }
 }
 
