@@ -1,8 +1,11 @@
 use std::io;
 
-use crate::backend::Backend;
-use crate::style::{Color, Modifier};
-use crate::{buffer::Cell, layout::Rect};
+use crate::{
+    backend::Backend,
+    buffer::Cell,
+    layout::Rect,
+    style::{Color, Modifier},
+};
 use crossterm::{Crossterm, ErrorKind};
 use std::io::{stdout, Write};
 

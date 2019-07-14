@@ -1,8 +1,10 @@
 #[cfg(feature = "termion")]
 pub mod event;
 
-use rand::distributions::{Distribution, Uniform};
-use rand::rngs::ThreadRng;
+use rand::{
+    distributions::{Distribution, Uniform},
+    rngs::ThreadRng,
+};
 
 #[derive(Clone)]
 pub struct RandomSignal {

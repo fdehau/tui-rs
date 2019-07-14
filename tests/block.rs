@@ -1,9 +1,11 @@
-use tui::backend::TestBackend;
-use tui::buffer::Buffer;
-use tui::layout::Rect;
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TestBackend,
+    buffer::Buffer,
+    layout::Rect,
+    style::{Color, Style},
+    widgets::{Block, Borders, Widget},
+    Terminal,
+};
 
 #[test]
 fn it_draws_a_block() {
@@ -15,10 +17,13 @@ fn it_draws_a_block() {
                 .title("Title")
                 .borders(Borders::ALL)
                 .title_style(Style::default().fg(Color::LightBlue))
-                .area(Rect{ x: 0, y: 0, width: 8, height: 8})
-                .render(
-                    &mut f,
-                );
+                .area(Rect {
+                    x: 0,
+                    y: 0,
+                    width: 8,
+                    height: 8,
+                })
+                .render(&mut f);
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec![

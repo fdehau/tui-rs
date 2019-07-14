@@ -4,10 +4,9 @@ mod util;
 
 use std::time::{Duration, Instant};
 
+use itui::{backend::RustboxBackend, Terminal};
 use rustbox::keyboard::Key;
 use structopt::StructOpt;
-use tui::backend::RustboxBackend;
-use tui::Terminal;
 
 use crate::demo::{ui, App};
 

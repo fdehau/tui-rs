@@ -3,16 +3,10 @@ mod util;
 
 use std::io;
 
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::buffer::Buffer;
-use tui::layout::Rect;
-use tui::style::Style;
-use tui::widgets::Widget;
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend, buffer::Buffer, layout::Rect, style::Style, widgets::Widget, Terminal,
+};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
 use crate::util::event::{Event, Events};
 
@@ -23,14 +17,21 @@ struct Label<'a> {
 
 impl<'a> Default for Label<'a> {
     fn default() -> Label<'a> {
-        Label { text: "", area: Default::default() }
+        Label {
+            text: "",
+            area: Default::default(),
+        }
     }
-
 }
 
 impl<'a> Widget for Label<'a> {
     fn draw(&mut self, buf: &mut Buffer) {
-        buf.set_string(self.area.left(), self.area.top(), self.text, Style::default());
+        buf.set_string(
+            self.area.left(),
+            self.area.top(),
+            self.text,
+            Style::default(),
+        );
     }
     fn get_area(&self) -> Rect {
         self.area

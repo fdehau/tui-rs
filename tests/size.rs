@@ -1,5 +1,7 @@
-use tui::backend::{Backend, TestBackend};
-use tui::Terminal;
+use itui::{
+    backend::{Backend, TestBackend},
+    Terminal,
+};
 
 #[test]
 fn buffer_size_limited() {

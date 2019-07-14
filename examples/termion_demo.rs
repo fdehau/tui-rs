@@ -2,19 +2,16 @@ mod demo;
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-use std::time::Duration;
+use std::{io, time::Duration};
 
+use itui::{backend::TermionBackend, Terminal};
 use structopt::StructOpt;
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::Terminal;
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
-use crate::demo::{ui, App};
-use crate::util::event::{Config, Event, Events};
+use crate::{
+    demo::{ui, App},
+    util::event::{Config, Event, Events},
+};
 
 #[derive(Debug, StructOpt)]
 struct Cli {

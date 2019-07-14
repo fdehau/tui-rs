@@ -1,15 +1,15 @@
-//! [tui](https://github.com/fdehau/tui-rs) is a library used to build rich
+//! [itui](https://github.com/fdehau/itui-rs) is a library used to build rich
 //! terminal users interfaces and dashboards.
 //!
-//! ![](https://raw.githubusercontent.com/fdehau/tui-rs/master/assets/demo.gif)
+//! ![](https://raw.githubusercontent.com/fdehau/itui-rs/master/assets/demo.gif)
 //!
 //! # Get started
 //!
-//! ## Adding `tui` as a dependency
+//! ## Adding `itui` as a dependency
 //!
 //! ```toml
 //! [dependencies]
-//! tui = "0.5"
+//! itui = "0.5"
 //! termion = "1.5"
 //! ```
 //!
@@ -20,7 +20,7 @@
 //! [dependencies]
 //! rustbox = "0.11"
 //!
-//! [dependencies.tui]
+//! [dependencies.itui]
 //! version = "0.5"
 //! default-features = false
 //! features = ['rustbox']
@@ -30,14 +30,14 @@
 //!
 //! ## Creating a `Terminal`
 //!
-//! Every application using `tui` should start by instantiating a `Terminal`. It is a light
+//! Every application using `itui` should start by instantiating a `Terminal`. It is a light
 //! abstraction over available backends that provides basic functionalities such as clearing the
 //! screen, hiding the cursor, etc.
 //!
 //! ```rust,no_run
 //! use std::io;
-//! use tui::Terminal;
-//! use tui::backend::TermionBackend;
+//! use itui::Terminal;
+//! use itui::backend::TermionBackend;
 //! use termion::raw::IntoRawMode;
 //!
 //! fn main() -> Result<(), io::Error> {
@@ -52,8 +52,8 @@
 //! way:
 //!
 //! ```rust,ignore
-//! use tui::Terminal;
-//! use tui::backend::RustboxBackend;
+//! use itui::Terminal;
+//! use itui::backend::RustboxBackend;
 //!
 //! fn main() -> Result<(), io::Error> {
 //!     let backend = RustboxBackend::new()?;
@@ -80,10 +80,10 @@
 //! ```rust,no_run
 //! use std::io;
 //! use termion::raw::IntoRawMode;
-//! use tui::Terminal;
-//! use tui::backend::TermionBackend;
-//! use tui::widgets::{Widget, Block, Borders};
-//! use tui::layout::{Layout, Constraint, Direction};
+//! use itui::Terminal;
+//! use itui::backend::TermionBackend;
+//! use itui::widgets::{Widget, Block, Borders};
+//! use itui::layout::{Layout, Constraint, Direction};
 //!
 //! fn main() -> Result<(), io::Error> {
 //!     let stdout = io::stdout().into_raw_mode()?;
@@ -109,10 +109,10 @@
 //! ```rust,no_run
 //! use std::io;
 //! use termion::raw::IntoRawMode;
-//! use tui::Terminal;
-//! use tui::backend::TermionBackend;
-//! use tui::widgets::{Widget, Block, Borders};
-//! use tui::layout::{Layout, Constraint, Direction};
+//! use itui::Terminal;
+//! use itui::backend::TermionBackend;
+//! use itui::widgets::{Widget, Block, Borders};
+//! use itui::layout::{Layout, Constraint, Direction};
 //!
 //! fn main() -> Result<(), io::Error> {
 //!     let stdout = io::stdout().into_raw_mode()?;

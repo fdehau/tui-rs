@@ -15,16 +15,16 @@ mod util;
 
 use std::io::{self, Write};
 
-use termion::cursor::Goto;
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::{Block, Borders, List, Paragraph, Text, Widget},
+    Terminal,
+};
+use termion::{
+    cursor::Goto, event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen,
+};
 use unicode_width::UnicodeWidthStr;
 
 use crate::util::event::{Event, Events};
@@ -70,7 +70,12 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
             Paragraph::new([Text::raw(&app.input)].iter())
                 .style(Style::default().fg(Color::Yellow))
-                .block(Block::default().borders(Borders::ALL).title("Input").area(chunks[0]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Input")
+                        .area(chunks[0]),
+                )
                 .render(&mut f);
             let messages = app
                 .messages
@@ -78,7 +83,12 @@ fn main() -> Result<(), failure::Error> {
                 .enumerate()
                 .map(|(i, m)| Text::raw(format!("{}: {}", i, m)));
             List::new(messages)
-                .block(Block::default().borders(Borders::ALL).title("Messages").area(chunks[1]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Messages")
+                        .area(chunks[1]),
+                )
                 .render(&mut f);
         })?;
 

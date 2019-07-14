@@ -1,12 +1,14 @@
 use std::io;
 
-use crate::backend::Backend;
-use crate::buffer::Cell;
-use crate::layout::Rect;
-use crate::style::{Color, Modifier, Style};
-use crate::symbols::{bar, block};
 #[cfg(unix)]
 use crate::symbols::{line, DOT};
+use crate::{
+    backend::Backend,
+    buffer::Cell,
+    layout::Rect,
+    style::{Color, Modifier, Style},
+    symbols::{bar, block},
+};
 #[cfg(unix)]
 use pancurses::{chtype, ToChtype};
 use unicode_segmentation::UnicodeSegmentation;

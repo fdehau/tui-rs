@@ -3,14 +3,11 @@ mod demo;
 #[allow(dead_code)]
 mod util;
 
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
+use std::{sync::mpsc, thread, time::Duration};
 
 use crossterm::{input, AlternateScreen, InputEvent, KeyEvent};
 use structopt::StructOpt;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
+use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::demo::{ui, App};
 

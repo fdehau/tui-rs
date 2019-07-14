@@ -8,17 +8,21 @@ mod reflow;
 mod table;
 mod tabs;
 
-pub use self::block::Block;
-pub use self::list::{List, SelectableList};
-pub use self::paragraph::Paragraph;
-pub use self::table::{Row, Table};
-pub use self::tabs::Tabs;
+pub use self::{
+    block::Block,
+    list::{List, SelectableList},
+    paragraph::Paragraph,
+    table::{Row, Table},
+    tabs::Tabs,
+};
 
-use crate::backend::Backend;
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::style::{Color, Style};
-use crate::terminal::Frame;
+use crate::{
+    backend::Backend,
+    buffer::Buffer,
+    layout::Rect,
+    style::{Color, Style},
+    terminal::Frame,
+};
 
 bitflags! {
     /// Bitflags that can be composed to set the visible borders essentially on the block widget.
@@ -87,7 +91,7 @@ pub trait Widget {
     fn left(&self) -> u16 {
         self.get_area().left()
     }
-    fn right(&self) -> u16{
+    fn right(&self) -> u16 {
         self.get_area().right()
     }
 }

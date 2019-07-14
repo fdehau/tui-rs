@@ -1,10 +1,11 @@
-use std::fmt::Display;
-use std::iter::Iterator;
+use std::{fmt::Display, iter::Iterator};
 
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::style::Style;
-use crate::widgets::{Block, Widget};
+use crate::{
+    buffer::Buffer,
+    layout::Rect,
+    style::Style,
+    widgets::{Block, Widget},
+};
 
 /// Holds data to be displayed in a Table widget
 pub enum Row<D, I>
@@ -21,8 +22,8 @@ where
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, Table, Row};
-/// # use tui::style::{Style, Color};
+/// # use itui::widgets::{Block, Borders, Table, Row};
+/// # use itui::style::{Style, Color};
 /// # fn main() {
 /// let row_style = Style::default().fg(Color::White);
 /// Table::new(
@@ -156,7 +157,6 @@ where
         self.area = area;
         self
     }
-
 }
 
 impl<'a, T, H, I, D, R> Widget for Table<'a, T, H, I, D, R>
@@ -167,7 +167,6 @@ where
     D: Iterator<Item = I>,
     R: Iterator<Item = Row<D, I>>,
 {
-
     fn get_area(&self) -> Rect {
         self.area
     }

@@ -1,8 +1,10 @@
-use tui::backend::TestBackend;
-use tui::buffer::Buffer;
-use tui::layout::Alignment;
-use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TestBackend,
+    buffer::Buffer,
+    layout::Alignment,
+    widgets::{Block, Borders, Paragraph, Text, Widget},
+    Terminal,
+};
 
 const SAMPLE_STRING: &str =
     "The library is based on the principle of immediate rendering with \

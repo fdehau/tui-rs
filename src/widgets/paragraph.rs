@@ -2,11 +2,15 @@ use either::Either;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-use crate::buffer::Buffer;
-use crate::layout::{Alignment, Rect};
-use crate::style::Style;
-use crate::widgets::reflow::{LineComposer, LineTruncator, Styled, WordWrapper};
-use crate::widgets::{Block, Text, Widget};
+use crate::{
+    buffer::Buffer,
+    layout::{Alignment, Rect},
+    style::Style,
+    widgets::{
+        reflow::{LineComposer, LineTruncator, Styled, WordWrapper},
+        Block, Text, Widget,
+    },
+};
 
 fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
     match alignment {
@@ -21,9 +25,9 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, Paragraph, Text};
-/// # use tui::style::{Style, Color};
-/// # use tui::layout::{Alignment};
+/// # use itui::widgets::{Block, Borders, Paragraph, Text};
+/// # use itui::style::{Style, Color};
+/// # use itui::layout::{Alignment};
 /// # fn main() {
 /// let text = [
 ///     Text::raw("First line\n"),
@@ -62,7 +66,6 @@ impl<'a, 't, T> Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
-
     pub fn new(text: T) -> Paragraph<'a, 't, T> {
         Paragraph {
             block: None,
@@ -108,7 +111,7 @@ where
 
     pub fn area(mut self, area: Rect) -> Self {
         self.area = area;
-        if let Some(block) = self.block{
+        if let Some(block) = self.block {
             block.area(area);
         }
         self
@@ -119,18 +122,15 @@ impl<'a, 't, 'b, T> Widget for Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
-
     fn get_area(&self) -> Rect {
         match self.block {
-            Some(b) => {
-                b.inner()
-            }
+            Some(b) => b.inner(),
             None => self.area,
         }
     }
-    fn draw(&mut self,buf: &mut Buffer) {
+    fn draw(&mut self, buf: &mut Buffer) {
         let text_area = self.get_area();
-        if let Some(ref mut b) = self.block{
+        if let Some(ref mut b) = self.block {
             b.draw(buf);
         }
 

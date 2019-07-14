@@ -1,13 +1,12 @@
 use std::io;
 
-use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{
-    Block, Borders,List, Paragraph, Row,
-    SelectableList, Table, Tabs, Text, Widget,
+use itui::{
+    backend::Backend,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, List, Paragraph, Row, SelectableList, Table, Tabs, Text, Widget},
+    Frame, Terminal,
 };
-use tui::{Frame, Terminal};
 
 use crate::demo::App;
 
@@ -111,7 +110,12 @@ where
                 )
             });
             List::new(events)
-                .block(Block::default().borders(Borders::ALL).title("List").area(chunks[1]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("List")
+                        .area(chunks[1]),
+                )
                 .render(f);
         }
     }
@@ -144,7 +148,7 @@ where
                 .borders(Borders::ALL)
                 .title("Footer")
                 .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD))
-                .area(area)
+                .area(area),
         )
         .wrap(true)
         .render(f);
@@ -177,5 +181,4 @@ where
         .widths(&[15, 15, 10])
         .area(chunks[0])
         .render(f);
-
 }

@@ -1,19 +1,21 @@
 use unicode_width::UnicodeWidthStr;
 
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::style::Style;
-use crate::symbols::line;
-use crate::widgets::{Block, Widget};
+use crate::{
+    buffer::Buffer,
+    layout::Rect,
+    style::Style,
+    symbols::line,
+    widgets::{Block, Widget},
+};
 
 /// A widget to display available tabs in a multiple panels context.
 ///
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, Tabs};
-/// # use tui::style::{Style, Color};
-/// # use tui::symbols::{DOT};
+/// # use itui::widgets::{Block, Borders, Tabs};
+/// # use itui::style::{Style, Color};
+/// # use itui::symbols::{DOT};
 /// # fn main() {
 /// Tabs::default()
 ///     .block(Block::default().title("Tabs").borders(Borders::ALL))
@@ -98,14 +100,12 @@ where
         self.area = area;
         self
     }
-
 }
 
 impl<'a, T> Widget for Tabs<'a, T>
 where
     T: AsRef<str>,
 {
-
     fn get_area(&self) -> Rect {
         self.area
     }

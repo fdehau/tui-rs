@@ -2,13 +2,14 @@ mod demo;
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-use std::time::{Duration, Instant};
+use std::{
+    io,
+    time::{Duration, Instant},
+};
 
 use easycurses;
+use itui::{backend::CursesBackend, Terminal};
 use structopt::StructOpt;
-use tui::backend::CursesBackend;
-use tui::Terminal;
 
 use crate::demo::{ui, App};
 

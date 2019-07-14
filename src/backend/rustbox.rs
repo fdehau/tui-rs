@@ -2,9 +2,11 @@ use log::debug;
 use std::io;
 
 use super::Backend;
-use crate::buffer::Cell;
-use crate::layout::Rect;
-use crate::style::{Color, Modifier};
+use crate::{
+    buffer::Cell,
+    layout::Rect,
+    style::{Color, Modifier},
+};
 
 pub struct RustboxBackend {
     rustbox: rustbox::RustBox,

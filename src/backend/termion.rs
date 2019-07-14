@@ -1,12 +1,11 @@
 use log::debug;
-use std::fmt;
-use std::io;
-use std::io::Write;
+use std::{
+    fmt,
+    io::{self, Write},
+};
 
 use super::Backend;
-use crate::buffer::Cell;
-use crate::layout::Rect;
-use crate::style;
+use crate::{buffer::Cell, layout::Rect, style};
 
 pub struct TermionBackend<W>
 where

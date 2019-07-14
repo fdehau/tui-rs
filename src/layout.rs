@@ -1,10 +1,14 @@
-use std::cell::RefCell;
-use std::cmp::{max, min};
-use std::collections::HashMap;
+use std::{
+    cell::RefCell,
+    cmp::{max, min},
+    collections::HashMap,
+};
 
-use cassowary::strength::{REQUIRED, WEAK};
-use cassowary::WeightedRelation::*;
-use cassowary::{Constraint as CassowaryConstraint, Expression, Solver, Variable};
+use cassowary::{
+    strength::{REQUIRED, WEAK},
+    Constraint as CassowaryConstraint, Expression, Solver, Variable,
+    WeightedRelation::*,
+};
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Corner {
@@ -83,7 +87,7 @@ impl Layout {
     ///
     /// # Examples
     /// ```
-    /// # use tui::layout::{Rect, Constraint, Direction, Layout};
+    /// # use itui::layout::{Rect, Constraint, Direction, Layout};
     ///
     /// # fn main() {
     ///       let chunks = Layout::default()

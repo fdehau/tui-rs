@@ -3,15 +3,14 @@ mod util;
 
 use std::io;
 
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Corner, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Corner, Direction, Layout},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, List, SelectableList, Text, Widget},
+    Terminal,
+};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
 use crate::util::event::{Event, Events};
 
@@ -98,7 +97,12 @@ fn main() -> Result<(), failure::Error> {
 
             let style = Style::default().fg(Color::Black).bg(Color::White);
             SelectableList::default()
-                .block(Block::default().borders(Borders::ALL).title("List").area(chunks[0]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("List")
+                        .area(chunks[0]),
+                )
                 .items(&app.items)
                 .select(app.selected)
                 .style(style)
@@ -118,7 +122,12 @@ fn main() -> Result<(), failure::Error> {
                     )
                 });
                 List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List").area(chunks[1]))
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .title("List")
+                            .area(chunks[1]),
+                    )
                     .start_corner(Corner::BottomLeft)
                     .render(&mut f);
             }

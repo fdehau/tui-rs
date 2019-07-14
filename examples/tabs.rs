@@ -3,18 +3,19 @@ mod util;
 
 use std::io;
 
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Tabs, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::{Block, Borders, Tabs, Widget},
+    Terminal,
+};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
-use crate::util::event::{Event, Events};
-use crate::util::TabsState;
+use crate::util::{
+    event::{Event, Events},
+    TabsState,
+};
 
 struct App<'a> {
     tabs: TabsState<'a>,
@@ -51,7 +52,12 @@ fn main() -> Result<(), failure::Error> {
                 .area(size)
                 .render(&mut f);
             Tabs::default()
-                .block(Block::default().borders(Borders::ALL).title("Tabs").area(chunks[0]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Tabs")
+                        .area(chunks[0]),
+                )
                 .titles(&app.tabs.titles)
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))

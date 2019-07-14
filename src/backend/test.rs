@@ -1,6 +1,8 @@
-use crate::backend::Backend;
-use crate::buffer::{Buffer, Cell};
-use crate::layout::Rect;
+use crate::{
+    backend::Backend,
+    buffer::{Buffer, Cell},
+    layout::Rect,
+};
 use std::io;
 
 #[derive(Debug)]

@@ -1,16 +1,15 @@
 #[allow(dead_code)]
 mod util;
 
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, Widget},
+    Terminal,
+};
 use std::io;
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Widget};
-use tui::Terminal;
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
 use crate::util::event::{Event, Events};
 
@@ -32,7 +31,10 @@ fn main() -> Result<(), failure::Error> {
             // Just draw the block and the group on the same area and build the group
             // with at least a margin of 1
             let size = f.size();
-            Block::default().borders(Borders::ALL).area(size).render(&mut f);
+            Block::default()
+                .borders(Borders::ALL)
+                .area(size)
+                .render(&mut f);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)

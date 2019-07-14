@@ -3,14 +3,13 @@ mod util;
 
 use std::io;
 
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::widgets::{Block, Borders, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    widgets::{Block, Borders, Widget},
+    Terminal,
+};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
 use crate::util::event::{Event, Events};
 

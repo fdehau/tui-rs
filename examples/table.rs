@@ -3,15 +3,14 @@ mod util;
 
 use std::io;
 
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Row, Table, Widget};
-use tui::Terminal;
+use itui::{
+    backend::TermionBackend,
+    layout::{Constraint, Layout},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, Row, Table, Widget},
+    Terminal,
+};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 
 use crate::util::event::{Event, Events};
 
@@ -69,7 +68,12 @@ fn main() -> Result<(), failure::Error> {
                 .margin(5)
                 .split(f.size());
             Table::new(header.into_iter(), rows)
-                .block(Block::default().borders(Borders::ALL).title("Table").area(rects[0]))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Table")
+                        .area(rects[0]),
+                )
                 .widths(&[10, 10, 10])
                 .render(&mut f);
         })?;

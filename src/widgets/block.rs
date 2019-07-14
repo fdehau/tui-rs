@@ -1,8 +1,10 @@
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::style::Style;
-use crate::symbols::line;
-use crate::widgets::{Borders, Widget};
+use crate::{
+    buffer::Buffer,
+    layout::Rect,
+    style::Style,
+    symbols::line,
+    widgets::{Borders, Widget},
+};
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
@@ -10,8 +12,8 @@ use crate::widgets::{Borders, Widget};
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders};
-/// # use tui::style::{Style, Color};
+/// # use itui::widgets::{Block, Borders};
+/// # use itui::style::{Style, Color};
 /// # fn main() {
 /// Block::default()
 ///     .title("Block")
@@ -56,7 +58,7 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn area(mut self, area: Rect) -> Block<'a>{
+    pub fn area(mut self, area: Rect) -> Block<'a> {
         self.area = area;
         self
     }
@@ -103,11 +105,9 @@ impl<'a> Block<'a> {
         }
         inner
     }
-
 }
 
 impl<'a> Widget for Block<'a> {
-
     fn get_area(&self) -> Rect {
         self.area
     }

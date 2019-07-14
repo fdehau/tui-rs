@@ -1,20 +1,20 @@
 [package]
-name = "tui"
-version = "0.6.1"
-authors = ["Florian Dehau <work@fdehau.com>"]
+name = "itui"
+version = "0.7.0"
+authors = ["Jovansonlee Cesar <ivanceras@gmail.com>", "Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
 """
 keywords = ["tui", "terminal", "dashboard"]
-repository = "https://github.com/fdehau/tui-rs"
+repository = "https://github.com/ivanceras/itui"
 license = "MIT"
 exclude = ["assets/*", ".travis.yml"]
 autoexamples = true
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "fdehau/tui-rs" }
-appveyor = { repository = "fdehau/tui-rs" }
+travis-ci = { repository = "ivanceras/itui" }
+appveyor = { repository = "ivanceras/itui" }
 
 [features]
 default = ["termion"]

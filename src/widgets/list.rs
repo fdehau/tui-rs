@@ -1,12 +1,16 @@
-use std::convert::AsRef;
-use std::iter::{self, Iterator};
+use std::{
+    convert::AsRef,
+    iter::{self, Iterator},
+};
 
 use unicode_width::UnicodeWidthStr;
 
-use crate::buffer::Buffer;
-use crate::layout::{Corner, Rect};
-use crate::style::Style;
-use crate::widgets::{Block, Text, Widget};
+use crate::{
+    buffer::Buffer,
+    layout::{Corner, Rect},
+    style::Style,
+    widgets::{Block, Text, Widget},
+};
 
 pub struct List<'b, L>
 where
@@ -81,7 +85,6 @@ impl<'b, L> Widget for List<'b, L>
 where
     L: Iterator<Item = Text<'b>>,
 {
-
     fn get_area(&self) -> Rect {
         self.area
     }
@@ -129,8 +132,8 @@ where
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, SelectableList};
-/// # use tui::style::{Style, Color, Modifier};
+/// # use itui::widgets::{Block, Borders, SelectableList};
+/// # use itui::style::{Style, Color, Modifier};
 /// # fn main() {
 /// SelectableList::default()
 ///     .block(Block::default().title("SelectableList").borders(Borders::ALL))
@@ -206,7 +209,6 @@ impl<'b> SelectableList<'b> {
 }
 
 impl<'b> Widget for SelectableList<'b> {
-
     fn get_area(&self) -> Rect {
         self.area
     }

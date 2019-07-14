@@ -250,8 +250,8 @@ impl<'a> App<'a> {
 
     /// just cycle to the tabs when the mouse is pressed
     pub fn on_mouse(&mut self, me: MouseEvent) {
-        match me{
-            MouseEvent::Press(_,_,_) => self.tabs.next(),
+        match me {
+            MouseEvent::Press(_, _, _) => self.tabs.next(),
             _ => (),
         }
     }
