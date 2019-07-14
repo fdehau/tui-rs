@@ -427,6 +427,23 @@ impl Rect {
             && self.y < other.y + other.height
             && self.y + self.height > other.y
     }
+
+    pub fn hit(&self, x: i32, y: i32) -> bool {
+        let x = x as u16;
+        let y = y as u16;
+        x >= self.x && y >= self.y && x <= (self.x + self.width) && y <= (self.y + self.height)
+    }
+}
+
+#[test]
+fn test_hit() {
+    let block = Rect {
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+    };
+    assert!(block.hit(1, 1))
 }
 
 #[test]

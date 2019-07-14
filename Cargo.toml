@@ -33,6 +33,7 @@ rustbox = { version = "0.11", optional = true }
 crossterm = { version = "^0.9", optional = true }
 easycurses = { version = "0.12.2", optional = true }
 pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
+sauron_vdom = "0.7.1"
 
 [dev-dependencies]
 stderrlog = "0.4"

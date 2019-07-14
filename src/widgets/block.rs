@@ -5,6 +5,7 @@ use crate::{
     symbols::line,
     widgets::{Borders, Widget},
 };
+use sauron_vdom::Event;
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
@@ -81,6 +82,22 @@ impl<'a> Block<'a> {
     pub fn borders(mut self, flag: Borders) -> Block<'a> {
         self.borders = flag;
         self
+    }
+
+    pub fn triggers_event(&self, event: &Event) -> bool {
+        //println!("testing event");
+        match event {
+            Event::MouseEvent(me) => {
+                let x = me.coordinate.x();
+                let y = me.coordinate.y();
+                println!("point: {},{}", x, y);
+                println!("rect: {:?}", self.area);
+                //TODO: widgets should contain the attributes
+                // and match if this even is here then trigger it
+                self.area.hit(x, y)
+            }
+            _ => false,
+        }
     }
 
     /// Compute the inner area of a block based on its border visibility rules.
