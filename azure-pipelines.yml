@@ -1,5 +1,37 @@
 stages:
-  - template: azure/stages.yml@templates
+  - stage: lint
+    jobs:
+      - template: azure/style.yml@templates
+  - stage: build
+    displayName: Build and Test
+    dependsOn: lint
+    jobs:
+      - job: linux
+        displayName: Linux
+        pool:
+          vmImage: ubuntu-16.04
+        steps:
+          - template: azure/install-rust.yml@templates
+          - script: cargo check --examples
+            displayName: Build with termion
+          - script: cargo check --no-default-features --features=crossterm --example crossterm_demo
+            displayName: Build with crossterm
+          - script: cargo check --no-default-features --features=curses --example curses_demo
+            displayName: Build with curses
+          - script: cargo check --no-default-features --features=rustbox --example rustbox_demo
+            displayName: Build with rustbox
+          - script: cargo test
+            displayName: Test with termion
+      - job: windows
+        displayName: Windows
+        pool:
+          vmImage: windows-2019
+        steps:
+          - template: azure/install-rust.yml@templates
+          - script: cargo check --no-default-features --features=crossterm --example crossterm_demo
+            displayName: Build with crossterm
+          - script: cargo test --no-default-features --features=crossterm --tests --examples
+            displayName: Test with crossterm
 
 resources:
   repositories:
