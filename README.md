@@ -1,7 +1,6 @@
 # tui-rs
 
-[![Build Status](https://travis-ci.org/fdehau/tui-rs.svg?branch=master)](https://travis-ci.org/fdehau/tui-rs)
-[![Build status](https://ci.appveyor.com/api/projects/status/t724mb1q31xpyxy5/branch/master?svg=true)](https://ci.appveyor.com/project/fdehau/tui-rs/branch/master)
+[![Build Status](https://dev.azure.com/fdehau/fdehau/_apis/build/status/fdehau.tui-rs?branchName=master)](https://dev.azure.com/fdehau/fdehau/_build/latest?definitionId=2&branchName=master)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 
