@@ -2,6 +2,16 @@
 
 ## To be released
 
+## v0.6.2 - 2019-07-16
+
+### Added
+
+* `Text` implements PartialEq
+
+### Fixed
+
+* Avoid overflow errors in canvas
+
 ## v0.6.1 - 2019-06-16
 
 ### Fixed
