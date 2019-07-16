@@ -41,6 +41,71 @@ failure = "0.1"
 structopt = "0.2"
 
 [[example]]
+name = "canvas"
+path = "examples/canvas.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "user_input"
+path = "examples/user_input.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "gauge"
+path = "examples/gauge.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "barchart"
+path = "examples/barchart.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "chart"
+path = "examples/chart.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "paragraph"
+path = "examples/paragraph.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "list"
+path = "examples/list.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "table"
+path = "examples/table.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "tabs"
+path = "examples/tabs.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "custom_widget"
+path = "examples/custom_widget.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "layout"
+path = "examples/layout.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "block"
+path = "examples/block.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "sparkline"
+path = "examples/sparkline.rs"
+required-features = ["termion"]
+
+[[example]]
 name = "termion_demo"
 path = "examples/termion_demo.rs"
 required-features = ["termion"]
