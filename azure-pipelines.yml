@@ -1,0 +1,9 @@
+stages:
+  - template: azure/stages.yml@templates
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: crate-ci/azure-pipelines
+      endpoint: fdehau
