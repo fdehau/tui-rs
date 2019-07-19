@@ -7,12 +7,13 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crossterm::{input, AlternateScreen, InputEvent, KeyEvent};
+use crossterm::{input, AlternateScreen, InputEvent, KeyEvent, RawScreen};
 use structopt::StructOpt;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
 use crate::demo::{ui, App};
+use std::io::stdout;
 
 enum Event<I> {
     Input(I),
@@ -32,7 +33,7 @@ fn main() -> Result<(), failure::Error> {
     stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
 
     let screen = AlternateScreen::to_alternate(true)?;
-    let backend = CrosstermBackend::with_alternate_screen(screen)?;
+    let backend = CrosstermBackend::with_alternate_screen(stdout(), screen)?;
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
@@ -46,7 +47,7 @@ fn main() -> Result<(), failure::Error> {
             for event in reader {
                 match event {
                     InputEvent::Keyboard(key) => {
-                        if let Err(_) = tx.send(Event::Input(key)) {
+                        if let Err(_) = tx.send(Event::Input(key.clone())) {
                             return;
                         }
                         if key == KeyEvent::Char('q') {
