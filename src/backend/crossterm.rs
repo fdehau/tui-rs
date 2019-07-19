@@ -2,35 +2,36 @@ use std::io;
 
 use crate::backend::Backend;
 use crate::style::{Color, Modifier};
-use crate::{buffer::Cell, layout::Rect};
-use crossterm::{Crossterm, ErrorKind};
-use std::io::{stdout, Write};
+use crate::{buffer::Cell, layout::Rect, style};
+use crossterm::{
+    execute, queue, terminal, Clear, ClearType, Command, Crossterm, ErrorKind, Goto, Hide, Output,
+    SetAttr, SetBg, SetFg, Show,
+};
+use std::io::{stdout, Stdout, Write};
 
-pub struct CrosstermBackend {
+pub struct CrosstermBackend<W: Write> {
     alternate_screen: Option<crossterm::AlternateScreen>,
-    crossterm: Crossterm,
+    stdout: W,
 }
 
-impl Default for CrosstermBackend {
-    fn default() -> CrosstermBackend {
+impl<W> CrosstermBackend<W>
+where
+    W: Write,
+{
+    pub fn new(stdout: W) -> CrosstermBackend<W> {
         CrosstermBackend {
-            crossterm: Crossterm::new(),
             alternate_screen: None,
+            stdout,
         }
-    }
-}
-
-impl CrosstermBackend {
-    pub fn new() -> CrosstermBackend {
-        CrosstermBackend::default()
     }
 
     pub fn with_alternate_screen(
+        stdout: W,
         alternate_screen: crossterm::AlternateScreen,
-    ) -> Result<CrosstermBackend, io::Error> {
+    ) -> Result<CrosstermBackend<W>, io::Error> {
         Ok(CrosstermBackend {
-            crossterm: Crossterm::new(),
             alternate_screen: Some(alternate_screen),
+            stdout,
         })
     }
 
@@ -41,8 +42,8 @@ impl CrosstermBackend {
         }
     }
 
-    pub fn crossterm(&self) -> &crossterm::Crossterm {
-        &self.crossterm
+    pub fn crossterm(&self) -> crossterm::Crossterm {
+        Crossterm::new()
     }
 }
 
@@ -62,22 +63,38 @@ fn convert_error(error: ErrorKind) -> io::Error {
     }
 }
 
-impl Backend for CrosstermBackend {
+impl<W> Write for CrosstermBackend<W>
+where
+    W: Write,
+{
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.stdout.write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.stdout.flush()
+    }
+}
+
+impl<W> Backend for CrosstermBackend<W>
+where
+    W: Write,
+{
     fn clear(&mut self) -> io::Result<()> {
-        let terminal = self.crossterm.terminal();
-        terminal.clear(crossterm::ClearType::All)?;
+        queue!(self.stdout, Clear(ClearType::All));
+        self.stdout.flush();
         Ok(())
     }
 
     fn hide_cursor(&mut self) -> io::Result<()> {
-        let cursor = self.crossterm.cursor();
-        cursor.hide().map_err(convert_error)?;
+        execute!(self.stdout, Hide);
+        self.stdout.flush();
         Ok(())
     }
 
     fn show_cursor(&mut self) -> io::Result<()> {
-        let cursor = self.crossterm.cursor();
-        cursor.show().map_err(convert_error)?;
+        execute!(self.stdout, Show);
+        self.stdout.flush();
         Ok(())
     }
 
@@ -87,128 +104,148 @@ impl Backend for CrosstermBackend {
     }
 
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        let cursor = crossterm::cursor();
-        cursor.goto(x, y).map_err(convert_error)
+        queue!(self.stdout, Goto(x, y));
+        self.stdout.flush();
+        Ok(())
     }
 
     fn size(&self) -> io::Result<Rect> {
-        let terminal = self.crossterm.terminal();
+        let terminal = terminal();
         let (width, height) = terminal.terminal_size();
         // crossterm reports max 0-based col/row index instead of count
-        Ok(Rect::new(0, 0, width + 1, height + 1))
+        Ok(Rect::new(0, 0, width, height))
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        Ok(())
+        self.stdout.flush()
     }
 
     fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
-        let cursor = self.crossterm.cursor();
+        use std::fmt::Write;
+
+        let mut string = String::with_capacity(content.size_hint().0 * 3);
+        let mut style = style::Style::default();
         let mut last_y = 0;
         let mut last_x = 0;
-        let mut first = true;
-
-        let stdout = stdout();
-        let mut handle = stdout.lock();
+        let mut inst = 0;
 
         for (x, y, cell) in content {
-            if y != last_y || x != last_x + 1 || first {
-                cursor.goto(x, y).map_err(convert_error)?;
-                first = false;
+            if y != last_y || x != last_x + 1 || inst == 0 {
+                queue!(string, Goto(x, y));
             }
             last_x = x;
             last_y = y;
-            let mut s = self.crossterm.style(&cell.symbol);
-            if let Some(color) = cell.style.fg.into() {
-                s = s.with(color)
+            if cell.style.modifier != style.modifier {
+                for attr in to_crossterm_attributes(cell.style.modifier) {
+                    queue!(string, SetAttr(attr));
+                }
+                inst += 1;
+                style.modifier = cell.style.modifier;
             }
-            if let Some(color) = cell.style.bg.into() {
-                s = s.on(color)
+            if cell.style.fg != style.fg {
+                let color = to_crossterm_color(cell.style.fg);
+                queue!(string, SetFg(color));
+                style.fg = cell.style.fg;
+                inst += 1;
             }
-            s.object_style.attrs = cell.style.modifier.into();
+            if cell.style.bg != style.bg {
+                let color = to_crossterm_color(cell.style.bg);
+                queue!(string, SetBg(color));
+                style.bg = cell.style.bg;
+                inst += 1;
+            }
 
-            write!(handle, "{}", s)?;
+            string.push_str(&cell.symbol);
+            inst += 1;
         }
+
+        write!(
+            self.stdout,
+            "{}{}{}{}",
+            string,
+            SetFg(crossterm::Color::Reset),
+            SetBg(crossterm::Color::Reset),
+            SetAttr(crossterm::Attribute::Reset)
+        );
+
+        Crossterm::new().color().reset();
+
         Ok(())
     }
 }
 
-impl From<Color> for Option<crossterm::Color> {
-    fn from(color: Color) -> Option<crossterm::Color> {
-        match color {
-            Color::Reset => None,
-            Color::Black => Some(crossterm::Color::Black),
-            Color::Red => Some(crossterm::Color::DarkRed),
-            Color::Green => Some(crossterm::Color::DarkGreen),
-            Color::Yellow => Some(crossterm::Color::DarkYellow),
-            Color::Blue => Some(crossterm::Color::DarkBlue),
-            Color::Magenta => Some(crossterm::Color::DarkMagenta),
-            Color::Cyan => Some(crossterm::Color::DarkCyan),
-            Color::Gray => Some(crossterm::Color::Grey),
-            Color::DarkGray => Some(crossterm::Color::DarkGrey),
-            Color::LightRed => Some(crossterm::Color::Red),
-            Color::LightGreen => Some(crossterm::Color::Green),
-            Color::LightBlue => Some(crossterm::Color::Blue),
-            Color::LightYellow => Some(crossterm::Color::Yellow),
-            Color::LightMagenta => Some(crossterm::Color::Magenta),
-            Color::LightCyan => Some(crossterm::Color::Cyan),
-            Color::White => Some(crossterm::Color::White),
-            Color::Indexed(i) => Some(crossterm::Color::AnsiValue(i)),
-            Color::Rgb(r, g, b) => Some(crossterm::Color::Rgb { r, g, b }),
-        }
+#[cfg(unix)]
+fn to_crossterm_attributes(modifier: Modifier) -> Vec<crossterm::Attribute> {
+    let mut result = Vec::new();
+
+    if modifier.contains(Modifier::BOLD) {
+        result.push(crossterm::Attribute::Bold)
     }
+    if modifier.contains(Modifier::DIM) {
+        result.push(crossterm::Attribute::Dim)
+    }
+    if modifier.contains(Modifier::ITALIC) {
+        result.push(crossterm::Attribute::Italic)
+    }
+    if modifier.contains(Modifier::UNDERLINED) {
+        result.push(crossterm::Attribute::Underlined)
+    }
+    if modifier.contains(Modifier::SLOW_BLINK) {
+        result.push(crossterm::Attribute::SlowBlink)
+    }
+    if modifier.contains(Modifier::RAPID_BLINK) {
+        result.push(crossterm::Attribute::RapidBlink)
+    }
+    if modifier.contains(Modifier::REVERSED) {
+        result.push(crossterm::Attribute::Reverse)
+    }
+    if modifier.contains(Modifier::HIDDEN) {
+        result.push(crossterm::Attribute::Hidden)
+    }
+    if modifier.contains(Modifier::CROSSED_OUT) {
+        result.push(crossterm::Attribute::CrossedOut)
+    }
+
+    result
 }
 
-impl From<Modifier> for Vec<crossterm::Attribute> {
-    #[cfg(unix)]
-    fn from(modifier: Modifier) -> Vec<crossterm::Attribute> {
-        let mut result = Vec::new();
+#[cfg(windows)]
+fn to_crossterm_attributes(modifier: Modifier) -> Vec<crossterm::Attribute> {
+    let mut result = Vec::new();
 
-        if modifier.contains(Modifier::BOLD) {
-            result.push(crossterm::Attribute::Bold)
-        }
-        if modifier.contains(Modifier::DIM) {
-            result.push(crossterm::Attribute::Dim)
-        }
-        if modifier.contains(Modifier::ITALIC) {
-            result.push(crossterm::Attribute::Italic)
-        }
-        if modifier.contains(Modifier::UNDERLINED) {
-            result.push(crossterm::Attribute::Underlined)
-        }
-        if modifier.contains(Modifier::SLOW_BLINK) {
-            result.push(crossterm::Attribute::SlowBlink)
-        }
-        if modifier.contains(Modifier::RAPID_BLINK) {
-            result.push(crossterm::Attribute::RapidBlink)
-        }
-        if modifier.contains(Modifier::REVERSED) {
-            result.push(crossterm::Attribute::Reverse)
-        }
-        if modifier.contains(Modifier::HIDDEN) {
-            result.push(crossterm::Attribute::Hidden)
-        }
-        if modifier.contains(Modifier::CROSSED_OUT) {
-            result.push(crossterm::Attribute::CrossedOut)
-        }
-
-        result
+    if modifier.contains(Modifier::BOLD) {
+        result.push(crossterm::Attribute::Bold)
+    }
+    if modifier.contains(Modifier::UNDERLINED) {
+        result.push(crossterm::Attribute::Underlined)
     }
 
-    #[cfg(windows)]
-    fn from(modifier: Modifier) -> Vec<crossterm::Attribute> {
-        let mut result = Vec::new();
+    result
+}
 
-        if modifier.contains(Modifier::BOLD) {
-            result.push(crossterm::Attribute::Bold)
-        }
-        if modifier.contains(Modifier::UNDERLINED) {
-            result.push(crossterm::Attribute::Underlined)
-        }
-
-        result
+fn to_crossterm_color(color: Color) -> crossterm::Color {
+    match color {
+        Color::Reset => crossterm::Color::Reset,
+        Color::Black => crossterm::Color::Black,
+        Color::Red => crossterm::Color::DarkRed,
+        Color::Green => crossterm::Color::DarkGreen,
+        Color::Yellow => crossterm::Color::DarkYellow,
+        Color::Blue => crossterm::Color::DarkBlue,
+        Color::Magenta => crossterm::Color::DarkMagenta,
+        Color::Cyan => crossterm::Color::DarkCyan,
+        Color::Gray => crossterm::Color::Grey,
+        Color::DarkGray => crossterm::Color::DarkGrey,
+        Color::LightRed => crossterm::Color::Red,
+        Color::LightGreen => crossterm::Color::Green,
+        Color::LightBlue => crossterm::Color::Blue,
+        Color::LightYellow => crossterm::Color::Yellow,
+        Color::LightMagenta => crossterm::Color::Magenta,
+        Color::LightCyan => crossterm::Color::Cyan,
+        Color::White => crossterm::Color::White,
+        Color::Indexed(i) => crossterm::Color::AnsiValue(i),
+        Color::Rgb(r, g, b) => crossterm::Color::Rgb { r, g, b },
     }
 }
