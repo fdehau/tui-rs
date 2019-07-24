@@ -30,6 +30,12 @@ pub enum Constraint {
     Min(u16),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Margin {
+    vertical: u16,
+    horizontal: u16,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Alignment {
     Left,
@@ -41,7 +47,7 @@ pub enum Alignment {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Layout {
     direction: Direction,
-    margin: u16,
+    margin: Margin,
     constraints: Vec<Constraint>,
 }
 
@@ -53,7 +59,10 @@ impl Default for Layout {
     fn default() -> Layout {
         Layout {
             direction: Direction::Vertical,
-            margin: 0,
+            margin: Margin {
+                horizontal: 0,
+                vertical: 0,
+            },
             constraints: Vec::new(),
         }
     }
@@ -69,7 +78,20 @@ impl Layout {
     }
 
     pub fn margin(mut self, margin: u16) -> Layout {
-        self.margin = margin;
+        self.margin = Margin {
+            horizontal: margin,
+            vertical: margin,
+        };
+        self
+    }
+
+    pub fn horizontal_margin(mut self, horizontal: u16) -> Layout {
+        self.margin.horizontal = horizontal;
+        self
+    }
+
+    pub fn vertical_margin(mut self, vertical: u16) -> Layout {
+        self.margin.vertical = vertical;
         self
     }
 
@@ -167,7 +189,7 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
         .map(|_| Rect::default())
         .collect::<Vec<Rect>>();
 
-    let dest_area = area.inner(layout.margin);
+    let dest_area = area.inner(&layout.margin);
     for (i, e) in elements.iter().enumerate() {
         vars.insert(e.x, (i, 0));
         vars.insert(e.y, (i, 1));
@@ -378,15 +400,15 @@ impl Rect {
         self.y + self.height
     }
 
-    pub fn inner(self, margin: u16) -> Rect {
-        if self.width < 2 * margin || self.height < 2 * margin {
+    pub fn inner(self, margin: &Margin) -> Rect {
+        if self.width < 2 * margin.horizontal || self.height < 2 * margin.vertical {
             Rect::default()
         } else {
             Rect {
-                x: self.x + margin,
-                y: self.y + margin,
-                width: self.width - 2 * margin,
-                height: self.height - 2 * margin,
+                x: self.x + margin.horizontal,
+                y: self.y + margin.vertical,
+                width: self.width - 2 * margin.horizontal,
+                height: self.height - 2 * margin.vertical,
             }
         }
     }
