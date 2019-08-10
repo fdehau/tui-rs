@@ -145,11 +145,11 @@ impl<'a> Widget for BarChart<'a> {
                 let symbol = match d.1 {
                     0 => " ",
                     1 => bar::ONE_EIGHTH,
-                    2 => bar::ONE_QUATER,
+                    2 => bar::ONE_QUARTER,
                     3 => bar::THREE_EIGHTHS,
                     4 => bar::HALF,
                     5 => bar::FIVE_EIGHTHS,
-                    6 => bar::THREE_QUATERS,
+                    6 => bar::THREE_QUARTERS,
                     7 => bar::SEVEN_EIGHTHS,
                     _ => bar::FULL,
                 };
