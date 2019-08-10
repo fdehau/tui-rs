@@ -1,22 +1,22 @@
 pub mod block {
     pub const FULL: &str = "█";
     pub const SEVEN_EIGHTHS: &str = "▉";
-    pub const THREE_QUATERS: &str = "▊";
+    pub const THREE_QUARTERS: &str = "▊";
     pub const FIVE_EIGHTHS: &str = "▋";
     pub const HALF: &str = "▌";
     pub const THREE_EIGHTHS: &str = "▍";
-    pub const ONE_QUATER: &str = "▎";
+    pub const ONE_QUARTER: &str = "▎";
     pub const ONE_EIGHTH: &str = "▏";
 }
 
 pub mod bar {
     pub const FULL: &str = "█";
     pub const SEVEN_EIGHTHS: &str = "▇";
-    pub const THREE_QUATERS: &str = "▆";
+    pub const THREE_QUARTERS: &str = "▆";
     pub const FIVE_EIGHTHS: &str = "▅";
     pub const HALF: &str = "▄";
     pub const THREE_EIGHTHS: &str = "▃";
-    pub const ONE_QUATER: &str = "▂";
+    pub const ONE_QUARTER: &str = "▂";
     pub const ONE_EIGHTH: &str = "▁";
 }
 
