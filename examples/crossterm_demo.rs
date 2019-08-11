@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crossterm::{input, AlternateScreen, InputEvent, KeyEvent, RawScreen};
+use crossterm::{input, AlternateScreen, InputEvent, KeyEvent};
 use structopt::StructOpt;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
