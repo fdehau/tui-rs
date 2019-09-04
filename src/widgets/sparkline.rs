@@ -89,18 +89,24 @@ impl<'a> Widget for Sparkline<'a> {
             .data
             .iter()
             .take(max_index)
-            .map(|e| e * u64::from(spark_area.height) * 8 / max)
+            .map(|e| {
+                if max != 0 {
+                    e * u64::from(spark_area.height) * 8 / max
+                } else {
+                    0
+                }
+            })
             .collect::<Vec<u64>>();
         for j in (0..spark_area.height).rev() {
             for (i, d) in data.iter_mut().enumerate() {
                 let symbol = match *d {
                     0 => " ",
                     1 => bar::ONE_EIGHTH,
-                    2 => bar::ONE_QUATER,
+                    2 => bar::ONE_QUARTER,
                     3 => bar::THREE_EIGHTHS,
                     4 => bar::HALF,
                     5 => bar::FIVE_EIGHTHS,
-                    6 => bar::THREE_QUATERS,
+                    6 => bar::THREE_QUARTERS,
                     7 => bar::SEVEN_EIGHTHS,
                     _ => bar::FULL,
                 };
@@ -116,5 +122,26 @@ impl<'a> Widget for Sparkline<'a> {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_does_not_panic_if_max_is_zero() {
+        let mut widget = Sparkline::default().data(&[0, 0, 0]);
+        let area = Rect::new(0, 0, 3, 1);
+        let mut buffer = Buffer::empty(area);
+        widget.draw(area, &mut buffer);
+    }
+
+    #[test]
+    fn it_does_not_panic_if_max_is_set_to_zero() {
+        let mut widget = Sparkline::default().data(&[0, 1, 2]).max(0);
+        let area = Rect::new(0, 0, 3, 1);
+        let mut buffer = Buffer::empty(area);
+        widget.draw(area, &mut buffer);
     }
 }

@@ -54,7 +54,7 @@ impl Backend for CursesBackend {
         for (col, row, cell) in content {
             // eprintln!("{:?}", cell);
             if row != last_row || col != last_col + 1 {
-                self.curses.move_rc(row as i32, col as i32);
+                self.curses.move_rc(i32::from(row), i32::from(col));
             }
             last_col = col;
             last_row = row;
@@ -107,11 +107,11 @@ impl Backend for CursesBackend {
         Ok(())
     }
     fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
-        let (x, y) = self.curses.get_cursor_rc();
+        let (y, x) = self.curses.get_cursor_rc();
         Ok((x as u16, y as u16))
     }
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        self.curses.move_rc(x as i32, y as i32);
+        self.curses.move_rc(i32::from(y), i32::from(x));
         Ok(())
     }
     fn clear(&mut self) -> io::Result<()> {
@@ -151,18 +151,18 @@ fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
             line::HORIZONTAL_UP => pancurses::ACS_BTEE(),
             block::FULL => pancurses::ACS_BLOCK(),
             block::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
-            block::THREE_QUATERS => pancurses::ACS_BLOCK(),
+            block::THREE_QUARTERS => pancurses::ACS_BLOCK(),
             block::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
             block::HALF => pancurses::ACS_BLOCK(),
             block::THREE_EIGHTHS => ' ' as chtype,
-            block::ONE_QUATER => ' ' as chtype,
+            block::ONE_QUARTER => ' ' as chtype,
             block::ONE_EIGHTH => ' ' as chtype,
             bar::SEVEN_EIGHTHS => pancurses::ACS_BLOCK(),
-            bar::THREE_QUATERS => pancurses::ACS_BLOCK(),
+            bar::THREE_QUARTERS => pancurses::ACS_BLOCK(),
             bar::FIVE_EIGHTHS => pancurses::ACS_BLOCK(),
             bar::HALF => pancurses::ACS_BLOCK(),
             bar::THREE_EIGHTHS => pancurses::ACS_S9(),
-            bar::ONE_QUATER => pancurses::ACS_S9(),
+            bar::ONE_QUARTER => pancurses::ACS_S9(),
             bar::ONE_EIGHTH => pancurses::ACS_S9(),
             DOT => pancurses::ACS_BULLET(),
             unicode_char => {
@@ -187,16 +187,16 @@ fn draw(curses: &mut easycurses::EasyCurses, symbol: &str) {
     for grapheme in symbol.graphemes(true) {
         let ch = match grapheme {
             block::SEVEN_EIGHTHS => block::FULL,
-            block::THREE_QUATERS => block::FULL,
+            block::THREE_QUARTERS => block::FULL,
             block::FIVE_EIGHTHS => block::HALF,
             block::THREE_EIGHTHS => block::HALF,
-            block::ONE_QUATER => block::HALF,
+            block::ONE_QUARTER => block::HALF,
             block::ONE_EIGHTH => " ",
             bar::SEVEN_EIGHTHS => bar::FULL,
-            bar::THREE_QUATERS => bar::FULL,
+            bar::THREE_QUARTERS => bar::FULL,
             bar::FIVE_EIGHTHS => bar::HALF,
             bar::THREE_EIGHTHS => bar::HALF,
-            bar::ONE_QUATER => bar::HALF,
+            bar::ONE_QUARTER => bar::HALF,
             bar::ONE_EIGHTH => " ",
             ch => ch,
         };

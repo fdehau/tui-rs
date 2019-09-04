@@ -133,18 +133,23 @@ impl<'a> Widget for BarChart<'a> {
             .data
             .iter()
             .take(max_index)
-            .map(|&(l, v)| (l, v * u64::from(chart_area.height) * 8 / max))
+            .map(|&(l, v)| {
+                (
+                    l,
+                    v * u64::from(chart_area.height) * 8 / std::cmp::max(max, 1),
+                )
+            })
             .collect::<Vec<(&str, u64)>>();
         for j in (0..chart_area.height - 1).rev() {
             for (i, d) in data.iter_mut().enumerate() {
                 let symbol = match d.1 {
                     0 => " ",
                     1 => bar::ONE_EIGHTH,
-                    2 => bar::ONE_QUATER,
+                    2 => bar::ONE_QUARTER,
                     3 => bar::THREE_EIGHTHS,
                     4 => bar::HALF,
                     5 => bar::FIVE_EIGHTHS,
-                    6 => bar::THREE_QUATERS,
+                    6 => bar::THREE_QUARTERS,
                     7 => bar::SEVEN_EIGHTHS,
                     _ => bar::FULL,
                 };

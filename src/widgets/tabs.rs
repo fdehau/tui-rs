@@ -131,7 +131,7 @@ where
                 if x >= tabs_area.right() || last_title {
                     break;
                 } else {
-                    buf.set_string(x, tabs_area.top(), self.divider, style);
+                    buf.set_string(x, tabs_area.top(), self.divider, self.style);
                     x += divider_width;
                 }
             }

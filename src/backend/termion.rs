@@ -128,7 +128,7 @@ where
 
     /// Return the size of the terminal
     fn size(&self) -> io::Result<Rect> {
-        let terminal = r#try!(termion::terminal_size());
+        let terminal = termion::terminal_size()?;
         Ok(Rect::new(0, 0, terminal.0, terminal.1))
     }
 

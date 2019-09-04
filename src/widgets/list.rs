@@ -1,5 +1,5 @@
-use std::iter;
-use std::iter::Iterator;
+use std::convert::AsRef;
+use std::iter::{self, Iterator};
 
 use unicode_width::UnicodeWidthStr;
 
@@ -166,7 +166,7 @@ impl<'b> SelectableList<'b> {
     where
         I: AsRef<str> + 'b,
     {
-        self.items = items.iter().map(|i| i.as_ref()).collect::<Vec<&str>>();
+        self.items = items.iter().map(AsRef::as_ref).collect::<Vec<&str>>();
         self
     }
 

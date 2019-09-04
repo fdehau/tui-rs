@@ -28,7 +28,7 @@ pub trait Shape<'a> {
     /// Returns the color of the shape
     fn color(&self) -> Color;
     /// Returns an iterator over all points of the shape
-    fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a>;
+    fn points(&'a self) -> Box<dyn Iterator<Item = (f64, f64)> + 'a>;
 }
 
 /// Label to draw some text on the canvas
@@ -99,7 +99,7 @@ impl<'a> Context<'a> {
         let top = self.y_bounds[1];
         for (x, y) in shape
             .points()
-            .filter(|&(x, y)| !(x < left || x > right || y < bottom || y > top))
+            .filter(|&(x, y)| !(x <= left || x >= right || y <= bottom || y >= top))
         {
             let dy = ((top - y) * f64::from(self.height - 1) * 4.0 / (top - bottom)) as usize;
             let dx = ((x - left) * f64::from(self.width - 1) * 2.0 / (right - left)) as usize;

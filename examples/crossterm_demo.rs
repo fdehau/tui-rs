@@ -7,12 +7,13 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crossterm;
+use crossterm::{input, AlternateScreen, InputEvent, KeyEvent, RawScreen};
 use structopt::StructOpt;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
 use crate::demo::{ui, App};
+use std::io::stdout;
 
 enum Event<I> {
     Input(I),
@@ -31,9 +32,8 @@ fn main() -> Result<(), failure::Error> {
     let cli = Cli::from_args();
     stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
 
-    let screen = crossterm::Screen::default();
-    let alternate_screen = screen.enable_alternate_modes(true)?;
-    let backend = CrosstermBackend::with_alternate_screen(alternate_screen)?;
+    let screen = AlternateScreen::to_alternate(true)?;
+    let backend = CrosstermBackend::with_alternate_screen(stdout(), screen)?;
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
@@ -42,18 +42,19 @@ fn main() -> Result<(), failure::Error> {
     {
         let tx = tx.clone();
         thread::spawn(move || {
-            let input = crossterm::input();
-            loop {
-                match input.read_char() {
-                    Ok(key) => {
-                        if let Err(_) = tx.send(Event::Input(key)) {
+            let input = input();
+            let reader = input.read_sync();
+            for event in reader {
+                match event {
+                    InputEvent::Keyboard(key) => {
+                        if let Err(_) = tx.send(Event::Input(key.clone())) {
                             return;
                         }
-                        if key == 'q' {
+                        if key == KeyEvent::Char('q') {
                             return;
                         }
                     }
-                    Err(_) => {}
+                    _ => {}
                 }
             }
         });
@@ -76,10 +77,14 @@ fn main() -> Result<(), failure::Error> {
     loop {
         ui::draw(&mut terminal, &app)?;
         match rx.recv()? {
-            Event::Input(key) => {
-                // TODO: handle key events once they are supported by crossterm
-                app.on_key(key);
-            }
+            Event::Input(event) => match event {
+                KeyEvent::Char(c) => app.on_key(c),
+                KeyEvent::Left => app.on_left(),
+                KeyEvent::Up => app.on_up(),
+                KeyEvent::Right => app.on_right(),
+                KeyEvent::Down => app.on_down(),
+                _ => {}
+            },
             Event::Tick => {
                 app.on_tick();
             }

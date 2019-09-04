@@ -66,7 +66,7 @@ impl<'a> Shape<'a> for Line {
         self.color
     }
 
-    fn points(&'a self) -> Box<Iterator<Item = (f64, f64)> + 'a> {
+    fn points(&'a self) -> Box<dyn Iterator<Item = (f64, f64)> + 'a> {
         Box::new(self.into_iter())
     }
 }
