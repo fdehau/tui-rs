@@ -28,6 +28,7 @@ pub enum Constraint {
     Length(u16),
     Max(u16),
     Min(u16),
+    Balance(usize, u32, u32), // make the size of the this element a ratio of the size of the indicated element
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -236,6 +237,11 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     }
                     Constraint::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
+                    Constraint::Balance(other_i, n, d) => {
+                        elements[i].width 
+                            | EQ(WEAK) 
+                            | (elements[other_i].width * f64::from(n) / f64::from(d))
+                    },
                 });
             }
         }
@@ -258,6 +264,11 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     }
                     Constraint::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
+                    Constraint::Balance(other_i, n, d) => {
+                        elements[i].height 
+                            | EQ(WEAK) 
+                            | (elements[other_i].height * f64::from(n) / f64::from(d))
+                    },
                 });
             }
         }
