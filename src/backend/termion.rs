@@ -8,11 +8,13 @@ use crate::buffer::Cell;
 use crate::layout::Rect;
 use crate::style;
 
+use termion::raw::{IntoRawMode, RawTerminal};
+
 pub struct TermionBackend<W>
 where
     W: Write,
 {
-    stdout: W,
+    stdout: RawTerminal<W>,
 }
 
 impl<W> TermionBackend<W>
@@ -20,7 +22,19 @@ where
     W: Write,
 {
     pub fn new(stdout: W) -> TermionBackend<W> {
+        // since termion does not let to construct RawTerminal
+        // without first turning it into the raw mode.
+        let stdout = stdout.into_raw_mode().unwrap();
+        stdout.suspend_raw_mode().unwrap();
         TermionBackend { stdout }
+    }
+
+    pub fn suspened_raw_mode(&self) -> io::Result<()> {
+        self.stdout.suspend_raw_mode()
+    }
+
+    pub fn activate_raw_mode(&self) -> io::Result<()> {
+        self.stdout.activate_raw_mode()
     }
 }
 
