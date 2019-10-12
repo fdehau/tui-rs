@@ -9,7 +9,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! tui = "0.5"
+//! tui = "0.6"
 //! termion = "1.5"
 //! ```
 //!
@@ -21,7 +21,7 @@
 //! rustbox = "0.11"
 //!
 //! [dependencies.tui]
-//! version = "0.5"
+//! version = "0.6"
 //! default-features = false
 //! features = ['rustbox']
 //! ```
