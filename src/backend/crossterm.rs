@@ -100,7 +100,8 @@ where
 
     fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
         let cursor = crossterm::cursor();
-        cursor.pos()
+        cursor
+            .pos()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
     }
 
@@ -112,7 +113,8 @@ where
 
     fn size(&self) -> io::Result<Rect> {
         let terminal = terminal();
-        let (width, height) = terminal.size()
+        let (width, height) = terminal
+            .size()
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
         // crossterm reports max 0-based col/row index instead of count
         Ok(Rect::new(0, 0, width, height))
