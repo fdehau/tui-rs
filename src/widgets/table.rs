@@ -4,7 +4,7 @@ use std::iter::Iterator;
 
 use cassowary::strength::{MEDIUM, REQUIRED, WEAK};
 use cassowary::WeightedRelation::*;
-use cassowary::{Expression, Solver, Variable};
+use cassowary::{Expression, Solver};
 
 use crate::buffer::Buffer;
 use crate::layout::{Constraint, Rect};
