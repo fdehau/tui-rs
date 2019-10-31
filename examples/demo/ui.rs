@@ -244,7 +244,11 @@ where
     Table::new(header.into_iter(), rows)
         .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
-        .widths(&[15, 15, 10])
+        .widths(&[
+            Constraint::Length(15),
+            Constraint::Length(15),
+            Constraint::Length(10),
+        ])
         .render(f, chunks[0]);
 
     Canvas::default()

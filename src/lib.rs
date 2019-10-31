@@ -9,7 +9,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! tui = "0.5"
+//! tui = "0.6"
 //! termion = "1.5"
 //! ```
 //!
@@ -21,7 +21,7 @@
 //! rustbox = "0.11"
 //!
 //! [dependencies.tui]
-//! version = "0.5"
+//! version = "0.6"
 //! default-features = false
 //! features = ['rustbox']
 //! ```
@@ -145,6 +145,8 @@
 //! default the computed layout tries to fill the available space completely. So if for any reason
 //! you might need a blank space somewhere, try to pass an additional constraint and don't use the
 //! corresponding area.
+
+#![deny(warnings)]
 
 pub mod backend;
 pub mod buffer;

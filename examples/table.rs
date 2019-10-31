@@ -70,7 +70,11 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
             Table::new(header.into_iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
-                .widths(&[10, 10, 10])
+                .widths(&[
+                    Constraint::Percentage(50),
+                    Constraint::Length(30),
+                    Constraint::Max(10),
+                ])
                 .render(&mut f, rects[0]);
         })?;
 

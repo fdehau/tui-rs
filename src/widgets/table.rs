@@ -1,8 +1,13 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::iter::Iterator;
 
+use cassowary::strength::{MEDIUM, REQUIRED, WEAK};
+use cassowary::WeightedRelation::*;
+use cassowary::{Expression, Solver, Variable};
+
 use crate::buffer::Buffer;
-use crate::layout::Rect;
+use crate::layout::{Constraint, Rect};
 use crate::style::Style;
 use crate::widgets::{Block, Widget};
 
@@ -22,6 +27,7 @@ where
 ///
 /// ```
 /// # use tui::widgets::{Block, Borders, Table, Row};
+/// # use tui::layout::Constraint;
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// let row_style = Style::default().fg(Color::White);
@@ -36,7 +42,7 @@ where
 ///     )
 ///     .block(Block::default().title("Table"))
 ///     .header_style(Style::default().fg(Color::Yellow))
-///     .widths(&[5, 5, 10])
+///     .widths(&[Constraint::Length(5), Constraint::Length(5), Constraint::Length(10)])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1);
 /// # }
@@ -57,9 +63,8 @@ where
     header: H,
     /// Style for the header
     header_style: Style,
-    /// Width of each column (if the total width is greater than the widget width some columns may
-    /// not be displayed)
-    widths: &'a [u16],
+    /// Width constraints for each column
+    widths: &'a [Constraint],
     /// Space between each column
     column_spacing: u16,
     /// Data to display in each row
@@ -124,7 +129,16 @@ where
         self
     }
 
-    pub fn widths(mut self, widths: &'a [u16]) -> Table<'a, T, H, I, D, R> {
+    pub fn widths(mut self, widths: &'a [Constraint]) -> Table<'a, T, H, I, D, R> {
+        assert!(
+            widths.iter().all(|w| {
+                match w {
+                    Constraint::Percentage(p) => *p <= 100,
+                    _ => true,
+                }
+            }),
+            "Percentages should be between 0 and 100 inclusively."
+        );
         self.widths = widths;
         self
     }
@@ -169,23 +183,59 @@ where
         // Set the background
         self.background(table_area, buf, self.style.bg);
 
-        // Save widths of the columns that will fit in the given area
-        let mut x = 0;
-        let mut widths = Vec::with_capacity(self.widths.len());
-        for width in self.widths.iter() {
-            if x + width < table_area.width {
-                widths.push(*width);
-            }
-            x += *width;
+        let mut solver = Solver::new();
+        let mut var_indices = HashMap::new();
+        let mut ccs = Vec::new();
+        let mut variables = Vec::new();
+        for i in 0..self.widths.len() {
+            let var = cassowary::Variable::new();
+            variables.push(var);
+            var_indices.insert(var, i);
+        }
+        for (i, constraint) in self.widths.iter().enumerate() {
+            ccs.push(variables[i] | GE(WEAK) | 0.);
+            ccs.push(match *constraint {
+                Constraint::Length(v) => variables[i] | EQ(MEDIUM) | f64::from(v),
+                Constraint::Percentage(v) => {
+                    variables[i] | EQ(WEAK) | (f64::from(v * area.width) / 100.0)
+                }
+                Constraint::Ratio(n, d) => {
+                    variables[i] | EQ(WEAK) | (f64::from(area.width) * f64::from(n) / f64::from(d))
+                }
+                Constraint::Min(v) => variables[i] | GE(WEAK) | f64::from(v),
+                Constraint::Max(v) => variables[i] | LE(WEAK) | f64::from(v),
+            })
+        }
+        solver
+            .add_constraint(
+                variables
+                    .iter()
+                    .fold(Expression::from_constant(0.), |acc, v| acc + *v)
+                    | LE(REQUIRED)
+                    | f64::from(
+                        area.width - 2 - (self.column_spacing * (variables.len() as u16 - 1)),
+                    ),
+            )
+            .unwrap();
+        solver.add_constraints(&ccs).unwrap();
+        let mut solved_widths = vec![0; variables.len()];
+        for &(var, value) in solver.fetch_changes() {
+            let index = var_indices[&var];
+            let value = if value.is_sign_negative() {
+                0
+            } else {
+                value as u16
+            };
+            solved_widths[index] = value
         }
 
         let mut y = table_area.top();
+        let mut x = table_area.left();
 
         // Draw header
         if y < table_area.bottom() {
-            x = table_area.left();
-            for (w, t) in widths.iter().zip(self.header.by_ref()) {
-                buf.set_string(x, y, format!("{}", t), self.header_style);
+            for (w, t) in solved_widths.iter().zip(self.header.by_ref()) {
+                buf.set_stringn(x, y, format!("{}", t), *w as usize, self.header_style);
                 x += *w + self.column_spacing;
             }
         }
@@ -201,11 +251,24 @@ where
                     Row::StyledData(d, s) => (d, s),
                 };
                 x = table_area.left();
-                for (w, elt) in widths.iter().zip(data) {
+                for (w, elt) in solved_widths.iter().zip(data) {
                     buf.set_stringn(x, y + i as u16, format!("{}", elt), *w as usize, style);
                     x += *w + self.column_spacing;
                 }
             }
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn table_invalid_percentages() {
+        Table::new([""].iter(), vec![Row::Data([""].iter())].into_iter())
+            .widths(&[Constraint::Percentage(110)]);
+    }
+
 }
