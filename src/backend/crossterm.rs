@@ -64,38 +64,6 @@ impl<W> Backend for CrosstermBackend<W>
 where
     W: Write,
 {
-    fn clear(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Clear(ClearType::All)))
-    }
-
-    fn hide_cursor(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Hide))
-    }
-
-    fn show_cursor(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Show))
-    }
-
-    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
-        let cursor = crossterm::cursor();
-        Ok(cursor.pos())
-    }
-
-    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        map_error(execute!(self.stdout, Goto(x, y)))
-    }
-
-    fn size(&self) -> io::Result<Rect> {
-        let terminal = terminal();
-        let (width, height) = terminal.terminal_size();
-        // crossterm reports max 0-based col/row index instead of count
-        Ok(Rect::new(0, 0, width, height))
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        <CrosstermBackend<W> as Write>::flush(self)
-    }
-
     fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
@@ -147,6 +115,42 @@ where
             SetBg(crossterm::Color::Reset),
             SetAttr(crossterm::Attribute::Reset)
         ))
+    }
+
+    fn hide_cursor(&mut self) -> io::Result<()> {
+        map_error(execute!(self.stdout, Hide))
+    }
+
+    fn show_cursor(&mut self) -> io::Result<()> {
+        map_error(execute!(self.stdout, Show))
+    }
+
+    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+        let cursor = crossterm::cursor();
+        cursor
+            .pos()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
+    }
+
+    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+        map_error(execute!(self.stdout, Goto(x, y)))
+    }
+
+    fn clear(&mut self) -> io::Result<()> {
+        map_error(execute!(self.stdout, Clear(ClearType::All)))
+    }
+
+    fn size(&self) -> io::Result<Rect> {
+        let terminal = terminal();
+        let (width, height) = terminal
+            .size()
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+        Ok(Rect::new(0, 0, width, height))
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        <CrosstermBackend<W> as Write>::flush(self)
     }
 }
 
@@ -259,18 +263,18 @@ impl ModifierDiff {
 
         let removed = self.from - self.to;
         if removed.contains(Modifier::BOLD) {
-            queue!(w, SetAttr(Attribute::NormalIntensity))?;
+            map_error(queue!(w, SetAttr(Attribute::NormalIntensity)))?;
         }
         if removed.contains(Modifier::UNDERLINED) {
-            queue!(w, SetAttr(Attribute::NoUnderline))?;
+            map_error(queue!(w, SetAttr(Attribute::NoUnderline)))?;
         }
 
         let added = self.to - self.from;
         if added.contains(Modifier::BOLD) {
-            queue!(w, SetAttr(Attribute::Bold))?;
+            map_error(queue!(w, SetAttr(Attribute::Bold)))?;
         }
         if added.contains(Modifier::UNDERLINED) {
-            queue!(w, SetAttr(Attribute::Underlined))?;
+            map_error(queue!(w, SetAttr(Attribute::Underlined)))?;
         }
         Ok(())
     }
