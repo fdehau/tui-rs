@@ -1,13 +1,13 @@
-use std::{fmt, io};
+use std::{fmt, io::{self, Write}};
 
+use crossterm::{
+    Clear, ClearType, Crossterm, execute, Goto, Hide, Output, queue, SetAttr, SetBg, SetFg,
+    Show, terminal,
+};
+
+use crate::{buffer::Cell, layout::Rect, style};
 use crate::backend::Backend;
 use crate::style::{Color, Modifier};
-use crate::{buffer::Cell, layout::Rect, style};
-use crossterm::{
-    execute, queue, terminal, Clear, ClearType, Crossterm, Goto, Hide, Output, SetAttr, SetBg,
-    SetFg, Show,
-};
-use std::io::Write;
 
 pub struct CrosstermBackend<W: Write> {
     alternate_screen: Option<crossterm::AlternateScreen>,
@@ -68,7 +68,7 @@ where
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
-        use std::fmt::Write;
+        use fmt::Write;
 
         let mut string = String::with_capacity(content.size_hint().0 * 3);
         let mut style = style::Style::default();
