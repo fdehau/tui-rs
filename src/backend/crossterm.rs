@@ -1,4 +1,4 @@
-use std::io;
+use std::{fmt, io};
 
 use crate::backend::Backend;
 use crate::style::{Color, Modifier};
@@ -115,9 +115,11 @@ where
             last_x = x;
             last_y = y;
             if cell.style.modifier != style.modifier {
-                for attr in <Vec<crossterm::Attribute>>::from(cell.style.modifier) {
-                    map_error(queue!(string, SetAttr(attr)))?;
-                }
+                let diff = ModifierDiff {
+                    from: style.modifier,
+                    to: cell.style.modifier,
+                };
+                diff.queue(&mut string)?;
                 inst += 1;
                 style.modifier = cell.style.modifier;
             }
@@ -152,57 +154,6 @@ fn map_error(error: crossterm::Result<()>) -> io::Result<()> {
     error.map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))
 }
 
-impl From<Modifier> for Vec<crossterm::Attribute> {
-    #[cfg(unix)]
-    fn from(modifier: Modifier) -> Self {
-        let mut result = Vec::new();
-
-        if modifier.contains(Modifier::BOLD) {
-            result.push(crossterm::Attribute::Bold)
-        }
-        if modifier.contains(Modifier::DIM) {
-            result.push(crossterm::Attribute::Dim)
-        }
-        if modifier.contains(Modifier::ITALIC) {
-            result.push(crossterm::Attribute::Italic)
-        }
-        if modifier.contains(Modifier::UNDERLINED) {
-            result.push(crossterm::Attribute::Underlined)
-        }
-        if modifier.contains(Modifier::SLOW_BLINK) {
-            result.push(crossterm::Attribute::SlowBlink)
-        }
-        if modifier.contains(Modifier::RAPID_BLINK) {
-            result.push(crossterm::Attribute::RapidBlink)
-        }
-        if modifier.contains(Modifier::REVERSED) {
-            result.push(crossterm::Attribute::Reverse)
-        }
-        if modifier.contains(Modifier::HIDDEN) {
-            result.push(crossterm::Attribute::Hidden)
-        }
-        if modifier.contains(Modifier::CROSSED_OUT) {
-            result.push(crossterm::Attribute::CrossedOut)
-        }
-
-        result
-    }
-
-    #[cfg(windows)]
-    fn from(modifier: Modifier) -> Self {
-        let mut result = Vec::new();
-
-        if modifier.contains(Modifier::BOLD) {
-            result.push(crossterm::Attribute::Bold)
-        }
-        if modifier.contains(Modifier::UNDERLINED) {
-            result.push(crossterm::Attribute::Underlined)
-        }
-
-        result
-    }
-}
-
 impl From<Color> for crossterm::Color {
     fn from(color: Color) -> Self {
         match color {
@@ -226,5 +177,101 @@ impl From<Color> for crossterm::Color {
             Color::Indexed(i) => crossterm::Color::AnsiValue(i),
             Color::Rgb(r, g, b) => crossterm::Color::Rgb { r, g, b },
         }
+    }
+}
+
+#[derive(Debug)]
+struct ModifierDiff {
+    pub from: Modifier,
+    pub to: Modifier,
+}
+
+#[cfg(unix)]
+impl ModifierDiff {
+    fn queue<W>(&self, mut w: W) -> io::Result<()>
+    where
+        W: fmt::Write,
+    {
+        use crossterm::Attribute;
+        let removed = self.from - self.to;
+        if removed.contains(Modifier::REVERSED) {
+            queue!(w, SetAttr(Attribute::NoInverse))?;
+        }
+        if removed.contains(Modifier::BOLD) {
+            queue!(w, SetAttr(Attribute::NormalIntensity))?;
+            if self.to.contains(Modifier::DIM) {
+                queue!(w, SetAttr(Attribute::Dim))?;
+            }
+        }
+        if removed.contains(Modifier::ITALIC) {
+            queue!(w, SetAttr(Attribute::NoItalic))?;
+        }
+        if removed.contains(Modifier::UNDERLINED) {
+            queue!(w, SetAttr(Attribute::NoUnderline))?;
+        }
+        if removed.contains(Modifier::DIM) {
+            queue!(w, SetAttr(Attribute::NormalIntensity))?;
+        }
+        if removed.contains(Modifier::CROSSED_OUT) {
+            queue!(w, SetAttr(Attribute::NotCrossedOut))?;
+        }
+        if removed.contains(Modifier::SLOW_BLINK) || removed.contains(Modifier::RAPID_BLINK) {
+            queue!(w, SetAttr(Attribute::NoBlink))?;
+        }
+
+        let added = self.to - self.from;
+        if added.contains(Modifier::REVERSED) {
+            queue!(w, SetAttr(Attribute::Reverse))?;
+        }
+        if added.contains(Modifier::BOLD) {
+            queue!(w, SetAttr(Attribute::Bold))?;
+        }
+        if added.contains(Modifier::ITALIC) {
+            queue!(w, SetAttr(Attribute::Italic))?;
+        }
+        if added.contains(Modifier::UNDERLINED) {
+            queue!(w, SetAttr(Attribute::Underlined))?;
+        }
+        if added.contains(Modifier::DIM) {
+            queue!(w, SetAttr(Attribute::Dim))?;
+        }
+        if added.contains(Modifier::CROSSED_OUT) {
+            queue!(w, SetAttr(Attribute::CrossedOut))?;
+        }
+        if added.contains(Modifier::SLOW_BLINK) {
+            queue!(w, SetAttr(Attribute::SlowBlink))?;
+        }
+        if added.contains(Modifier::RAPID_BLINK) {
+            queue!(w, SetAttr(Attribute::RapidBlink))?;
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(windows)]
+impl ModifierDiff {
+    fn queue<W>(&self, mut w: W) -> io::Result<()>
+    where
+        W: fmt::Write,
+    {
+        use crossterm::Attribute;
+
+        let removed = self.from - self.to;
+        if removed.contains(Modifier::BOLD) {
+            queue!(w, SetAttr(Attribute::NormalIntensity))?;
+        }
+        if removed.contains(Modifier::UNDERLINED) {
+            queue!(w, SetAttr(Attribute::NoUnderline))?;
+        }
+
+        let added = self.to - self.from;
+        if added.contains(Modifier::BOLD) {
+            queue!(w, SetAttr(Attribute::Bold))?;
+        }
+        if added.contains(Modifier::UNDERLINED) {
+            queue!(w, SetAttr(Attribute::Underlined))?;
+        }
+        Ok(())
     }
 }
