@@ -270,5 +270,4 @@ mod tests {
         Table::new([""].iter(), vec![Row::Data([""].iter())].into_iter())
             .widths(&[Constraint::Percentage(110)]);
     }
-
 }

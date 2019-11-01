@@ -17,7 +17,7 @@ travis-ci = { repository = "fdehau/tui-rs" }
 appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
-default = ["termion"]
+default = ["crossterm"]
 curses = ["easycurses", "pancurses"]
 
 [dependencies]
@@ -30,7 +30,7 @@ unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5" , optional = true }
 rustbox = { version = "0.11", optional = true }
-crossterm = { version = "0.12", optional = true }
+crossterm = { path="../crossterm-rs/crossterm", optional = true }
 easycurses = { version = "0.12.2", optional = true }
 pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
 
