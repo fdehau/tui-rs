@@ -1,6 +1,6 @@
 # tui-rs
 
-[![Build Status](https://dev.azure.com/fdehau/fdehau/_apis/build/status/fdehau.tui-rs?branchName=master)](https://dev.azure.com/fdehau/fdehau/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://github.com/fdehau/tui-rs/workflows/CI/badge.svg)](https://github.com/fdehau/tui-rs/actions?query=workflow%3ACI+)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 

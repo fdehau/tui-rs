@@ -130,11 +130,9 @@ where
     }
 
     pub fn widths(mut self, widths: &'a [Constraint]) -> Table<'a, T, H, I, D, R> {
-        let between_0_and_100 = |&w| {
-            match w {
-                Constraint::Percentage(p) => p <= 100,
-                _ => true,
-            }
+        let between_0_and_100 = |&w| match w {
+            Constraint::Percentage(p) => p <= 100,
+            _ => true,
         };
         assert!(
             widths.iter().all(between_0_and_100),
