@@ -198,57 +198,57 @@ impl ModifierDiff {
     where
         W: fmt::Write,
     {
-        use crossterm::Attribute;
+        //use crossterm::Attribute;
         let removed = self.from - self.to;
         if removed.contains(Modifier::REVERSED) {
-            queue!(w, SetAttribute(CAttribute::NoInverse))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NoReverse)))?;
         }
         if removed.contains(Modifier::BOLD) {
-            queue!(w, SetAttribute(CAttribute::NormalIntensity))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NormalIntensity)))?;
             if self.to.contains(Modifier::DIM) {
-                queue!(w, SetAttribute(CAttribute::Dim))?;
+                map_error(queue!(w, SetAttribute(CAttribute::Dim)))?;
             }
         }
         if removed.contains(Modifier::ITALIC) {
-            queue!(w, SetAttribute(CAttribute::NoItalic))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NoItalic)))?;
         }
         if removed.contains(Modifier::UNDERLINED) {
-            queue!(w, SetAttribute(CAttribute::NoUnderline))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NoUnderline)))?;
         }
         if removed.contains(Modifier::DIM) {
-            queue!(w, SetAttribute(CAttribute::NormalIntensity))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NormalIntensity)))?;
         }
         if removed.contains(Modifier::CROSSED_OUT) {
-            queue!(w, SetAttribute(CAttribute::NotCrossedOut))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NotCrossedOut)))?;
         }
         if removed.contains(Modifier::SLOW_BLINK) || removed.contains(Modifier::RAPID_BLINK) {
-            queue!(w, SetAttribute(CAttribute::NoBlink))?;
+            map_error(queue!(w, SetAttribute(CAttribute::NoBlink)))?;
         }
 
         let added = self.to - self.from;
         if added.contains(Modifier::REVERSED) {
-            queue!(w, SetAttribute(CAttribute::Reverse))?;
+            map_error(queue!(w, SetAttribute(CAttribute::Reverse)))?;
         }
         if added.contains(Modifier::BOLD) {
-            queue!(w, SetAttribute(CAttribute::Bold))?;
+            map_error(queue!(w, SetAttribute(CAttribute::Bold)))?;
         }
         if added.contains(Modifier::ITALIC) {
-            queue!(w, SetAttribute(CAttribute::Italic))?;
+            map_error(queue!(w, SetAttribute(CAttribute::Italic)))?;
         }
         if added.contains(Modifier::UNDERLINED) {
-            queue!(w, SetAttribute(CAttribute::Underlined))?;
+            map_error(queue!(w, SetAttribute(CAttribute::Underlined)))?;
         }
         if added.contains(Modifier::DIM) {
-            queue!(w, SetAttribute(CAttribute::Dim))?;
+            map_error(queue!(w, SetAttribute(CAttribute::Dim)))?;
         }
         if added.contains(Modifier::CROSSED_OUT) {
-            queue!(w, SetAttribute(CAttribute::CrossedOut))?;
+            map_error(queue!(w, SetAttribute(CAttribute::CrossedOut)))?;
         }
         if added.contains(Modifier::SLOW_BLINK) {
-            queue!(w, SetAttribute(CAttribute::SlowBlink))?;
+            map_error(queue!(w, SetAttribute(CAttribute::SlowBlink)))?;
         }
         if added.contains(Modifier::RAPID_BLINK) {
-            queue!(w, SetAttribute(CAttribute::RapidBlink))?;
+            map_error(queue!(w, SetAttribute(CAttribute::RapidBlink)))?;
         }
 
         Ok(())
