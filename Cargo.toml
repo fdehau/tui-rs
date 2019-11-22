@@ -61,6 +61,11 @@ path = "examples/chart.rs"
 required-features = ["termion"]
 
 [[example]]
+name = "piechart"
+path = "examples/piechart.rs"
+required-features = ["termion"]
+
+[[example]]
 name = "paragraph"
 path = "examples/paragraph.rs"
 required-features = ["termion"]
