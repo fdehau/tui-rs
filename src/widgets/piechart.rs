@@ -12,14 +12,14 @@ const TAU: f64 = PI * 2.0;
 pub struct PieChart<'a> {
 	block: Option<Block<'a>>,
 	background: Option<Color>,
-	data: &'a [(f64, Color)],
+	angles: Vec<((f64, f64), Color)>,
 }
 
 impl<'a> Default for PieChart<'a> {
 	fn default() -> PieChart<'a> {
 		PieChart {
 			block: None,
-			data: &[],
+			angles: Vec::new(),
 			background: None,
 		}
 	}
@@ -27,7 +27,17 @@ impl<'a> Default for PieChart<'a> {
 
 impl<'a> PieChart<'a> {
 	pub fn data(mut self, data: &'a [(f64, Color)]) -> PieChart<'a> {
-		self.data = data;
+		let total: f64 = data.iter().map(|(n, _)| n).sum();
+		let ratio = TAU / total;
+		let mut original_angle = 0.0;
+		let angles: Vec<_> = data.iter().map(|(n, c)| {
+			let theta = n * ratio;
+			let angle0 = original_angle;
+			let angle1 = angle0 + theta;
+			original_angle = angle1;
+			((angle0, angle1), *c)
+		}).collect();
+		self.angles = angles;
 		self
 	}
 
@@ -59,16 +69,6 @@ impl<'a> Widget for PieChart<'a> {
 			return;
 		}
 		let radius: f64 = (radius - 2).into();
-		let total: f64 = self.data.iter().map(|(n, _)| n).sum();
-		let ratio = TAU / total;
-		let mut original_angle = 0.0;
-		let angles: Vec<_> = self.data.iter().map(|(n, c)| {
-			let theta = n * ratio;
-			let angle0 = original_angle;
-			let angle1 = angle0 + theta;
-			original_angle = angle1;
-			((angle0, angle1), c)
-		}).collect();
 
 		if let Some(background) = self.background {
 			Widget::background(self, chart_area, buf, background);
@@ -77,7 +77,7 @@ impl<'a> Widget for PieChart<'a> {
 		let cell_count = buf.content.len();
 		for i in 0..cell_count {
 			let (xp, yp) = buf.pos_of(i);
-			let color = angles.iter().find_map(|((angle0, angle1), color)| {
+			let color = self.angles.iter().find_map(|((angle0, angle1), color)| {
 				let x_origin: f64 = origin.0.into();
 				let y_origin: f64 = origin.1.into();
 				let xp: f64 = xp.into();
@@ -105,7 +105,7 @@ impl<'a> Widget for PieChart<'a> {
 			if let Some(color) = color {
 				buf.get_mut(xp, yp)
 					.set_symbol(bar::FULL)
-					.set_style(Style::default().fg(*color));
+					.set_style(Style::default().fg(color));
 			}
 		}
 	}
