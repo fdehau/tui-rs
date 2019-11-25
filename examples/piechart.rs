@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{PieChart, Block, Borders, Widget};
+use tui::widgets::{Block, Borders, PieChart, Widget};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
