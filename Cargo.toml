@@ -1,6 +1,6 @@
 [package]
 name = "tui"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
