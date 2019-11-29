@@ -36,9 +36,9 @@ pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
 
 [dev-dependencies]
 stderrlog = "0.4"
-rand = "0.6"
+rand = "0.7"
 failure = "0.1"
-structopt = "0.2"
+structopt = "0.3"
 
 [[example]]
 name = "canvas"
