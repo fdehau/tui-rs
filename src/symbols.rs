@@ -31,6 +31,7 @@ pub mod line {
     pub const VERTICAL_RIGHT: &str = "├";
     pub const HORIZONTAL_DOWN: &str = "┬";
     pub const HORIZONTAL_UP: &str = "┴";
+    pub const CROSS: &str = "┼";
 }
 
 pub const DOT: &str = "•";
