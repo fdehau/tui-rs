@@ -44,6 +44,13 @@ run:
 cargo run --example termion_demo --release -- --tick-rate 200
 ```
 
+#### Windows
+If you're on windows, termion and rustbox backends won't compile. Instead use the crossterm backend:
+```
+cargo run --no-default-features --example crossterm_demo --release -- --tick-rate 200
+```
+The `--no-default-features` flag disable the default `termion` feature, for the reason explained before.
+
 The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
 application state is in [examples/demo/app.rs](examples/demo/app.rs).
 
