@@ -360,12 +360,12 @@ where
 
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
-            buf.set_string(x, y, title, self.x_axis.style);
+            buf.set_string(x, y, title, self.x_axis.title_style);
         }
 
         if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
-            buf.set_string(x, y, title, self.y_axis.style);
+            buf.set_string(x, y, title, self.y_axis.title_style);
         }
 
         if let Some(y) = layout.label_x {
