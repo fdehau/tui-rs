@@ -80,6 +80,10 @@ You can run all examples by running `make run-examples`.
 
 * [tui-logger](https://github.com/gin66/tui-logger)
 
+### Apps using tui
+
+* [spotify-tui](https://github.com/Rigellute/spotify-tui)
+
 ### Alternatives
 
 You might want to checkout [Cursive](https://github.com/gyscos/Cursive) for an
