@@ -6,13 +6,11 @@ use std::{
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
     execute, queue,
-    screen::AlternateScreen,
     style::{
-        Attribute as CAttribute, Color as CColor, SetAttribute, SetBackgroundColor,
+        Attribute as CAttribute, Color as CColor, Print, SetAttribute, SetBackgroundColor,
         SetForegroundColor,
     },
     terminal::{self, Clear, ClearType},
-    Output,
 };
 
 use crate::backend::Backend;
@@ -20,36 +18,15 @@ use crate::style::{Color, Modifier};
 use crate::{buffer::Cell, layout::Rect, style};
 
 pub struct CrosstermBackend<W: Write> {
-    alternate_screen: Option<AlternateScreen>,
-    stdout: W,
+    buffer: W,
 }
 
 impl<W> CrosstermBackend<W>
 where
     W: Write,
 {
-    pub fn new(stdout: W) -> CrosstermBackend<W> {
-        CrosstermBackend {
-            alternate_screen: None,
-            stdout,
-        }
-    }
-
-    pub fn with_alternate_screen(
-        stdout: W,
-        alternate_screen: AlternateScreen,
-    ) -> Result<CrosstermBackend<W>, io::Error> {
-        Ok(CrosstermBackend {
-            alternate_screen: Some(alternate_screen),
-            stdout,
-        })
-    }
-
-    pub fn alternate_screen(&self) -> Option<&AlternateScreen> {
-        match &self.alternate_screen {
-            Some(alt_screen) => Some(&alt_screen),
-            None => None,
-        }
+    pub fn new(buffer: W) -> CrosstermBackend<W> {
+        CrosstermBackend { buffer }
     }
 }
 
@@ -58,11 +35,11 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.stdout.write(buf)
+        self.buffer.write(buf)
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        self.stdout.flush()
+        self.buffer.flush()
     }
 }
 
@@ -115,8 +92,8 @@ where
         }
 
         map_error(queue!(
-            self.stdout,
-            Output(string),
+            self.buffer,
+            Print(string.clone()),
             SetForegroundColor(CColor::Reset),
             SetBackgroundColor(CColor::Reset),
             SetAttribute(CAttribute::Reset)
@@ -124,11 +101,11 @@ where
     }
 
     fn hide_cursor(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Hide))
+        map_error(execute!(self.buffer, Hide))
     }
 
     fn show_cursor(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Show))
+        map_error(execute!(self.buffer, Show))
     }
 
     fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
@@ -137,11 +114,11 @@ where
     }
 
     fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        map_error(execute!(self.stdout, MoveTo(x, y)))
+        map_error(execute!(self.buffer, MoveTo(x, y)))
     }
 
     fn clear(&mut self) -> io::Result<()> {
-        map_error(execute!(self.stdout, Clear(ClearType::All)))
+        map_error(execute!(self.buffer, Clear(ClearType::All)))
     }
 
     fn size(&self) -> io::Result<Rect> {
@@ -152,7 +129,7 @@ where
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        <CrosstermBackend<W> as Write>::flush(self)
+        self.buffer.flush()
     }
 }
 
