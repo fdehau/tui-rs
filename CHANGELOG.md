@@ -4,7 +4,7 @@
 
 ## v0.7.0 - 2019-11-29
 
-### Changed
+### Changed
 
 * Use `Constraint` instead of integers to specify the widths of the `Table`
 widget's columns. This will allow more responsive tables.
@@ -30,23 +30,23 @@ Table::new(header, row)
 * Bump crossterm to 0.13.
 * Use Github Actions for CI (Travis and Azure Pipelines integrations have been deleted).
 
-### Added
+### Added
 
 * Add support for horizontal and vertical margins in `Layout`.
 
 ## v0.6.2 - 2019-07-16
 
-### Added
+### Added
 
 * `Text` implements PartialEq
 
-### Fixed
+### Fixed
 
 * Avoid overflow errors in canvas
 
-## v0.6.1 - 2019-06-16
+## v0.6.1 - 2019-06-16
 
-### Fixed
+### Fixed
 
 * Avoid a division by zero when all values in a barchart are equal to 0.
 * Fix the inverted cursor position in the curses backend.
@@ -54,13 +54,13 @@ Table::new(header, row)
 backend.
 * Avoid highlighting the separator after the selected item in the Tabs widget.
 
-## v0.6.0 - 2019-05-18
+## v0.6.0 - 2019-05-18
 
-### Changed
+### Changed
 
 * Update crossterm backend
 
-## v0.5.1 - 2019-04-14
+## v0.5.1 - 2019-04-14
 
 ### Fixed
 

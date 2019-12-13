@@ -13,17 +13,14 @@
 //! termion = "1.5"
 //! ```
 //!
-//! The crate is using the `termion` backend by default but if for some reason you might want to use
-//! the `rustbox` backend instead, you need the to replace your dependency specification by:
+//! The crate is using the `termion` backend by default but if for example you want your
+//! application to work on Windows, you might want to use the `crossterm` backend instead. This can
+//! be done by changing your dependencies specification to the following:
 //!
 //! ```toml
 //! [dependencies]
-//! rustbox = "0.11"
-//!
-//! [dependencies.tui]
-//! version = "0.7"
-//! default-features = false
-//! features = ['rustbox']
+//! crossterm = "0.13"
+//! tui = { version = "0.7", default-features = false, features = ['crossterm'] }
 //! ```
 //!
 //! The same logic applies for all other available backends.

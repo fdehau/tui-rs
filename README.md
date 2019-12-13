@@ -44,8 +44,17 @@ run:
 cargo run --example termion_demo --release -- --tick-rate 200
 ```
 
+where `tick-rate` is the UI refresh rate in ms.
+
 The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
 application state is in [examples/demo/app.rs](examples/demo/app.rs).
+
+Beware that the `termion_demo` only works on Unix platforms. If you are a Windows user,
+you can see the same demo using the `crossterm` backend with the following command:
+
+```
+cargo run --example crossterm_demo --no-default-features --features="crossterm" --release -- --tick-rate 200
+```
 
 ### Widgets
 
