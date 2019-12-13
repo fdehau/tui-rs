@@ -7,7 +7,10 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crossterm::{input, AlternateScreen, InputEvent, KeyEvent};
+use crossterm::{
+    input::{input, InputEvent, KeyEvent},
+    screen::AlternateScreen,
+};
 use structopt::StructOpt;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
@@ -43,10 +46,10 @@ fn main() -> Result<(), failure::Error> {
         let tx = tx.clone();
         thread::spawn(move || {
             let input = input();
-            let reader = input.read_sync();
-            for event in reader {
-                match event {
-                    InputEvent::Keyboard(key) => {
+            let mut reader = input.read_sync();
+            loop {
+                match reader.next() {
+                    Some(InputEvent::Keyboard(key)) => {
                         if let Err(_) = tx.send(Event::Input(key.clone())) {
                             return;
                         }
@@ -59,16 +62,14 @@ fn main() -> Result<(), failure::Error> {
             }
         });
     }
-    {
+
+    thread::spawn(move || {
         let tx = tx.clone();
-        thread::spawn(move || {
-            let tx = tx.clone();
-            loop {
-                tx.send(Event::Tick).unwrap();
-                thread::sleep(Duration::from_millis(cli.tick_rate));
-            }
-        });
-    }
+        loop {
+            tx.send(Event::Tick).unwrap();
+            thread::sleep(Duration::from_millis(cli.tick_rate));
+        }
+    });
 
     let mut app = App::new("Crossterm Demo");
 

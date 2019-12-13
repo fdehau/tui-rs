@@ -1,6 +1,6 @@
 [package]
 name = "tui"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
@@ -30,15 +30,15 @@ unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5" , optional = true }
 rustbox = { version = "0.11", optional = true }
-crossterm = { version = "^0.10", optional = true }
+crossterm = { version = "0.13", optional = true }
 easycurses = { version = "0.12.2", optional = true }
 pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
 
 [dev-dependencies]
 stderrlog = "0.4"
-rand = "0.6"
+rand = "0.7"
 failure = "0.1"
-structopt = "0.2"
+structopt = "0.3"
 
 [[example]]
 name = "canvas"
