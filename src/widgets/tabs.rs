@@ -94,10 +94,10 @@ impl<'a, T> Widget for Tabs<'a, T>
 where
     T: AsRef<str>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let tabs_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
@@ -107,7 +107,7 @@ where
             return;
         }
 
-        self.background(tabs_area, buf, self.style.bg);
+        buf.set_background(tabs_area, self.style.bg);
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();

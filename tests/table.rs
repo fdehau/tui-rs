@@ -1,7 +1,7 @@
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Constraint;
-use tui::widgets::{Block, Borders, Row, Table, Widget};
+use tui::widgets::{Block, Borders, Row, Table};
 use tui::Terminal;
 
 #[test]
@@ -13,7 +13,7 @@ fn table_column_spacing() {
         terminal
             .draw(|mut f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -29,8 +29,8 @@ fn table_column_spacing() {
                     Constraint::Length(5),
                     Constraint::Length(5),
                 ])
-                .column_spacing(column_spacing)
-                .render(&mut f, size);
+                .column_spacing(column_spacing);
+                f.render_widget(table, size);
             })
             .unwrap();
         terminal.backend().buffer().clone()
@@ -114,7 +114,7 @@ fn table_widths() {
         terminal
             .draw(|mut f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -125,8 +125,8 @@ fn table_widths() {
                     .into_iter(),
                 )
                 .block(Block::default().borders(Borders::ALL))
-                .widths(widths)
-                .render(&mut f, size);
+                .widths(widths);
+                f.render_widget(table, size);
             })
             .unwrap();
         terminal.backend().buffer().clone()
@@ -205,7 +205,7 @@ fn table_percentage_widths() {
         terminal
             .draw(|mut f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -217,8 +217,8 @@ fn table_percentage_widths() {
                 )
                 .block(Block::default().borders(Borders::ALL))
                 .widths(widths)
-                .column_spacing(0)
-                .render(&mut f, size);
+                .column_spacing(0);
+                f.render_widget(table, size);
             })
             .unwrap();
         terminal.backend().buffer().clone()
@@ -314,7 +314,7 @@ fn table_mixed_widths() {
         terminal
             .draw(|mut f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -325,8 +325,8 @@ fn table_mixed_widths() {
                     .into_iter(),
                 )
                 .block(Block::default().borders(Borders::ALL))
-                .widths(widths)
-                .render(&mut f, size);
+                .widths(widths);
+                f.render_widget(table, size);
             })
             .unwrap();
         terminal.backend().buffer().clone()

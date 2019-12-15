@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
+use tui::widgets::{Block, Borders, Paragraph, Text};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -36,9 +36,9 @@ fn main() -> Result<(), failure::Error> {
             let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
             long_line.push('\n');
 
-            Block::default()
-                .style(Style::default().bg(Color::White))
-                .render(&mut f, size);
+            let block = Block::default()
+                .style(Style::default().bg(Color::White));
+            f.render_widget(block, size);
 
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -72,26 +72,26 @@ fn main() -> Result<(), failure::Error> {
             let block = Block::default()
                 .borders(Borders::ALL)
                 .title_style(Style::default().modifier(Modifier::BOLD));
-            Paragraph::new(text.iter())
+            let paragraph = Paragraph::new(text.iter())
                 .block(block.clone().title("Left, no wrap"))
-                .alignment(Alignment::Left)
-                .render(&mut f, chunks[0]);
-            Paragraph::new(text.iter())
+                .alignment(Alignment::Left);
+            f.render_widget(paragraph, chunks[0]);
+            let paragraph = Paragraph::new(text.iter())
                 .block(block.clone().title("Left, wrap"))
                 .alignment(Alignment::Left)
-                .wrap(true)
-                .render(&mut f, chunks[1]);
-            Paragraph::new(text.iter())
+                .wrap(true);
+            f.render_widget(paragraph, chunks[1]);
+            let paragraph = Paragraph::new(text.iter())
                 .block(block.clone().title("Center, wrap"))
                 .alignment(Alignment::Center)
                 .wrap(true)
-                .scroll(scroll)
-                .render(&mut f, chunks[2]);
-            Paragraph::new(text.iter())
+                .scroll(scroll);
+            f.render_widget(paragraph, chunks[2]);
+            let paragraph = Paragraph::new(text.iter())
                 .block(block.clone().title("Right, wrap"))
                 .alignment(Alignment::Right)
-                .wrap(true)
-                .render(&mut f, chunks[3]);
+                .wrap(true);
+            f.render_widget(paragraph, chunks[3]);
         })?;
 
         scroll += 1;

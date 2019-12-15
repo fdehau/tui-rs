@@ -1,38 +1,34 @@
-use std::io;
-
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{
-    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Text, Widget,
+    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row, Sparkline,
+    Table, Tabs, Text,
 };
-use tui::{Frame, Terminal};
+use tui::Frame;
 
 use crate::demo::App;
 
-pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &App) -> Result<(), io::Error> {
-    terminal.draw(|mut f| {
-        let chunks = Layout::default()
-            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-            .split(f.size());
-        Tabs::default()
-            .block(Block::default().borders(Borders::ALL).title(app.title))
-            .titles(&app.tabs.titles)
-            .style(Style::default().fg(Color::Green))
-            .highlight_style(Style::default().fg(Color::Yellow))
-            .select(app.tabs.index)
-            .render(&mut f, chunks[0]);
-        match app.tabs.index {
-            0 => draw_first_tab(&mut f, &app, chunks[1]),
-            1 => draw_second_tab(&mut f, &app, chunks[1]),
-            _ => {}
-        };
-    })
+pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+    let chunks = Layout::default()
+        .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+        .split(f.size());
+    let tabs = Tabs::default()
+        .block(Block::default().borders(Borders::ALL).title(app.title))
+        .titles(&app.tabs.titles)
+        .style(Style::default().fg(Color::Green))
+        .highlight_style(Style::default().fg(Color::Yellow))
+        .select(app.tabs.index);
+    f.render_widget(tabs, chunks[0]);
+    match app.tabs.index {
+        0 => draw_first_tab(f, app, chunks[1]),
+        1 => draw_second_tab(f, app, chunks[1]),
+        _ => {}
+    };
 }
 
-fn draw_first_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_first_tab<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -51,7 +47,7 @@ where
     draw_text(f, chunks[2]);
 }
 
-fn draw_gauges<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_gauges<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -59,11 +55,11 @@ where
         .constraints([Constraint::Length(2), Constraint::Length(3)].as_ref())
         .margin(1)
         .split(area);
-    Block::default()
-        .borders(Borders::ALL)
-        .title("Graphs")
-        .render(f, area);
-    Gauge::default()
+    let block = Block::default().borders(Borders::ALL).title("Graphs");
+    f.render_widget(block, area);
+
+    let label = format!("{} / 100", app.progress);
+    let gauge = Gauge::default()
         .block(Block::default().title("Gauge:"))
         .style(
             Style::default()
@@ -71,17 +67,18 @@ where
                 .bg(Color::Black)
                 .modifier(Modifier::ITALIC | Modifier::BOLD),
         )
-        .label(&format!("{} / 100", app.progress))
-        .percent(app.progress)
-        .render(f, chunks[0]);
-    Sparkline::default()
+        .label(&label)
+        .percent(app.progress);
+    f.render_widget(gauge, chunks[0]);
+
+    let sparkline = Sparkline::default()
         .block(Block::default().title("Sparkline:"))
         .style(Style::default().fg(Color::Green))
-        .data(&app.sparkline.points)
-        .render(f, chunks[1]);
+        .data(&app.sparkline.points);
+    f.render_widget(sparkline, chunks[1]);
 }
 
-fn draw_charts<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_charts<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -103,18 +100,21 @@ where
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .direction(Direction::Horizontal)
                 .split(chunks[0]);
-            SelectableList::default()
+
+            // Draw tasks
+            let tasks = app.tasks.items.iter().map(|i| Text::raw(*i));
+            let tasks = List::new(tasks)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.tasks.items)
-                .select(Some(app.tasks.selected))
                 .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
-                .highlight_symbol(">")
-                .render(f, chunks[0]);
+                .highlight_symbol(">");
+            f.render_stateful_widget(tasks, chunks[0], &mut app.tasks.state);
+
+            // Draw logs
             let info_style = Style::default().fg(Color::White);
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
             let critical_style = Style::default().fg(Color::Red);
-            let events = app.logs.items.iter().map(|&(evt, level)| {
+            let logs = app.logs.items.iter().map(|&(evt, level)| {
                 Text::styled(
                     format!("{}: {}", level, evt),
                     match level {
@@ -125,11 +125,11 @@ where
                     },
                 )
             });
-            List::new(events)
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .render(f, chunks[1]);
+            let logs = List::new(logs).block(Block::default().borders(Borders::ALL).title("List"));
+            f.render_stateful_widget(logs, chunks[1], &mut app.logs.state);
         }
-        BarChart::default()
+
+        let barchart = BarChart::default()
             .block(Block::default().borders(Borders::ALL).title("Bar chart"))
             .data(&app.barchart)
             .bar_width(3)
@@ -141,11 +141,28 @@ where
                     .modifier(Modifier::ITALIC),
             )
             .label_style(Style::default().fg(Color::Yellow))
-            .style(Style::default().fg(Color::Green))
-            .render(f, chunks[1]);
+            .style(Style::default().fg(Color::Green));
+        f.render_widget(barchart, chunks[1]);
     }
     if app.show_chart {
-        Chart::default()
+        let x_labels = [
+            format!("{}", app.signals.window[0]),
+            format!("{}", (app.signals.window[0] + app.signals.window[1]) / 2.0),
+            format!("{}", app.signals.window[1]),
+        ];
+        let datasets = [
+            Dataset::default()
+                .name("data2")
+                .marker(Marker::Dot)
+                .style(Style::default().fg(Color::Cyan))
+                .data(&app.signals.sin1.points),
+            Dataset::default()
+                .name("data3")
+                .marker(Marker::Braille)
+                .style(Style::default().fg(Color::Yellow))
+                .data(&app.signals.sin2.points),
+        ];
+        let chart = Chart::default()
             .block(
                 Block::default()
                     .title("Chart")
@@ -158,11 +175,7 @@ where
                     .style(Style::default().fg(Color::Gray))
                     .labels_style(Style::default().modifier(Modifier::ITALIC))
                     .bounds(app.signals.window)
-                    .labels(&[
-                        &format!("{}", app.signals.window[0]),
-                        &format!("{}", (app.signals.window[0] + app.signals.window[1]) / 2.0),
-                        &format!("{}", app.signals.window[1]),
-                    ]),
+                    .labels(&x_labels),
             )
             .y_axis(
                 Axis::default()
@@ -172,19 +185,8 @@ where
                     .bounds([-20.0, 20.0])
                     .labels(&["-20", "0", "20"]),
             )
-            .datasets(&[
-                Dataset::default()
-                    .name("data2")
-                    .marker(Marker::Dot)
-                    .style(Style::default().fg(Color::Cyan))
-                    .data(&app.signals.sin1.points),
-                Dataset::default()
-                    .name("data3")
-                    .marker(Marker::Braille)
-                    .style(Style::default().fg(Color::Yellow))
-                    .data(&app.signals.sin2.points),
-            ])
-            .render(f, chunks[1]);
+            .datasets(&datasets);
+        f.render_widget(chart, chunks[1]);
     }
 }
 
@@ -209,18 +211,15 @@ where
         Text::styled("text", Style::default().modifier(Modifier::UNDERLINED)),
         Text::raw(".\nOne more thing is that it should display unicode characters: 10€")
     ];
-    Paragraph::new(text.iter())
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Footer")
-                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD)),
-        )
-        .wrap(true)
-        .render(f, area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .title("Footer")
+        .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD));
+    let paragraph = Paragraph::new(text.iter()).block(block).wrap(true);
+    f.render_widget(paragraph, area);
 }
 
-fn draw_second_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_second_tab<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -241,17 +240,17 @@ where
         };
         Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
     });
-    Table::new(header.iter(), rows)
+    let table = Table::new(header.iter(), rows)
         .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[
             Constraint::Length(15),
             Constraint::Length(15),
             Constraint::Length(10),
-        ])
-        .render(f, chunks[0]);
+        ]);
+    f.render_widget(table, chunks[0]);
 
-    Canvas::default()
+    let map = Canvas::default()
         .block(Block::default().title("World").borders(Borders::ALL))
         .paint(|ctx| {
             ctx.draw(&Map {
@@ -289,6 +288,6 @@ where
             }
         })
         .x_bounds([-180.0, 180.0])
-        .y_bounds([-90.0, 90.0])
-        .render(f, chunks[1]);
+        .y_bounds([-90.0, 90.0]);
+    f.render_widget(map, chunks[1]);
 }

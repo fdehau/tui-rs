@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Tabs, Widget};
+use tui::widgets::{Block, Borders, Tabs};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -46,35 +46,23 @@ fn main() -> Result<(), failure::Error> {
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                 .split(size);
 
-            Block::default()
-                .style(Style::default().bg(Color::White))
-                .render(&mut f, size);
-            Tabs::default()
+            let block = Block::default().style(Style::default().bg(Color::White));
+            f.render_widget(block, size);
+            let tabs = Tabs::default()
                 .block(Block::default().borders(Borders::ALL).title("Tabs"))
                 .titles(&app.tabs.titles)
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))
-                .highlight_style(Style::default().fg(Color::Yellow))
-                .render(&mut f, chunks[0]);
-            match app.tabs.index {
-                0 => Block::default()
-                    .title("Inner 0")
-                    .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
-                1 => Block::default()
-                    .title("Inner 1")
-                    .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
-                2 => Block::default()
-                    .title("Inner 2")
-                    .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
-                3 => Block::default()
-                    .title("Inner 3")
-                    .borders(Borders::ALL)
-                    .render(&mut f, chunks[1]),
-                _ => {}
-            }
+                .highlight_style(Style::default().fg(Color::Yellow));
+            f.render_widget(tabs, chunks[0]);
+            let inner = match app.tabs.index {
+                0 => Block::default().title("Inner 0").borders(Borders::ALL),
+                1 => Block::default().title("Inner 1").borders(Borders::ALL),
+                2 => Block::default().title("Inner 2").borders(Borders::ALL),
+                3 => Block::default().title("Inner 3").borders(Borders::ALL),
+                _ => unreachable!(),
+            };
+            f.render_widget(inner, chunks[1]);
         })?;
 
         match events.next()? {

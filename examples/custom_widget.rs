@@ -27,13 +27,13 @@ impl<'a> Default for Label<'a> {
 }
 
 impl<'a> Widget for Label<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         buf.set_string(area.left(), area.top(), self.text, Style::default());
     }
 }
 
 impl<'a> Label<'a> {
-    fn text(&mut self, text: &'a str) -> &mut Label<'a> {
+    fn text(mut self, text: &'a str) -> Label<'a> {
         self.text = text;
         self
     }
@@ -52,7 +52,8 @@ fn main() -> Result<(), failure::Error> {
     loop {
         terminal.draw(|mut f| {
             let size = f.size();
-            Label::default().text("Test").render(&mut f, size);
+            let label = Label::default().text("Test");
+            f.render_widget(label, size);
         })?;
 
         match events.next()? {

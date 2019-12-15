@@ -10,14 +10,16 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Corner, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
+use tui::widgets::{Block, Borders, List, Text};
 use tui::Terminal;
 
-use crate::util::event::{Event, Events};
+use crate::util::{
+    event::{Event, Events},
+    StatefulList,
+};
 
 struct App<'a> {
-    items: Vec<&'a str>,
-    selected: Option<usize>,
+    items: StatefulList<&'a str>,
     events: Vec<(&'a str, &'a str)>,
     info_style: Style,
     warning_style: Style,
@@ -28,12 +30,11 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            items: vec![
-                "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
-                "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
-                "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
-            ],
-            selected: None,
+            items: StatefulList::with_items(vec![
+                "Item0", "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8",
+                "Item9", "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16",
+                "Item17", "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
+            ]),
             events: vec![
                 ("Event1", "INFO"),
                 ("Event2", "INFO"),
@@ -97,31 +98,30 @@ fn main() -> Result<(), failure::Error> {
                 .split(f.size());
 
             let style = Style::default().fg(Color::Black).bg(Color::White);
-            SelectableList::default()
+
+            let items = app.items.items.iter().map(|i| Text::raw(*i));
+            let items = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(app.selected)
                 .style(style)
                 .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
-                .highlight_symbol(">")
-                .render(&mut f, chunks[0]);
-            {
-                let events = app.events.iter().map(|&(evt, level)| {
-                    Text::styled(
-                        format!("{}: {}", level, evt),
-                        match level {
-                            "ERROR" => app.error_style,
-                            "CRITICAL" => app.critical_style,
-                            "WARNING" => app.warning_style,
-                            _ => app.info_style,
-                        },
-                    )
-                });
-                List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List"))
-                    .start_corner(Corner::BottomLeft)
-                    .render(&mut f, chunks[1]);
-            }
+                .highlight_symbol(">");
+            f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+
+            let events = app.events.iter().map(|&(evt, level)| {
+                Text::styled(
+                    format!("{}: {}", level, evt),
+                    match level {
+                        "ERROR" => app.error_style,
+                        "CRITICAL" => app.critical_style,
+                        "WARNING" => app.warning_style,
+                        _ => app.info_style,
+                    },
+                )
+            });
+            let events_list = List::new(events)
+                .block(Block::default().borders(Borders::ALL).title("List"))
+                .start_corner(Corner::BottomLeft);
+            f.render_widget(events_list, chunks[1]);
         })?;
 
         match events.next()? {
@@ -130,29 +130,13 @@ fn main() -> Result<(), failure::Error> {
                     break;
                 }
                 Key::Left => {
-                    app.selected = None;
+                    app.items.unselect();
                 }
                 Key::Down => {
-                    app.selected = if let Some(selected) = app.selected {
-                        if selected >= app.items.len() - 1 {
-                            Some(0)
-                        } else {
-                            Some(selected + 1)
-                        }
-                    } else {
-                        Some(0)
-                    }
+                    app.items.next();
                 }
                 Key::Up => {
-                    app.selected = if let Some(selected) = app.selected {
-                        if selected > 0 {
-                            Some(selected - 1)
-                        } else {
-                            Some(app.items.len() - 1)
-                        }
-                    } else {
-                        Some(0)
-                    }
+                    app.items.previous();
                 }
                 _ => {}
             },

@@ -72,10 +72,10 @@ impl<'a> Gauge<'a> {
 }
 
 impl<'a> Widget for Gauge<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let gauge_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
@@ -85,7 +85,7 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         if self.style.bg != Color::Reset {
-            self.background(gauge_area, buf, self.style.bg);
+            buf.set_background(gauge_area, self.style.bg);
         }
 
         let center = gauge_area.height / 2 + gauge_area.top();

@@ -305,7 +305,14 @@ impl Buffer {
 
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line
-    pub fn set_stringn<S>(&mut self, x: u16, y: u16, string: S, width: usize, style: Style)
+    pub fn set_stringn<S>(
+        &mut self,
+        x: u16,
+        y: u16,
+        string: S,
+        width: usize,
+        style: Style,
+    ) -> (u16, u16)
     where
         S: AsRef<str>,
     {
@@ -329,6 +336,15 @@ impl Buffer {
             }
             index += width;
             x_offset += width;
+        }
+        (x_offset as u16, y)
+    }
+
+    pub fn set_background(&mut self, area: Rect, color: Color) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).set_bg(color);
+            }
         }
     }
 

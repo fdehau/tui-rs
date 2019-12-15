@@ -12,7 +12,7 @@ use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::Color;
 use tui::widgets::canvas::{Canvas, Map, MapResolution, Rectangle};
-use tui::widgets::{Block, Borders, Widget};
+use tui::widgets::{Block, Borders};
 use tui::Terminal;
 
 use crate::util::event::{Config, Event, Events};
@@ -91,7 +91,7 @@ fn main() -> Result<(), failure::Error> {
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .split(f.size());
-            Canvas::default()
+            let canvas = Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("World"))
                 .paint(|ctx| {
                     ctx.draw(&Map {
@@ -101,9 +101,9 @@ fn main() -> Result<(), failure::Error> {
                     ctx.print(app.x, -app.y, "You are here", Color::Yellow);
                 })
                 .x_bounds([-180.0, 180.0])
-                .y_bounds([-90.0, 90.0])
-                .render(&mut f, chunks[0]);
-            Canvas::default()
+                .y_bounds([-90.0, 90.0]);
+            f.render_widget(canvas, chunks[0]);
+            let canvas = Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("Pong"))
                 .paint(|ctx| {
                     ctx.draw(&Rectangle {
@@ -112,8 +112,8 @@ fn main() -> Result<(), failure::Error> {
                     });
                 })
                 .x_bounds([10.0, 110.0])
-                .y_bounds([10.0, 110.0])
-                .render(&mut f, chunks[1]);
+                .y_bounds([10.0, 110.0]);
+            f.render_widget(canvas, chunks[1]);
         })?;
 
         match events.next()? {

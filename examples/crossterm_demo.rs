@@ -3,24 +3,20 @@ mod demo;
 #[allow(dead_code)]
 mod util;
 
+use crate::demo::{ui, App};
+use crossterm::{
+    event::{self, Event as CEvent, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
 use std::{
     io::{stdout, Write},
     sync::mpsc,
     thread,
     time::Duration,
 };
-
-use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen},
-};
-
 use structopt::StructOpt;
 use tui::{backend::CrosstermBackend, Terminal};
-
-use crate::demo::{ui, App};
-use crossterm::terminal::LeaveAlternateScreen;
 
 enum Event<I> {
     Input(I),
@@ -70,7 +66,7 @@ fn main() -> Result<(), failure::Error> {
     terminal.clear()?;
 
     loop {
-        ui::draw(&mut terminal, &app)?;
+        terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
         match rx.recv()? {
             Event::Input(event) => match event.code {
                 KeyCode::Char('q') => {
