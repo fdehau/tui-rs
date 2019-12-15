@@ -105,10 +105,10 @@ impl<'a, 't, 'b, T> Widget for Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let text_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
@@ -118,7 +118,7 @@ where
             return;
         }
 
-        self.background(text_area, buf, self.style.bg);
+        buf.set_background(text_area, self.style.bg);
 
         let style = self.style;
         let mut styled = self.text.by_ref().flat_map(|t| match *t {

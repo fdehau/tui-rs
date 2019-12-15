@@ -113,12 +113,12 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         if area.width < 2 || area.height < 2 {
             return;
         }
 
-        self.background(area, buf, self.style.bg);
+        buf.set_background(area, self.style.bg);
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {

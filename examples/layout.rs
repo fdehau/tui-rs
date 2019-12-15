@@ -9,7 +9,7 @@ use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
-use tui::widgets::{Block, Borders, Widget};
+use tui::widgets::{Block, Borders};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -39,14 +39,10 @@ fn main() -> Result<(), failure::Error> {
                 )
                 .split(f.size());
 
-            Block::default()
-                .title("Block")
-                .borders(Borders::ALL)
-                .render(&mut f, chunks[0]);
-            Block::default()
-                .title("Block 2")
-                .borders(Borders::ALL)
-                .render(&mut f, chunks[2]);
+            let block = Block::default().title("Block").borders(Borders::ALL);
+            f.render_widget(block, chunks[0]);
+            let block = Block::default().title("Block 2").borders(Borders::ALL);
+            f.render_widget(block, chunks[2]);
         })?;
 
         match events.next()? {

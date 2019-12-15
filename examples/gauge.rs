@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, Widget};
+use tui::widgets::{Block, Borders, Gauge};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -81,28 +81,33 @@ fn main() -> Result<(), failure::Error> {
                 )
                 .split(f.size());
 
-            Gauge::default()
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge1").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
-                .percent(app.progress1)
-                .render(&mut f, chunks[0]);
-            Gauge::default()
+                .percent(app.progress1);
+            f.render_widget(gauge, chunks[0]);
+
+            let label = format!("{}/100", app.progress2);
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge2").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Magenta).bg(Color::Green))
                 .percent(app.progress2)
-                .label(&format!("{}/100", app.progress2))
-                .render(&mut f, chunks[1]);
-            Gauge::default()
+                .label(&label);
+            f.render_widget(gauge, chunks[1]);
+
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge3").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
-                .ratio(app.progress3)
-                .render(&mut f, chunks[2]);
-            Gauge::default()
+                .ratio(app.progress3);
+            f.render_widget(gauge, chunks[2]);
+
+            let label = format!("{}/100", app.progress2);
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge4").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC))
                 .percent(app.progress4)
-                .label(&format!("{}/100", app.progress2))
-                .render(&mut f, chunks[3]);
+                .label(&label);
+            f.render_widget(gauge, chunks[3]);
         })?;
 
         match events.next()? {

@@ -9,7 +9,7 @@ use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker, Widget};
+use tui::widgets::{Axis, Block, Borders, Chart, Dataset, Marker};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -69,7 +69,24 @@ fn main() -> Result<(), failure::Error> {
     loop {
         terminal.draw(|mut f| {
             let size = f.size();
-            Chart::default()
+            let x_labels = [
+                format!("{}", app.window[0]),
+                format!("{}", (app.window[0] + app.window[1]) / 2.0),
+                format!("{}", app.window[1]),
+            ];
+            let datasets = [
+                Dataset::default()
+                    .name("data2")
+                    .marker(Marker::Dot)
+                    .style(Style::default().fg(Color::Cyan))
+                    .data(&app.data1),
+                Dataset::default()
+                    .name("data3")
+                    .marker(Marker::Braille)
+                    .style(Style::default().fg(Color::Yellow))
+                    .data(&app.data2),
+            ];
+            let chart = Chart::default()
                 .block(
                     Block::default()
                         .title("Chart")
@@ -82,11 +99,7 @@ fn main() -> Result<(), failure::Error> {
                         .style(Style::default().fg(Color::Gray))
                         .labels_style(Style::default().modifier(Modifier::ITALIC))
                         .bounds(app.window)
-                        .labels(&[
-                            &format!("{}", app.window[0]),
-                            &format!("{}", (app.window[0] + app.window[1]) / 2.0),
-                            &format!("{}", app.window[1]),
-                        ]),
+                        .labels(&x_labels),
                 )
                 .y_axis(
                     Axis::default()
@@ -96,19 +109,8 @@ fn main() -> Result<(), failure::Error> {
                         .bounds([-20.0, 20.0])
                         .labels(&["-20", "0", "20"]),
                 )
-                .datasets(&[
-                    Dataset::default()
-                        .name("data2")
-                        .marker(Marker::Dot)
-                        .style(Style::default().fg(Color::Cyan))
-                        .data(&app.data1),
-                    Dataset::default()
-                        .name("data3")
-                        .marker(Marker::Braille)
-                        .style(Style::default().fg(Color::Yellow))
-                        .data(&app.data2),
-                ])
-                .render(&mut f, size);
+                .datasets(&datasets);
+            f.render_widget(chart, size);
         })?;
 
         match events.next()? {

@@ -65,10 +65,10 @@ impl<'a> Sparkline<'a> {
 }
 
 impl<'a> Widget for Sparkline<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let spark_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
@@ -129,17 +129,17 @@ mod tests {
 
     #[test]
     fn it_does_not_panic_if_max_is_zero() {
-        let mut widget = Sparkline::default().data(&[0, 0, 0]);
+        let widget = Sparkline::default().data(&[0, 0, 0]);
         let area = Rect::new(0, 0, 3, 1);
         let mut buffer = Buffer::empty(area);
-        widget.draw(area, &mut buffer);
+        widget.render(area, &mut buffer);
     }
 
     #[test]
     fn it_does_not_panic_if_max_is_set_to_zero() {
-        let mut widget = Sparkline::default().data(&[0, 1, 2]).max(0);
+        let widget = Sparkline::default().data(&[0, 1, 2]).max(0);
         let area = Rect::new(0, 0, 3, 1);
         let mut buffer = Buffer::empty(area);
-        widget.draw(area, &mut buffer);
+        widget.render(area, &mut buffer);
     }
 }

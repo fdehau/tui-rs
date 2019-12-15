@@ -32,7 +32,7 @@ fn main() -> Result<(), failure::Error> {
     let mut last_tick = Instant::now();
     let tick_rate = Duration::from_millis(cli.tick_rate);
     loop {
-        ui::draw(&mut terminal, &app)?;
+        terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
         match terminal.backend().rustbox().peek_event(tick_rate, false) {
             Ok(rustbox::Event::KeyEvent(key)) => match key {
                 Key::Char(c) => {

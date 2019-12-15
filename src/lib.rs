@@ -88,10 +88,10 @@
 //!     let mut terminal = Terminal::new(backend)?;
 //!     terminal.draw(|mut f| {
 //!         let size = f.size();
-//!         Block::default()
+//!         let block = Block::default()
 //!             .title("Block")
-//!             .borders(Borders::ALL)
-//!             .render(&mut f, size);
+//!             .borders(Borders::ALL);
+//!         f.render_widget(block, size);
 //!     })
 //! }
 //! ```
@@ -126,14 +126,14 @@
 //!                 ].as_ref()
 //!             )
 //!             .split(f.size());
-//!         Block::default()
+//!         let block = Block::default()
 //!              .title("Block")
-//!              .borders(Borders::ALL)
-//!              .render(&mut f, chunks[0]);
-//!         Block::default()
+//!              .borders(Borders::ALL);
+//!         f.render_widget(block, chunks[0]);
+//!         let block = Block::default()
 //!              .title("Block 2")
-//!              .borders(Borders::ALL)
-//!              .render(&mut f, chunks[2]);
+//!              .borders(Borders::ALL);
+//!         f.render_widget(block, chunks[1]);
 //!     })
 //! }
 //! ```

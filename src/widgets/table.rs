@@ -176,18 +176,17 @@ where
     D: Iterator<Item = I>,
     R: Iterator<Item = Row<D, I>>,
 {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         // Render block if necessary and get the drawing area
         let table_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
         };
 
-        // Set the background
-        self.background(table_area, buf, self.style.bg);
+        buf.set_background(table_area, self.style.bg);
 
         let mut solver = Solver::new();
         let mut var_indices = HashMap::new();

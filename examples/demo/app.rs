@@ -1,4 +1,4 @@
-use crate::util::{RandomSignal, SinSignal, TabsState};
+use crate::util::{RandomSignal, SinSignal, StatefulList, TabsState};
 
 const TASKS: [&'static str; 24] = [
     "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10",
@@ -96,27 +96,6 @@ impl Signals {
     }
 }
 
-pub struct ListState<I> {
-    pub items: Vec<I>,
-    pub selected: usize,
-}
-
-impl<I> ListState<I> {
-    fn new(items: Vec<I>) -> ListState<I> {
-        ListState { items, selected: 0 }
-    }
-    fn select_previous(&mut self) {
-        if self.selected > 0 {
-            self.selected -= 1;
-        }
-    }
-    fn select_next(&mut self) {
-        if self.selected < self.items.len() - 1 {
-            self.selected += 1
-        }
-    }
-}
-
 pub struct Server<'a> {
     pub name: &'a str,
     pub location: &'a str,
@@ -131,8 +110,8 @@ pub struct App<'a> {
     pub show_chart: bool,
     pub progress: u16,
     pub sparkline: Signal<RandomSignal>,
-    pub tasks: ListState<&'a str>,
-    pub logs: ListState<(&'a str, &'a str)>,
+    pub tasks: StatefulList<&'a str>,
+    pub logs: StatefulList<(&'a str, &'a str)>,
     pub signals: Signals,
     pub barchart: Vec<(&'a str, u64)>,
     pub servers: Vec<Server<'a>>,
@@ -157,8 +136,8 @@ impl<'a> App<'a> {
                 points: sparkline_points,
                 tick_rate: 1,
             },
-            tasks: ListState::new(TASKS.to_vec()),
-            logs: ListState::new(LOGS.to_vec()),
+            tasks: StatefulList::with_items(TASKS.to_vec()),
+            logs: StatefulList::with_items(LOGS.to_vec()),
             signals: Signals {
                 sin1: Signal {
                     source: sin_signal,
@@ -203,11 +182,11 @@ impl<'a> App<'a> {
     }
 
     pub fn on_up(&mut self) {
-        self.tasks.select_previous();
+        self.tasks.previous();
     }
 
     pub fn on_down(&mut self) {
-        self.tasks.select_next();
+        self.tasks.next();
     }
 
     pub fn on_right(&mut self) {

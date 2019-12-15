@@ -9,7 +9,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, BorderType, Borders, Widget};
+use tui::widgets::{Block, BorderType, Borders};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -32,11 +32,11 @@ fn main() -> Result<(), failure::Error> {
             // Just draw the block and the group on the same area and build the group
             // with at least a margin of 1
             let size = f.size();
-            Block::default()
+            let block = Block::default()
                 .borders(Borders::ALL)
                 .title("Main block with round corners")
-                .border_type(BorderType::Rounded)
-                .render(&mut f, size);
+                .border_type(BorderType::Rounded);
+            f.render_widget(block, size);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)
@@ -47,36 +47,33 @@ fn main() -> Result<(), failure::Error> {
                     .direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                     .split(chunks[0]);
-                Block::default()
+                let block = Block::default()
                     .title("With background")
                     .title_style(Style::default().fg(Color::Yellow))
-                    .style(Style::default().bg(Color::Green))
-                    .render(&mut f, chunks[0]);
-                Block::default()
+                    .style(Style::default().bg(Color::Green));
+                f.render_widget(block, chunks[0]);
+                let title_style = Style::default()
+                    .fg(Color::White)
+                    .bg(Color::Red)
+                    .modifier(Modifier::BOLD);
+                let block = Block::default()
                     .title("Styled title")
-                    .title_style(
-                        Style::default()
-                            .fg(Color::White)
-                            .bg(Color::Red)
-                            .modifier(Modifier::BOLD),
-                    )
-                    .render(&mut f, chunks[1]);
+                    .title_style(title_style);
+                f.render_widget(block, chunks[1]);
             }
             {
                 let chunks = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                     .split(chunks[1]);
-                Block::default()
-                    .title("With borders")
-                    .borders(Borders::ALL)
-                    .render(&mut f, chunks[0]);
-                Block::default()
-                    .title("With styled and double borders")
+                let block = Block::default().title("With borders").borders(Borders::ALL);
+                f.render_widget(block, chunks[0]);
+                let block = Block::default()
+                    .title("With styled borders and doubled borders")
                     .border_style(Style::default().fg(Color::Cyan))
                     .borders(Borders::LEFT | Borders::RIGHT)
-                    .border_type(BorderType::Double)
-                    .render(&mut f, chunks[1]);
+                    .border_type(BorderType::Double);
+                f.render_widget(block, chunks[1]);
             }
         })?;
 

@@ -105,10 +105,10 @@ impl<'a> BarChart<'a> {
 }
 
 impl<'a> Widget for BarChart<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
-                b.draw(area, buf);
+                b.render(area, buf);
                 b.inner(area)
             }
             None => area,
@@ -118,7 +118,7 @@ impl<'a> Widget for BarChart<'a> {
             return;
         }
 
-        self.background(chart_area, buf, self.style.bg);
+        buf.set_background(chart_area, self.style.bg);
 
         let max = self
             .max

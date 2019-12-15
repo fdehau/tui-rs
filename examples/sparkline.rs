@@ -10,7 +10,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Sparkline, Widget};
+use tui::widgets::{Block, Borders, Sparkline};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -80,34 +80,34 @@ fn main() -> Result<(), failure::Error> {
                     .as_ref(),
                 )
                 .split(f.size());
-            Sparkline::default()
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data1")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data1)
-                .style(Style::default().fg(Color::Yellow))
-                .render(&mut f, chunks[0]);
-            Sparkline::default()
+                .style(Style::default().fg(Color::Yellow));
+            f.render_widget(sparkline, chunks[0]);
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data2")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data2)
-                .style(Style::default().bg(Color::Green))
-                .render(&mut f, chunks[1]);
+                .style(Style::default().bg(Color::Green));
+            f.render_widget(sparkline, chunks[1]);
             // Multiline
-            Sparkline::default()
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data3")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data3)
-                .style(Style::default().fg(Color::Red))
-                .render(&mut f, chunks[2]);
+                .style(Style::default().fg(Color::Red));
+            f.render_widget(sparkline, chunks[2]);
         })?;
 
         match events.next()? {
