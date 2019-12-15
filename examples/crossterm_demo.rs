@@ -3,20 +3,24 @@ mod demo;
 #[allow(dead_code)]
 mod util;
 
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
+use std::{
+    io::{stdout, Write},
+    sync::mpsc,
+    thread,
+    time::Duration,
+};
 
 use crossterm::{
-    input::{input, InputEvent, KeyEvent},
-    screen::AlternateScreen,
+    event::{self, Event as CEvent, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen},
 };
+
 use structopt::StructOpt;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
+use tui::{backend::CrosstermBackend, Terminal};
 
 use crate::demo::{ui, App};
-use std::io::stdout;
+use crossterm::terminal::LeaveAlternateScreen;
 
 enum Event<I> {
     Input(I),
@@ -35,39 +39,29 @@ fn main() -> Result<(), failure::Error> {
     let cli = Cli::from_args();
     stderrlog::new().quiet(!cli.log).verbosity(4).init()?;
 
-    let screen = AlternateScreen::to_alternate(true)?;
-    let backend = CrosstermBackend::with_alternate_screen(stdout(), screen)?;
+    enable_raw_mode()?;
+
+    let mut stdout = stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+
+    let backend = CrosstermBackend::new(stdout);
+
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
     // Setup input handling
     let (tx, rx) = mpsc::channel();
-    {
-        let tx = tx.clone();
-        thread::spawn(move || {
-            let input = input();
-            let mut reader = input.read_sync();
-            loop {
-                match reader.next() {
-                    Some(InputEvent::Keyboard(key)) => {
-                        if let Err(_) = tx.send(Event::Input(key.clone())) {
-                            return;
-                        }
-                        if key == KeyEvent::Char('q') {
-                            return;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        });
-    }
 
     thread::spawn(move || {
-        let tx = tx.clone();
         loop {
+            // poll for tick rate duration, if no events, sent tick event.
+            if event::poll(Duration::from_millis(cli.tick_rate)).unwrap() {
+                if let CEvent::Key(key) = event::read().unwrap() {
+                    tx.send(Event::Input(key)).unwrap();
+                }
+            }
+
             tx.send(Event::Tick).unwrap();
-            thread::sleep(Duration::from_millis(cli.tick_rate));
         }
     });
 
@@ -78,12 +72,18 @@ fn main() -> Result<(), failure::Error> {
     loop {
         ui::draw(&mut terminal, &app)?;
         match rx.recv()? {
-            Event::Input(event) => match event {
-                KeyEvent::Char(c) => app.on_key(c),
-                KeyEvent::Left => app.on_left(),
-                KeyEvent::Up => app.on_up(),
-                KeyEvent::Right => app.on_right(),
-                KeyEvent::Down => app.on_down(),
+            Event::Input(event) => match event.code {
+                KeyCode::Char('q') => {
+                    disable_raw_mode()?;
+                    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                    terminal.show_cursor()?;
+                    break;
+                }
+                KeyCode::Char(c) => app.on_key(c),
+                KeyCode::Left => app.on_left(),
+                KeyCode::Up => app.on_up(),
+                KeyCode::Right => app.on_right(),
+                KeyCode::Down => app.on_down(),
                 _ => {}
             },
             Event::Tick => {
