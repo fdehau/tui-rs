@@ -9,7 +9,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! tui = "0.7"
+//! tui = "0.8"
 //! termion = "1.5"
 //! ```
 //!
@@ -19,8 +19,8 @@
 //!
 //! ```toml
 //! [dependencies]
-//! crossterm = "0.13"
-//! tui = { version = "0.7", default-features = false, features = ['crossterm'] }
+//! crossterm = "0.14"
+//! tui = { version = "0.8", default-features = false, features = ['crossterm'] }
 //! ```
 //!
 //! The same logic applies for all other available backends.

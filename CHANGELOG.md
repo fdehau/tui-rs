@@ -2,6 +2,17 @@
 
 ## To be released
 
+## v0.8.0 - 2019-12-15
+
+### Changed
+
+* Bump crossterm to 0.14.
+* Add cross symbol to the symbols list.
+
+### Fixed
+
+* Use the value of `title_style` to style the title of `Axis`.
+
 ## v0.7.0 - 2019-11-29
 
 ### Changed
