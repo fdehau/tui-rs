@@ -35,3 +35,23 @@ pub mod line {
 }
 
 pub const DOT: &str = "•";
+
+pub mod rounded {
+    pub const TOP_RIGHT: &str = "╮";
+    pub const TOP_LEFT: &str = "╭";
+    pub const BOTTOM_RIGHT: &str = "╯";
+    pub const BOTTOM_LEFT: &str = "╰";
+}
+
+pub mod double {
+    pub const VERTICAL: &str = "║";
+    pub const HORIZONTAL: &str = "═";
+    pub const TOP_RIGHT: &str = "╗";
+    pub const TOP_LEFT: &str = "╔";
+    pub const BOTTOM_RIGHT: &str = "╝";
+    pub const BOTTOM_LEFT: &str = "╚";
+    pub const VERTICAL_LEFT: &str = "╣";
+    pub const VERTICAL_RIGHT: &str = "╠";
+    pub const HORIZONTAL_DOWN: &str = "╦";
+    pub const HORIZONTAL_UP: &str = "╩";
+}
