@@ -83,6 +83,7 @@ You can run all examples by running `make run-examples`.
 ### Apps using tui
 
 * [spotify-tui](https://github.com/Rigellute/spotify-tui)
+* [bandwhich](https://github.com/imsnif/bandwhich)
 
 ### Alternatives
 
