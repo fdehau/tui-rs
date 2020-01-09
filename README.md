@@ -16,7 +16,7 @@ can either choose from:
 
   - [termion](https://github.com/ticki/termion)
   - [rustbox](https://github.com/gchp/rustbox)
-  - [crossterm](https://github.com/TimonPost/crossterm)
+  - [crossterm](https://github.com/crossterm-rs/crossterm)
   - [pancurses](https://github.com/ihalila/pancurses)
 
 However, some features may only be available in one of the four.
