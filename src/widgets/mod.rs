@@ -14,9 +14,8 @@ mod table;
 mod tabs;
 
 pub use self::barchart::BarChart;
-pub use self::block::Block;
-pub use self::block::BorderType;
-pub use self::chart::{Axis, Chart, Dataset, Marker};
+pub use self::block::{Block, BorderType};
+pub use self::chart::{Axis, Chart, Dataset, GraphType, Marker};
 pub use self::gauge::Gauge;
 pub use self::list::{List, SelectableList};
 pub use self::paragraph::Paragraph;

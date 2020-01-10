@@ -6,7 +6,7 @@ use crate::buffer::Buffer;
 use crate::layout::Rect;
 use crate::style::Style;
 use crate::symbols;
-use crate::widgets::canvas::{Canvas, Points};
+use crate::widgets::canvas::{Canvas, Line, Points};
 use crate::widgets::{Block, Borders, Widget};
 
 /// An X or Y axis for the chart widget
@@ -87,6 +87,14 @@ pub enum Marker {
     Braille,
 }
 
+/// Used to determine which style of graphing to use
+pub enum GraphType {
+    /// Draw each point
+    Scatter,
+    /// Draw each point and lines between each point using the same marker
+    Line,
+}
+
 /// A group of data points
 pub struct Dataset<'a> {
     /// Name of the dataset (used in the legend if shown)
@@ -95,6 +103,8 @@ pub struct Dataset<'a> {
     data: &'a [(f64, f64)],
     /// Symbol used for each points of this dataset
     marker: Marker,
+    /// Determines graph type used for drawing points
+    graph_type: GraphType,
     /// Style used to plot this dataset
     style: Style,
 }
@@ -105,6 +115,7 @@ impl<'a> Default for Dataset<'a> {
             name: "",
             data: &[],
             marker: Marker::Dot,
+            graph_type: GraphType::Scatter,
             style: Style::default(),
         }
     }
@@ -123,6 +134,11 @@ impl<'a> Dataset<'a> {
 
     pub fn marker(mut self, marker: Marker) -> Dataset<'a> {
         self.marker = marker;
+        self
+    }
+
+    pub fn graph_type(mut self, graph_type: GraphType) -> Dataset<'a> {
+        self.graph_type = graph_type;
         self
     }
 
@@ -166,7 +182,7 @@ impl Default for ChartLayout {
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker};
+/// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker, GraphType};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Chart::default()
@@ -186,11 +202,13 @@ impl Default for ChartLayout {
 ///     .datasets(&[Dataset::default()
 ///                     .name("data1")
 ///                     .marker(Marker::Dot)
+///                     .graph_type(GraphType::Scatter)
 ///                     .style(Style::default().fg(Color::Cyan))
 ///                     .data(&[(0.0, 5.0), (1.0, 6.0), (1.5, 6.434)]),
 ///                 Dataset::default()
 ///                     .name("data2")
 ///                     .marker(Marker::Braille)
+///                     .graph_type(GraphType::Line)
 ///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
 /// # }
@@ -452,11 +470,24 @@ where
                         .background_color(self.style.bg)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .paint(|ctx| {
-                            ctx.draw(&Points {
-                                coords: dataset.data,
-                                color: dataset.style.fg,
-                            });
+                        .paint(|ctx| match dataset.graph_type {
+                            GraphType::Scatter => {
+                                ctx.draw(&Points {
+                                    coords: dataset.data,
+                                    color: dataset.style.fg,
+                                });
+                            }
+                            GraphType::Line => {
+                                for i in 0..dataset.data.len() - 1 {
+                                    ctx.draw(&Line {
+                                        x1: dataset.data[i].0,
+                                        y1: dataset.data[i].1,
+                                        x2: dataset.data[i + 1].0,
+                                        y2: dataset.data[i + 1].1,
+                                        color: dataset.style.fg,
+                                    })
+                                }
+                            }
                         })
                         .draw(graph_area, buf);
                 }
