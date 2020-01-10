@@ -14,6 +14,7 @@
 mod util;
 
 use std::io::{self, Write};
+use std::time::Duration;
 
 use termion::cursor::Goto;
 use termion::event::Key;
@@ -27,7 +28,7 @@ use tui::widgets::{Block, Borders, List, Paragraph, Text, Widget};
 use tui::Terminal;
 use unicode_width::UnicodeWidthStr;
 
-use crate::util::event::{Event, Events};
+use crate::util::event::{Config, Event, Events};
 
 /// App holds the state of the application
 struct App {
@@ -54,8 +55,14 @@ fn main() -> Result<(), failure::Error> {
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    // Create custom config
+    let config = Config {
+        exit_key: Key::Esc,
+        tick_rate: Duration::from_millis(250),
+    };
+
     // Setup event handlers
-    let events = Events::new();
+    let events = Events::with_config(config);
 
     // Create default app state
     let mut app = App::default();
@@ -94,7 +101,7 @@ fn main() -> Result<(), failure::Error> {
         // Handle input
         match events.next()? {
             Event::Input(input) => match input {
-                Key::Char('q') => {
+                Key::Esc => {
                     break;
                 }
                 Key::Char('\n') => {
