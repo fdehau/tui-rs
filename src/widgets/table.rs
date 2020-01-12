@@ -67,6 +67,8 @@ where
     widths: &'a [Constraint],
     /// Space between each column
     column_spacing: u16,
+    /// Space between the header and the rows
+    header_gap: u16,
     /// Data to display in each row
     rows: R,
 }
@@ -88,6 +90,7 @@ where
             widths: &[],
             rows: R::default(),
             column_spacing: 1,
+            header_gap: 1,
         }
     }
 }
@@ -109,6 +112,7 @@ where
             widths: &[],
             rows,
             column_spacing: 1,
+            header_gap: 1,
         }
     }
     pub fn block(mut self, block: Block<'a>) -> Table<'a, T, H, I, D, R> {
@@ -157,6 +161,11 @@ where
 
     pub fn column_spacing(mut self, spacing: u16) -> Table<'a, T, H, I, D, R> {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn header_gap(mut self, gap: u16) -> Table<'a, T, H, I, D, R> {
+        self.header_gap = gap;
         self
     }
 }
@@ -238,7 +247,7 @@ where
                 x += *w + self.column_spacing;
             }
         }
-        y += 2;
+        y += 1 + self.header_gap;
 
         // Draw rows
         let default_style = Style::default();
