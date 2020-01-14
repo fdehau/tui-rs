@@ -470,14 +470,12 @@ where
                         .background_color(self.style.bg)
                         .x_bounds(self.x_axis.bounds)
                         .y_bounds(self.y_axis.bounds)
-                        .paint(|ctx| match dataset.graph_type {
-                            GraphType::Scatter => {
-                                ctx.draw(&Points {
-                                    coords: dataset.data,
-                                    color: dataset.style.fg,
-                                });
-                            }
-                            GraphType::Line => {
+                        .paint(|ctx| {
+                            ctx.draw(&Points {
+                                coords: dataset.data,
+                                color: dataset.style.fg,
+                            });
+                            if let GraphType::Line = dataset.graph_type {
                                 for i in 0..dataset.data.len() - 1 {
                                     ctx.draw(&Line {
                                         x1: dataset.data[i].0,
