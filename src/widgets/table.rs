@@ -281,13 +281,27 @@ where
         }
         y += 2;
 
+        // Determine offset needed to display selected item
+        let offset = if let Some(selected) = self.selected {
+            let window_height = (table_area.bottom() - y) as usize;
+            if selected >= window_height {
+                selected - window_height + 1
+            } else {
+                0
+            }
+        } else {
+            0
+        };
+
         // Draw rows
         let default_style = Style::default();
         if y < table_area.bottom() {
             let remaining = (table_area.bottom() - y) as usize;
-            for (i, row) in self.rows.by_ref().take(remaining).enumerate() {
+            for (i, row) in self.rows.by_ref().skip(offset).take(remaining).enumerate() {
                 let (data, style, symbol) = match row {
-                    Row::Data(d) | Row::StyledData(d, _) if Some(i) == self.selected => {
+                    Row::Data(d) | Row::StyledData(d, _)
+                        if Some(i) == self.selected.map(|s| s - offset) =>
+                    {
                         (d, self.highlight_style, &highlight_symbol)
                     }
                     Row::Data(d) => (d, default_style, &blank_symbol),
