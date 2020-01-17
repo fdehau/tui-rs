@@ -23,12 +23,14 @@ struct App {
 impl App {
     fn new() -> App {
         App {
-            items: (1..100).map(|i| {
-                let e1 = format!("Row{}Col1", i);
-                let e2 = format!("Row{}Col2", i);
-                let e3 = format!("Row{}Col3", i);
-                vec![e1, e2, e3]
-            }).collect::<Vec<_>>(),
+            items: (1..100)
+                .map(|i| {
+                    let e1 = format!("Row{}Col1", i);
+                    let e2 = format!("Row{}Col2", i);
+                    let e3 = format!("Row{}Col3", i);
+                    vec![e1, e2, e3]
+                })
+                .collect::<Vec<_>>(),
             selected: 0,
         }
     }
