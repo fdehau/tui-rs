@@ -1,0 +1,70 @@
+on: [push, pull_request]
+
+name: CI
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Install dependencies"
+        run: sudo apt-get install libncurses5-dev
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: default
+          toolchain: stable
+          override: true
+      - name: "Format"
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: "Check"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --examples
+      - name: "Check (crossterm)"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --features=crossterm --example crossterm_demo
+      - name: "Check (rustbox)"
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features=rustbox --example rustbox_demo
+      - name: "Check (curses)"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --features=curses --example curses_demo
+      - name: "Test"
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+      - name: "Clippy"
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: default
+          toolchain: stable
+          override: true
+      - name: "Check (crossterm)"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --features=crossterm --example crossterm_demo
+      - name: "Test (crossterm)"
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features=crossterm --tests --examples

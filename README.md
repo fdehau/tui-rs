@@ -1,6 +1,6 @@
 # tui-rs
 
-[![Build Status](https://dev.azure.com/fdehau/fdehau/_apis/build/status/fdehau.tui-rs?branchName=master)](https://dev.azure.com/fdehau/fdehau/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://github.com/fdehau/tui-rs/workflows/CI/badge.svg)](https://github.com/fdehau/tui-rs/actions?query=workflow%3ACI+)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
 
@@ -44,8 +44,17 @@ run:
 cargo run --example termion_demo --release -- --tick-rate 200
 ```
 
+where `tick-rate` is the UI refresh rate in ms.
+
 The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
 application state is in [examples/demo/app.rs](examples/demo/app.rs).
+
+Beware that the `termion_demo` only works on Unix platforms. If you are a Windows user,
+you can see the same demo using the `crossterm` backend with the following command:
+
+```
+cargo run --example crossterm_demo --no-default-features --features="crossterm" --release -- --tick-rate 200
+```
 
 ### Widgets
 
@@ -70,6 +79,10 @@ You can run all examples by running `make run-examples`.
 ### Third-party widgets
 
 * [tui-logger](https://github.com/gin66/tui-logger)
+
+### Apps using tui
+
+* [spotify-tui](https://github.com/Rigellute/spotify-tui)
 
 ### Alternatives
 

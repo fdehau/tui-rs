@@ -520,12 +520,8 @@ mod tests {
 
     #[test]
     fn buffer_with_lines() {
-        let buffer = Buffer::with_lines(vec![
-            "┌────────┐",
-            "│コンピュ│",
-            "│ーa 上で│",
-            "└────────┘",
-        ]);
+        let buffer =
+            Buffer::with_lines(vec!["┌────────┐", "│コンピュ│", "│ーa 上で│", "└────────┘"]);
         assert_eq!(buffer.area.x, 0);
         assert_eq!(buffer.area.y, 0);
         assert_eq!(buffer.area.width, 10);
@@ -619,11 +615,7 @@ mod tests {
         let diff = prev.diff(&next);
         assert_eq!(
             diff,
-            vec![
-                (1, 0, &cell("─")),
-                (2, 0, &cell("称")),
-                (4, 0, &cell("号")),
-            ]
+            vec![(1, 0, &cell("─")), (2, 0, &cell("称")), (4, 0, &cell("号")),]
         );
     }
 
