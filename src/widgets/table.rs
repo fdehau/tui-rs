@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::iter::Iterator;
+use std::iter::{self, Iterator};
+
+use unicode_width::UnicodeWidthStr;
 
 use cassowary::strength::{MEDIUM, REQUIRED, WEAK};
 use cassowary::WeightedRelation::*;
@@ -69,6 +71,12 @@ where
     column_spacing: u16,
     /// Data to display in each row
     rows: R,
+    /// Index of the selected row
+    selected: Option<usize>,
+    /// Style used to render the selected row
+    highlight_style: Style,
+    /// Symbol in front of the selected row
+    highlight_symbol: Option<&'a str>,
 }
 
 impl<'a, T, H, I, D, R> Default for Table<'a, T, H, I, D, R>
@@ -88,6 +96,9 @@ where
             widths: &[],
             rows: R::default(),
             column_spacing: 1,
+            selected: None,
+            highlight_style: Default::default(),
+            highlight_symbol: None,
         }
     }
 }
@@ -109,6 +120,9 @@ where
             widths: &[],
             rows,
             column_spacing: 1,
+            selected: None,
+            highlight_style: Style::default(),
+            highlight_symbol: None,
         }
     }
     pub fn block(mut self, block: Block<'a>) -> Table<'a, T, H, I, D, R> {
@@ -158,6 +172,21 @@ where
 
     pub fn column_spacing(mut self, spacing: u16) -> Table<'a, T, H, I, D, R> {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> Table<'a, T, H, I, D, R> {
+        self.highlight_symbol = Some(highlight_symbol);
+        self
+    }
+
+    pub fn highlight_style(mut self, highlight_style: Style) -> Table<'a, T, H, I, D, R> {
+        self.highlight_style = highlight_style;
+        self
+    }
+
+    pub fn select(mut self, index: Option<usize>) -> Table<'a, T, H, I, D, R> {
+        self.selected = index;
         self
     }
 }
@@ -232,10 +261,21 @@ where
         let mut y = table_area.top();
         let mut x = table_area.left();
 
+        // Retrieve highlight symbol if one
+        let highlight_symbol = self.highlight_symbol.unwrap_or("").to_owned();
+        let blank_symbol = iter::repeat(" ")
+            .take(highlight_symbol.width())
+            .collect::<String>();
+
         // Draw header
         if y < table_area.bottom() {
-            for (w, t) in solved_widths.iter().zip(self.header.by_ref()) {
-                buf.set_stringn(x, y, format!("{}", t), *w as usize, self.header_style);
+            for (i, (w, t)) in solved_widths.iter().zip(self.header.by_ref()).enumerate() {
+                let s = if i == 0 {
+                    format!("{}{}", blank_symbol, t)
+                } else {
+                    format!("{}", t)
+                };
+                buf.set_stringn(x, y, s, *w as usize, self.header_style);
                 x += *w + self.column_spacing;
             }
         }
@@ -246,13 +286,21 @@ where
         if y < table_area.bottom() {
             let remaining = (table_area.bottom() - y) as usize;
             for (i, row) in self.rows.by_ref().take(remaining).enumerate() {
-                let (data, style) = match row {
-                    Row::Data(d) => (d, default_style),
-                    Row::StyledData(d, s) => (d, s),
+                let (data, style, symbol) = match row {
+                    Row::Data(d) | Row::StyledData(d, _) if Some(i) == self.selected => {
+                        (d, self.highlight_style, &highlight_symbol)
+                    }
+                    Row::Data(d) => (d, default_style, &blank_symbol),
+                    Row::StyledData(d, s) => (d, s, &blank_symbol),
                 };
                 x = table_area.left();
-                for (w, elt) in solved_widths.iter().zip(data) {
-                    buf.set_stringn(x, y + i as u16, format!("{}", elt), *w as usize, style);
+                for (c, (w, elt)) in solved_widths.iter().zip(data).enumerate() {
+                    let s = if c == 0 {
+                        format!("{}{}", symbol, elt)
+                    } else {
+                        format!("{}", elt)
+                    };
+                    buf.set_stringn(x, y + i as u16, s, *w as usize, style);
                     x += *w + self.column_spacing;
                 }
             }
@@ -270,5 +318,4 @@ mod tests {
         Table::new([""].iter(), vec![Row::Data([""].iter())].into_iter())
             .widths(&[Constraint::Percentage(110)]);
     }
-
 }

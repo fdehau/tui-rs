@@ -15,22 +15,20 @@ use tui::Terminal;
 
 use crate::util::event::{Event, Events};
 
-struct App<'a> {
-    items: Vec<Vec<&'a str>>,
+struct App {
+    items: Vec<Vec<String>>,
     selected: usize,
 }
 
-impl<'a> App<'a> {
-    fn new() -> App<'a> {
+impl App {
+    fn new() -> App {
         App {
-            items: vec![
-                vec!["Row11", "Row12", "Row13"],
-                vec!["Row21", "Row22", "Row23"],
-                vec!["Row31", "Row32", "Row33"],
-                vec!["Row41", "Row42", "Row43"],
-                vec!["Row51", "Row52", "Row53"],
-                vec!["Row61", "Row62", "Row63"],
-            ],
+            items: (1..100).map(|i| {
+                let e1 = format!("Row{}Col1", i);
+                let e2 = format!("Row{}Col2", i);
+                let e3 = format!("Row{}Col3", i);
+                vec![e1, e2, e3]
+            }).collect::<Vec<_>>(),
             selected: 0,
         }
     }
@@ -54,15 +52,8 @@ fn main() -> Result<(), failure::Error> {
     loop {
         terminal.draw(|mut f| {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
-            let normal_style = Style::default().fg(Color::White);
             let header = ["Header1", "Header2", "Header3"];
-            let rows = app.items.iter().enumerate().map(|(i, item)| {
-                if i == app.selected {
-                    Row::StyledData(item.into_iter(), selected_style)
-                } else {
-                    Row::StyledData(item.into_iter(), normal_style)
-                }
-            });
+            let rows = app.items.iter().map(|item| Row::Data(item.into_iter()));
 
             let rects = Layout::default()
                 .constraints([Constraint::Percentage(100)].as_ref())
@@ -75,6 +66,9 @@ fn main() -> Result<(), failure::Error> {
                     Constraint::Length(30),
                     Constraint::Max(10),
                 ])
+                .highlight_style(selected_style)
+                .highlight_symbol("|=>|")
+                .select(Some(app.selected))
                 .render(&mut f, rects[0]);
         })?;
 
