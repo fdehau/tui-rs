@@ -131,7 +131,7 @@ pub struct App<'a> {
     pub show_chart: bool,
     pub progress: u16,
     pub sparkline: Signal<RandomSignal>,
-    pub tasks: ListState<(&'a str)>,
+    pub tasks: ListState<&'a str>,
     pub logs: ListState<(&'a str, &'a str)>,
     pub signals: Signals,
     pub barchart: Vec<(&'a str, u64)>,

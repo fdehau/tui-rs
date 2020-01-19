@@ -1,8 +1,15 @@
 use crate::buffer::Buffer;
 use crate::layout::Rect;
 use crate::style::Style;
-use crate::symbols::{double, line, rounded};
+use crate::symbols::line;
 use crate::widgets::{Borders, Widget};
+
+#[derive(Debug, Copy, Clone)]
+pub enum BorderType {
+    Plain,
+    Rounded,
+    Double,
+}
 
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
@@ -10,7 +17,7 @@ use crate::widgets::{Borders, Widget};
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders};
+/// # use tui::widgets::{Block, BorderType, Borders};
 /// # use tui::style::{Style, Color};
 /// # fn main() {
 /// Block::default()
@@ -18,6 +25,7 @@ use crate::widgets::{Borders, Widget};
 ///     .title_style(Style::default().fg(Color::Red))
 ///     .borders(Borders::LEFT | Borders::RIGHT)
 ///     .border_style(Style::default().fg(Color::White))
+///     .border_type(BorderType::Rounded)
 ///     .style(Style::default().bg(Color::Black));
 /// # }
 /// ```
@@ -29,10 +37,10 @@ pub struct Block<'a> {
     title_style: Style,
     /// Visible borders
     borders: Borders,
-    /// Border style (meaning colors)
+    /// Border style
     border_style: Style,
-    /// Border type (meaning one of single lines w/sharp corners, single lines w/rounded corners,
-    /// or double lines w/sharp corners)
+    /// Type of the border. The default is plain lines but one can choose to have rounded corners
+    /// or doubled lines instead.
     border_type: BorderType,
     /// Widget style
     style: Style,
@@ -49,13 +57,6 @@ impl<'a> Default for Block<'a> {
             style: Default::default(),
         }
     }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum BorderType {
-    Plain,
-    Rounded,
-    Double,
 }
 
 impl<'a> Block<'a> {
@@ -84,7 +85,7 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn set_border_type(mut self, border_type: BorderType) -> Block<'a> {
+    pub fn border_type(mut self, border_type: BorderType) -> Block<'a> {
         self.border_type = border_type;
         self
     }
@@ -123,52 +124,48 @@ impl<'a> Widget for Block<'a> {
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {
+            let symbol = match self.border_type {
+                BorderType::Double => line::DOUBLE_VERTICAL,
+                _ => line::VERTICAL,
+            };
             for y in area.top()..area.bottom() {
                 buf.get_mut(area.left(), y)
-                    .set_symbol({
-                        match self.border_type {
-                            BorderType::Double => double::VERTICAL,
-                            _ => line::VERTICAL,
-                        }
-                    })
+                    .set_symbol(symbol)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::TOP) {
+            let symbol = match self.border_type {
+                BorderType::Double => line::DOUBLE_HORIZONTAL,
+                _ => line::HORIZONTAL,
+            };
             for x in area.left()..area.right() {
                 buf.get_mut(x, area.top())
-                    .set_symbol({
-                        match self.border_type {
-                            BorderType::Double => double::HORIZONTAL,
-                            _ => line::HORIZONTAL,
-                        }
-                    })
+                    .set_symbol(symbol)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::RIGHT) {
             let x = area.right() - 1;
+            let symbol = match self.border_type {
+                BorderType::Double => line::DOUBLE_VERTICAL,
+                _ => line::VERTICAL,
+            };
             for y in area.top()..area.bottom() {
                 buf.get_mut(x, y)
-                    .set_symbol({
-                        match self.border_type {
-                            BorderType::Double => double::VERTICAL,
-                            _ => line::VERTICAL,
-                        }
-                    })
+                    .set_symbol(symbol)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::BOTTOM) {
             let y = area.bottom() - 1;
+            let symbol = match self.border_type {
+                BorderType::Double => line::DOUBLE_HORIZONTAL,
+                _ => line::HORIZONTAL,
+            };
             for x in area.left()..area.right() {
                 buf.get_mut(x, y)
-                    .set_symbol({
-                        match self.border_type {
-                            BorderType::Double => double::HORIZONTAL,
-                            _ => line::HORIZONTAL,
-                        }
-                    })
+                    .set_symbol(symbol)
                     .set_style(self.border_style);
             }
         }
@@ -178,8 +175,8 @@ impl<'a> Widget for Block<'a> {
             buf.get_mut(area.left(), area.top())
                 .set_symbol({
                     match self.border_type {
-                        BorderType::Double => double::TOP_LEFT,
-                        BorderType::Rounded => rounded::TOP_LEFT,
+                        BorderType::Double => line::DOUBLE_TOP_LEFT,
+                        BorderType::Rounded => line::ROUNDED_TOP_LEFT,
                         _ => line::TOP_LEFT,
                     }
                 })
@@ -189,8 +186,8 @@ impl<'a> Widget for Block<'a> {
             buf.get_mut(area.right() - 1, area.top())
                 .set_symbol({
                     match self.border_type {
-                        BorderType::Double => double::TOP_RIGHT,
-                        BorderType::Rounded => rounded::TOP_RIGHT,
+                        BorderType::Double => line::DOUBLE_TOP_RIGHT,
+                        BorderType::Rounded => line::ROUNDED_TOP_RIGHT,
                         _ => line::TOP_RIGHT,
                     }
                 })
@@ -200,8 +197,8 @@ impl<'a> Widget for Block<'a> {
             buf.get_mut(area.left(), area.bottom() - 1)
                 .set_symbol({
                     match self.border_type {
-                        BorderType::Double => double::BOTTOM_LEFT,
-                        BorderType::Rounded => rounded::BOTTOM_LEFT,
+                        BorderType::Double => line::DOUBLE_BOTTOM_LEFT,
+                        BorderType::Rounded => line::ROUNDED_BOTTOM_LEFT,
                         _ => line::BOTTOM_LEFT,
                     }
                 })
@@ -211,8 +208,8 @@ impl<'a> Widget for Block<'a> {
             buf.get_mut(area.right() - 1, area.bottom() - 1)
                 .set_symbol({
                     match self.border_type {
-                        BorderType::Double => double::BOTTOM_RIGHT,
-                        BorderType::Rounded => rounded::BOTTOM_RIGHT,
+                        BorderType::Double => line::DOUBLE_BOTTOM_RIGHT,
+                        BorderType::Rounded => line::ROUNDED_BOTTOM_RIGHT,
                         _ => line::BOTTOM_RIGHT,
                     }
                 })

@@ -35,7 +35,7 @@ fn main() -> Result<(), failure::Error> {
             Block::default()
                 .borders(Borders::ALL)
                 .title("Main block with round corners")
-                .set_border_type(BorderType::Rounded)
+                .border_type(BorderType::Rounded)
                 .render(&mut f, size);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -75,7 +75,7 @@ fn main() -> Result<(), failure::Error> {
                     .title("With styled and double borders")
                     .border_style(Style::default().fg(Color::Cyan))
                     .borders(Borders::LEFT | Borders::RIGHT)
-                    .set_border_type(BorderType::Double)
+                    .border_type(BorderType::Double)
                     .render(&mut f, chunks[1]);
             }
         })?;
