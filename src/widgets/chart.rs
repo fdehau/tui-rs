@@ -184,7 +184,6 @@ impl Default for ChartLayout {
 /// ```
 /// # use tui::widgets::{Block, Borders, Chart, Axis, Dataset, Marker, GraphType};
 /// # use tui::style::{Style, Color};
-/// # fn main() {
 /// Chart::default()
 ///     .block(Block::default().title("Chart"))
 ///     .x_axis(Axis::default()
@@ -211,7 +210,6 @@ impl Default for ChartLayout {
 ///                     .graph_type(GraphType::Line)
 ///                     .style(Style::default().fg(Color::Magenta))
 ///                     .data(&[(4.0, 5.0), (5.0, 8.0), (7.66, 13.5)])]);
-/// # }
 /// ```
 pub struct Chart<'a, LX, LY>
 where

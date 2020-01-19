@@ -15,7 +15,6 @@ use crate::widgets::{Block, Widget};
 /// ```
 /// # use tui::widgets::{Block, Borders, BarChart};
 /// # use tui::style::{Style, Color, Modifier};
-/// # fn main() {
 /// BarChart::default()
 ///     .block(Block::default().title("BarChart").borders(Borders::ALL))
 ///     .bar_width(3)
@@ -25,7 +24,6 @@ use crate::widgets::{Block, Widget};
 ///     .label_style(Style::default().fg(Color::White))
 ///     .data(&[("B0", 0), ("B1", 2), ("B2", 4), ("B3", 3)])
 ///     .max(4);
-/// # }
 /// ```
 pub struct BarChart<'a> {
     /// Block to wrap the widget in

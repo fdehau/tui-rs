@@ -119,7 +119,6 @@ where
 /// ```
 /// # use tui::widgets::{Block, Borders, SelectableList};
 /// # use tui::style::{Style, Color, Modifier};
-/// # fn main() {
 /// SelectableList::default()
 ///     .block(Block::default().title("SelectableList").borders(Borders::ALL))
 ///     .items(&["Item 1", "Item 2", "Item 3"])
@@ -127,7 +126,6 @@ where
 ///     .style(Style::default().fg(Color::White))
 ///     .highlight_style(Style::default().modifier(Modifier::ITALIC))
 ///     .highlight_symbol(">>");
-/// # }
 /// ```
 pub struct SelectableList<'b> {
     block: Option<Block<'b>>,

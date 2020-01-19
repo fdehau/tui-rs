@@ -12,12 +12,10 @@ use crate::widgets::{Block, Widget};
 /// ```
 /// # use tui::widgets::{Widget, Gauge, Block, Borders};
 /// # use tui::style::{Style, Color, Modifier};
-/// # fn main() {
 /// Gauge::default()
 ///     .block(Block::default().borders(Borders::ALL).title("Progress"))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black).modifier(Modifier::ITALIC))
 ///     .percent(20);
-/// # }
 /// ```
 pub struct Gauge<'a> {
     block: Option<Block<'a>>,

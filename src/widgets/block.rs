@@ -19,7 +19,6 @@ pub enum BorderType {
 /// ```
 /// # use tui::widgets::{Block, BorderType, Borders};
 /// # use tui::style::{Style, Color};
-/// # fn main() {
 /// Block::default()
 ///     .title("Block")
 ///     .title_style(Style::default().fg(Color::Red))
@@ -27,7 +26,6 @@ pub enum BorderType {
 ///     .border_style(Style::default().fg(Color::White))
 ///     .border_type(BorderType::Rounded)
 ///     .style(Style::default().bg(Color::Black));
-/// # }
 /// ```
 #[derive(Clone, Copy)]
 pub struct Block<'a> {
@@ -216,27 +214,25 @@ impl<'a> Widget for Block<'a> {
                 .set_style(self.border_style);
         }
 
-        if area.width > 2 {
-            if let Some(title) = self.title {
-                let lx = if self.borders.intersects(Borders::LEFT) {
-                    1
-                } else {
-                    0
-                };
-                let rx = if self.borders.intersects(Borders::RIGHT) {
-                    1
-                } else {
-                    0
-                };
-                let width = area.width - lx - rx;
-                buf.set_stringn(
-                    area.left() + lx,
-                    area.top(),
-                    title,
-                    width as usize,
-                    self.title_style,
-                );
-            }
+        if let Some(title) = self.title {
+            let lx = if self.borders.intersects(Borders::LEFT) {
+                1
+            } else {
+                0
+            };
+            let rx = if self.borders.intersects(Borders::RIGHT) {
+                1
+            } else {
+                0
+            };
+            let width = area.width - lx - rx;
+            buf.set_stringn(
+                area.left() + lx,
+                area.top(),
+                title,
+                width as usize,
+                self.title_style,
+            );
         }
     }
 }
