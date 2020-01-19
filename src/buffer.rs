@@ -78,7 +78,6 @@ impl Default for Cell {
 /// use tui::layout::Rect;
 /// use tui::style::{Color, Style, Modifier};
 ///
-/// # fn main() {
 /// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
 /// buf.get_mut(0, 2).set_symbol("x");
 /// assert_eq!(buf.get(0, 2).symbol, "x");
@@ -92,7 +91,6 @@ impl Default for Cell {
 ///     }});
 /// buf.get_mut(5, 0).set_char('x');
 /// assert_eq!(buf.get(5, 0).symbol, "x");
-/// # }
 /// ```
 #[derive(Clone, PartialEq)]
 pub struct Buffer {

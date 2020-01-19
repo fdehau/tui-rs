@@ -29,7 +29,6 @@ where
 /// # use tui::widgets::{Block, Borders, Table, Row};
 /// # use tui::layout::Constraint;
 /// # use tui::style::{Style, Color};
-/// # fn main() {
 /// let row_style = Style::default().fg(Color::White);
 /// Table::new(
 ///         ["Col1", "Col2", "Col3"].into_iter(),
@@ -45,7 +44,6 @@ where
 ///     .widths(&[Constraint::Length(5), Constraint::Length(5), Constraint::Length(10)])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1);
-/// # }
 /// ```
 pub struct Table<'a, T, H, I, D, R>
 where

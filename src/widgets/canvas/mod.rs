@@ -138,7 +138,6 @@ impl<'a> Context<'a> {
 /// # use tui::layout::Rect;
 /// # use tui::widgets::canvas::{Canvas, Shape, Line, Rectangle, Map, MapResolution};
 /// # use tui::style::Color;
-/// # fn main() {
 /// Canvas::default()
 ///     .block(Block::default().title("Canvas").borders(Borders::ALL))
 ///     .x_bounds([-180.0, 180.0])
@@ -166,7 +165,6 @@ impl<'a> Context<'a> {
 ///             color: Color::Red
 ///         });
 ///     });
-/// # }
 /// ```
 pub struct Canvas<'a, F>
 where

@@ -13,13 +13,11 @@ use crate::widgets::{Block, Widget};
 /// ```
 /// # use tui::widgets::{Block, Borders, Sparkline};
 /// # use tui::style::{Style, Color};
-/// # fn main() {
 /// Sparkline::default()
 ///     .block(Block::default().title("Sparkline").borders(Borders::ALL))
 ///     .data(&[0, 2, 3, 4, 1, 4, 10])
 ///     .max(5)
 ///     .style(Style::default().fg(Color::Red).bg(Color::White));
-/// # }
 /// ```
 pub struct Sparkline<'a> {
     /// A block to wrap the widget in
