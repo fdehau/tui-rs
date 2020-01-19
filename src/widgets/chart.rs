@@ -1,9 +1,9 @@
-use std::cmp::max;
+use std::{borrow::Cow, cmp::max};
 
 use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
-use crate::layout::Rect;
+use crate::layout::{Constraint, Rect};
 use crate::style::Style;
 use crate::symbols;
 use crate::widgets::canvas::{Canvas, Points};
@@ -90,7 +90,7 @@ pub enum Marker {
 /// A group of data points
 pub struct Dataset<'a> {
     /// Name of the dataset (used in the legend if shown)
-    name: &'a str,
+    name: Cow<'a, str>,
     /// A reference to the actual data
     data: &'a [(f64, f64)],
     /// Symbol used for each points of this dataset
@@ -102,7 +102,7 @@ pub struct Dataset<'a> {
 impl<'a> Default for Dataset<'a> {
     fn default() -> Dataset<'a> {
         Dataset {
-            name: "",
+            name: Cow::from(""),
             data: &[],
             marker: Marker::Dot,
             style: Style::default(),
@@ -111,8 +111,11 @@ impl<'a> Default for Dataset<'a> {
 }
 
 impl<'a> Dataset<'a> {
-    pub fn name(mut self, name: &'a str) -> Dataset<'a> {
-        self.name = name;
+    pub fn name<S>(mut self, name: S) -> Dataset<'a>
+    where
+        S: Into<Cow<'a, str>>,
+    {
+        self.name = name.into();
         self
     }
 
@@ -134,15 +137,23 @@ impl<'a> Dataset<'a> {
 
 /// A container that holds all the infos about where to display each elements of the chart (axis,
 /// labels, legend, ...).
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 struct ChartLayout {
+    /// Location of the title of the x axis
     title_x: Option<(u16, u16)>,
+    /// Location of the title of the y axis
     title_y: Option<(u16, u16)>,
+    /// Location of the first label of the x axis
     label_x: Option<u16>,
+    /// Location of the first label of the y axis
     label_y: Option<u16>,
+    /// Y coordinate of the horizontal axis
     axis_x: Option<u16>,
+    /// X coordinate of the vertical axis
     axis_y: Option<u16>,
+    /// Area of the legend
     legend_area: Option<Rect>,
+    /// Area of the graph
     graph_area: Rect,
 }
 
@@ -210,6 +221,9 @@ where
     datasets: &'a [Dataset<'a>],
     /// The widget base style
     style: Style,
+    /// Constraints used to determine whether the legend should be shown or
+    /// not
+    hidden_legend_constraints: (Constraint, Constraint),
 }
 
 impl<'a, LX, LY> Default for Chart<'a, LX, LY>
@@ -224,6 +238,7 @@ where
             y_axis: Axis::default(),
             style: Default::default(),
             datasets: &[],
+            hidden_legend_constraints: (Constraint::Ratio(1, 4), Constraint::Ratio(1, 4)),
         }
     }
 }
@@ -255,6 +270,32 @@ where
 
     pub fn datasets(mut self, datasets: &'a [Dataset<'a>]) -> Chart<'a, LX, LY> {
         self.datasets = datasets;
+        self
+    }
+
+    /// Set the constraints used to determine whether the legend should be shown or
+    /// not.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tui::widgets::Chart;
+    /// # use tui::layout::Constraint;
+    /// # fn main() {
+    ///     let constraints = (
+    ///         Constraint::Ratio(1, 3),
+    ///         Constraint::Ratio(1, 4)
+    ///     );
+    ///     // Hide the legend when either its width is greater than 33% of the total widget width
+    ///     // or if its height is greater than 25% of the total widget height.
+    ///     let _chart: Chart<String, String> = Chart::default()
+    ///         .hidden_legend_constraints(constraints);
+    /// # }
+    pub fn hidden_legend_constraints(
+        mut self,
+        constraints: (Constraint, Constraint),
+    ) -> Chart<'a, LX, LY> {
+        self.hidden_legend_constraints = constraints;
         self
     }
 
@@ -320,9 +361,17 @@ where
         if let Some(inner_width) = self.datasets.iter().map(|d| d.name.width() as u16).max() {
             let legend_width = inner_width + 2;
             let legend_height = self.datasets.len() as u16 + 2;
-            if legend_width < layout.graph_area.width / 3
-                && legend_height < layout.graph_area.height / 3
-                && inner_width > 0
+            let max_legend_width = self
+                .hidden_legend_constraints
+                .0
+                .apply(layout.graph_area.width);
+            let max_legend_height = self
+                .hidden_legend_constraints
+                .1
+                .apply(layout.graph_area.height);
+            if inner_width > 0
+                && legend_width < max_legend_width
+                && legend_height < max_legend_height
             {
                 layout.legend_area = Some(Rect::new(
                     layout.graph_area.right() - legend_width,
@@ -471,10 +520,53 @@ where
                 buf.set_string(
                     legend_area.x + 1,
                     legend_area.y + 1 + i as u16,
-                    dataset.name,
+                    &dataset.name,
                     dataset.style,
                 );
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct LegendTestCase {
+        chart_area: Rect,
+        hidden_legend_constraints: (Constraint, Constraint),
+        legend_area: Option<Rect>,
+    }
+
+    #[test]
+    fn it_should_hide_the_legend() {
+        let data = [(0.0, 5.0), (1.0, 6.0), (3.0, 7.0)];
+        let datasets = (0..10)
+            .map(|i| {
+                let name = format!("Dataset #{}", i);
+                Dataset::default().name(name).data(&data)
+            })
+            .collect::<Vec<_>>();
+        let cases = [
+            LegendTestCase {
+                chart_area: Rect::new(0, 0, 100, 100),
+                hidden_legend_constraints: (Constraint::Ratio(1, 4), Constraint::Ratio(1, 4)),
+                legend_area: Some(Rect::new(88, 0, 12, 12)),
+            },
+            LegendTestCase {
+                chart_area: Rect::new(0, 0, 100, 100),
+                hidden_legend_constraints: (Constraint::Ratio(1, 10), Constraint::Ratio(1, 4)),
+                legend_area: None,
+            },
+        ];
+        for case in &cases {
+            let chart: Chart<String, String> = Chart::default()
+                .x_axis(Axis::default().title("X axis"))
+                .y_axis(Axis::default().title("Y axis"))
+                .hidden_legend_constraints(case.hidden_legend_constraints)
+                .datasets(datasets.as_slice());
+            let layout = chart.layout(case.chart_area);
+            assert_eq!(layout.legend_area, case.legend_area);
         }
     }
 }
