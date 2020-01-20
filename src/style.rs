@@ -114,30 +114,33 @@ pub struct Style {
 
 impl Default for Style {
     fn default() -> Style {
+        Style::new()
+    }
+}
+
+impl Style {
+    pub const fn new() -> Self {
         Style {
             fg: Color::Reset,
             bg: Color::Reset,
             modifier: Modifier::empty(),
         }
     }
-}
-
-impl Style {
     pub fn reset(&mut self) {
         self.fg = Color::Reset;
         self.bg = Color::Reset;
         self.modifier = Modifier::empty();
     }
 
-    pub fn fg(mut self, color: Color) -> Style {
+    pub const fn fg(mut self, color: Color) -> Style {
         self.fg = color;
         self
     }
-    pub fn bg(mut self, color: Color) -> Style {
+    pub const fn bg(mut self, color: Color) -> Style {
         self.bg = color;
         self
     }
-    pub fn modifier(mut self, modifier: Modifier) -> Style {
+    pub const fn modifier(mut self, modifier: Modifier) -> Style {
         self.modifier = modifier;
         self
     }
