@@ -31,7 +31,6 @@ where
 /// # use tui::widgets::{Block, Borders, Table, Row};
 /// # use tui::layout::Constraint;
 /// # use tui::style::{Style, Color};
-/// # fn main() {
 /// let row_style = Style::default().fg(Color::White);
 /// Table::new(
 ///         ["Col1", "Col2", "Col3"].into_iter(),
@@ -47,7 +46,6 @@ where
 ///     .widths(&[Constraint::Length(5), Constraint::Length(5), Constraint::Length(10)])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1);
-/// # }
 /// ```
 pub struct Table<'a, T, H, I, D, R>
 where
@@ -69,6 +67,8 @@ where
     widths: &'a [Constraint],
     /// Space between each column
     column_spacing: u16,
+    /// Space between the header and the rows
+    header_gap: u16,
     /// Data to display in each row
     rows: R,
     /// Index of the selected row
@@ -96,6 +96,7 @@ where
             widths: &[],
             rows: R::default(),
             column_spacing: 1,
+            header_gap: 1,
             selected: None,
             highlight_style: Default::default(),
             highlight_symbol: None,
@@ -120,6 +121,7 @@ where
             widths: &[],
             rows,
             column_spacing: 1,
+            header_gap: 1,
             selected: None,
             highlight_style: Style::default(),
             highlight_symbol: None,
@@ -171,6 +173,11 @@ where
 
     pub fn column_spacing(mut self, spacing: u16) -> Table<'a, T, H, I, D, R> {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn header_gap(mut self, gap: u16) -> Table<'a, T, H, I, D, R> {
+        self.header_gap = gap;
         self
     }
 
@@ -278,7 +285,7 @@ where
                 x += *w + self.column_spacing;
             }
         }
-        y += 2;
+        y += 1 + self.header_gap;
 
         // Determine offset needed to display selected item
         let offset = if let Some(selected) = self.selected {

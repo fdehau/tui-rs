@@ -9,7 +9,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Widget};
+use tui::widgets::{Block, BorderType, Borders, Widget};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
@@ -32,7 +32,11 @@ fn main() -> Result<(), failure::Error> {
             // Just draw the block and the group on the same area and build the group
             // with at least a margin of 1
             let size = f.size();
-            Block::default().borders(Borders::ALL).render(&mut f, size);
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Main block with round corners")
+                .border_type(BorderType::Rounded)
+                .render(&mut f, size);
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)
@@ -68,9 +72,10 @@ fn main() -> Result<(), failure::Error> {
                     .borders(Borders::ALL)
                     .render(&mut f, chunks[0]);
                 Block::default()
-                    .title("With styled borders")
+                    .title("With styled and double borders")
                     .border_style(Style::default().fg(Color::Cyan))
                     .borders(Borders::LEFT | Borders::RIGHT)
+                    .border_type(BorderType::Double)
                     .render(&mut f, chunks[1]);
             }
         })?;

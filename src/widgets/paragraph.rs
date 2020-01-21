@@ -24,7 +24,6 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # use tui::widgets::{Block, Borders, Paragraph, Text};
 /// # use tui::style::{Style, Color};
 /// # use tui::layout::{Alignment};
-/// # fn main() {
 /// let text = [
 ///     Text::raw("First line\n"),
 ///     Text::styled("Second line\n", Style::default().fg(Color::Red))
@@ -34,7 +33,6 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
 ///     .wrap(true);
-/// # }
 /// ```
 pub struct Paragraph<'a, 't, T>
 where

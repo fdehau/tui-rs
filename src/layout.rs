@@ -106,63 +106,59 @@ impl Layout {
     /// # Examples
     /// ```
     /// # use tui::layout::{Rect, Constraint, Direction, Layout};
+    /// let chunks = Layout::default()
+    ///     .direction(Direction::Vertical)
+    ///     .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
+    ///     .split(Rect {
+    ///         x: 2,
+    ///         y: 2,
+    ///         width: 10,
+    ///         height: 10,
+    ///     });
+    /// assert_eq!(
+    ///     chunks,
+    ///     vec![
+    ///         Rect {
+    ///             x: 2,
+    ///             y: 2,
+    ///             width: 10,
+    ///             height: 5
+    ///         },
+    ///         Rect {
+    ///             x: 2,
+    ///             y: 7,
+    ///             width: 10,
+    ///             height: 5
+    ///         }
+    ///     ]
+    /// );
     ///
-    /// # fn main() {
-    ///       let chunks = Layout::default()
-    ///           .direction(Direction::Vertical)
-    ///           .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
-    ///           .split(Rect {
-    ///               x: 2,
-    ///               y: 2,
-    ///               width: 10,
-    ///               height: 10,
-    ///           });
-    ///       assert_eq!(
-    ///           chunks,
-    ///           vec![
-    ///               Rect {
-    ///                   x: 2,
-    ///                   y: 2,
-    ///                   width: 10,
-    ///                   height: 5
-    ///               },
-    ///               Rect {
-    ///                   x: 2,
-    ///                   y: 7,
-    ///                   width: 10,
-    ///                   height: 5
-    ///               }
-    ///           ]
-    ///       );
-    ///
-    ///       let chunks = Layout::default()
-    ///           .direction(Direction::Horizontal)
-    ///           .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
-    ///           .split(Rect {
-    ///               x: 0,
-    ///               y: 0,
-    ///               width: 9,
-    ///               height: 2,
-    ///           });
-    ///       assert_eq!(
-    ///           chunks,
-    ///           vec![
-    ///               Rect {
-    ///                   x: 0,
-    ///                   y: 0,
-    ///                   width: 3,
-    ///                   height: 2
-    ///               },
-    ///               Rect {
-    ///                   x: 3,
-    ///                   y: 0,
-    ///                   width: 6,
-    ///                   height: 2
-    ///               }
-    ///           ]
-    ///       );
-    /// # }
-    ///
+    /// let chunks = Layout::default()
+    ///     .direction(Direction::Horizontal)
+    ///     .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
+    ///     .split(Rect {
+    ///         x: 0,
+    ///         y: 0,
+    ///         width: 9,
+    ///         height: 2,
+    ///     });
+    /// assert_eq!(
+    ///     chunks,
+    ///     vec![
+    ///         Rect {
+    ///             x: 0,
+    ///             y: 0,
+    ///             width: 3,
+    ///             height: 2
+    ///         },
+    ///         Rect {
+    ///             x: 3,
+    ///             y: 0,
+    ///             width: 6,
+    ///             height: 2
+    ///         }
+    ///     ]
+    /// );
     /// ```
     pub fn split(self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?

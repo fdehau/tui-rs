@@ -14,14 +14,12 @@ use crate::widgets::{Block, Widget};
 /// # use tui::widgets::{Block, Borders, Tabs};
 /// # use tui::style::{Style, Color};
 /// # use tui::symbols::{DOT};
-/// # fn main() {
 /// Tabs::default()
 ///     .block(Block::default().title("Tabs").borders(Borders::ALL))
 ///     .titles(&["Tab1", "Tab2", "Tab3", "Tab4"])
 ///     .style(Style::default().fg(Color::White))
 ///     .highlight_style(Style::default().fg(Color::Yellow))
 ///     .divider(DOT);
-/// # }
 /// ```
 pub struct Tabs<'a, T>
 where
