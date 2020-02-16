@@ -4,8 +4,7 @@ use tui::layout::Alignment;
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
 
-const SAMPLE_STRING: &str =
-    "The library is based on the principle of immediate rendering with \
+const SAMPLE_STRING: &str = "The library is based on the principle of immediate rendering with \
      intermediate buffers. This means that at each new frame you should build all widgets that are \
      supposed to be part of the UI. While providing a great flexibility for rich and \
      interactive UI, this may introduce overhead for highly dynamic content.";
