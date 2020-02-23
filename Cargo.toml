@@ -13,8 +13,6 @@ autoexamples = true
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "fdehau/tui-rs" }
-appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
 default = ["termion"]
