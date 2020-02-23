@@ -297,16 +297,14 @@ where
     /// ```
     /// # use tui::widgets::Chart;
     /// # use tui::layout::Constraint;
-    /// # fn main() {
-    ///     let constraints = (
-    ///         Constraint::Ratio(1, 3),
-    ///         Constraint::Ratio(1, 4)
-    ///     );
-    ///     // Hide the legend when either its width is greater than 33% of the total widget width
-    ///     // or if its height is greater than 25% of the total widget height.
-    ///     let _chart: Chart<String, String> = Chart::default()
-    ///         .hidden_legend_constraints(constraints);
-    /// # }
+    /// let constraints = (
+    ///     Constraint::Ratio(1, 3),
+    ///     Constraint::Ratio(1, 4)
+    /// );
+    /// // Hide the legend when either its width is greater than 33% of the total widget width
+    /// // or if its height is greater than 25% of the total widget height.
+    /// let _chart: Chart<String, String> = Chart::default()
+    ///     .hidden_legend_constraints(constraints);
     pub fn hidden_legend_constraints(
         mut self,
         constraints: (Constraint, Constraint),

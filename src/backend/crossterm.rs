@@ -93,7 +93,7 @@ where
 
         map_error(queue!(
             self.buffer,
-            Print(string.clone()),
+            Print(string),
             SetForegroundColor(CColor::Reset),
             SetBackgroundColor(CColor::Reset),
             SetAttribute(CAttribute::Reset)

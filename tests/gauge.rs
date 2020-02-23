@@ -22,7 +22,7 @@ fn gauge_render() {
                 .render(&mut f, chunks[0]);
             Gauge::default()
                 .block(Block::default().title("Ratio").borders(Borders::ALL))
-                .ratio(0.2113139343131)
+                .ratio(0.211_313_934_313_1)
                 .render(&mut f, chunks[1]);
         })
         .unwrap();
