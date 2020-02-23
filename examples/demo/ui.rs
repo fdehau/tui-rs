@@ -241,7 +241,7 @@ where
         };
         Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
     });
-    Table::new(header.into_iter(), rows)
+    Table::new(header.iter(), rows)
         .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[

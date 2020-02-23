@@ -68,7 +68,7 @@ fn main() -> Result<(), failure::Error> {
                 .constraints([Constraint::Percentage(100)].as_ref())
                 .margin(5)
                 .split(f.size());
-            Table::new(header.into_iter(), rows)
+            Table::new(header.iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
                 .widths(&[
                     Constraint::Percentage(50),
