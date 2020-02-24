@@ -38,6 +38,10 @@ rand = "0.7"
 failure = "0.1"
 structopt = "0.3"
 
+[package.metadata.docs.rs]
+# Have docs.rs build with more backends then just the default
+features = ["termion", "crossterm", "curses"]
+
 [[example]]
 name = "canvas"
 path = "examples/canvas.rs"
