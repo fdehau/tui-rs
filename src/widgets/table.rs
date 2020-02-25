@@ -15,7 +15,7 @@ use crate::widgets::{Block, Widget};
 pub enum Row<D>
 where
     D: Iterator,
-    D::Item: Display
+    D::Item: Display,
 {
     Data(D),
     StyledData(D, Style),
@@ -45,8 +45,7 @@ where
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1);
 /// ```
-pub struct Table<'a, H, R>
-{
+pub struct Table<'a, H, R> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
     /// Base style for the widget
