@@ -19,7 +19,7 @@ pub use self::chart::{Axis, Chart, Dataset, GraphType, Marker};
 pub use self::gauge::Gauge;
 pub use self::list::{List, ListState};
 pub use self::paragraph::Paragraph;
-pub use self::sparkline::Sparkline;
+pub use self::sparkline::{RenderDirection, Sparkline};
 pub use self::table::{Row, Table};
 pub use self::tabs::Tabs;
 

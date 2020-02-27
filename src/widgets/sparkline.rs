@@ -29,6 +29,13 @@ pub struct Sparkline<'a> {
     /// The maximum value to take to compute the maximum bar height (if nothing is specified, the
     /// widget uses the max of the dataset)
     max: Option<u64>,
+    // The direction to render the sparkine, either from left to right, or from right to left
+    direction: RenderDirection,
+}
+
+pub enum RenderDirection {
+    LTR,
+    RTL,
 }
 
 impl<'a> Default for Sparkline<'a> {
@@ -38,6 +45,7 @@ impl<'a> Default for Sparkline<'a> {
             style: Default::default(),
             data: &[],
             max: None,
+            direction: RenderDirection::LTR,
         }
     }
 }
@@ -60,6 +68,11 @@ impl<'a> Sparkline<'a> {
 
     pub fn max(mut self, max: u64) -> Sparkline<'a> {
         self.max = Some(max);
+        self
+    }
+
+    pub fn direction(mut self, direction: RenderDirection) -> Sparkline<'a> {
+        self.direction = direction;
         self
     }
 }
@@ -108,7 +121,11 @@ impl<'a> Widget for Sparkline<'a> {
                     7 => bar::SEVEN_EIGHTHS,
                     _ => bar::FULL,
                 };
-                buf.get_mut(spark_area.left() + i as u16, spark_area.top() + j)
+                let x = match self.direction {
+                    RenderDirection::LTR => spark_area.left() + i as u16,
+                    RenderDirection::RTL => spark_area.right() - i as u16 - 1,
+                };
+                buf.get_mut(x, spark_area.top() + j)
                     .set_symbol(symbol)
                     .set_fg(self.style.fg)
                     .set_bg(self.style.bg);
