@@ -367,6 +367,15 @@ impl Buffer {
         }
     }
 
+    /// Reset cells in given area in the buffer
+    pub fn reset_area(&mut self, area: Rect) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).reset();
+            }
+        }
+    }
+
     /// Merge an other buffer into this one
     pub fn merge(&mut self, other: &Buffer) {
         let area = self.area.union(other.area);

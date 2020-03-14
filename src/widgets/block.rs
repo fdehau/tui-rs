@@ -42,6 +42,8 @@ pub struct Block<'a> {
     border_type: BorderType,
     /// Widget style
     style: Style,
+    /// Whether to reset the background
+    clean: bool,
 }
 
 impl<'a> Default for Block<'a> {
@@ -53,6 +55,7 @@ impl<'a> Default for Block<'a> {
             border_style: Default::default(),
             border_type: BorderType::Plain,
             style: Default::default(),
+            clean: false,
         }
     }
 }
@@ -88,6 +91,11 @@ impl<'a> Block<'a> {
         self
     }
 
+    pub fn clean(mut self, clean: bool) -> Block<'a> {
+        self.clean = clean;
+        self
+    }
+
     /// Compute the inner area of a block based on its border visibility rules.
     pub fn inner(&self, area: Rect) -> Rect {
         if area.width < 2 || area.height < 2 {
@@ -119,6 +127,10 @@ impl<'a> Widget for Block<'a> {
         }
 
         buf.set_background(area, self.style.bg);
+
+        if self.clean {
+            buf.reset_area(area);
+        }
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {
