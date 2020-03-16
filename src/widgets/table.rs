@@ -19,6 +19,7 @@ use unicode_width::UnicodeWidthStr;
 pub struct TableState {
     offset: usize,
     selected: Option<usize>,
+    pub page_size: Option<usize>
 }
 
 impl Default for TableState {
@@ -26,6 +27,7 @@ impl Default for TableState {
         TableState {
             offset: 0,
             selected: None,
+            page_size: None
         }
     }
 }
@@ -94,7 +96,7 @@ pub struct Table<'a, H, R> {
     header_gap: u16,
     /// Style used to render the selected row
     highlight_style: Style,
-    /// Symbol in front of the selected rom
+    /// Symbol in front of the selected row
     highlight_symbol: Option<&'a str>,
     /// Data to display in each row
     rows: R,
@@ -300,6 +302,7 @@ where
         let default_style = Style::default();
         if y < table_area.bottom() {
             let remaining = (table_area.bottom() - y) as usize;
+            state.page_size = Some(remaining);
 
             // Make sure the table shows the selected item
             state.offset = if let Some(selected) = selected {
