@@ -19,7 +19,7 @@ use unicode_width::UnicodeWidthStr;
 pub struct TableState {
     offset: usize,
     selected: Option<usize>,
-    pub page_size: Option<usize>
+    pub page_size: Option<usize>,
 }
 
 impl Default for TableState {
@@ -27,7 +27,7 @@ impl Default for TableState {
         TableState {
             offset: 0,
             selected: None,
-            page_size: None
+            page_size: None,
         }
     }
 }
