@@ -149,12 +149,16 @@ where
         self.flush()?;
 
         // Swap buffers
-        self.buffers[1 - self.current].reset();
-        self.current = 1 - self.current;
+        self.swap_buffers();
 
         // Flush
         self.backend.flush()?;
         Ok(())
+    }
+
+    pub fn swap_buffers(&mut self) {
+        self.buffers[1 - self.current].reset();
+        self.current = 1 - self.current;
     }
 
     pub fn hide_cursor(&mut self) -> io::Result<()> {
