@@ -21,6 +21,7 @@ use tui::{backend::CrosstermBackend, Terminal};
 
 enum Event<I> {
     Input(I),
+    Resize,
     Tick,
 }
 
@@ -52,8 +53,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         loop {
             // poll for tick rate duration, if no events, sent tick event.
             if event::poll(Duration::from_millis(cli.tick_rate)).unwrap() {
-                if let CEvent::Key(key) = event::read().unwrap() {
-                    tx.send(Event::Input(key)).unwrap();
+                match event::read().unwrap() {
+                    CEvent::Key(key) => {
+                        tx.send(Event::Input(key)).unwrap();
+                    }
+                    CEvent::Resize(_, _) => {
+                        // Force re-render on resize event.
+                        tx.send(Event::Resize).unwrap();
+                    }
+                    _ => {}
                 }
             }
 
@@ -85,6 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             Event::Tick => {
                 app.on_tick();
             }
+            _ => {}
         }
         if app.should_quit {
             break;
