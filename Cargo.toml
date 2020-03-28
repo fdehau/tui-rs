@@ -26,6 +26,7 @@ either = "1.5"
 unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5" , optional = true }
+termit-ansi = "0.2.1"
 rustbox = { version = "0.11", optional = true }
 crossterm = { git = "https://github.com/crossterm-rs/crossterm", optional = true }
 easycurses = { version = "0.12.2", optional = true }

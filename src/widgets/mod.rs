@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use std::borrow::Cow;
 
+mod ansi;
 mod barchart;
 mod block;
 pub mod canvas;
@@ -13,6 +14,7 @@ mod sparkline;
 mod table;
 mod tabs;
 
+pub use self::ansi::AnsiBuffer;
 pub use self::barchart::BarChart;
 pub use self::block::{Block, BorderType};
 pub use self::chart::{Axis, Chart, Dataset, GraphType, Marker};
