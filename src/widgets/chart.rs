@@ -304,6 +304,7 @@ where
     /// // or if its height is greater than 25% of the total widget height.
     /// let _chart: Chart<String, String> = Chart::default()
     ///     .hidden_legend_constraints(constraints);
+    /// ```
     pub fn hidden_legend_constraints(
         mut self,
         constraints: (Constraint, Constraint),
