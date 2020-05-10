@@ -500,16 +500,14 @@ where
                         color: dataset.style.fg,
                     });
                     if let GraphType::Line = dataset.graph_type {
-                        if !dataset.data.is_empty() {
-                            for i in 0..dataset.data.len() - 1 {
-                                ctx.draw(&Line {
-                                    x1: dataset.data[i].0,
-                                    y1: dataset.data[i].1,
-                                    x2: dataset.data[i + 1].0,
-                                    y2: dataset.data[i + 1].1,
-                                    color: dataset.style.fg,
-                                })
-                            }
+                        for data in dataset.data.windows(2) {
+                            ctx.draw(&Line {
+                                x1: data[0].0,
+                                y1: data[0].1,
+                                x2: data[1].0,
+                                y2: data[1].1,
+                                color: dataset.style.fg,
+                            })
                         }
                     }
                 })
