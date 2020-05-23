@@ -8,6 +8,11 @@ mod rustbox;
 #[cfg(feature = "rustbox")]
 pub use self::rustbox::RustboxBackend;
 
+#[cfg(feature = "termwiz")]
+mod termwiz;
+#[cfg(feature = "termwiz")]
+pub use self::termwiz::TermwizBackend;
+
 #[cfg(feature = "termion")]
 mod termion;
 #[cfg(feature = "termion")]
