@@ -36,13 +36,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     loop {
         terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
-        match terminal
+        if let Ok(Some(input)) = terminal
             .backend_mut()
             .buffered_terminal_mut()
             .terminal()
             .poll_input(Some(tick_rate))
         {
-            Ok(Some(input)) => match input {
+            match input {
                 InputEvent::Key(KeyEvent {
                     key: KeyCode::Char(c),
                     ..
@@ -70,8 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .resize(cols, rows);
                 }
                 _ => {}
-            },
-            _ => {}
+            }
         }
 
         if last_tick.elapsed() > tick_rate {
