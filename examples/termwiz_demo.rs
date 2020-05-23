@@ -81,5 +81,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             break;
         }
     }
+
+    terminal.flush()?;
+
     Ok(())
 }

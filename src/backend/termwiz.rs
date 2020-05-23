@@ -168,19 +168,25 @@ impl Into<ColorAttribute> for Color {
     fn into(self) -> ColorAttribute {
         match self {
             Color::Reset => ColorAttribute::Default,
-            Color::Black | Color::Gray | Color::DarkGray => AnsiColor::Black.into(),
-            Color::Red | Color::LightRed => AnsiColor::Red.into(),
-            Color::Green | Color::LightGreen => AnsiColor::Green.into(),
-            Color::Yellow | Color::LightYellow => AnsiColor::Yellow.into(),
-            Color::Magenta | Color::LightMagenta => AnsiColor::Purple.into(),
-            Color::Cyan | Color::LightCyan => AnsiColor::Aqua.into(),
+            Color::Black => AnsiColor::Black.into(),
+            Color::Gray | Color::DarkGray => AnsiColor::Grey.into(),
+            Color::Red => AnsiColor::Maroon.into(),
+            Color::LightRed => AnsiColor::Red.into(),
+            Color::Green => AnsiColor::Green.into(),
+            Color::LightGreen => AnsiColor::Lime.into(),
+            Color::Yellow => AnsiColor::Olive.into(),
+            Color::LightYellow => AnsiColor::Yellow.into(),
+            Color::Magenta => AnsiColor::Purple.into(),
+            Color::LightMagenta => AnsiColor::Fuschia.into(),
+            Color::Cyan => AnsiColor::Teal.into(),
+            Color::LightCyan => AnsiColor::Aqua.into(),
             Color::White => AnsiColor::White.into(),
-            Color::Blue | Color::LightBlue => AnsiColor::Blue.into(),
+            Color::Blue => AnsiColor::Navy.into(),
+            Color::LightBlue => AnsiColor::Blue.into(),
             Color::Indexed(i) => ColorAttribute::PaletteIndex(i),
-            Color::Rgb(r, g, b) => ColorAttribute::TrueColorWithPaletteFallback(
-                RgbColor::new(r, g, b),
-                AnsiColor::Black.into(),
-            ),
+            Color::Rgb(r, g, b) => {
+                ColorAttribute::TrueColorWithDefaultFallback(RgbColor::new(r, g, b))
+            }
         }
     }
 }
