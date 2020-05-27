@@ -3,6 +3,7 @@ use crate::{
     style::{Color, Modifier, Style},
 };
 use std::cmp::min;
+use std::usize;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
