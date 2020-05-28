@@ -38,7 +38,7 @@ fn widgets_tabs_should_truncate_the_last_item() {
                 Rect {
                     x: 0,
                     y: 0,
-                    width: 8,
+                    width: 9,
                     height: 1,
                 },
             );
@@ -50,28 +50,97 @@ fn widgets_tabs_should_truncate_the_last_item() {
 }
 
 #[test]
-fn widgets_tabs_should_respect_left_margin() {
-    // TODO: Possibly test other number of margins
-    let backend = TestBackend::new(13, 1);
+fn widgets_tabs_should_not_panic_on_narrow_areas_with_margin() {
+    let backend = TestBackend::new(3, 1);
     let mut terminal = Terminal::new(backend).unwrap();
     terminal
         .draw(|mut f| {
             let tabs = Tabs::default()
                 .titles(&["Tab1", "Tab2"])
-                .margin(2)
+                .margin(3)
                 .divider(symbols::line::VERTICAL);
             f.render_widget(
                 tabs,
                 Rect {
                     x: 0,
                     y: 0,
-                    width: 13,
+                    width: 3,
                     height: 1,
                 },
             );
         })
         .unwrap();
 
-    let expected = Buffer::with_lines(vec![format!("  Tab1 {} Tab2", symbols::line::VERTICAL)]);
+    let expected = Buffer::with_lines(vec!["   "]);
     terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_tabs_should_respect_left_margin() {
+    let test_case = |margin, width, expected_buf| {
+        let backend = TestBackend::new(width, 1);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|mut f| {
+                let tabs = Tabs::default()
+                    .titles(&["Tab1", "Tab2"])
+                    .margin(margin)
+                    .divider(symbols::line::VERTICAL);
+                f.render_widget(
+                    tabs,
+                    Rect {
+                        x: 0,
+                        y: 0,
+                        width,
+                        height: 1,
+                    },
+                );
+            })
+            .unwrap();
+
+        let expected = Buffer::with_lines(vec![expected_buf]);
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(0, 11, format!("Tab1 {} Tab2", symbols::line::VERTICAL));
+    test_case(1, 13, format!(" Tab1 {} Tab2 ", symbols::line::VERTICAL));
+    test_case(2, 15, format!("  Tab1 {} Tab2  ", symbols::line::VERTICAL));
+    test_case(3, 3, "   ".to_string());
+}
+
+/// Tests that truncation occurs in order to respect the right margin
+/// when space would otherwise normally be available.
+#[test]
+fn widgets_tabs_should_respect_right_margin() {
+    // TODO: Possibly test other number of margins
+    let test_case = |margin, width, expected_buf| {
+        let backend = TestBackend::new(width, 1);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|mut f| {
+                let tabs = Tabs::default()
+                    .titles(&["Tab1", "Tab2"])
+                    .margin(margin)
+                    .divider(symbols::line::VERTICAL);
+                f.render_widget(
+                    tabs,
+                    Rect {
+                        x: 0,
+                        y: 0,
+                        width,
+                        height: 1,
+                    },
+                );
+            })
+            .unwrap();
+
+        let expected = Buffer::with_lines(vec![expected_buf]);
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(1, 12, format!(" Tab1 {} Tab ", symbols::line::VERTICAL));
+    test_case(2, 13, format!("  Tab1 {} Ta  ", symbols::line::VERTICAL));
+    test_case(2, 10, format!("  Tab1 {}  ", symbols::line::VERTICAL));
+    test_case(3, 10, "   Tab1   ".to_string());
+    test_case(3, 6, "      ".to_string());
 }

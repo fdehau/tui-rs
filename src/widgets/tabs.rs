@@ -118,38 +118,48 @@ where
 
         buf.set_background(tabs_area, self.style.bg);
 
-        let mut x = tabs_area.left();
+        let mut x = tabs_area.left() + self.margin; // adds left margin
+        let mut space_remaining: isize =
+            (tabs_area.right() - tabs_area.left()) as isize - (self.margin * 2) as isize;
+
         let titles_length = self.titles.len();
-        let divider_width = self.divider.width() as u16;
-        for (title, style, first_title, last_title) in
-            self.titles.iter().enumerate().map(|(i, t)| {
-                let lt = i + 1 == titles_length;
-                let ft = i == 0;
-                if i == self.selected {
-                    (t, self.highlight_style, ft, lt)
-                } else {
-                    (t, self.style, ft, lt)
-                }
-            })
-        {
-            if first_title {
-                // Adds left margin on first title
-                x += self.margin;
+        // divider actually requires a space before it, so we add one
+        let divider_width = self.divider.width() as u16 + 1;
+        for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
+            let lt = i + 1 == titles_length;
+            if i == self.selected {
+                (t, self.highlight_style, lt)
             } else {
-                // Adds one space between titles
-                x += 1;
+                (t, self.style, lt)
+            }
+        }) {
+            if space_remaining <= 0 {
+                break;
             }
 
-            if x >= tabs_area.right() {
+            let title_width = title.as_ref().width() as u16;
+            if title_width > space_remaining as u16 {
+                buf.set_stringn(
+                    x,
+                    tabs_area.top(),
+                    title.as_ref(),
+                    space_remaining as usize,
+                    style,
+                );
                 break;
             } else {
                 buf.set_string(x, tabs_area.top(), title.as_ref(), style);
-                x += title.as_ref().width() as u16 + 1;
-                if x >= tabs_area.right() || last_title {
-                    break;
-                } else {
-                    buf.set_string(x, tabs_area.top(), self.divider, self.style);
-                    x += divider_width;
+                x += title_width;
+                space_remaining -= title_width as isize;
+
+                if !last_title {
+                    if space_remaining >= divider_width as isize {
+                        buf.set_string(x + 1, tabs_area.top(), self.divider, self.style);
+                        x += divider_width + 1; // add an additional space for the next one
+                        space_remaining -= divider_width as isize + 1;
+                    } else {
+                        break;
+                    }
                 }
             }
         }

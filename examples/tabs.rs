@@ -52,7 +52,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .titles(&app.tabs.titles)
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))
-                .highlight_style(Style::default().fg(Color::Yellow));
+                .highlight_style(Style::default().fg(Color::Yellow))
+                .margin(2);
             f.render_widget(tabs, chunks[0]);
             let inner = match app.tabs.index {
                 0 => Block::default().title("Inner 0").borders(Borders::ALL),
