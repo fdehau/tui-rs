@@ -86,7 +86,7 @@ pub struct Table<'a, H, R> {
     /// Base style for the widget
     style: Style,
     /// Header row for all columns
-    header: H,
+    header: Option<H>,
     /// Style for the header
     header_style: Style,
     /// Width constraints for each column
@@ -112,7 +112,7 @@ where
         Table {
             block: None,
             style: Style::default(),
-            header: H::default(),
+            header: Some(H::default()),
             header_style: Style::default(),
             widths: &[],
             column_spacing: 1,
@@ -134,7 +134,7 @@ where
         Table {
             block: None,
             style: Style::default(),
-            header,
+            header: Some(header),
             header_style: Style::default(),
             widths: &[],
             column_spacing: 1,
@@ -153,7 +153,12 @@ where
     where
         II: IntoIterator<Item = H::Item, IntoIter = H>,
     {
-        self.header = header.into_iter();
+        self.header = Some(header.into_iter());
+        self
+    }
+
+    pub fn headerless(mut self) -> Table<'a, H, R> {
+        self.header = None;
         self
     }
 
@@ -281,13 +286,20 @@ where
         let mut x = table_area.left();
 
         // Draw header
-        if y < table_area.bottom() {
-            for (w, t) in solved_widths.iter().zip(self.header.by_ref()) {
-                buf.set_stringn(x, y, format!("{}", t), *w as usize, self.header_style);
-                x += *w + self.column_spacing;
+        match self.header {
+            Some(mut header) => {
+                if y < table_area.bottom() {
+                    for (w, t) in solved_widths.iter().zip(header.by_ref()) {
+                        buf.set_stringn(x, y, format!("{}", t), *w as usize, self.header_style);
+                        x += *w + self.column_spacing;
+                    }
+                }
+                y += 1 + self.header_gap;
+            }
+            None => {
+                y += self.header_gap;
             }
         }
-        y += 1 + self.header_gap;
 
         // Use highlight_style only if something is selected
         let (selected, highlight_style) = match state.selected {
