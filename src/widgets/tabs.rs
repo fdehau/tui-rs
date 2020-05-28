@@ -38,6 +38,8 @@ where
     highlight_style: Style,
     /// Tab divider
     divider: &'a str,
+    /// Margin width
+    margin: u16,
 }
 
 impl<'a, T> Default for Tabs<'a, T>
@@ -52,6 +54,7 @@ where
             style: Default::default(),
             highlight_style: Default::default(),
             divider: line::VERTICAL,
+            margin: 0,
         }
     }
 }
@@ -89,6 +92,11 @@ where
         self.divider = divider;
         self
     }
+
+    pub fn margin(mut self, margin: u16) -> Tabs<'a, T> {
+        self.margin = margin;
+        self
+    }
 }
 
 impl<'a, T> Widget for Tabs<'a, T>
@@ -113,15 +121,25 @@ where
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();
         let divider_width = self.divider.width() as u16;
-        for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
-            let lt = i + 1 == titles_length;
-            if i == self.selected {
-                (t, self.highlight_style, lt)
+        for (title, style, first_title, last_title) in
+            self.titles.iter().enumerate().map(|(i, t)| {
+                let lt = i + 1 == titles_length;
+                let ft = i == 0;
+                if i == self.selected {
+                    (t, self.highlight_style, ft, lt)
+                } else {
+                    (t, self.style, ft, lt)
+                }
+            })
+        {
+            if first_title {
+                // Adds left margin on first title
+                x += self.margin;
             } else {
-                (t, self.style, lt)
+                // Adds one space between titles
+                x += 1;
             }
-        }) {
-            x += 1;
+
             if x >= tabs_area.right() {
                 break;
             } else {
