@@ -6,7 +6,7 @@ fn widgets_tabs_should_not_panic_on_narrow_areas() {
     let mut terminal = Terminal::new(backend).unwrap();
     terminal
         .draw(|mut f| {
-            let tabs = Tabs::default().titles(&["Tab1", "Tab2"]);
+            let tabs = Tabs::default().titles(&["Tab1", "Tab2"]).margin(0);
             f.render_widget(
                 tabs,
                 Rect {
@@ -19,7 +19,6 @@ fn widgets_tabs_should_not_panic_on_narrow_areas() {
         })
         .unwrap();
 
-    // FIXME: Assumes 0-wide margin when not explicity specified
     let expected = Buffer::with_lines(vec!["T"]);
     terminal.backend().assert_buffer(&expected);
 }
@@ -30,7 +29,10 @@ fn widgets_tabs_should_truncate_the_last_item() {
     let mut terminal = Terminal::new(backend).unwrap();
     terminal
         .draw(|mut f| {
-            let tabs = Tabs::default().titles(&["Tab1", "Tab2"]);
+            let tabs = Tabs::default()
+                .titles(&["Tab1", "Tab2"])
+                .margin(0)
+                .divider(symbols::line::VERTICAL);
             f.render_widget(
                 tabs,
                 Rect {
@@ -43,9 +45,6 @@ fn widgets_tabs_should_truncate_the_last_item() {
         })
         .unwrap();
 
-    // FIXME: Assumes 0-wide margin when not explicitly specified
-    // FIXME: Assumes VERTICAL divider when not explicity specified
-    // if default divider changes test will fail
     let expected = Buffer::with_lines(vec![format!("Tab1 {} Ta", symbols::line::VERTICAL)]);
     terminal.backend().assert_buffer(&expected);
 }
@@ -57,7 +56,10 @@ fn widgets_tabs_should_respect_left_margin() {
     let mut terminal = Terminal::new(backend).unwrap();
     terminal
         .draw(|mut f| {
-            let tabs = Tabs::default().titles(&["Tab1", "Tab2"]).margin(2);
+            let tabs = Tabs::default()
+                .titles(&["Tab1", "Tab2"])
+                .margin(2)
+                .divider(symbols::line::VERTICAL);
             f.render_widget(
                 tabs,
                 Rect {
@@ -70,8 +72,6 @@ fn widgets_tabs_should_respect_left_margin() {
         })
         .unwrap();
 
-    // FIXME: Assumes VERTICAL divider when not explicity specified
-    // if default divider changes test will fail
     let expected = Buffer::with_lines(vec![format!("  Tab1 {} Tab2", symbols::line::VERTICAL)]);
     terminal.backend().assert_buffer(&expected);
 }
