@@ -166,3 +166,69 @@ fn widgets_tabs_should_respect_right_margin() {
     test_case(3, 10, "   Tab1   ".to_string());
     test_case(3, 6, "      ".to_string());
 }
+
+#[test]
+fn widgets_tabs_should_respect_vertical_margin() {
+    let test_case = |margin, height, expected_buf: Vec<String>| {
+        let backend = TestBackend::new(11, height);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|mut f| {
+                let tabs = Tabs::default()
+                    .titles(&["Tab1", "Tab2"])
+                    .margin(Margin {
+                        horizontal: 0,
+                        vertical: margin,
+                    })
+                    .divider(symbols::line::VERTICAL);
+
+                f.render_widget(
+                    tabs,
+                    Rect {
+                        x: 0,
+                        y: 0,
+                        width: 11,
+                        height,
+                    },
+                );
+            })
+            .unwrap();
+
+        let expected = Buffer::with_lines(expected_buf);
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(0, 1, vec![format!("Tab1 {} Tab2", symbols::line::VERTICAL)]);
+    test_case(
+        1,
+        3,
+        vec![
+            " ".repeat(11),
+            format!("Tab1 {} Tab2", symbols::line::VERTICAL),
+            " ".repeat(11),
+        ],
+    );
+    test_case(
+        2,
+        5,
+        vec![
+            " ".repeat(11),
+            " ".repeat(11),
+            format!("Tab1 {} Tab2", symbols::line::VERTICAL),
+            " ".repeat(11),
+            " ".repeat(11),
+        ],
+    );
+    test_case(1, 2, vec![" ".repeat(11), " ".repeat(11)]);
+    test_case(
+        2,
+        4,
+        vec![
+            " ".repeat(11),
+            " ".repeat(11),
+            " ".repeat(11),
+            " ".repeat(11),
+        ],
+    );
+    test_case(2, 3, vec![" ".repeat(11), " ".repeat(11), " ".repeat(11)]);
+}

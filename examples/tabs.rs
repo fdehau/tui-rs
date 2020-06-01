@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .highlight_style(Style::default().fg(Color::Yellow))
                 .margin(Margin {
                     vertical: 0,
-                    horizontal: 2,
+                    horizontal: 1,
                 });
             f.render_widget(tabs, chunks[0]);
             let inner = match app.tabs.index {
