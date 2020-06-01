@@ -13,10 +13,9 @@ fn widgets_tabs_should_not_panic_on_narrow_areas() {
     let mut terminal = Terminal::new(backend).unwrap();
     terminal
         .draw(|mut f| {
-            let tabs = Tabs::default().titles(&["Tab1", "Tab2"]).margin(Margin {
-                horizontal: 0,
-                vertical: 0,
-            });
+            let tabs = Tabs::default()
+                .titles(&["Tab1", "Tab2"])
+                .margin(Margin::default());
             f.render_widget(
                 tabs,
                 Rect {
@@ -41,10 +40,7 @@ fn widgets_tabs_should_truncate_the_last_item() {
         .draw(|mut f| {
             let tabs = Tabs::default()
                 .titles(&["Tab1", "Tab2"])
-                .margin(Margin {
-                    horizontal: 0,
-                    vertical: 0,
-                })
+                .margin(Margin::default())
                 .divider(symbols::line::VERTICAL);
             f.render_widget(
                 tabs,
@@ -70,10 +66,7 @@ fn widgets_tabs_should_not_panic_on_narrow_areas_with_margin() {
         .draw(|mut f| {
             let tabs = Tabs::default()
                 .titles(&["Tab1", "Tab2"])
-                .margin(Margin {
-                    horizontal: 3,
-                    vertical: 0,
-                })
+                .margin(Margin::default().horizontal(3))
                 .divider(symbols::line::VERTICAL);
             f.render_widget(
                 tabs,
@@ -100,10 +93,7 @@ fn widgets_tabs_should_respect_left_margin() {
             .draw(|mut f| {
                 let tabs = Tabs::default()
                     .titles(&["Tab1", "Tab2"])
-                    .margin(Margin {
-                        horizontal: margin,
-                        vertical: 0,
-                    })
+                    .margin(Margin::default().horizontal(margin))
                     .divider(symbols::line::VERTICAL);
                 f.render_widget(
                     tabs,
@@ -139,10 +129,7 @@ fn widgets_tabs_should_respect_right_margin() {
             .draw(|mut f| {
                 let tabs = Tabs::default()
                     .titles(&["Tab1", "Tab2"])
-                    .margin(Margin {
-                        horizontal: margin,
-                        vertical: 0,
-                    })
+                    .margin(Margin::default().horizontal(margin))
                     .divider(symbols::line::VERTICAL);
                 f.render_widget(
                     tabs,
@@ -176,10 +163,7 @@ fn widgets_tabs_should_respect_vertical_margin() {
             .draw(|mut f| {
                 let tabs = Tabs::default()
                     .titles(&["Tab1", "Tab2"])
-                    .margin(Margin {
-                        horizontal: 0,
-                        vertical: margin,
-                    })
+                    .margin(Margin::default().vertical(margin))
                     .divider(symbols::line::VERTICAL);
 
                 f.render_widget(
