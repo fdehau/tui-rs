@@ -9,7 +9,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Margin},
     style::{Color, Style},
     widgets::{Block, Borders, Tabs},
     Terminal,
@@ -53,7 +53,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))
                 .highlight_style(Style::default().fg(Color::Yellow))
-                .margin(2);
+                .margin(Margin {
+                    vertical: 0,
+                    horizontal: 2,
+                });
             f.render_widget(tabs, chunks[0]);
             let inner = match app.tabs.index {
                 0 => Block::default().title("Inner 0").borders(Borders::ALL),

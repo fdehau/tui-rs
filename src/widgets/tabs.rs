@@ -1,7 +1,7 @@
 use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
-use crate::layout::Rect;
+use crate::layout::{Margin, Rect};
 use crate::style::Style;
 use crate::symbols::line;
 use crate::widgets::{Block, Widget};
@@ -39,7 +39,7 @@ where
     /// Tab divider
     divider: &'a str,
     /// Margin width
-    margin: u16,
+    margin: Margin,
 }
 
 impl<'a, T> Default for Tabs<'a, T>
@@ -54,7 +54,10 @@ where
             style: Default::default(),
             highlight_style: Default::default(),
             divider: line::VERTICAL,
-            margin: 0,
+            margin: Margin {
+                horizontal: 0,
+                vertical: 0,
+            },
         }
     }
 }
@@ -93,7 +96,7 @@ where
         self
     }
 
-    pub fn margin(mut self, margin: u16) -> Tabs<'a, T> {
+    pub fn margin(mut self, margin: Margin) -> Tabs<'a, T> {
         self.margin = margin;
         self
     }
@@ -110,7 +113,8 @@ where
                 b.inner(area)
             }
             None => area,
-        };
+        }
+        .inner(&self.margin);
 
         if tabs_area.height < 1 {
             return;
@@ -118,13 +122,12 @@ where
 
         buf.set_background(tabs_area, self.style.bg);
 
-        let mut x = tabs_area.left() + self.margin; // adds left margin
-        let mut space_remaining: isize =
-            (tabs_area.right() - tabs_area.left()) as isize - (self.margin * 2) as isize;
-
+        let mut x = tabs_area.left();
         let titles_length = self.titles.len();
+
         // divider actually requires a space before it, so we add one
         let divider_width = self.divider.width() as u16 + 1;
+
         for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
             let lt = i + 1 == titles_length;
             if i == self.selected {
@@ -133,10 +136,11 @@ where
                 (t, self.style, lt)
             }
         }) {
-            if space_remaining <= 0 {
+            if x >= tabs_area.right() {
                 break;
             }
 
+            let mut space_remaining: isize = (tabs_area.right() as isize) - (x as isize);
             let title_width = title.as_ref().width() as u16;
             if title_width > space_remaining as u16 {
                 buf.set_stringn(
@@ -156,7 +160,6 @@ where
                     if space_remaining >= divider_width as isize {
                         buf.set_string(x + 1, tabs_area.top(), self.divider, self.style);
                         x += divider_width + 1; // add an additional space for the next one
-                        space_remaining -= divider_width as isize + 1;
                     } else {
                         break;
                     }
