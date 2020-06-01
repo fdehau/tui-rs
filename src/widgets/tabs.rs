@@ -116,14 +116,9 @@ where
         }
         .inner(&self.margin);
 
-        println!("area: {:?}, tabs_area: {:?}", area, tabs_area);
-        println!("tabs_area height: {}", tabs_area.height);
-
         if tabs_area.height < 1 {
             return;
         }
-
-        println!("didn't return");
 
         buf.set_background(tabs_area, self.style.bg);
 

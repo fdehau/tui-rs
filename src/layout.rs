@@ -51,6 +51,33 @@ pub struct Margin {
     pub horizontal: u16,
 }
 
+impl Margin {
+    pub fn both(mut self, margin: u16) -> Self {
+        self.vertical = margin;
+        self.horizontal = margin;
+        self
+    }
+
+    pub fn horizontal(mut self, margin: u16) -> Self {
+        self.horizontal = margin;
+        self
+    }
+
+    pub fn vertical(mut self, margin: u16) -> Self {
+        self.vertical = margin;
+        self
+    }
+}
+
+impl Default for Margin {
+    fn default() -> Self {
+        Margin {
+            vertical: 0,
+            horizontal: 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Alignment {
     Left,
