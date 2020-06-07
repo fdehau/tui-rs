@@ -1,7 +1,7 @@
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Constraint;
-use tui::style::{Color, Style};
+use tui::style::{Color, Style, StyleDiff};
 use tui::widgets::{Block, Borders, Row, Table, TableState};
 use tui::Terminal;
 
@@ -440,8 +440,8 @@ fn widgets_table_can_be_styled() {
                 .block(Block::default().borders(Borders::ALL))
                 .highlight_symbol(">> ")
                 .style(style)
-                .highlight_style(highlight_style)
-                .header_style(header_style)
+                .highlight_style_diff(highlight_style)
+                .header_style_diff(header_style)
                 .widths(&[
                     Constraint::Length(9),
                     Constraint::Length(6),
@@ -531,8 +531,8 @@ fn widgets_table_can_be_styled() {
         ]),
         Style::default(),
         Style::default(),
-        Style::default(),
-        Style::default(),
+        Style::default().into(),
+        Style::default().into(),
     );
 
     test_case(
@@ -540,10 +540,10 @@ fn widgets_table_can_be_styled() {
             "┌────────────────────────────┐",
             "│YYYYYrrrrrYYYYYrrYYYYYrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
-            "│--------rr-----rr-----rrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
             "│GGGGGGGGrrGGGGGrrGGGGGrrrrrr│",
-            "│BBBBBBBBrrBBBBBrrBBBBBrrrrrr│",
-            "│--------rr-----rr-----rrrrrr│",
+            "│rrrBBBBBrrBBBBBrrBBBBBrrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
             "└────────────────────────────┘",
@@ -552,18 +552,18 @@ fn widgets_table_can_be_styled() {
             "┌────────────────────────────┐",
             "│YYYYY     YYYYY  YYYYY      │",
             "│                            │",
-            "│--------  -----  -----      │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
             "│GGGGGGGG  GGGGG  GGGGG      │",
-            "│BBBBBBBB  BBBBB  BBBBB      │",
-            "│--------  -----  -----      │",
+            "│rrrBBBBB  BBBBB  BBBBB      │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().fg(Color::Green).bg(Color::Green),
-        Style::default().fg(Color::Yellow).bg(Color::Yellow),
+        Style::default().fg(Color::Green).bg(Color::Green).into(),
+        Style::default().fg(Color::Yellow).bg(Color::Yellow).into(),
     );
 
     test_case(
@@ -571,10 +571,10 @@ fn widgets_table_can_be_styled() {
             "┌────────────────────────────┐",
             "│YYYYYrrrrrYYYYYrrYYYYYrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
             "│--------rr-----rr-----rrrrrr│",
-            "│--------rr-----rr-----rrrrrr│",
-            "│BBBBBBBBrrBBBBBrrBBBBBrrrrrr│",
-            "│--------rr-----rr-----rrrrrr│",
+            "│rrrBBBBBrrBBBBBrrBBBBBrrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
             "└────────────────────────────┘",
@@ -583,17 +583,48 @@ fn widgets_table_can_be_styled() {
             "┌────────────────────────────┐",
             "│YYYYY     YYYYY  YYYYY      │",
             "│                            │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
             "│--------  -----  -----      │",
-            "│--------  -----  -----      │",
-            "│BBBBBBBB  BBBBB  BBBBB      │",
-            "│--------  -----  -----      │",
+            "│rrrBBBBB  BBBBB  BBBBB      │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default(),
-        Style::default().fg(Color::Yellow).bg(Color::Yellow),
+        Style::default().into(),
+        Style::default().fg(Color::Yellow).bg(Color::Yellow).into(),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│RRRRRrrrrrRRRRRrrRRRRRrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
+            "│GGGGGGGGrrGGGGGrrGGGGGrrrrrr│",
+            "│rrrBBBBBrrBBBBBrrBBBBBrrrrrr│",
+            "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "└────────────────────────────┘",
+        ]),
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│YYYYY     YYYYY  YYYYY      │",
+            "│                            │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
+            "│RRRBBBBB  BBBBB  BBBBB      │",
+            "│rrrBBBBB  BBBBB  BBBBB      │",
+            "│rrrRRRRR  RRRRR  RRRRR      │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        StyleDiff::default().bg(Color::Green),
+        StyleDiff::default().fg(Color::Yellow),
     );
 }

@@ -2,7 +2,7 @@ use tui::{
     backend::TestBackend,
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style},
+    style::{Color, Style, StyleDiff},
     symbols,
     widgets::{Block, Borders, List, ListState, Text},
     Terminal,
@@ -32,6 +32,51 @@ fn widgets_list_should_highlight_the_selected_item() {
     for x in 0..9 {
         expected.get_mut(x, 1).set_bg(Color::Yellow);
     }
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_list_should_merge_styles_in_correct_order() {
+    let backend = TestBackend::new(10, 3);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut state = ListState::default();
+    state.select(Some(1));
+    terminal
+        .draw(|mut f| {
+            let size = f.size();
+            let items = vec![
+                Text::raw("Item 1"),
+                Text::styled("Item 2", Style::default().bg(Color::Green)),
+                Text::styled("Item 3", Style::default().bg(Color::Green)),
+            ];
+            let list = List::new(items.into_iter())
+                .style(Style::default().bg(Color::Yellow))
+                .highlight_style_diff(StyleDiff::default().bg(Color::Red))
+                .highlight_symbol(">> ");
+            f.render_stateful_widget(list, size, &mut state);
+        })
+        .unwrap();
+    let mut expected = Buffer::with_lines(vec!["   Item 1 ", ">> Item 2 ", "   Item 3 "]);
+
+    // `style` acts as the base style.
+    for x in 0..10 {
+        for y in 0..3 {
+            expected.get_mut(x, y).set_bg(Color::Yellow);
+        }
+    }
+
+    // item style covers only the individual items.
+    for x in 3..9 {
+        for y in 1..3 {
+            expected.get_mut(x, y).set_bg(Color::Green);
+        }
+    }
+
+    // `higlight_style` overrides both.
+    for x in 0..9 {
+        expected.get_mut(x, 1).set_bg(Color::Red);
+    }
+
     terminal.backend().assert_buffer(&expected);
 }
 
@@ -99,7 +144,7 @@ fn widgets_list_can_be_styled() {
                 ];
                 let list = List::new(items.into_iter())
                     .style(style)
-                    .highlight_style(highlight_style)
+                    .highlight_style_diff(highlight_style)
                     .highlight_symbol(">> ");
                 f.render_stateful_widget(list, size, &mut state);
             })
@@ -155,7 +200,7 @@ fn widgets_list_can_be_styled() {
         ]),
         Style::default(),
         Style::default(),
-        Style::default(),
+        Style::default().into(),
     );
 
     test_case(
@@ -171,7 +216,7 @@ fn widgets_list_can_be_styled() {
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default(),
+        Style::default().into(),
     );
 
     test_case(
@@ -187,6 +232,22 @@ fn widgets_list_can_be_styled() {
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().fg(Color::Green).bg(Color::Green),
+        Style::default().fg(Color::Green).bg(Color::Green).into(),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "RRRRRRRRRR", //
+            "GGGGGGGGRR", //
+            "RRRBBBBBRR", //
+        ]),
+        Buffer::with_lines(vec![
+            "RRRRRRRR  ", //
+            "RRRBBBBB  ", //
+            "RRRBBBBB  ", //
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        StyleDiff::default().bg(Color::Green),
     );
 }

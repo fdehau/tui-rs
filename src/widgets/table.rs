@@ -1,7 +1,7 @@
 use crate::{
     buffer::Buffer,
     layout::{Constraint, Rect},
-    style::Style,
+    style::{Style, StyleDiff},
     widgets::{Block, StatefulWidget, Widget},
 };
 use cassowary::{
@@ -88,7 +88,7 @@ pub struct Table<'a, H, R> {
     /// Header row for all columns
     header: H,
     /// Style for the header
-    header_style: Style,
+    header_style_diff: StyleDiff,
     /// Width constraints for each column
     widths: &'a [Constraint],
     /// Space between each column
@@ -96,7 +96,7 @@ pub struct Table<'a, H, R> {
     /// Space between the header and the rows
     header_gap: u16,
     /// Style used to render the selected row
-    highlight_style: Style,
+    highlight_style_diff: StyleDiff,
     /// Symbol in front of the selected rom
     highlight_symbol: Option<&'a str>,
     /// Data to display in each row
@@ -113,11 +113,11 @@ where
             block: None,
             style: Style::default(),
             header: H::default(),
-            header_style: Style::default(),
+            header_style_diff: Style::default().into(),
             widths: &[],
             column_spacing: 1,
             header_gap: 1,
-            highlight_style: Style::default(),
+            highlight_style_diff: Style::default().into(),
             highlight_symbol: None,
             rows: R::default(),
         }
@@ -135,11 +135,11 @@ where
             block: None,
             style: Style::default(),
             header,
-            header_style: Style::default(),
+            header_style_diff: Style::default().into(),
             widths: &[],
             column_spacing: 1,
             header_gap: 1,
-            highlight_style: Style::default(),
+            highlight_style_diff: Style::default().into(),
             highlight_symbol: None,
             rows,
         }
@@ -158,7 +158,12 @@ where
     }
 
     pub fn header_style(mut self, style: Style) -> Table<'a, H, R> {
-        self.header_style = style;
+        self.header_style_diff = style.into();
+        self
+    }
+
+    pub fn header_style_diff(mut self, style: StyleDiff) -> Table<'a, H, R> {
+        self.header_style_diff = style;
         self
     }
 
@@ -194,7 +199,12 @@ where
     }
 
     pub fn highlight_style(mut self, highlight_style: Style) -> Table<'a, H, R> {
-        self.highlight_style = highlight_style;
+        self.highlight_style_diff = highlight_style.into();
+        self
+    }
+
+    pub fn highlight_style_diff(mut self, highlight_style: StyleDiff) -> Table<'a, H, R> {
+        self.highlight_style_diff = highlight_style;
         self
     }
 
@@ -283,16 +293,22 @@ where
         // Draw header
         if y < table_area.bottom() {
             for (w, t) in solved_widths.iter().zip(self.header.by_ref()) {
-                buf.set_stringn(x, y, format!("{}", t), *w as usize, self.header_style);
+                buf.set_stringn(
+                    x,
+                    y,
+                    format!("{}", t),
+                    *w as usize,
+                    self.style.patch(self.header_style_diff),
+                );
                 x += *w + self.column_spacing;
             }
         }
         y += 1 + self.header_gap;
 
         // Use highlight_style only if something is selected
-        let (selected, highlight_style) = match state.selected {
-            Some(i) => (Some(i), self.highlight_style),
-            None => (None, self.style),
+        let (selected, highlight_style_diff) = match state.selected {
+            Some(i) => (Some(i), self.highlight_style_diff),
+            None => (None, StyleDiff::default()),
         };
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
@@ -300,7 +316,6 @@ where
             .collect::<String>();
 
         // Draw rows
-        let default_style = Style::default();
         if y < table_area.bottom() {
             let remaining = (table_area.bottom() - y) as usize;
 
@@ -317,23 +332,40 @@ where
                 0
             };
             for (i, row) in self.rows.skip(state.offset).take(remaining).enumerate() {
-                let (data, style, symbol) = match row {
-                    Row::Data(d) | Row::StyledData(d, _)
+                let (data, style, symbol, symbol_style) = match row {
+                    Row::Data(d) if Some(i) == state.selected.map(|s| s - state.offset) => (
+                        d,
+                        self.style.patch(highlight_style_diff),
+                        highlight_symbol,
+                        self.style.patch(highlight_style_diff),
+                    ),
+                    Row::StyledData(d, s)
                         if Some(i) == state.selected.map(|s| s - state.offset) =>
                     {
-                        (d, highlight_style, highlight_symbol)
+                        (
+                            d,
+                            s.patch(highlight_style_diff),
+                            highlight_symbol,
+                            self.style.patch(highlight_style_diff),
+                        )
                     }
-                    Row::Data(d) => (d, default_style, blank_symbol.as_ref()),
-                    Row::StyledData(d, s) => (d, s, blank_symbol.as_ref()),
+                    Row::Data(d) => (d, self.style, blank_symbol.as_ref(), self.style),
+                    Row::StyledData(d, s) => (d, s, blank_symbol.as_ref(), self.style),
                 };
                 x = table_area.left();
                 for (c, (w, elt)) in solved_widths.iter().zip(data).enumerate() {
-                    let s = if c == 0 {
-                        format!("{}{}", symbol, elt)
+                    if c == 0 {
+                        buf.set_stringn(x, y + i as u16, symbol, *w as usize, symbol_style);
+                        buf.set_stringn(
+                            x + symbol.len() as u16,
+                            y + i as u16,
+                            elt.to_string(),
+                            *w as usize,
+                            style,
+                        );
                     } else {
-                        format!("{}", elt)
+                        buf.set_stringn(x, y + i as u16, elt.to_string(), *w as usize, style);
                     };
-                    buf.set_stringn(x, y + i as u16, s, *w as usize, style);
                     x += *w + self.column_spacing;
                 }
             }

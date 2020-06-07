@@ -4,7 +4,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
 use crate::layout::{Corner, Rect};
-use crate::style::Style;
+use crate::style::{Style, StyleDiff};
 use crate::widgets::{Block, StatefulWidget, Text, Widget};
 
 #[derive(Debug, Clone)]
@@ -60,7 +60,7 @@ where
     /// Base style of the widget
     style: Style,
     /// Style used to render selected item
-    highlight_style: Style,
+    highlight_style_diff: StyleDiff,
     /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'b str>,
 }
@@ -70,14 +70,7 @@ where
     L: Iterator<Item = Text<'b>> + Default,
 {
     fn default() -> List<'b, L> {
-        List {
-            block: None,
-            items: L::default(),
-            style: Default::default(),
-            start_corner: Corner::TopLeft,
-            highlight_style: Style::default(),
-            highlight_symbol: None,
-        }
+        Self::new(L::default())
     }
 }
 
@@ -91,7 +84,7 @@ where
             items,
             style: Default::default(),
             start_corner: Corner::TopLeft,
-            highlight_style: Style::default(),
+            highlight_style_diff: Style::default().into(),
             highlight_symbol: None,
         }
     }
@@ -120,7 +113,12 @@ where
     }
 
     pub fn highlight_style(mut self, highlight_style: Style) -> List<'b, L> {
-        self.highlight_style = highlight_style;
+        self.highlight_style_diff = highlight_style.into();
+        self
+    }
+
+    pub fn highlight_style_diff(mut self, highlight_style: StyleDiff) -> List<'b, L> {
+        self.highlight_style_diff = highlight_style;
         self
     }
 
@@ -153,10 +151,10 @@ where
 
         buf.set_background(list_area, self.style.bg);
 
-        // Use highlight_style only if something is selected
-        let (selected, highlight_style) = match state.selected {
-            Some(i) => (Some(i), self.highlight_style),
-            None => (None, self.style),
+        // Use highlight_style_diff only if something is selected
+        let (selected, highlight_style_diff) = match state.selected {
+            Some(i) => (Some(i), self.highlight_style_diff),
+            None => (None, StyleDiff::default()),
         };
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
@@ -188,32 +186,44 @@ where
                 // Not supported
                 _ => (list_area.left(), list_area.top() + i as u16),
             };
-            let (elem_x, style) = if let Some(s) = selected {
+            let (elem_x, highlight_style_diff) = if let Some(s) = selected {
                 if s == i + state.offset {
                     let (x, _) = buf.set_stringn(
                         x,
                         y,
                         highlight_symbol,
                         list_area.width as usize,
-                        highlight_style,
+                        self.style.patch(highlight_style_diff),
                     );
-                    (x, Some(highlight_style))
+                    (x, highlight_style_diff)
                 } else {
                     let (x, _) =
                         buf.set_stringn(x, y, &blank_symbol, list_area.width as usize, self.style);
-                    (x, None)
+                    (x, StyleDiff::default())
                 }
             } else {
-                (x, None)
+                (x, StyleDiff::default())
             };
 
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
             match item {
                 Text::Raw(ref v) => {
-                    buf.set_stringn(elem_x, y, v, max_element_width, style.unwrap_or(self.style));
+                    buf.set_stringn(
+                        elem_x,
+                        y,
+                        v,
+                        max_element_width,
+                        self.style.patch(highlight_style_diff),
+                    );
                 }
                 Text::Styled(ref v, s) => {
-                    buf.set_stringn(elem_x, y, v, max_element_width, style.unwrap_or(s));
+                    buf.set_stringn(
+                        elem_x,
+                        y,
+                        v,
+                        max_element_width,
+                        s.patch(highlight_style_diff),
+                    );
                 }
             };
         }
