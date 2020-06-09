@@ -81,3 +81,112 @@ fn widgets_list_should_truncate_items() {
         terminal.backend().assert_buffer(&case.expected);
     }
 }
+
+#[test]
+fn widgets_list_can_be_styled() {
+    let test_case = |bg: Buffer, fg: Buffer, style, row_style, highlight_style| {
+        let backend = TestBackend::new(10, 3);
+        let mut terminal = Terminal::new(backend).unwrap();
+        let mut state = ListState::default();
+        state.select(Some(1));
+        terminal
+            .draw(|mut f| {
+                let size = f.size();
+                let items = vec![
+                    Text::raw("Item1"),
+                    Text::styled("Item2", row_style),
+                    Text::styled("Item3", row_style),
+                ];
+                let list = List::new(items.into_iter())
+                    .style(style)
+                    .highlight_style(highlight_style)
+                    .highlight_symbol(">> ");
+                f.render_stateful_widget(list, size, &mut state);
+            })
+            .unwrap();
+        let mut expected = Buffer::with_lines(vec!["   Item1  ", ">> Item2  ", "   Item3  "]);
+        for x in 0..10 {
+            for y in 0..3 {
+                match bg.get(x, y).symbol.as_str() {
+                    "B" => {
+                        expected.get_mut(x, y).set_bg(Color::Blue);
+                    }
+                    "R" => {
+                        expected.get_mut(x, y).set_bg(Color::Red);
+                    }
+                    "G" => {
+                        expected.get_mut(x, y).set_bg(Color::Green);
+                    }
+                    "Y" => {
+                        expected.get_mut(x, y).set_bg(Color::Yellow);
+                    }
+                    _ => (),
+                };
+                match fg.get(x, y).symbol.as_str() {
+                    "B" => {
+                        expected.get_mut(x, y).set_fg(Color::Blue);
+                    }
+                    "R" => {
+                        expected.get_mut(x, y).set_fg(Color::Red);
+                    }
+                    "G" => {
+                        expected.get_mut(x, y).set_fg(Color::Green);
+                    }
+                    "Y" => {
+                        expected.get_mut(x, y).set_fg(Color::Yellow);
+                    }
+                    _ => (),
+                };
+            }
+        }
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(
+        Buffer::with_lines(vec![
+            "          ", //
+            "          ", //
+            "          ", //
+        ]),
+        Buffer::with_lines(vec![
+            "          ", //
+            "          ", //
+            "          ", //
+        ]),
+        Style::default(),
+        Style::default(),
+        Style::default(),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "RRRRRRRRRR", //
+            "--------RR", //
+            "RRRBBBBBRR", //
+        ]),
+        Buffer::with_lines(vec![
+            "RRRRRRRR  ", //
+            "--------  ", //
+            "RRRBBBBB  ", //
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        Style::default(),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "RRRRRRRRRR", //
+            "GGGGGGGGRR", //
+            "RRRBBBBBRR", //
+        ]),
+        Buffer::with_lines(vec![
+            "RRRRRRRR  ", //
+            "GGGGGGGG  ", //
+            "RRRBBBBB  ", //
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        Style::default().fg(Color::Green).bg(Color::Green),
+    );
+}

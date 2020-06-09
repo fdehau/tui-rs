@@ -1,7 +1,8 @@
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Constraint;
-use tui::widgets::{Block, Borders, Row, Table};
+use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, Row, Table, TableState};
 use tui::Terminal;
 
 #[test]
@@ -414,5 +415,185 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
             "│                            │",
             "└────────────────────────────┘",
         ]),
+    );
+}
+
+#[test]
+fn widgets_table_can_be_styled() {
+    let test_case = |bg: Buffer, fg: Buffer, style, row_style, highlight_style, header_style| {
+        let backend = TestBackend::new(30, 10);
+        let mut terminal = Terminal::new(backend).unwrap();
+
+        terminal
+            .draw(|mut f| {
+                let size = f.size();
+                let table = Table::new(
+                    ["Head1", "Head2", "Head3"].iter(),
+                    vec![
+                        Row::Data(["Row11", "Row12", "Row13"].iter()),
+                        Row::StyledData(["Row21", "Row22", "Row23"].iter(), row_style),
+                        Row::StyledData(["Row31", "Row32", "Row33"].iter(), row_style),
+                        Row::Data(["Row41", "Row42", "Row43"].iter()),
+                    ]
+                    .into_iter(),
+                )
+                .block(Block::default().borders(Borders::ALL))
+                .highlight_symbol(">> ")
+                .style(style)
+                .highlight_style(highlight_style)
+                .header_style(header_style)
+                .widths(&[
+                    Constraint::Length(9),
+                    Constraint::Length(6),
+                    Constraint::Length(6),
+                ]);
+
+                let mut state = TableState::default();
+                state.select(Some(1));
+                f.render_stateful_widget(table, size, &mut state);
+            })
+            .unwrap();
+
+        let mut expected = Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│Head1     Head2  Head3      │",
+            "│                            │",
+            "│   Row11  Row12  Row13      │",
+            "│>> Row21  Row22  Row23      │",
+            "│   Row31  Row32  Row33      │",
+            "│   Row41  Row42  Row43      │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]);
+        for x in 0..30 {
+            for y in 0..10 {
+                match bg.get(x, y).symbol.as_str() {
+                    "B" | "b" => {
+                        expected.get_mut(x, y).set_bg(Color::Blue);
+                    }
+                    "R" | "r" => {
+                        expected.get_mut(x, y).set_bg(Color::Red);
+                    }
+                    "G" | "g" => {
+                        expected.get_mut(x, y).set_bg(Color::Green);
+                    }
+                    "Y" | "y" => {
+                        expected.get_mut(x, y).set_bg(Color::Yellow);
+                    }
+                    _ => (),
+                };
+                match fg.get(x, y).symbol.as_str() {
+                    "B" | "b" => {
+                        expected.get_mut(x, y).set_fg(Color::Blue);
+                    }
+                    "R" | "r" => {
+                        expected.get_mut(x, y).set_fg(Color::Red);
+                    }
+                    "G" | "g" => {
+                        expected.get_mut(x, y).set_fg(Color::Green);
+                    }
+                    "Y" | "y" => {
+                        expected.get_mut(x, y).set_fg(Color::Yellow);
+                    }
+                    _ => (),
+                };
+            }
+        }
+
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]),
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]),
+        Style::default(),
+        Style::default(),
+        Style::default(),
+        Style::default(),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│YYYYYrrrrrYYYYYrrYYYYYrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│--------rr-----rr-----rrrrrr│",
+            "│GGGGGGGGrrGGGGGrrGGGGGrrrrrr│",
+            "│BBBBBBBBrrBBBBBrrBBBBBrrrrrr│",
+            "│--------rr-----rr-----rrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "└────────────────────────────┘",
+        ]),
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│YYYYY     YYYYY  YYYYY      │",
+            "│                            │",
+            "│--------  -----  -----      │",
+            "│GGGGGGGG  GGGGG  GGGGG      │",
+            "│BBBBBBBB  BBBBB  BBBBB      │",
+            "│--------  -----  -----      │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        Style::default().fg(Color::Green).bg(Color::Green),
+        Style::default().fg(Color::Yellow).bg(Color::Yellow),
+    );
+
+    test_case(
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│YYYYYrrrrrYYYYYrrYYYYYrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│--------rr-----rr-----rrrrrr│",
+            "│--------rr-----rr-----rrrrrr│",
+            "│BBBBBBBBrrBBBBBrrBBBBBrrrrrr│",
+            "│--------rr-----rr-----rrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
+            "└────────────────────────────┘",
+        ]),
+        Buffer::with_lines(vec![
+            "┌────────────────────────────┐",
+            "│YYYYY     YYYYY  YYYYY      │",
+            "│                            │",
+            "│--------  -----  -----      │",
+            "│--------  -----  -----      │",
+            "│BBBBBBBB  BBBBB  BBBBB      │",
+            "│--------  -----  -----      │",
+            "│                            │",
+            "│                            │",
+            "└────────────────────────────┘",
+        ]),
+        Style::default().fg(Color::Red).bg(Color::Red),
+        Style::default().fg(Color::Blue).bg(Color::Blue),
+        Style::default(),
+        Style::default().fg(Color::Yellow).bg(Color::Yellow),
     );
 }
