@@ -36,7 +36,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// ```
 ///
 /// Paragraphs do not need to be wrapped with a block if you do not wish to have a border or a title.
-/// Indeed, wrapping it inside of a block without borders will still result in a new line below the 
+/// Indeed, wrapping it inside of a block without borders will still result in a new line below the
 /// paragraph.
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a, 't, T>
