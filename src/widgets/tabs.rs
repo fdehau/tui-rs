@@ -1,7 +1,7 @@
 use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
-use crate::layout::Rect;
+use crate::layout::{Margin, Rect};
 use crate::style::Style;
 use crate::symbols::line;
 use crate::widgets::{Block, Widget};
@@ -38,6 +38,8 @@ where
     highlight_style: Style,
     /// Tab divider
     divider: &'a str,
+    /// Margin width
+    margin: Margin,
 }
 
 impl<'a, T> Default for Tabs<'a, T>
@@ -52,6 +54,10 @@ where
             style: Default::default(),
             highlight_style: Default::default(),
             divider: line::VERTICAL,
+            margin: Margin {
+                horizontal: 0,
+                vertical: 0,
+            },
         }
     }
 }
@@ -89,6 +95,11 @@ where
         self.divider = divider;
         self
     }
+
+    pub fn margin(mut self, margin: Margin) -> Tabs<'a, T> {
+        self.margin = margin;
+        self
+    }
 }
 
 impl<'a, T> Widget for Tabs<'a, T>
@@ -102,7 +113,8 @@ where
                 b.inner(area)
             }
             None => area,
-        };
+        }
+        .inner(&self.margin);
 
         if tabs_area.height < 1 {
             return;
@@ -112,7 +124,10 @@ where
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();
-        let divider_width = self.divider.width() as u16;
+
+        // divider actually requires a space before it, so we add one
+        let divider_width = self.divider.width() as u16 + 1;
+
         for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
             let lt = i + 1 == titles_length;
             if i == self.selected {
@@ -121,17 +136,33 @@ where
                 (t, self.style, lt)
             }
         }) {
-            x += 1;
             if x >= tabs_area.right() {
+                break;
+            }
+
+            let mut space_remaining: isize = (tabs_area.right() as isize) - (x as isize);
+            let title_width = title.as_ref().width() as u16;
+            if title_width > space_remaining as u16 {
+                buf.set_stringn(
+                    x,
+                    tabs_area.top(),
+                    title.as_ref(),
+                    space_remaining as usize,
+                    style,
+                );
                 break;
             } else {
                 buf.set_string(x, tabs_area.top(), title.as_ref(), style);
-                x += title.as_ref().width() as u16 + 1;
-                if x >= tabs_area.right() || last_title {
-                    break;
-                } else {
-                    buf.set_string(x, tabs_area.top(), self.divider, self.style);
-                    x += divider_width;
+                x += title_width;
+                space_remaining -= title_width as isize;
+
+                if !last_title {
+                    if space_remaining >= divider_width as isize {
+                        buf.set_string(x + 1, tabs_area.top(), self.divider, self.style);
+                        x += divider_width + 1; // add an additional space for the next one
+                    } else {
+                        break;
+                    }
                 }
             }
         }
