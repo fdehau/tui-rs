@@ -136,7 +136,11 @@ where
         let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
             Box::new(WordWrapper::new(&mut styled, text_area.width))
         } else {
-            Box::new(LineTruncator::new(&mut styled, text_area.width, self.scroll.1))
+            Box::new(LineTruncator::new(
+                &mut styled,
+                text_area.width,
+                self.scroll.1,
+            ))
         };
         let mut y = 0;
         while let Some((current_line, current_line_width)) = line_composer.next_line() {
@@ -144,11 +148,7 @@ where
                 let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
                 for Styled(symbol, style) in current_line {
                     buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
-                        .set_symbol(if symbol.is_empty() {
-                            " "
-                        } else {
-                            symbol
-                        })
+                        .set_symbol(if symbol.is_empty() { " " } else { symbol })
                         .set_style(*style);
                     x += symbol.width() as u16;
                 }

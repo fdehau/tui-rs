@@ -221,7 +221,9 @@ mod test {
         let mut styled = UnicodeSegmentation::graphemes(text, true).map(|g| Styled(g, style));
         let mut composer: Box<dyn LineComposer> = match which {
             Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width)),
-            Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width, 0)),
+            Composer::LineTruncator => {
+                Box::new(LineTruncator::new(&mut styled, text_area_width, 0))
+            }
         };
         let mut lines = vec![];
         let mut widths = vec![];
