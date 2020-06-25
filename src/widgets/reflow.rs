@@ -124,16 +124,19 @@ pub struct LineTruncator<'a, 'b> {
     symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
     max_line_width: u16,
     current_line: Vec<Styled<'a>>,
+    cut: u16,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
         symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
         max_line_width: u16,
+        cut: u16,
     ) -> LineTruncator<'a, 'b> {
         LineTruncator {
             symbols,
             max_line_width,
+            cut,
             current_line: vec![],
         }
     }
@@ -150,6 +153,7 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
 
         let mut skip_rest = false;
         let mut symbols_exhausted = true;
+        let mut cut = self.cut as usize;
         for Styled(symbol, style) in &mut self.symbols {
             symbols_exhausted = false;
 
@@ -169,6 +173,19 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
                 break;
             }
 
+            let symbol = if cut == 0 {
+                symbol
+            } else {
+                let w = symbol.width();
+                if w > cut {
+                    let t = &symbol[cut..];
+                    cut = 0;
+                    t
+                } else {
+                    cut -= w;
+                    &symbol[..0]
+                }
+            };
             current_line_width += symbol.width() as u16;
             self.current_line.push(Styled(symbol, style));
         }
@@ -204,7 +221,7 @@ mod test {
         let mut styled = UnicodeSegmentation::graphemes(text, true).map(|g| Styled(g, style));
         let mut composer: Box<dyn LineComposer> = match which {
             Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width)),
-            Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width)),
+            Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width, 0)),
         };
         let mut lines = vec![];
         let mut widths = vec![];
