@@ -1,4 +1,5 @@
 use crate::style::Style;
+use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 const NBSP: &str = "\u{00a0}";
@@ -178,12 +179,12 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
             } else {
                 let w = symbol.width();
                 if w > cut {
-                    let t = &symbol[cut..];
+                    let t = trim_width(symbol, cut);
                     cut = 0;
                     t
                 } else {
                     cut -= w;
-                    &symbol[..0]
+                    ""
                 }
             };
             current_line_width += symbol.width() as u16;
@@ -204,6 +205,20 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
             Some((&self.current_line[..], current_line_width))
         }
     }
+}
+
+fn trim_width(src: &str, mut wid: usize) -> &str {
+    let mut start = 0;
+    for c in UnicodeSegmentation::graphemes(src, true) {
+        let w = c.width();
+        if w <= wid {
+            wid -= w;
+            start += c.len();
+        } else {
+            break;
+        }
+    }
+    &src[start..]
 }
 
 #[cfg(test)]
