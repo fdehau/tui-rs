@@ -45,13 +45,15 @@ where
     style: Style,
     /// Wrap the text or not
     wrapping: bool,
+    /// Trim leading whitespace from wrapped text
+    trim_wrapped: bool,
     /// The text to display
     text: T,
     /// Should we parse the text for embedded commands
     raw: bool,
     /// Scroll
     scroll: (u16, u16),
-    /// Aligenment of the text
+    /// Alignment of the text
     alignment: Alignment,
 }
 
@@ -64,6 +66,7 @@ where
             block: None,
             style: Default::default(),
             wrapping: false,
+            trim_wrapped: true,
             raw: false,
             text,
             scroll: (0, 0),
@@ -83,6 +86,11 @@ where
 
     pub fn wrap(mut self, flag: bool) -> Paragraph<'a, 't, T> {
         self.wrapping = flag;
+        self
+    }
+
+    pub fn trim_wrapped(mut self, flag: bool) -> Paragraph<'a, 't, T> {
+        self.trim_wrapped = flag;
         self
     }
 
@@ -134,7 +142,11 @@ where
         });
 
         let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
-            Box::new(WordWrapper::new(&mut styled, text_area.width))
+            Box::new(WordWrapper::new(
+                &mut styled,
+                text_area.width,
+                self.trim_wrapped,
+            ))
         } else {
             let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
             if let Alignment::Left = self.alignment {

@@ -20,18 +20,21 @@ pub struct WordWrapper<'a, 'b> {
     max_line_width: u16,
     current_line: Vec<Styled<'a>>,
     next_line: Vec<Styled<'a>>,
+    trim: bool,
 }
 
 impl<'a, 'b> WordWrapper<'a, 'b> {
     pub fn new(
         symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
         max_line_width: u16,
+        trim: bool,
     ) -> WordWrapper<'a, 'b> {
         WordWrapper {
             symbols,
             max_line_width,
             current_line: vec![],
             next_line: vec![],
+            trim,
         }
     }
 }
@@ -60,8 +63,8 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
 
             // Ignore characters wider that the total max width.
             if symbol.width() as u16 > self.max_line_width
-                // Skip leading whitespace.
-                || symbol_whitespace && symbol != "\n" && current_line_width == 0
+                // Skip leading whitespace when trim is enabled.
+                || self.trim && symbol_whitespace && symbol != "\n" && current_line_width == 0
             {
                 continue;
             }
@@ -234,6 +237,7 @@ mod test {
 
     enum Composer {
         WordWrapper,
+        WordWrapperNoTrim,
         LineTruncator,
     }
 
@@ -241,7 +245,10 @@ mod test {
         let style = Default::default();
         let mut styled = UnicodeSegmentation::graphemes(text, true).map(|g| Styled(g, style));
         let mut composer: Box<dyn LineComposer> = match which {
-            Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width)),
+            Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width, true)),
+            Composer::WordWrapperNoTrim => {
+                Box::new(WordWrapper::new(&mut styled, text_area_width, false))
+            }
             Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width)),
         };
         let mut lines = vec![];
@@ -480,5 +487,24 @@ mod test {
         let text_space = text.replace("\u{00a0}", " ");
         let (word_wrapper_space, _) = run_composer(Composer::WordWrapper, &text_space, width);
         assert_eq!(word_wrapper_space, vec!["AAAAAAAAAAAAAAA AAAA", "AAA",]);
+    }
+
+    #[test]
+    fn line_composer_word_wrapper_preserve_indentation() {
+        let width = 20;
+        let text = "AAAAAAAAAAAAAAAAAAAA    AAA";
+        let (word_wrapper, _) = run_composer(Composer::WordWrapperNoTrim, text, width);
+        assert_eq!(word_wrapper, vec!["AAAAAAAAAAAAAAAAAAAA", "   AAA",]);
+    }
+
+    #[test]
+    fn line_composer_word_wrapper_preserve_indentation_with_wrap() {
+        let width = 10;
+        let text = "AAA AAA AAAAA AA AAAAAA\n B\n  C\n   D";
+        let (word_wrapper, _) = run_composer(Composer::WordWrapperNoTrim, text, width);
+        assert_eq!(
+            word_wrapper,
+            vec!["AAA AAA", "AAAAA AA", "AAAAAA", " B", "  C", "   D"]
+        );
     }
 }
