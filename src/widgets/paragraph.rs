@@ -139,7 +139,10 @@ where
             Box::new(LineTruncator::new(
                 &mut styled,
                 text_area.width,
-                self.scroll.1,
+                match self.alignment {
+                    Alignment::Left => self.scroll.1, // only support Alignment::Left
+                    _ => 0,
+                },
             ))
         };
         let mut y = 0;
