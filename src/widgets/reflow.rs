@@ -125,21 +125,25 @@ pub struct LineTruncator<'a, 'b> {
     symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
     max_line_width: u16,
     current_line: Vec<Styled<'a>>,
-    cut: u16,
+    /// Record the offet to skip render
+    horizontal_offset: u16,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
         symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
         max_line_width: u16,
-        cut: u16,
     ) -> LineTruncator<'a, 'b> {
         LineTruncator {
             symbols,
             max_line_width,
-            cut,
+            horizontal_offset: 0,
             current_line: vec![],
         }
+    }
+
+    pub fn set_horizontal_offset(&mut self, horizontal_offset: u16) {
+        self.horizontal_offset = horizontal_offset;
     }
 }
 
@@ -154,7 +158,7 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
 
         let mut skip_rest = false;
         let mut symbols_exhausted = true;
-        let mut cut = self.cut as usize;
+        let mut horizontal_offset = self.horizontal_offset as usize;
         for Styled(symbol, style) in &mut self.symbols {
             symbols_exhausted = false;
 
@@ -174,16 +178,16 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
                 break;
             }
 
-            let symbol = if cut == 0 {
+            let symbol = if horizontal_offset == 0 {
                 symbol
             } else {
                 let w = symbol.width();
-                if w > cut {
-                    let t = trim_width(symbol, cut);
-                    cut = 0;
+                if w > horizontal_offset {
+                    let t = trim_offset(symbol, horizontal_offset);
+                    horizontal_offset = 0;
                     t
                 } else {
-                    cut -= w;
+                    horizontal_offset -= w;
                     ""
                 }
             };
@@ -207,12 +211,14 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
     }
 }
 
-fn trim_width(src: &str, mut wid: usize) -> &str {
+/// This function will return a str slice which start at specified offset.
+/// As src is a unicode str, start offset has to be calculated with each character.
+fn trim_offset(src: &str, mut offset: usize) -> &str {
     let mut start = 0;
     for c in UnicodeSegmentation::graphemes(src, true) {
         let w = c.width();
-        if w <= wid {
-            wid -= w;
+        if w <= offset {
+            offset -= w;
             start += c.len();
         } else {
             break;
@@ -236,9 +242,7 @@ mod test {
         let mut styled = UnicodeSegmentation::graphemes(text, true).map(|g| Styled(g, style));
         let mut composer: Box<dyn LineComposer> = match which {
             Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width)),
-            Composer::LineTruncator => {
-                Box::new(LineTruncator::new(&mut styled, text_area_width, 0))
-            }
+            Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width)),
         };
         let mut lines = vec![];
         let mut widths = vec![];

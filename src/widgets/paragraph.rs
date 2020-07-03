@@ -136,14 +136,14 @@ where
         let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
             Box::new(WordWrapper::new(&mut styled, text_area.width))
         } else {
-            Box::new(LineTruncator::new(
-                &mut styled,
-                text_area.width,
-                match self.alignment {
-                    Alignment::Left => self.scroll.1, // only support Alignment::Left
-                    _ => 0,
-                },
-            ))
+            let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
+            match self.alignment {
+                Alignment::Left => {
+                    line_composer.set_horizontal_offset(self.scroll.1);
+                }
+                _ => {}
+            }
+            line_composer
         };
         let mut y = 0;
         while let Some((current_line, current_line_width)) = line_composer.next_line() {
