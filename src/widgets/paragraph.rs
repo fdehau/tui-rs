@@ -148,7 +148,13 @@ where
                 let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
                 for Styled(symbol, style) in current_line {
                     buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
-                        .set_symbol(if symbol.is_empty() { " " } else { symbol })
+                        .set_symbol(if symbol.is_empty() {
+                            // If the symbol is empty, the last char which rendered last time will
+                            // leave on the line. It's a quick fix.
+                            " "
+                        } else {
+                            symbol
+                        })
                         .set_style(*style);
                     x += symbol.width() as u16;
                 }
