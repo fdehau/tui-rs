@@ -21,7 +21,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # Examples
 ///
 /// ```
-/// # use tui::widgets::{Block, Borders, Paragraph, Text};
+/// # use tui::widgets::{Block, Borders, Paragraph, Text, Wrap};
 /// # use tui::style::{Style, Color};
 /// # use tui::layout::{Alignment};
 /// let text = [
@@ -32,7 +32,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
-///     .wrap(true);
+///     .wrap(Wrap { trim: true });
 /// ```
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a, 't, T>
@@ -43,10 +43,8 @@ where
     block: Option<Block<'a>>,
     /// Widget style
     style: Style,
-    /// Wrap the text or not
-    wrapping: bool,
-    /// Trim leading whitespace from wrapped text
-    trim_wrapped: bool,
+    /// How to wrap the text
+    wrap: Option<Wrap>,
     /// The text to display
     text: T,
     /// Should we parse the text for embedded commands
@@ -57,6 +55,37 @@ where
     alignment: Alignment,
 }
 
+/// Describes how to wrap text across lines.
+///
+/// # Example
+///
+/// ```
+/// # use tui::widgets::{Paragraph, Text, Wrap};
+/// let bullet_points = [Text::raw(r#"Some indented points:
+///     - First thing goes here and is long so that it wraps
+///     - Here is another point that is long enough to wrap"#)];
+///
+/// // With leading spaces trimmed (window width of 30 chars):
+/// Paragraph::new(bullet_points.iter()).wrap(Wrap { trim: true });
+/// // Some indented points:
+/// // - First thing goes here and is
+/// // long so that it wraps
+/// // - Here is another point that
+/// // is long enough to wrap
+///
+/// // But without trimming, indentation is preserved:
+/// Paragraph::new(bullet_points.iter()).wrap(Wrap { trim: false });
+/// // Some indented points:
+/// //     - First thing goes here
+/// // and is long so that it wraps
+/// //     - Here is another point
+/// // that is long enough to wrap
+#[derive(Debug, Clone, Copy)]
+pub struct Wrap {
+    /// Should leading whitespace be trimmed
+    pub trim: bool,
+}
+
 impl<'a, 't, T> Paragraph<'a, 't, T>
 where
     T: Iterator<Item = &'t Text<'t>>,
@@ -65,8 +94,7 @@ where
         Paragraph {
             block: None,
             style: Default::default(),
-            wrapping: false,
-            trim_wrapped: true,
+            wrap: None,
             raw: false,
             text,
             scroll: (0, 0),
@@ -84,13 +112,8 @@ where
         self
     }
 
-    pub fn wrap(mut self, flag: bool) -> Paragraph<'a, 't, T> {
-        self.wrapping = flag;
-        self
-    }
-
-    pub fn trim_wrapped(mut self, flag: bool) -> Paragraph<'a, 't, T> {
-        self.trim_wrapped = flag;
+    pub fn wrap(mut self, wrap: Wrap) -> Paragraph<'a, 't, T> {
+        self.wrap = Some(wrap);
         self
     }
 
@@ -141,12 +164,8 @@ where
             }
         });
 
-        let mut line_composer: Box<dyn LineComposer> = if self.wrapping {
-            Box::new(WordWrapper::new(
-                &mut styled,
-                text_area.width,
-                self.trim_wrapped,
-            ))
+        let mut line_composer: Box<dyn LineComposer> = if let Some(Wrap { trim }) = self.wrap {
+            Box::new(WordWrapper::new(&mut styled, text_area.width, trim))
         } else {
             let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
             if let Alignment::Left = self.alignment {
