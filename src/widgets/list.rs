@@ -112,6 +112,10 @@ where
         self
     }
 
+    #[deprecated(
+        since = "0.10.0",
+        note = "Use the `highlight_style_diff` method instead"
+    )]
     pub fn highlight_style(mut self, highlight_style: Style) -> List<'b, L> {
         self.highlight_style_diff = highlight_style.into();
         self

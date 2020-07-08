@@ -157,6 +157,7 @@ where
         self
     }
 
+    #[deprecated(since = "0.10.0", note = "Use the `header_style_diff` method instead")]
     pub fn header_style(mut self, style: Style) -> Table<'a, H, R> {
         self.header_style_diff = style.into();
         self
@@ -198,6 +199,10 @@ where
         self
     }
 
+    #[deprecated(
+        since = "0.10.0",
+        note = "Use the `highlight_style_diff` method instead"
+    )]
     pub fn highlight_style(mut self, highlight_style: Style) -> Table<'a, H, R> {
         self.highlight_style_diff = highlight_style.into();
         self
