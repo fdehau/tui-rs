@@ -2,7 +2,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::buffer::Buffer;
 use crate::layout::Rect;
-use crate::style::Style;
+use crate::style::{Style, StyleDiff};
 use crate::symbols::line;
 use crate::widgets::{Block, Widget};
 
@@ -35,7 +35,7 @@ where
     /// The style used to draw the text
     style: Style,
     /// The style used to display the selected item
-    highlight_style: Style,
+    highlight_style_diff: StyleDiff,
     /// Tab divider
     divider: &'a str,
 }
@@ -50,7 +50,7 @@ where
             titles: &[],
             selected: 0,
             style: Default::default(),
-            highlight_style: Default::default(),
+            highlight_style_diff: Default::default(),
             divider: line::VERTICAL,
         }
     }
@@ -80,8 +80,17 @@ where
         self
     }
 
+    #[deprecated(
+        since = "0.10.0",
+        note = "Use the `highlight_style_diff` method instead"
+    )]
     pub fn highlight_style(mut self, style: Style) -> Tabs<'a, T> {
-        self.highlight_style = style;
+        self.highlight_style_diff = style.into();
+        self
+    }
+
+    pub fn highlight_style_diff(mut self, style: StyleDiff) -> Tabs<'a, T> {
+        self.highlight_style_diff = style;
         self
     }
 
@@ -116,7 +125,7 @@ where
         for (title, style, last_title) in self.titles.iter().enumerate().map(|(i, t)| {
             let lt = i + 1 == titles_length;
             if i == self.selected {
-                (t, self.highlight_style, lt)
+                (t, self.style.patch(self.highlight_style_diff), lt)
             } else {
                 (t, self.style, lt)
             }

@@ -21,7 +21,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .block(Block::default().borders(Borders::ALL).title(app.title))
         .titles(&app.tabs.titles)
         .style(Style::default().fg(Color::Green))
-        .highlight_style(Style::default().fg(Color::Yellow))
+        .highlight_style_diff(StyleDiff::default().fg(Color::Yellow))
         .select(app.tabs.index);
     f.render_widget(tabs, chunks[0]);
     match app.tabs.index {

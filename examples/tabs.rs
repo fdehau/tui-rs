@@ -10,7 +10,7 @@ use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::Altern
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    style::{Color, Style},
+    style::{Color, Style, StyleDiff},
     widgets::{Block, Borders, Tabs},
     Terminal,
 };
@@ -52,7 +52,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .titles(&app.tabs.titles)
                 .select(app.tabs.index)
                 .style(Style::default().fg(Color::Cyan))
-                .highlight_style(Style::default().fg(Color::Yellow));
+                .highlight_style_diff(StyleDiff::default().fg(Color::Yellow));
             f.render_widget(tabs, chunks[0]);
             let inner = match app.tabs.index {
                 0 => Block::default().title("Inner 0").borders(Borders::ALL),
