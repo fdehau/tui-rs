@@ -10,7 +10,7 @@ use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::Altern
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Corner, Direction, Layout},
-    style::{Color, Modifier, Style},
+    style::{Color, Modifier, Style, StyleDiff},
     widgets::{Block, Borders, List, Text},
     Terminal,
 };
@@ -100,7 +100,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             let items = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .style(style)
-                .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
+                .highlight_style_diff(
+                    StyleDiff::default()
+                        .fg(Color::LightGreen)
+                        .modifier(Modifier::BOLD),
+                )
                 .highlight_symbol(">");
             f.render_stateful_widget(items, chunks[0], &mut app.items.state);
 

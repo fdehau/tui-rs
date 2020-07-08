@@ -425,7 +425,7 @@ fn widgets_table_can_be_styled() {
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
                 let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),

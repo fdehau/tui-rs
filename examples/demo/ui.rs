@@ -1,7 +1,7 @@
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Color, Modifier, Style, StyleDiff},
     symbols,
     widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle},
     widgets::{
@@ -113,7 +113,11 @@ where
             let tasks = app.tasks.items.iter().map(|i| Text::raw(*i));
             let tasks = List::new(tasks)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
+                .highlight_style_diff(
+                    StyleDiff::default()
+                        .fg(Color::Yellow)
+                        .modifier(Modifier::BOLD),
+                )
                 .highlight_symbol("> ");
             f.render_stateful_widget(tasks, chunks[0], &mut app.tasks.state);
 
@@ -261,7 +265,7 @@ where
     });
     let table = Table::new(header.iter(), rows)
         .block(Block::default().title("Servers").borders(Borders::ALL))
-        .header_style(Style::default().fg(Color::Yellow))
+        .header_style_diff(StyleDiff::default().fg(Color::Yellow))
         .widths(&[
             Constraint::Length(15),
             Constraint::Length(15),

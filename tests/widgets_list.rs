@@ -23,7 +23,7 @@ fn widgets_list_should_highlight_the_selected_item() {
                 Text::raw("Item 3"),
             ];
             let list = List::new(items.into_iter())
-                .highlight_style(Style::default().bg(Color::Yellow))
+                .highlight_style_diff(Style::default().bg(Color::Yellow).into())
                 .highlight_symbol(">> ");
             f.render_stateful_widget(list, size, &mut state);
         })
@@ -42,7 +42,7 @@ fn widgets_list_should_merge_styles_in_correct_order() {
     let mut state = ListState::default();
     state.select(Some(1));
     terminal
-        .draw(|mut f| {
+        .draw(|f| {
             let size = f.size();
             let items = vec![
                 Text::raw("Item 1"),
@@ -135,7 +135,7 @@ fn widgets_list_can_be_styled() {
         let mut state = ListState::default();
         state.select(Some(1));
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
                 let items = vec![
                     Text::raw("Item1"),

@@ -7,7 +7,7 @@ use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::Altern
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Layout},
-    style::{Color, Modifier, Style},
+    style::{Color, Modifier, Style, StyleDiff},
     widgets::{Block, Borders, Row, Table, TableState},
     Terminal,
 };
@@ -94,7 +94,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .margin(5)
                 .split(f.size());
 
-            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
+            let selected_style = StyleDiff::default()
+                .fg(Color::Yellow)
+                .modifier(Modifier::BOLD);
             let normal_style = Style::default().fg(Color::White);
             let header = ["Header1", "Header2", "Header3"];
             let rows = table
@@ -103,7 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .map(|i| Row::StyledData(i.iter(), normal_style));
             let t = Table::new(header.iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
-                .highlight_style(selected_style)
+                .highlight_style_diff(selected_style)
                 .highlight_symbol(">> ")
                 .widths(&[
                     Constraint::Percentage(50),

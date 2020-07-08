@@ -62,7 +62,7 @@ where
 /// ```
 /// # use tui::widgets::{Block, Borders, Table, Row};
 /// # use tui::layout::Constraint;
-/// # use tui::style::{Style, Color};
+/// # use tui::style::{Style, StyleDiff, Color};
 /// let row_style = Style::default().fg(Color::White);
 /// Table::new(
 ///         ["Col1", "Col2", "Col3"].into_iter(),
@@ -74,7 +74,7 @@ where
 ///         ].into_iter()
 ///     )
 ///     .block(Block::default().title("Table"))
-///     .header_style(Style::default().fg(Color::Yellow))
+///     .header_style_diff(StyleDiff::default().fg(Color::Yellow))
 ///     .widths(&[Constraint::Length(5), Constraint::Length(5), Constraint::Length(10)])
 ///     .style(Style::default().fg(Color::White))
 ///     .column_spacing(1);
