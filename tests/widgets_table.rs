@@ -531,8 +531,8 @@ fn widgets_table_can_be_styled() {
         ]),
         Style::default(),
         Style::default(),
-        Style::default().into(),
-        Style::default().into(),
+        StyleDiff::default(),
+        StyleDiff::default(),
     );
 
     test_case(
@@ -562,8 +562,8 @@ fn widgets_table_can_be_styled() {
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().fg(Color::Green).bg(Color::Green).into(),
-        Style::default().fg(Color::Yellow).bg(Color::Yellow).into(),
+        StyleDiff::default().fg(Color::Green).bg(Color::Green),
+        StyleDiff::default().fg(Color::Yellow).bg(Color::Yellow),
     );
 
     test_case(
@@ -572,7 +572,7 @@ fn widgets_table_can_be_styled() {
             "│YYYYYrrrrrYYYYYrrYYYYYrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
             "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
-            "│--------rr-----rr-----rrrrrr│",
+            "│rrrBBBBBrrBBBBBrrBBBBBrrrrrr│",
             "│rrrBBBBBrrBBBBBrrBBBBBrrrrrr│",
             "│rrrRRRRRrrRRRRRrrRRRRRrrrrrr│",
             "│rrrrrrrrrrrrrrrrrrrrrrrrrrrr│",
@@ -584,7 +584,7 @@ fn widgets_table_can_be_styled() {
             "│YYYYY     YYYYY  YYYYY      │",
             "│                            │",
             "│rrrRRRRR  RRRRR  RRRRR      │",
-            "│--------  -----  -----      │",
+            "│rrrBBBBB  BBBBB  BBBBB      │",
             "│rrrBBBBB  BBBBB  BBBBB      │",
             "│rrrRRRRR  RRRRR  RRRRR      │",
             "│                            │",
@@ -593,8 +593,8 @@ fn widgets_table_can_be_styled() {
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().into(),
-        Style::default().fg(Color::Yellow).bg(Color::Yellow).into(),
+        StyleDiff::default(),
+        StyleDiff::default().fg(Color::Yellow).bg(Color::Yellow),
     );
 
     test_case(

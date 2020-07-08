@@ -200,23 +200,23 @@ fn widgets_list_can_be_styled() {
         ]),
         Style::default(),
         Style::default(),
-        Style::default().into(),
+        StyleDiff::default(),
     );
 
     test_case(
         Buffer::with_lines(vec![
             "RRRRRRRRRR", //
-            "--------RR", //
+            "RRRBBBBBRR", //
             "RRRBBBBBRR", //
         ]),
         Buffer::with_lines(vec![
             "RRRRRRRR  ", //
-            "--------  ", //
+            "RRRBBBBB  ", //
             "RRRBBBBB  ", //
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().into(),
+        StyleDiff::default(),
     );
 
     test_case(
@@ -232,7 +232,7 @@ fn widgets_list_can_be_styled() {
         ]),
         Style::default().fg(Color::Red).bg(Color::Red),
         Style::default().fg(Color::Blue).bg(Color::Blue),
-        Style::default().fg(Color::Green).bg(Color::Green).into(),
+        StyleDiff::default().fg(Color::Green).bg(Color::Green),
     );
 
     test_case(

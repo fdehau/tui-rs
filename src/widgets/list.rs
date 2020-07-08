@@ -84,7 +84,7 @@ where
             items,
             style: Default::default(),
             start_corner: Corner::TopLeft,
-            highlight_style_diff: Style::default().into(),
+            highlight_style_diff: StyleDiff::default(),
             highlight_symbol: None,
         }
     }
