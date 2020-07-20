@@ -177,7 +177,6 @@ impl<'a> Span<'a> {
                 symbol: g,
                 style: base_style.patch(self.style),
             })
-            .filter(|s| s.symbol != "\n")
     }
 }
 
