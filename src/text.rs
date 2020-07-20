@@ -172,11 +172,10 @@ impl<'a> Span<'a> {
         &'a self,
         base_style: Style,
     ) -> impl Iterator<Item = StyledGrapheme<'a>> {
-        UnicodeSegmentation::graphemes(self.content.as_ref(), true)
-            .map(move |g| StyledGrapheme {
-                symbol: g,
-                style: base_style.patch(self.style),
-            })
+        UnicodeSegmentation::graphemes(self.content.as_ref(), true).map(move |g| StyledGrapheme {
+            symbol: g,
+            style: base_style.patch(self.style),
+        })
     }
 }
 
