@@ -263,7 +263,7 @@ impl Buffer {
     where
         S: AsRef<str>,
     {
-        self.set_stringn(x, y, string, usize::MAX, style);
+        self.set_stringn(x, y, string, std::usize::MAX, style);
     }
 
     /// Print at most the first n characters of a string if enough space is available
