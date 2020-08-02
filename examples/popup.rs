@@ -81,12 +81,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let paragraph = Paragraph::new(text.clone())
                 .block(Block::default().title("Left Block").borders(Borders::ALL))
-                .alignment(Alignment::Left).wrap(Wrap { trim: true });
+                .alignment(Alignment::Left).wrap(Wrap::default());
             f.render_widget(paragraph, chunks[0]);
 
             let paragraph = Paragraph::new(text)
                 .block(Block::default().title("Right Block").borders(Borders::ALL))
-                .alignment(Alignment::Left).wrap(Wrap { trim: true });
+                .alignment(Alignment::Left).wrap(Wrap::default());
             f.render_widget(paragraph, chunks[1]);
 
             let block = Block::default().title("Popup").borders(Borders::ALL);
