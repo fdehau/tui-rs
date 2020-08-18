@@ -311,4 +311,8 @@ where
     pub fn size(&self) -> io::Result<Rect> {
         self.backend.size()
     }
+
+    pub fn refresh(&mut self) -> io::Result<()> {
+        self.resize(self.size()?)
+    }
 }
