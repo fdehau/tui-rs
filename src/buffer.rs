@@ -1,18 +1,19 @@
+use crate::{
+    layout::Rect,
+    style::{Color, Modifier, Style},
+    text::{Span, Spans},
+};
 use std::cmp::min;
-use std::fmt;
-use std::usize;
-
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
-
-use crate::layout::Rect;
-use crate::style::{Color, Modifier, Style};
 
 /// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
     pub symbol: String,
-    pub style: Style,
+    pub fg: Color,
+    pub bg: Color,
+    pub modifier: Modifier,
 }
 
 impl Cell {
@@ -29,29 +30,33 @@ impl Cell {
     }
 
     pub fn set_fg(&mut self, color: Color) -> &mut Cell {
-        self.style.fg = color;
+        self.fg = color;
         self
     }
 
     pub fn set_bg(&mut self, color: Color) -> &mut Cell {
-        self.style.bg = color;
-        self
-    }
-
-    pub fn set_modifier(&mut self, modifier: Modifier) -> &mut Cell {
-        self.style.modifier = modifier;
+        self.bg = color;
         self
     }
 
     pub fn set_style(&mut self, style: Style) -> &mut Cell {
-        self.style = style;
+        if let Some(c) = style.fg {
+            self.fg = c;
+        }
+        if let Some(c) = style.bg {
+            self.bg = c;
+        }
+        self.modifier.insert(style.add_modifier);
+        self.modifier.remove(style.sub_modifier);
         self
     }
 
     pub fn reset(&mut self) {
         self.symbol.clear();
         self.symbol.push(' ');
-        self.style.reset();
+        self.fg = Color::Reset;
+        self.bg = Color::Reset;
+        self.modifier = Modifier::empty();
     }
 }
 
@@ -59,7 +64,9 @@ impl Default for Cell {
     fn default() -> Cell {
         Cell {
             symbol: " ".into(),
-            style: Default::default(),
+            fg: Color::Reset,
+            bg: Color::Reset,
+            modifier: Modifier::empty(),
         }
     }
 }
@@ -78,23 +85,20 @@ impl Default for Cell {
 /// use tui::layout::Rect;
 /// use tui::style::{Color, Style, Modifier};
 ///
-/// # fn main() {
 /// let mut buf = Buffer::empty(Rect{x: 0, y: 0, width: 10, height: 5});
 /// buf.get_mut(0, 2).set_symbol("x");
 /// assert_eq!(buf.get(0, 2).symbol, "x");
 /// buf.set_string(3, 0, "string", Style::default().fg(Color::Red).bg(Color::White));
 /// assert_eq!(buf.get(5, 0), &Cell{
 ///     symbol: String::from("r"),
-///     style: Style {
-///         fg: Color::Red,
-///         bg: Color::White,
-///         modifier: Modifier::empty()
-///     }});
+///     fg: Color::Red,
+///     bg: Color::White,
+///     modifier: Modifier::empty()
+/// });
 /// buf.get_mut(5, 0).set_char('x');
 /// assert_eq!(buf.get(5, 0).symbol, "x");
-/// # }
 /// ```
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Buffer {
     /// The area represented by this buffer
     pub area: Rect,
@@ -109,49 +113,6 @@ impl Default for Buffer {
             area: Default::default(),
             content: Vec::new(),
         }
-    }
-}
-
-impl fmt::Debug for Buffer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Buffer: {:?}", self.area)?;
-        f.write_str("Content (quoted lines):\n")?;
-        for cells in self.content.chunks(self.area.width as usize) {
-            let mut line = String::new();
-            let mut overwritten = vec![];
-            let mut skip: usize = 0;
-            for (x, c) in cells.iter().enumerate() {
-                if skip == 0 {
-                    line.push_str(&c.symbol);
-                } else {
-                    overwritten.push((x, &c.symbol))
-                }
-                skip = std::cmp::max(skip, c.symbol.width()).saturating_sub(1);
-            }
-            f.write_fmt(format_args!("{:?},", line))?;
-            if !overwritten.is_empty() {
-                f.write_fmt(format_args!(
-                    " Hidden by multi-width symbols: {:?}",
-                    overwritten
-                ))?;
-            }
-            f.write_str("\n")?;
-        }
-        f.write_str("Style:\n")?;
-        for cells in self.content.chunks(self.area.width as usize) {
-            f.write_str("|")?;
-            for cell in cells {
-                write!(
-                    f,
-                    "{} {} {}|",
-                    cell.style.fg.code(),
-                    cell.style.bg.code(),
-                    cell.style.modifier.code()
-                )?;
-            }
-            f.write_str("\n")?;
-        }
-        Ok(())
     }
 }
 
@@ -307,7 +268,14 @@ impl Buffer {
 
     /// Print at most the first n characters of a string if enough space is available
     /// until the end of the line
-    pub fn set_stringn<S>(&mut self, x: u16, y: u16, string: S, width: usize, style: Style)
+    pub fn set_stringn<S>(
+        &mut self,
+        x: u16,
+        y: u16,
+        string: S,
+        width: usize,
+        style: Style,
+    ) -> (u16, u16)
     where
         S: AsRef<str>,
     {
@@ -317,6 +285,9 @@ impl Buffer {
         let max_offset = min(self.area.right() as usize, width.saturating_add(x as usize));
         for s in graphemes {
             let width = s.width();
+            if width == 0 {
+                continue;
+            }
             // `x_offset + width > max_offset` could be integer overflow on 32-bit machines if we
             // change dimenstions to usize or u32 and someone resizes the terminal to 1x2^32.
             if width > max_offset.saturating_sub(x_offset) {
@@ -331,6 +302,52 @@ impl Buffer {
             }
             index += width;
             x_offset += width;
+        }
+        (x_offset as u16, y)
+    }
+
+    pub fn set_spans<'a>(&mut self, x: u16, y: u16, spans: &Spans<'a>, width: u16) -> (u16, u16) {
+        let mut remaining_width = width;
+        let mut x = x;
+        for span in &spans.0 {
+            if remaining_width == 0 {
+                break;
+            }
+            let pos = self.set_stringn(
+                x,
+                y,
+                span.content.as_ref(),
+                remaining_width as usize,
+                span.style,
+            );
+            let w = pos.0.saturating_sub(x);
+            x = pos.0;
+            remaining_width = remaining_width.saturating_sub(w);
+        }
+        (x, y)
+    }
+
+    pub fn set_span<'a>(&mut self, x: u16, y: u16, span: &Span<'a>, width: u16) -> (u16, u16) {
+        self.set_stringn(x, y, span.content.as_ref(), width as usize, span.style)
+    }
+
+    #[deprecated(
+        since = "0.10.0",
+        note = "You should use styling capabilities of `Buffer::set_style`"
+    )]
+    pub fn set_background(&mut self, area: Rect, color: Color) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).set_bg(color);
+            }
+        }
+    }
+
+    pub fn set_style(&mut self, area: Rect, style: Style) {
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self.get_mut(x, y).set_style(style);
+            }
         }
     }
 
@@ -504,6 +521,22 @@ mod tests {
         // Width truncation:
         buffer.set_string(0, 0, "123456", Style::default());
         assert_eq!(buffer, Buffer::with_lines(vec!["12345"]));
+    }
+
+    #[test]
+    fn buffer_set_string_zero_width() {
+        let area = Rect::new(0, 0, 1, 1);
+        let mut buffer = Buffer::empty(area);
+
+        // Leading grapheme with zero width
+        let s = "\u{1}a";
+        buffer.set_stringn(0, 0, s, 1, Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["a"]));
+
+        // Trailing grapheme with zero with
+        let s = "a\u{1}";
+        buffer.set_stringn(0, 0, s, 1, Style::default());
+        assert_eq!(buffer, Buffer::with_lines(vec!["a"]));
     }
 
     #[test]

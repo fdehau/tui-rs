@@ -1,12 +1,13 @@
-use log::debug;
-use std::fmt;
-use std::io;
-use std::io::Write;
-
 use super::Backend;
-use crate::buffer::Cell;
-use crate::layout::Rect;
-use crate::style;
+use crate::{
+    buffer::Cell,
+    layout::Rect,
+    style::{Color, Modifier},
+};
+use std::{
+    fmt,
+    io::{self, Write},
+};
 
 pub struct TermionBackend<W>
 where
@@ -78,50 +79,44 @@ where
         use std::fmt::Write;
 
         let mut string = String::with_capacity(content.size_hint().0 * 3);
-        let mut style = style::Style::default();
-        let mut last_y = 0;
-        let mut last_x = 0;
-        let mut inst = 0;
+        let mut fg = Color::Reset;
+        let mut bg = Color::Reset;
+        let mut modifier = Modifier::empty();
+        let mut last_pos: Option<(u16, u16)> = None;
         for (x, y, cell) in content {
-            if y != last_y || x != last_x + 1 || inst == 0 {
+            // Move the cursor if the previous location was not (x - 1, y)
+            if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
                 write!(string, "{}", termion::cursor::Goto(x + 1, y + 1)).unwrap();
-                inst += 1;
             }
-            last_x = x;
-            last_y = y;
-            if cell.style.modifier != style.modifier {
+            last_pos = Some((x, y));
+            if cell.modifier != modifier {
                 write!(
                     string,
                     "{}",
                     ModifierDiff {
-                        from: style.modifier,
-                        to: cell.style.modifier
+                        from: modifier,
+                        to: cell.modifier
                     }
                 )
                 .unwrap();
-                style.modifier = cell.style.modifier;
-                inst += 1;
+                modifier = cell.modifier;
             }
-            if cell.style.fg != style.fg {
-                write!(string, "{}", Fg(cell.style.fg)).unwrap();
-                style.fg = cell.style.fg;
-                inst += 1;
+            if cell.fg != fg {
+                write!(string, "{}", Fg(cell.fg)).unwrap();
+                fg = cell.fg;
             }
-            if cell.style.bg != style.bg {
-                write!(string, "{}", Bg(cell.style.bg)).unwrap();
-                style.bg = cell.style.bg;
-                inst += 1;
+            if cell.bg != bg {
+                write!(string, "{}", Bg(cell.bg)).unwrap();
+                bg = cell.bg;
             }
             string.push_str(&cell.symbol);
-            inst += 1;
         }
-        debug!("{} instructions outputed.", inst);
         write!(
             self.stdout,
             "{}{}{}{}",
             string,
-            Fg(style::Color::Reset),
-            Bg(style::Color::Reset),
+            Fg(Color::Reset),
+            Bg(Color::Reset),
             termion::style::Reset,
         )
     }
@@ -137,64 +132,64 @@ where
     }
 }
 
-struct Fg(style::Color);
+struct Fg(Color);
 
-struct Bg(style::Color);
+struct Bg(Color);
 
 struct ModifierDiff {
-    from: style::Modifier,
-    to: style::Modifier,
+    from: Modifier,
+    to: Modifier,
 }
 
 impl fmt::Display for Fg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use termion::color::Color;
+        use termion::color::Color as TermionColor;
         match self.0 {
-            style::Color::Reset => termion::color::Reset.write_fg(f),
-            style::Color::Black => termion::color::Black.write_fg(f),
-            style::Color::Red => termion::color::Red.write_fg(f),
-            style::Color::Green => termion::color::Green.write_fg(f),
-            style::Color::Yellow => termion::color::Yellow.write_fg(f),
-            style::Color::Blue => termion::color::Blue.write_fg(f),
-            style::Color::Magenta => termion::color::Magenta.write_fg(f),
-            style::Color::Cyan => termion::color::Cyan.write_fg(f),
-            style::Color::Gray => termion::color::White.write_fg(f),
-            style::Color::DarkGray => termion::color::LightBlack.write_fg(f),
-            style::Color::LightRed => termion::color::LightRed.write_fg(f),
-            style::Color::LightGreen => termion::color::LightGreen.write_fg(f),
-            style::Color::LightBlue => termion::color::LightBlue.write_fg(f),
-            style::Color::LightYellow => termion::color::LightYellow.write_fg(f),
-            style::Color::LightMagenta => termion::color::LightMagenta.write_fg(f),
-            style::Color::LightCyan => termion::color::LightCyan.write_fg(f),
-            style::Color::White => termion::color::LightWhite.write_fg(f),
-            style::Color::Indexed(i) => termion::color::AnsiValue(i).write_fg(f),
-            style::Color::Rgb(r, g, b) => termion::color::Rgb(r, g, b).write_fg(f),
+            Color::Reset => termion::color::Reset.write_fg(f),
+            Color::Black => termion::color::Black.write_fg(f),
+            Color::Red => termion::color::Red.write_fg(f),
+            Color::Green => termion::color::Green.write_fg(f),
+            Color::Yellow => termion::color::Yellow.write_fg(f),
+            Color::Blue => termion::color::Blue.write_fg(f),
+            Color::Magenta => termion::color::Magenta.write_fg(f),
+            Color::Cyan => termion::color::Cyan.write_fg(f),
+            Color::Gray => termion::color::White.write_fg(f),
+            Color::DarkGray => termion::color::LightBlack.write_fg(f),
+            Color::LightRed => termion::color::LightRed.write_fg(f),
+            Color::LightGreen => termion::color::LightGreen.write_fg(f),
+            Color::LightBlue => termion::color::LightBlue.write_fg(f),
+            Color::LightYellow => termion::color::LightYellow.write_fg(f),
+            Color::LightMagenta => termion::color::LightMagenta.write_fg(f),
+            Color::LightCyan => termion::color::LightCyan.write_fg(f),
+            Color::White => termion::color::LightWhite.write_fg(f),
+            Color::Indexed(i) => termion::color::AnsiValue(i).write_fg(f),
+            Color::Rgb(r, g, b) => termion::color::Rgb(r, g, b).write_fg(f),
         }
     }
 }
 impl fmt::Display for Bg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use termion::color::Color;
+        use termion::color::Color as TermionColor;
         match self.0 {
-            style::Color::Reset => termion::color::Reset.write_bg(f),
-            style::Color::Black => termion::color::Black.write_bg(f),
-            style::Color::Red => termion::color::Red.write_bg(f),
-            style::Color::Green => termion::color::Green.write_bg(f),
-            style::Color::Yellow => termion::color::Yellow.write_bg(f),
-            style::Color::Blue => termion::color::Blue.write_bg(f),
-            style::Color::Magenta => termion::color::Magenta.write_bg(f),
-            style::Color::Cyan => termion::color::Cyan.write_bg(f),
-            style::Color::Gray => termion::color::White.write_bg(f),
-            style::Color::DarkGray => termion::color::LightBlack.write_bg(f),
-            style::Color::LightRed => termion::color::LightRed.write_bg(f),
-            style::Color::LightGreen => termion::color::LightGreen.write_bg(f),
-            style::Color::LightBlue => termion::color::LightBlue.write_bg(f),
-            style::Color::LightYellow => termion::color::LightYellow.write_bg(f),
-            style::Color::LightMagenta => termion::color::LightMagenta.write_bg(f),
-            style::Color::LightCyan => termion::color::LightCyan.write_bg(f),
-            style::Color::White => termion::color::LightWhite.write_bg(f),
-            style::Color::Indexed(i) => termion::color::AnsiValue(i).write_bg(f),
-            style::Color::Rgb(r, g, b) => termion::color::Rgb(r, g, b).write_bg(f),
+            Color::Reset => termion::color::Reset.write_bg(f),
+            Color::Black => termion::color::Black.write_bg(f),
+            Color::Red => termion::color::Red.write_bg(f),
+            Color::Green => termion::color::Green.write_bg(f),
+            Color::Yellow => termion::color::Yellow.write_bg(f),
+            Color::Blue => termion::color::Blue.write_bg(f),
+            Color::Magenta => termion::color::Magenta.write_bg(f),
+            Color::Cyan => termion::color::Cyan.write_bg(f),
+            Color::Gray => termion::color::White.write_bg(f),
+            Color::DarkGray => termion::color::LightBlack.write_bg(f),
+            Color::LightRed => termion::color::LightRed.write_bg(f),
+            Color::LightGreen => termion::color::LightGreen.write_bg(f),
+            Color::LightBlue => termion::color::LightBlue.write_bg(f),
+            Color::LightYellow => termion::color::LightYellow.write_bg(f),
+            Color::LightMagenta => termion::color::LightMagenta.write_bg(f),
+            Color::LightCyan => termion::color::LightCyan.write_bg(f),
+            Color::White => termion::color::LightWhite.write_bg(f),
+            Color::Indexed(i) => termion::color::AnsiValue(i).write_bg(f),
+            Color::Rgb(r, g, b) => termion::color::Rgb(r, g, b).write_bg(f),
         }
     }
 }
@@ -202,63 +197,61 @@ impl fmt::Display for Bg {
 impl fmt::Display for ModifierDiff {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let remove = self.from - self.to;
-        if remove.contains(style::Modifier::REVERSED) {
+        if remove.contains(Modifier::REVERSED) {
             write!(f, "{}", termion::style::NoInvert)?;
         }
-        if remove.contains(style::Modifier::BOLD) {
+        if remove.contains(Modifier::BOLD) {
             // XXX: the termion NoBold flag actually enables double-underline on ECMA-48 compliant
             // terminals, and NoFaint additionally disables bold... so we use this trick to get
             // the right semantics.
             write!(f, "{}", termion::style::NoFaint)?;
 
-            if self.to.contains(style::Modifier::DIM) {
+            if self.to.contains(Modifier::DIM) {
                 write!(f, "{}", termion::style::Faint)?;
             }
         }
-        if remove.contains(style::Modifier::ITALIC) {
+        if remove.contains(Modifier::ITALIC) {
             write!(f, "{}", termion::style::NoItalic)?;
         }
-        if remove.contains(style::Modifier::UNDERLINED) {
+        if remove.contains(Modifier::UNDERLINED) {
             write!(f, "{}", termion::style::NoUnderline)?;
         }
-        if remove.contains(style::Modifier::DIM) {
+        if remove.contains(Modifier::DIM) {
             write!(f, "{}", termion::style::NoFaint)?;
 
             // XXX: the NoFaint flag additionally disables bold as well, so we need to re-enable it
             // here if we want it.
-            if self.to.contains(style::Modifier::BOLD) {
+            if self.to.contains(Modifier::BOLD) {
                 write!(f, "{}", termion::style::Bold)?;
             }
         }
-        if remove.contains(style::Modifier::CROSSED_OUT) {
+        if remove.contains(Modifier::CROSSED_OUT) {
             write!(f, "{}", termion::style::NoCrossedOut)?;
         }
-        if remove.contains(style::Modifier::SLOW_BLINK)
-            || remove.contains(style::Modifier::RAPID_BLINK)
-        {
+        if remove.contains(Modifier::SLOW_BLINK) || remove.contains(Modifier::RAPID_BLINK) {
             write!(f, "{}", termion::style::NoBlink)?;
         }
 
         let add = self.to - self.from;
-        if add.contains(style::Modifier::REVERSED) {
+        if add.contains(Modifier::REVERSED) {
             write!(f, "{}", termion::style::Invert)?;
         }
-        if add.contains(style::Modifier::BOLD) {
+        if add.contains(Modifier::BOLD) {
             write!(f, "{}", termion::style::Bold)?;
         }
-        if add.contains(style::Modifier::ITALIC) {
+        if add.contains(Modifier::ITALIC) {
             write!(f, "{}", termion::style::Italic)?;
         }
-        if add.contains(style::Modifier::UNDERLINED) {
+        if add.contains(Modifier::UNDERLINED) {
             write!(f, "{}", termion::style::Underline)?;
         }
-        if add.contains(style::Modifier::DIM) {
+        if add.contains(Modifier::DIM) {
             write!(f, "{}", termion::style::Faint)?;
         }
-        if add.contains(style::Modifier::CROSSED_OUT) {
+        if add.contains(Modifier::CROSSED_OUT) {
             write!(f, "{}", termion::style::CrossedOut)?;
         }
-        if add.contains(style::Modifier::SLOW_BLINK) || add.contains(style::Modifier::RAPID_BLINK) {
+        if add.contains(Modifier::SLOW_BLINK) || add.contains(Modifier::RAPID_BLINK) {
             write!(f, "{}", termion::style::Blink)?;
         }
 

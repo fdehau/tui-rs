@@ -1,19 +1,16 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, Widget};
-use tui::Terminal;
-
 use crate::util::event::{Event, Events};
+use std::{error::Error, io};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use tui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, Gauge},
+    Terminal,
+};
 
 struct App {
     progress1: u16,
@@ -52,21 +49,20 @@ impl App {
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     let events = Events::new();
 
     let mut app = App::new();
 
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
@@ -81,28 +77,37 @@ fn main() -> Result<(), failure::Error> {
                 )
                 .split(f.size());
 
-            Gauge::default()
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge1").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Yellow))
-                .percent(app.progress1)
-                .render(&mut f, chunks[0]);
-            Gauge::default()
+                .gauge_style(Style::default().fg(Color::Yellow))
+                .percent(app.progress1);
+            f.render_widget(gauge, chunks[0]);
+
+            let label = format!("{}/100", app.progress2);
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge2").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Magenta).bg(Color::Green))
+                .gauge_style(Style::default().fg(Color::Magenta).bg(Color::Green))
                 .percent(app.progress2)
-                .label(&format!("{}/100", app.progress2))
-                .render(&mut f, chunks[1]);
-            Gauge::default()
+                .label(label);
+            f.render_widget(gauge, chunks[1]);
+
+            let gauge = Gauge::default()
                 .block(Block::default().title("Gauge3").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Yellow))
-                .ratio(app.progress3)
-                .render(&mut f, chunks[2]);
-            Gauge::default()
-                .block(Block::default().title("Gauge4").borders(Borders::ALL))
-                .style(Style::default().fg(Color::Cyan).modifier(Modifier::ITALIC))
+                .gauge_style(Style::default().fg(Color::Yellow))
+                .ratio(app.progress3);
+            f.render_widget(gauge, chunks[2]);
+
+            let label = format!("{}/100", app.progress2);
+            let gauge = Gauge::default()
+                .block(Block::default().title("Gauge4"))
+                .gauge_style(
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::ITALIC),
+                )
                 .percent(app.progress4)
-                .label(&format!("{}/100", app.progress2))
-                .render(&mut f, chunks[3]);
+                .label(label);
+            f.render_widget(gauge, chunks[3]);
         })?;
 
         match events.next()? {

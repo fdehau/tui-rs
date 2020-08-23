@@ -1,10 +1,25 @@
-use bitflags::bitflags;
-use std::borrow::Cow;
+//! `widgets` is a collection of types that implement [`Widget`] or [`StatefulWidget`] or both.
+//!
+//! All widgets are implemented using the builder pattern and are consumable objects. They are not
+//! meant to be stored but used as *commands* to draw common figures in the UI.
+//!
+//! The available widgets are:
+//! - [`Block`]
+//! - [`Tabs`]
+//! - [`List`]
+//! - [`Table`]
+//! - [`Paragraph`]
+//! - [`Chart`]
+//! - [`BarChart`]
+//! - [`Gauge`]
+//! - [`Sparkline`]
+//! - [`Clear`]
 
 mod barchart;
 mod block;
 pub mod canvas;
 mod chart;
+mod clear;
 mod gauge;
 mod list;
 mod paragraph;
@@ -14,20 +29,18 @@ mod table;
 mod tabs;
 
 pub use self::barchart::BarChart;
-pub use self::block::Block;
-pub use self::chart::{Axis, Chart, Dataset, Marker};
+pub use self::block::{Block, BorderType};
+pub use self::chart::{Axis, Chart, Dataset, GraphType};
+pub use self::clear::Clear;
 pub use self::gauge::Gauge;
-pub use self::list::{List, SelectableList};
-pub use self::paragraph::Paragraph;
+pub use self::list::{List, ListItem, ListState};
+pub use self::paragraph::{Paragraph, Wrap};
 pub use self::sparkline::Sparkline;
-pub use self::table::{Row, Table};
+pub use self::table::{Row, Table, TableState};
 pub use self::tabs::Tabs;
 
-use crate::backend::Backend;
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::style::{Color, Style};
-use crate::terminal::Frame;
+use crate::{buffer::Buffer, layout::Rect};
+use bitflags::bitflags;
 
 bitflags! {
     /// Bitflags that can be composed to set the visible borders essentially on the block widget.
@@ -47,41 +60,126 @@ bitflags! {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Text<'b> {
-    Raw(Cow<'b, str>),
-    Styled(Cow<'b, str>, Style),
-}
-
-impl<'b> Text<'b> {
-    pub fn raw<D: Into<Cow<'b, str>>>(data: D) -> Text<'b> {
-        Text::Raw(data.into())
-    }
-
-    pub fn styled<D: Into<Cow<'b, str>>>(data: D, style: Style) -> Text<'b> {
-        Text::Styled(data.into(), style)
-    }
-}
-
 /// Base requirements for a Widget
 pub trait Widget {
     /// Draws the current state of the widget in the given buffer. That the only method required to
     /// implement a custom widget.
-    fn draw(&mut self, area: Rect, buf: &mut Buffer);
-    /// Helper method to quickly set the background of all cells inside the specified area.
-    fn background(&self, area: Rect, buf: &mut Buffer, color: Color) {
-        for y in area.top()..area.bottom() {
-            for x in area.left()..area.right() {
-                buf.get_mut(x, y).set_bg(color);
-            }
-        }
-    }
-    /// Helper method that can be chained with a widget's builder methods to render it.
-    fn render<B>(&mut self, f: &mut Frame<B>, area: Rect)
-    where
-        Self: Sized,
-        B: Backend,
-    {
-        f.render(self, area);
-    }
+    fn render(self, area: Rect, buf: &mut Buffer);
+}
+
+/// A `StatefulWidget` is a widget that can take advantage of some local state to remember things
+/// between two draw calls.
+///
+/// Most widgets can be drawn directly based on the input parameters. However, some features may
+/// require some kind of associated state to be implemented.
+///
+/// For example, the [`List`] widget can highlight the item currently selected. This can be
+/// translated in an offset, which is the number of elements to skip in order to have the selected
+/// item within the viewport currently allocated to this widget. The widget can therefore only
+/// provide the following behavior: whenever the selected item is out of the viewport scroll to a
+/// predefined position (making the selected item the last viewable item or the one in the middle
+/// for example). Nonetheless, if the widget has access to the last computed offset then it can
+/// implement a natural scrolling experience where the last offset is reused until the selected
+/// item is out of the viewport.
+///
+/// ## Examples
+///
+/// ```rust,no_run
+/// # use std::io;
+/// # use tui::Terminal;
+/// # use tui::backend::{Backend, TermionBackend};
+/// # use tui::widgets::{Widget, List, ListItem, ListState};
+///
+/// // Let's say we have some events to display.
+/// struct Events {
+///     // `items` is the state managed by your application.
+///     items: Vec<String>,
+///     // `state` is the state that can be modified by the UI. It stores the index of the selected
+///     // item as well as the offset computed during the previous draw call (used to implement
+///     // natural scrolling).
+///     state: ListState
+/// }
+///
+/// impl Events {
+///     fn new(items: Vec<String>) -> Events {
+///         Events {
+///             items,
+///             state: ListState::default(),
+///         }
+///     }
+///
+///     pub fn set_items(&mut self, items: Vec<String>) {
+///         self.items = items;
+///         // We reset the state as the associated items have changed. This effectively reset
+///         // the selection as well as the stored offset.
+///         self.state = ListState::default();
+///     }
+///
+///     // Select the next item. This will not be reflected until the widget is drawn in the
+///     // `Terminal::draw` callback using `Frame::render_stateful_widget`.
+///     pub fn next(&mut self) {
+///         let i = match self.state.selected() {
+///             Some(i) => {
+///                 if i >= self.items.len() - 1 {
+///                     0
+///                 } else {
+///                     i + 1
+///                 }
+///             }
+///             None => 0,
+///         };
+///         self.state.select(Some(i));
+///     }
+///
+///     // Select the previous item. This will not be reflected until the widget is drawn in the
+///     // `Terminal::draw` callback using `Frame::render_stateful_widget`.
+///     pub fn previous(&mut self) {
+///         let i = match self.state.selected() {
+///             Some(i) => {
+///                 if i == 0 {
+///                     self.items.len() - 1
+///                 } else {
+///                     i - 1
+///                 }
+///             }
+///             None => 0,
+///         };
+///         self.state.select(Some(i));
+///     }
+///
+///     // Unselect the currently selected item if any. The implementation of `ListState` makes
+///     // sure that the stored offset is also reset.
+///     pub fn unselect(&mut self) {
+///         self.state.select(None);
+///     }
+/// }
+///
+/// let stdout = io::stdout();
+/// let backend = TermionBackend::new(stdout);
+/// let mut terminal = Terminal::new(backend).unwrap();
+///
+/// let mut events = Events::new(vec![
+///     String::from("Item 1"),
+///     String::from("Item 2")
+/// ]);
+///
+/// loop {
+///     terminal.draw(|f| {
+///         // The items managed by the application are transformed to something
+///         // that is understood by tui.
+///         let items: Vec<ListItem>= events.items.iter().map(|i| ListItem::new(i.as_ref())).collect();
+///         // The `List` widget is then built with those items.
+///         let list = List::new(items);
+///         // Finally the widget is rendered using the associated state. `events.state` is
+///         // effectively the only thing that we will "remember" from this draw call.
+///         f.render_stateful_widget(list, f.size(), &mut events.state);
+///     });
+///
+///     // In response to some input events or an external http request or whatever:
+///     events.next();
+/// }
+/// ```
+pub trait StatefulWidget {
+    type State;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State);
 }

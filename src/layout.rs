@@ -30,10 +30,25 @@ pub enum Constraint {
     Min(u16),
 }
 
+impl Constraint {
+    pub fn apply(&self, length: u16) -> u16 {
+        match *self {
+            Constraint::Percentage(p) => length * p / 100,
+            Constraint::Ratio(num, den) => {
+                let r = num * u32::from(length) / den;
+                r as u16
+            }
+            Constraint::Length(l) => length.min(l),
+            Constraint::Max(m) => length.min(m),
+            Constraint::Min(m) => length.max(m),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Margin {
-    vertical: u16,
-    horizontal: u16,
+    pub vertical: u16,
+    pub horizontal: u16,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -43,7 +58,6 @@ pub enum Alignment {
     Right,
 }
 
-// TODO: enforce constraints size once const generics has landed
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Layout {
     direction: Direction,
@@ -106,70 +120,66 @@ impl Layout {
     /// # Examples
     /// ```
     /// # use tui::layout::{Rect, Constraint, Direction, Layout};
+    /// let chunks = Layout::default()
+    ///     .direction(Direction::Vertical)
+    ///     .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
+    ///     .split(Rect {
+    ///         x: 2,
+    ///         y: 2,
+    ///         width: 10,
+    ///         height: 10,
+    ///     });
+    /// assert_eq!(
+    ///     chunks,
+    ///     vec![
+    ///         Rect {
+    ///             x: 2,
+    ///             y: 2,
+    ///             width: 10,
+    ///             height: 5
+    ///         },
+    ///         Rect {
+    ///             x: 2,
+    ///             y: 7,
+    ///             width: 10,
+    ///             height: 5
+    ///         }
+    ///     ]
+    /// );
     ///
-    /// # fn main() {
-    ///       let chunks = Layout::default()
-    ///           .direction(Direction::Vertical)
-    ///           .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
-    ///           .split(Rect {
-    ///               x: 2,
-    ///               y: 2,
-    ///               width: 10,
-    ///               height: 10,
-    ///           });
-    ///       assert_eq!(
-    ///           chunks,
-    ///           vec![
-    ///               Rect {
-    ///                   x: 2,
-    ///                   y: 2,
-    ///                   width: 10,
-    ///                   height: 5
-    ///               },
-    ///               Rect {
-    ///                   x: 2,
-    ///                   y: 7,
-    ///                   width: 10,
-    ///                   height: 5
-    ///               }
-    ///           ]
-    ///       );
-    ///
-    ///       let chunks = Layout::default()
-    ///           .direction(Direction::Horizontal)
-    ///           .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
-    ///           .split(Rect {
-    ///               x: 0,
-    ///               y: 0,
-    ///               width: 9,
-    ///               height: 2,
-    ///           });
-    ///       assert_eq!(
-    ///           chunks,
-    ///           vec![
-    ///               Rect {
-    ///                   x: 0,
-    ///                   y: 0,
-    ///                   width: 3,
-    ///                   height: 2
-    ///               },
-    ///               Rect {
-    ///                   x: 3,
-    ///                   y: 0,
-    ///                   width: 6,
-    ///                   height: 2
-    ///               }
-    ///           ]
-    ///       );
-    /// # }
-    ///
+    /// let chunks = Layout::default()
+    ///     .direction(Direction::Horizontal)
+    ///     .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
+    ///     .split(Rect {
+    ///         x: 0,
+    ///         y: 0,
+    ///         width: 9,
+    ///         height: 2,
+    ///     });
+    /// assert_eq!(
+    ///     chunks,
+    ///     vec![
+    ///         Rect {
+    ///             x: 0,
+    ///             y: 0,
+    ///             width: 3,
+    ///             height: 2
+    ///         },
+    ///         Rect {
+    ///             x: 3,
+    ///             y: 0,
+    ///             width: 6,
+    ///             height: 2
+    ///         }
+    ///     ]
+    /// );
     /// ```
-    pub fn split(self, area: Rect) -> Vec<Rect> {
+    pub fn split(&self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?
         LAYOUT_CACHE.with(|c| {
             c.borrow_mut()
                 .entry((area, self.clone()))
-                .or_insert_with(|| split(area, &self))
+                .or_insert_with(|| split(area, self))
                 .clone()
         })
     }
@@ -199,6 +209,8 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
     let mut ccs: Vec<CassowaryConstraint> =
         Vec::with_capacity(elements.len() * 4 + layout.constraints.len() * 6);
     for elt in &elements {
+        ccs.push(elt.width | GE(REQUIRED) | 0f64);
+        ccs.push(elt.height | GE(REQUIRED) | 0f64);
         ccs.push(elt.left() | GE(REQUIRED) | f64::from(dest_area.left()));
         ccs.push(elt.top() | GE(REQUIRED) | f64::from(dest_area.top()));
         ccs.push(elt.right() | LE(REQUIRED) | f64::from(dest_area.right()));
@@ -447,46 +459,76 @@ impl Rect {
     }
 }
 
-#[test]
-fn test_rect_size_truncation() {
-    for width in 256u16..300u16 {
-        for height in 256u16..300u16 {
-            let rect = Rect::new(0, 0, width, height);
-            rect.area(); // Should not panic.
-            assert!(rect.width < width || rect.height < height);
-            // The target dimensions are rounded down so the math will not be too precise
-            // but let's make sure the ratios don't diverge crazily.
-            assert!(
-                (f64::from(rect.width) / f64::from(rect.height)
-                    - f64::from(width) / f64::from(height))
-                .abs()
-                    < 1.0
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vertical_split_by_height() {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 10,
+            height: 10,
+        };
+
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Percentage(10),
+                    Constraint::Max(5),
+                    Constraint::Min(1),
+                ]
+                .as_ref(),
             )
-        }
+            .split(target);
+
+        assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
+        chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
     }
 
-    // One dimension below 255, one above. Area above max u16.
-    let width = 900;
-    let height = 100;
-    let rect = Rect::new(0, 0, width, height);
-    assert_ne!(rect.width, 900);
-    assert_ne!(rect.height, 100);
-    assert!(rect.width < width || rect.height < height);
-}
-
-#[test]
-fn test_rect_size_preservation() {
-    for width in 0..256u16 {
-        for height in 0..256u16 {
-            let rect = Rect::new(0, 0, width, height);
-            rect.area(); // Should not panic.
-            assert_eq!(rect.width, width);
-            assert_eq!(rect.height, height);
+    #[test]
+    fn test_rect_size_truncation() {
+        for width in 256u16..300u16 {
+            for height in 256u16..300u16 {
+                let rect = Rect::new(0, 0, width, height);
+                rect.area(); // Should not panic.
+                assert!(rect.width < width || rect.height < height);
+                // The target dimensions are rounded down so the math will not be too precise
+                // but let's make sure the ratios don't diverge crazily.
+                assert!(
+                    (f64::from(rect.width) / f64::from(rect.height)
+                        - f64::from(width) / f64::from(height))
+                    .abs()
+                        < 1.0
+                )
+            }
         }
+
+        // One dimension below 255, one above. Area above max u16.
+        let width = 900;
+        let height = 100;
+        let rect = Rect::new(0, 0, width, height);
+        assert_ne!(rect.width, 900);
+        assert_ne!(rect.height, 100);
+        assert!(rect.width < width || rect.height < height);
     }
 
-    // One dimension below 255, one above. Area below max u16.
-    let rect = Rect::new(0, 0, 300, 100);
-    assert_eq!(rect.width, 300);
-    assert_eq!(rect.height, 100);
+    #[test]
+    fn test_rect_size_preservation() {
+        for width in 0..256u16 {
+            for height in 0..256u16 {
+                let rect = Rect::new(0, 0, width, height);
+                rect.area(); // Should not panic.
+                assert_eq!(rect.width, width);
+                assert_eq!(rect.height, height);
+            }
+        }
+
+        // One dimension below 255, one above. Area below max u16.
+        let rect = Rect::new(0, 0, 300, 100);
+        assert_eq!(rect.width, 300);
+        assert_eq!(rect.height, 100);
+    }
 }

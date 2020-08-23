@@ -1,38 +1,41 @@
-use std::io;
-
-use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
-use tui::widgets::{
-    Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, Marker, Paragraph, Row,
-    SelectableList, Sparkline, Table, Tabs, Text, Widget,
-};
-use tui::{Frame, Terminal};
-
 use crate::demo::App;
+use tui::{
+    backend::Backend,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Modifier, Style},
+    symbols,
+    text::{Span, Spans},
+    widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle},
+    widgets::{
+        Axis, BarChart, Block, Borders, Chart, Dataset, Gauge, List, ListItem, Paragraph, Row,
+        Sparkline, Table, Tabs, Wrap,
+    },
+    Frame,
+};
 
-pub fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &App) -> Result<(), io::Error> {
-    terminal.draw(|mut f| {
-        let chunks = Layout::default()
-            .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-            .split(f.size());
-        Tabs::default()
-            .block(Block::default().borders(Borders::ALL).title(app.title))
-            .titles(&app.tabs.titles)
-            .style(Style::default().fg(Color::Green))
-            .highlight_style(Style::default().fg(Color::Yellow))
-            .select(app.tabs.index)
-            .render(&mut f, chunks[0]);
-        match app.tabs.index {
-            0 => draw_first_tab(&mut f, &app, chunks[1]),
-            1 => draw_second_tab(&mut f, &app, chunks[1]),
-            _ => {}
-        };
-    })
+pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+    let chunks = Layout::default()
+        .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+        .split(f.size());
+    let titles = app
+        .tabs
+        .titles
+        .iter()
+        .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::Green))))
+        .collect();
+    let tabs = Tabs::new(titles)
+        .block(Block::default().borders(Borders::ALL).title(app.title))
+        .highlight_style(Style::default().fg(Color::Yellow))
+        .select(app.tabs.index);
+    f.render_widget(tabs, chunks[0]);
+    match app.tabs.index {
+        0 => draw_first_tab(f, app, chunks[1]),
+        1 => draw_second_tab(f, app, chunks[1]),
+        _ => {}
+    };
 }
 
-fn draw_first_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_first_tab<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -51,7 +54,7 @@ where
     draw_text(f, chunks[2]);
 }
 
-fn draw_gauges<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_gauges<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -59,29 +62,35 @@ where
         .constraints([Constraint::Length(2), Constraint::Length(3)].as_ref())
         .margin(1)
         .split(area);
-    Block::default()
-        .borders(Borders::ALL)
-        .title("Graphs")
-        .render(f, area);
-    Gauge::default()
+    let block = Block::default().borders(Borders::ALL).title("Graphs");
+    f.render_widget(block, area);
+
+    let label = format!("{:.2}%", app.progress * 100.0);
+    let gauge = Gauge::default()
         .block(Block::default().title("Gauge:"))
-        .style(
+        .gauge_style(
             Style::default()
                 .fg(Color::Magenta)
                 .bg(Color::Black)
-                .modifier(Modifier::ITALIC | Modifier::BOLD),
+                .add_modifier(Modifier::ITALIC | Modifier::BOLD),
         )
-        .label(&format!("{} / 100", app.progress))
-        .percent(app.progress)
-        .render(f, chunks[0]);
-    Sparkline::default()
+        .label(label)
+        .ratio(app.progress);
+    f.render_widget(gauge, chunks[0]);
+
+    let sparkline = Sparkline::default()
         .block(Block::default().title("Sparkline:"))
         .style(Style::default().fg(Color::Green))
         .data(&app.sparkline.points)
-        .render(f, chunks[1]);
+        .bar_set(if app.enhanced_graphics {
+            symbols::bar::NINE_LEVELS
+        } else {
+            symbols::bar::THREE_LEVELS
+        });
+    f.render_widget(sparkline, chunks[1]);
 }
 
-fn draw_charts<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_charts<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -103,88 +112,128 @@ where
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .direction(Direction::Horizontal)
                 .split(chunks[0]);
-            SelectableList::default()
+
+            // Draw tasks
+            let tasks: Vec<ListItem> = app
+                .tasks
+                .items
+                .iter()
+                .map(|i| ListItem::new(vec![Spans::from(Span::raw(*i))]))
+                .collect();
+            let tasks = List::new(tasks)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.tasks.items)
-                .select(Some(app.tasks.selected))
-                .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
-                .highlight_symbol(">")
-                .render(f, chunks[0]);
-            let info_style = Style::default().fg(Color::White);
+                .highlight_style(Style::default().add_modifier(Modifier::BOLD))
+                .highlight_symbol("> ");
+            f.render_stateful_widget(tasks, chunks[0], &mut app.tasks.state);
+
+            // Draw logs
+            let info_style = Style::default().fg(Color::Blue);
             let warning_style = Style::default().fg(Color::Yellow);
             let error_style = Style::default().fg(Color::Magenta);
             let critical_style = Style::default().fg(Color::Red);
-            let events = app.logs.items.iter().map(|&(evt, level)| {
-                Text::styled(
-                    format!("{}: {}", level, evt),
-                    match level {
+            let logs: Vec<ListItem> = app
+                .logs
+                .items
+                .iter()
+                .map(|&(evt, level)| {
+                    let s = match level {
                         "ERROR" => error_style,
                         "CRITICAL" => critical_style,
                         "WARNING" => warning_style,
                         _ => info_style,
-                    },
-                )
-            });
-            List::new(events)
-                .block(Block::default().borders(Borders::ALL).title("List"))
-                .render(f, chunks[1]);
+                    };
+                    let content = vec![Spans::from(vec![
+                        Span::styled(format!("{:<9}", level), s),
+                        Span::raw(evt),
+                    ])];
+                    ListItem::new(content)
+                })
+                .collect();
+            let logs = List::new(logs).block(Block::default().borders(Borders::ALL).title("List"));
+            f.render_stateful_widget(logs, chunks[1], &mut app.logs.state);
         }
-        BarChart::default()
+
+        let barchart = BarChart::default()
             .block(Block::default().borders(Borders::ALL).title("Bar chart"))
             .data(&app.barchart)
             .bar_width(3)
             .bar_gap(2)
+            .bar_set(if app.enhanced_graphics {
+                symbols::bar::NINE_LEVELS
+            } else {
+                symbols::bar::THREE_LEVELS
+            })
             .value_style(
                 Style::default()
                     .fg(Color::Black)
                     .bg(Color::Green)
-                    .modifier(Modifier::ITALIC),
+                    .add_modifier(Modifier::ITALIC),
             )
             .label_style(Style::default().fg(Color::Yellow))
-            .style(Style::default().fg(Color::Green))
-            .render(f, chunks[1]);
+            .bar_style(Style::default().fg(Color::Green));
+        f.render_widget(barchart, chunks[1]);
     }
     if app.show_chart {
-        Chart::default()
+        let x_labels = vec![
+            Span::styled(
+                format!("{}", app.signals.window[0]),
+                Style::default().add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(format!(
+                "{}",
+                (app.signals.window[0] + app.signals.window[1]) / 2.0
+            )),
+            Span::styled(
+                format!("{}", app.signals.window[1]),
+                Style::default().add_modifier(Modifier::BOLD),
+            ),
+        ];
+        let datasets = vec![
+            Dataset::default()
+                .name("data2")
+                .marker(symbols::Marker::Dot)
+                .style(Style::default().fg(Color::Cyan))
+                .data(&app.signals.sin1.points),
+            Dataset::default()
+                .name("data3")
+                .marker(if app.enhanced_graphics {
+                    symbols::Marker::Braille
+                } else {
+                    symbols::Marker::Dot
+                })
+                .style(Style::default().fg(Color::Yellow))
+                .data(&app.signals.sin2.points),
+        ];
+        let chart = Chart::new(datasets)
             .block(
                 Block::default()
-                    .title("Chart")
-                    .title_style(Style::default().fg(Color::Cyan).modifier(Modifier::BOLD))
+                    .title(Span::styled(
+                        "Chart",
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ))
                     .borders(Borders::ALL),
             )
             .x_axis(
                 Axis::default()
                     .title("X Axis")
                     .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::ITALIC))
                     .bounds(app.signals.window)
-                    .labels(&[
-                        &format!("{}", app.signals.window[0]),
-                        &format!("{}", (app.signals.window[0] + app.signals.window[1]) / 2.0),
-                        &format!("{}", app.signals.window[1]),
-                    ]),
+                    .labels(x_labels),
             )
             .y_axis(
                 Axis::default()
                     .title("Y Axis")
                     .style(Style::default().fg(Color::Gray))
-                    .labels_style(Style::default().modifier(Modifier::ITALIC))
                     .bounds([-20.0, 20.0])
-                    .labels(&["-20", "0", "20"]),
-            )
-            .datasets(&[
-                Dataset::default()
-                    .name("data2")
-                    .marker(Marker::Dot)
-                    .style(Style::default().fg(Color::Cyan))
-                    .data(&app.signals.sin1.points),
-                Dataset::default()
-                    .name("data3")
-                    .marker(Marker::Braille)
-                    .style(Style::default().fg(Color::Yellow))
-                    .data(&app.signals.sin2.points),
-            ])
-            .render(f, chunks[1]);
+                    .labels(vec![
+                        Span::styled("-20", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::raw("0"),
+                        Span::styled("20", Style::default().add_modifier(Modifier::BOLD)),
+                    ]),
+            );
+        f.render_widget(chart, chunks[1]);
     }
 }
 
@@ -192,35 +241,44 @@ fn draw_text<B>(f: &mut Frame<B>, area: Rect)
 where
     B: Backend,
 {
-    let text = [
-        Text::raw("This is a paragraph with several lines. You can change style your text the way you want.\n\nFox example: "),
-        Text::styled("under", Style::default().fg(Color::Red)),
-        Text::raw(" "),
-        Text::styled("the", Style::default().fg(Color::Green)),
-        Text::raw(" "),
-        Text::styled("rainbow", Style::default().fg(Color::Blue)),
-        Text::raw(".\nOh and if you didn't "),
-        Text::styled("notice", Style::default().modifier(Modifier::ITALIC)),
-        Text::raw(" you can "),
-        Text::styled("automatically", Style::default().modifier(Modifier::BOLD)),
-        Text::raw(" "),
-        Text::styled("wrap", Style::default().modifier(Modifier::REVERSED)),
-        Text::raw(" your "),
-        Text::styled("text", Style::default().modifier(Modifier::UNDERLINED)),
-        Text::raw(".\nOne more thing is that it should display unicode characters: 10€")
+    let text = vec![
+        Spans::from("This is a paragraph with several lines. You can change style your text the way you want"),
+        Spans::from(""),
+        Spans::from(vec![
+            Span::from("For example: "),
+            Span::styled("under", Style::default().fg(Color::Red)),
+            Span::raw(" "),
+            Span::styled("the", Style::default().fg(Color::Green)),
+            Span::raw(" "),
+            Span::styled("rainbow", Style::default().fg(Color::Blue)),
+            Span::raw("."),
+        ]),
+        Spans::from(vec![
+            Span::raw("Oh and if you didn't "),
+            Span::styled("notice", Style::default().add_modifier(Modifier::ITALIC)),
+            Span::raw(" you can "),
+            Span::styled("automatically", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" "),
+            Span::styled("wrap", Style::default().add_modifier(Modifier::REVERSED)),
+            Span::raw(" your "),
+            Span::styled("text", Style::default().add_modifier(Modifier::UNDERLINED)),
+            Span::raw(".")
+        ]),
+        Spans::from(
+            "One more thing is that it should display unicode characters: 10€"
+        ),
     ];
-    Paragraph::new(text.iter())
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Footer")
-                .title_style(Style::default().fg(Color::Magenta).modifier(Modifier::BOLD)),
-        )
-        .wrap(true)
-        .render(f, area);
+    let block = Block::default().borders(Borders::ALL).title(Span::styled(
+        "Footer",
+        Style::default()
+            .fg(Color::Magenta)
+            .add_modifier(Modifier::BOLD),
+    ));
+    let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: true });
+    f.render_widget(paragraph, area);
 }
 
-fn draw_second_tab<B>(f: &mut Frame<B>, app: &App, area: Rect)
+fn draw_second_tab<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -231,7 +289,7 @@ where
     let up_style = Style::default().fg(Color::Green);
     let failure_style = Style::default()
         .fg(Color::Red)
-        .modifier(Modifier::RAPID_BLINK | Modifier::CROSSED_OUT);
+        .add_modifier(Modifier::RAPID_BLINK | Modifier::CROSSED_OUT);
     let header = ["Server", "Location", "Status"];
     let rows = app.servers.iter().map(|s| {
         let style = if s.status == "Up" {
@@ -241,17 +299,17 @@ where
         };
         Row::StyledData(vec![s.name, s.location, s.status].into_iter(), style)
     });
-    Table::new(header.into_iter(), rows)
+    let table = Table::new(header.iter(), rows)
         .block(Block::default().title("Servers").borders(Borders::ALL))
         .header_style(Style::default().fg(Color::Yellow))
         .widths(&[
             Constraint::Length(15),
             Constraint::Length(15),
             Constraint::Length(10),
-        ])
-        .render(f, chunks[0]);
+        ]);
+    f.render_widget(table, chunks[0]);
 
-    Canvas::default()
+    let map = Canvas::default()
         .block(Block::default().title("World").borders(Borders::ALL))
         .paint(|ctx| {
             ctx.draw(&Map {
@@ -260,12 +318,10 @@ where
             });
             ctx.layer();
             ctx.draw(&Rectangle {
-                rect: Rect {
-                    x: 0,
-                    y: 30,
-                    width: 10,
-                    height: 10,
-                },
+                x: 0.0,
+                y: 30.0,
+                width: 10.0,
+                height: 10.0,
                 color: Color::Yellow,
             });
             for (i, s1) in app.servers.iter().enumerate() {
@@ -288,7 +344,12 @@ where
                 ctx.print(server.coords.1, server.coords.0, "X", color);
             }
         })
+        .marker(if app.enhanced_graphics {
+            symbols::Marker::Braille
+        } else {
+            symbols::Marker::Dot
+        })
         .x_bounds([-180.0, 180.0])
-        .y_bounds([-90.0, 90.0])
-        .render(f, chunks[1]);
+        .y_bounds([-90.0, 90.0]);
+    f.render_widget(map, chunks[1]);
 }

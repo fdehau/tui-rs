@@ -1,34 +1,31 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
-use tui::Terminal;
-
 use crate::util::event::{Event, Events};
+use std::{error::Error, io};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use tui::{
+    backend::TermionBackend,
+    layout::{Alignment, Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Span, Spans},
+    widgets::{Block, Borders, Paragraph, Wrap},
+    Terminal,
+};
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     let events = Events::new();
 
     let mut scroll: u16 = 0;
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let size = f.size();
 
             // Words made "loooong" to demonstrate line breaking.
@@ -36,9 +33,9 @@ fn main() -> Result<(), failure::Error> {
             let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
             long_line.push('\n');
 
-            Block::default()
-                .style(Style::default().bg(Color::White))
-                .render(&mut f, size);
+            let block = Block::default()
+                .style(Style::default().bg(Color::White).fg(Color::Black));
+            f.render_widget(block, size);
 
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -54,56 +51,60 @@ fn main() -> Result<(), failure::Error> {
                 )
                 .split(size);
 
-            let text = [
-                Text::raw("This is a line \n"),
-                Text::styled("This is a line   \n", Style::default().fg(Color::Red)),
-                Text::styled("This is a line\n", Style::default().bg(Color::Blue)),
-                Text::styled(
-                    "This is a longer line\n",
-                    Style::default().modifier(Modifier::CROSSED_OUT),
-                ),
-                Text::styled(&long_line, Style::default().bg(Color::Green)),
-                Text::styled(
-                    "This is a line\n",
-                    Style::default().fg(Color::Green).modifier(Modifier::ITALIC),
-                ),
+            let text = vec![
+                Spans::from("This is a line "),
+                Spans::from(Span::styled("This is a line   ", Style::default().fg(Color::Red))),
+                Spans::from(Span::styled("This is a line", Style::default().bg(Color::Blue))),
+                Spans::from(Span::styled(
+                    "This is a longer line",
+                    Style::default().add_modifier(Modifier::CROSSED_OUT),
+                )),
+                Spans::from(Span::styled(&long_line, Style::default().bg(Color::Green))),
+                Spans::from(Span::styled(
+                    "This is a line",
+                    Style::default().fg(Color::Green).add_modifier(Modifier::ITALIC),
+                )),
             ];
 
-            let block = Block::default()
-                .borders(Borders::ALL)
-                .title_style(Style::default().modifier(Modifier::BOLD));
-            Paragraph::new(text.iter())
-                .block(block.clone().title("Left, no wrap"))
+            let create_block = |title| {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().bg(Color::White).fg(Color::Black))
+                    .title(Span::styled(title, Style::default().add_modifier(Modifier::BOLD)))
+            };
+            let paragraph = Paragraph::new(text.clone())
+                .style(Style::default().bg(Color::White).fg(Color::Black))
+                .block(create_block("Left, no wrap"))
+                .alignment(Alignment::Left);
+            f.render_widget(paragraph, chunks[0]);
+            let paragraph = Paragraph::new(text.clone())
+                .style(Style::default().bg(Color::White).fg(Color::Black))
+                .block(create_block("Left, wrap"))
                 .alignment(Alignment::Left)
-                .render(&mut f, chunks[0]);
-            Paragraph::new(text.iter())
-                .block(block.clone().title("Left, wrap"))
-                .alignment(Alignment::Left)
-                .wrap(true)
-                .render(&mut f, chunks[1]);
-            Paragraph::new(text.iter())
-                .block(block.clone().title("Center, wrap"))
+                .wrap(Wrap { trim: true });
+            f.render_widget(paragraph, chunks[1]);
+            let paragraph = Paragraph::new(text.clone())
+                .style(Style::default().bg(Color::White).fg(Color::Black))
+                .block(create_block("Center, wrap"))
                 .alignment(Alignment::Center)
-                .wrap(true)
-                .scroll(scroll)
-                .render(&mut f, chunks[2]);
-            Paragraph::new(text.iter())
-                .block(block.clone().title("Right, wrap"))
+                .wrap(Wrap { trim: true })
+                .scroll((scroll, 0));
+            f.render_widget(paragraph, chunks[2]);
+            let paragraph = Paragraph::new(text)
+                .style(Style::default().bg(Color::White).fg(Color::Black))
+                .block(create_block("Right, wrap"))
                 .alignment(Alignment::Right)
-                .wrap(true)
-                .render(&mut f, chunks[3]);
+                .wrap(Wrap { trim: true });
+            f.render_widget(paragraph, chunks[3]);
         })?;
 
         scroll += 1;
         scroll %= 10;
 
-        match events.next()? {
-            Event::Input(key) => {
-                if key == Key::Char('q') {
-                    break;
-                }
+        if let Event::Input(key) = events.next()? {
+            if key == Key::Char('q') {
+                break;
             }
-            _ => {}
         }
     }
     Ok(())

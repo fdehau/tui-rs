@@ -6,6 +6,9 @@ jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: ["1.44.0", "stable"]
     steps:
       - name: "Install dependencies"
         run: sudo apt-get install libncurses5-dev
@@ -13,7 +16,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: default
-          toolchain: stable
+          toolchain: ${{ matrix.rust }}
           override: true
       - name: "Format"
         uses: actions-rs/cargo@v1
@@ -44,19 +47,25 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+        env:
+          RUST_BACKTRACE: full
       - name: "Clippy"
         uses: actions-rs/cargo@v1
         with:
           command: clippy
+          args: --all-targets --all-features -- -D warnings
   windows:
     name: Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        rust: ["1.44.0", "stable"]
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
           profile: default
-          toolchain: stable
+          toolchain: ${{ matrix.rust }}
           override: true
       - name: "Check (crossterm)"
         uses: actions-rs/cargo@v1
@@ -68,3 +77,5 @@ jobs:
         with:
           command: test
           args: --no-default-features --features=crossterm --tests --examples
+        env:
+          RUST_BACKTRACE: full

@@ -9,21 +9,18 @@
 //!
 //! ```toml
 //! [dependencies]
-//! tui = "0.6"
+//! tui = "0.10"
 //! termion = "1.5"
 //! ```
 //!
-//! The crate is using the `termion` backend by default but if for some reason you might want to use
-//! the `rustbox` backend instead, you need the to replace your dependency specification by:
+//! The crate is using the `termion` backend by default but if for example you want your
+//! application to work on Windows, you might want to use the `crossterm` backend instead. This can
+//! be done by changing your dependencies specification to the following:
 //!
 //! ```toml
 //! [dependencies]
-//! rustbox = "0.11"
-//!
-//! [dependencies.tui]
-//! version = "0.6"
-//! default-features = false
-//! features = ['rustbox']
+//! crossterm = "0.17"
+//! tui = { version = "0.10", default-features = false, features = ['crossterm'] }
 //! ```
 //!
 //! The same logic applies for all other available backends.
@@ -48,16 +45,18 @@
 //! }
 //! ```
 //!
-//! If you had previously chosen `rustbox` as a backend, the terminal can be created in a similar
+//! If you had previously chosen `crossterm` as a backend, the terminal can be created in a similar
 //! way:
 //!
 //! ```rust,ignore
+//! use std::io;
 //! use tui::Terminal;
-//! use tui::backend::RustboxBackend;
+//! use tui::backend::CrosstermBackend;
 //!
 //! fn main() -> Result<(), io::Error> {
-//!     let backend = RustboxBackend::new()?;
-//!     let mut terminal = Terminal::new(backend);
+//!     let stdout = io::stdout();
+//!     let backend = CrosstermBackend::new(stdout);
+//!     let mut terminal = Terminal::new(backend)?;
 //!     Ok(())
 //! }
 //! ```
@@ -67,13 +66,13 @@
 //!
 //! ## Building a User Interface (UI)
 //!
-//! Every component of your interface will be implementing the `Widget` trait.  The library comes
-//! with a predefined set of widgets that should met most of your use cases. You are also free to
-//! implement your owns.
+//! Every component of your interface will be implementing the `Widget` trait. The library comes
+//! with a predefined set of widgets that should meet most of your use cases. You are also free to
+//! implement your own.
 //!
 //! Each widget follows a builder pattern API providing a default configuration along with methods
-//! to customize them. The widget is then registered using its `render` method that take a `Frame`
-//! instance and an area to draw to.
+//! to customize them. The widget is then rendered using the [`Frame::render_widget`] which take
+//! your widget instance an area to draw to.
 //!
 //! The following example renders a block of the size of the terminal:
 //!
@@ -89,12 +88,12 @@
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
-//!     terminal.draw(|mut f| {
+//!     terminal.draw(|f| {
 //!         let size = f.size();
-//!         Block::default()
+//!         let block = Block::default()
 //!             .title("Block")
-//!             .borders(Borders::ALL)
-//!             .render(&mut f, size);
+//!             .borders(Borders::ALL);
+//!         f.render_widget(block, size);
 //!     })
 //! }
 //! ```
@@ -117,7 +116,7 @@
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
-//!     terminal.draw(|mut f| {
+//!     terminal.draw(|f| {
 //!         let chunks = Layout::default()
 //!             .direction(Direction::Vertical)
 //!             .margin(1)
@@ -129,14 +128,14 @@
 //!                 ].as_ref()
 //!             )
 //!             .split(f.size());
-//!         Block::default()
+//!         let block = Block::default()
 //!              .title("Block")
-//!              .borders(Borders::ALL)
-//!              .render(&mut f, chunks[0]);
-//!         Block::default()
+//!              .borders(Borders::ALL);
+//!         f.render_widget(block, chunks[0]);
+//!         let block = Block::default()
 //!              .title("Block 2")
-//!              .borders(Borders::ALL)
-//!              .render(&mut f, chunks[2]);
+//!              .borders(Borders::ALL);
+//!         f.render_widget(block, chunks[1]);
 //!     })
 //! }
 //! ```
@@ -146,14 +145,13 @@
 //! you might need a blank space somewhere, try to pass an additional constraint and don't use the
 //! corresponding area.
 
-#![deny(warnings)]
-
 pub mod backend;
 pub mod buffer;
 pub mod layout;
 pub mod style;
 pub mod symbols;
 pub mod terminal;
+pub mod text;
 pub mod widgets;
 
-pub use self::terminal::{Frame, Terminal};
+pub use self::terminal::{Frame, Terminal, TerminalOptions, Viewport};

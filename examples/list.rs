@@ -1,39 +1,56 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Corner, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, SelectableList, Text, Widget};
-use tui::Terminal;
-
-use crate::util::event::{Event, Events};
+use crate::util::{
+    event::{Event, Events},
+    StatefulList,
+};
+use std::{error::Error, io};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use tui::{
+    backend::TermionBackend,
+    layout::{Constraint, Corner, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Span, Spans},
+    widgets::{Block, Borders, List, ListItem},
+    Terminal,
+};
 
 struct App<'a> {
-    items: Vec<&'a str>,
-    selected: Option<usize>,
+    items: StatefulList<(&'a str, usize)>,
     events: Vec<(&'a str, &'a str)>,
-    info_style: Style,
-    warning_style: Style,
-    error_style: Style,
-    critical_style: Style,
 }
 
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            items: vec![
-                "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9",
-                "Item10", "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17",
-                "Item18", "Item19", "Item20", "Item21", "Item22", "Item23", "Item24",
-            ],
-            selected: None,
+            items: StatefulList::with_items(vec![
+                ("Item0", 1),
+                ("Item1", 2),
+                ("Item2", 1),
+                ("Item3", 3),
+                ("Item4", 1),
+                ("Item5", 4),
+                ("Item6", 1),
+                ("Item7", 3),
+                ("Item8", 1),
+                ("Item9", 6),
+                ("Item10", 1),
+                ("Item11", 3),
+                ("Item12", 1),
+                ("Item13", 2),
+                ("Item14", 1),
+                ("Item15", 1),
+                ("Item16", 4),
+                ("Item17", 1),
+                ("Item18", 5),
+                ("Item19", 4),
+                ("Item20", 1),
+                ("Item21", 2),
+                ("Item22", 1),
+                ("Item23", 3),
+                ("Item24", 1),
+            ]),
             events: vec![
                 ("Event1", "INFO"),
                 ("Event2", "INFO"),
@@ -62,10 +79,6 @@ impl<'a> App<'a> {
                 ("Event25", "INFO"),
                 ("Event26", "INFO"),
             ],
-            info_style: Style::default().fg(Color::White),
-            warning_style: Style::default().fg(Color::Yellow),
-            error_style: Style::default().fg(Color::Magenta),
-            critical_style: Style::default().fg(Color::Red),
         }
     }
 
@@ -75,14 +88,13 @@ impl<'a> App<'a> {
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     let events = Events::new();
 
@@ -90,38 +102,69 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::new();
 
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .split(f.size());
 
-            let style = Style::default().fg(Color::Black).bg(Color::White);
-            SelectableList::default()
+            let items: Vec<ListItem> = app
+                .items
+                .items
+                .iter()
+                .map(|i| {
+                    let mut lines = vec![Spans::from(i.0)];
+                    for _ in 0..i.1 {
+                        lines.push(Spans::from(Span::styled(
+                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                            Style::default().add_modifier(Modifier::ITALIC),
+                        )));
+                    }
+                    ListItem::new(lines).style(Style::default().fg(Color::Black).bg(Color::White))
+                })
+                .collect();
+            let items = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
-                .items(&app.items)
-                .select(app.selected)
-                .style(style)
-                .highlight_style(style.fg(Color::LightGreen).modifier(Modifier::BOLD))
-                .highlight_symbol(">")
-                .render(&mut f, chunks[0]);
-            {
-                let events = app.events.iter().map(|&(evt, level)| {
-                    Text::styled(
-                        format!("{}: {}", level, evt),
-                        match level {
-                            "ERROR" => app.error_style,
-                            "CRITICAL" => app.critical_style,
-                            "WARNING" => app.warning_style,
-                            _ => app.info_style,
-                        },
-                    )
-                });
-                List::new(events)
-                    .block(Block::default().borders(Borders::ALL).title("List"))
-                    .start_corner(Corner::BottomLeft)
-                    .render(&mut f, chunks[1]);
-            }
+                .highlight_style(
+                    Style::default()
+                        .bg(Color::LightGreen)
+                        .add_modifier(Modifier::BOLD),
+                )
+                .highlight_symbol(">> ");
+            f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+
+            let events: Vec<ListItem> = app
+                .events
+                .iter()
+                .map(|&(evt, level)| {
+                    let s = match level {
+                        "CRITICAL" => Style::default().fg(Color::Red),
+                        "ERROR" => Style::default().fg(Color::Magenta),
+                        "WARNING" => Style::default().fg(Color::Yellow),
+                        "INFO" => Style::default().fg(Color::Blue),
+                        _ => Style::default(),
+                    };
+                    let header = Spans::from(vec![
+                        Span::styled(format!("{:<9}", level), s),
+                        Span::raw(" "),
+                        Span::styled(
+                            "2020-01-01 10:00:00",
+                            Style::default().add_modifier(Modifier::ITALIC),
+                        ),
+                    ]);
+                    let log = Spans::from(vec![Span::raw(evt)]);
+                    ListItem::new(vec![
+                        Spans::from("-".repeat(chunks[1].width as usize)),
+                        header,
+                        Spans::from(""),
+                        log,
+                    ])
+                })
+                .collect();
+            let events_list = List::new(events)
+                .block(Block::default().borders(Borders::ALL).title("List"))
+                .start_corner(Corner::BottomLeft);
+            f.render_widget(events_list, chunks[1]);
         })?;
 
         match events.next()? {
@@ -130,29 +173,13 @@ fn main() -> Result<(), failure::Error> {
                     break;
                 }
                 Key::Left => {
-                    app.selected = None;
+                    app.items.unselect();
                 }
                 Key::Down => {
-                    app.selected = if let Some(selected) = app.selected {
-                        if selected >= app.items.len() - 1 {
-                            Some(0)
-                        } else {
-                            Some(selected + 1)
-                        }
-                    } else {
-                        Some(0)
-                    }
+                    app.items.next();
                 }
                 Key::Up => {
-                    app.selected = if let Some(selected) = app.selected {
-                        if selected > 0 {
-                            Some(selected - 1)
-                        } else {
-                            Some(app.items.len() - 1)
-                        }
-                    } else {
-                        Some(0)
-                    }
+                    app.items.previous();
                 }
                 _ => {}
             },

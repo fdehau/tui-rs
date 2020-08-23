@@ -1,42 +1,44 @@
-use crate::style::Style;
+use crate::text::StyledGrapheme;
+use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 const NBSP: &str = "\u{00a0}";
-
-#[derive(Copy, Clone, Debug)]
-pub struct Styled<'a>(pub &'a str, pub Style);
 
 /// A state machine to pack styled symbols into lines.
 /// Cannot implement it as Iterator since it yields slices of the internal buffer (need streaming
 /// iterators for that).
 pub trait LineComposer<'a> {
-    fn next_line(&mut self) -> Option<(&[Styled<'a>], u16)>;
+    fn next_line(&mut self) -> Option<(&[StyledGrapheme<'a>], u16)>;
 }
 
 /// A state machine that wraps lines on word boundaries.
 pub struct WordWrapper<'a, 'b> {
-    symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
+    symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
     max_line_width: u16,
-    current_line: Vec<Styled<'a>>,
-    next_line: Vec<Styled<'a>>,
+    current_line: Vec<StyledGrapheme<'a>>,
+    next_line: Vec<StyledGrapheme<'a>>,
+    /// Removes the leading whitespace from lines
+    trim: bool,
 }
 
 impl<'a, 'b> WordWrapper<'a, 'b> {
     pub fn new(
-        symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
+        symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
+        trim: bool,
     ) -> WordWrapper<'a, 'b> {
         WordWrapper {
             symbols,
             max_line_width,
             current_line: vec![],
             next_line: vec![],
+            trim,
         }
     }
 }
 
 impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
-    fn next_line(&mut self) -> Option<(&[Styled<'a>], u16)> {
+    fn next_line(&mut self) -> Option<(&[StyledGrapheme<'a>], u16)> {
         if self.max_line_width == 0 {
             return None;
         }
@@ -46,21 +48,21 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
         let mut current_line_width = self
             .current_line
             .iter()
-            .map(|Styled(c, _)| c.width() as u16)
+            .map(|StyledGrapheme { symbol, .. }| symbol.width() as u16)
             .sum();
 
         let mut symbols_to_last_word_end: usize = 0;
         let mut width_to_last_word_end: u16 = 0;
         let mut prev_whitespace = false;
         let mut symbols_exhausted = true;
-        for Styled(symbol, style) in &mut self.symbols {
+        for StyledGrapheme { symbol, style } in &mut self.symbols {
             symbols_exhausted = false;
             let symbol_whitespace = symbol.chars().all(&char::is_whitespace);
 
             // Ignore characters wider that the total max width.
             if symbol.width() as u16 > self.max_line_width
-                // Skip leading whitespace.
-                || symbol_whitespace && symbol != "\n" && current_line_width == 0
+                // Skip leading whitespace when trim is enabled.
+                || self.trim && symbol_whitespace && symbol != "\n" && current_line_width == 0
             {
                 continue;
             }
@@ -80,7 +82,7 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
                 width_to_last_word_end = current_line_width;
             }
 
-            self.current_line.push(Styled(symbol, style));
+            self.current_line.push(StyledGrapheme { symbol, style });
             current_line_width += symbol.width() as u16;
 
             if current_line_width > self.max_line_width {
@@ -94,9 +96,10 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
                 // Push the remainder to the next line but strip leading whitespace:
                 {
                     let remainder = &self.current_line[truncate_at..];
-                    if let Some(remainder_nonwhite) = remainder
-                        .iter()
-                        .position(|Styled(c, _)| !c.chars().all(&char::is_whitespace))
+                    if let Some(remainder_nonwhite) =
+                        remainder.iter().position(|StyledGrapheme { symbol, .. }| {
+                            !symbol.chars().all(&char::is_whitespace)
+                        })
                     {
                         self.next_line
                             .extend_from_slice(&remainder[remainder_nonwhite..]);
@@ -121,26 +124,33 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
 
 /// A state machine that truncates overhanging lines.
 pub struct LineTruncator<'a, 'b> {
-    symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
+    symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
     max_line_width: u16,
-    current_line: Vec<Styled<'a>>,
+    current_line: Vec<StyledGrapheme<'a>>,
+    /// Record the offet to skip render
+    horizontal_offset: u16,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
-        symbols: &'b mut dyn Iterator<Item = Styled<'a>>,
+        symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
     ) -> LineTruncator<'a, 'b> {
         LineTruncator {
             symbols,
             max_line_width,
+            horizontal_offset: 0,
             current_line: vec![],
         }
+    }
+
+    pub fn set_horizontal_offset(&mut self, horizontal_offset: u16) {
+        self.horizontal_offset = horizontal_offset;
     }
 }
 
 impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
-    fn next_line(&mut self) -> Option<(&[Styled<'a>], u16)> {
+    fn next_line(&mut self) -> Option<(&[StyledGrapheme<'a>], u16)> {
         if self.max_line_width == 0 {
             return None;
         }
@@ -150,7 +160,8 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
 
         let mut skip_rest = false;
         let mut symbols_exhausted = true;
-        for Styled(symbol, style) in &mut self.symbols {
+        let mut horizontal_offset = self.horizontal_offset as usize;
+        for StyledGrapheme { symbol, style } in &mut self.symbols {
             symbols_exhausted = false;
 
             // Ignore characters wider that the total max width.
@@ -169,12 +180,25 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
                 break;
             }
 
+            let symbol = if horizontal_offset == 0 {
+                symbol
+            } else {
+                let w = symbol.width();
+                if w > horizontal_offset {
+                    let t = trim_offset(symbol, horizontal_offset);
+                    horizontal_offset = 0;
+                    t
+                } else {
+                    horizontal_offset -= w;
+                    ""
+                }
+            };
             current_line_width += symbol.width() as u16;
-            self.current_line.push(Styled(symbol, style));
+            self.current_line.push(StyledGrapheme { symbol, style });
         }
 
         if skip_rest {
-            for Styled(symbol, _) in &mut self.symbols {
+            for StyledGrapheme { symbol, .. } in &mut self.symbols {
                 if symbol == "\n" {
                     break;
                 }
@@ -189,21 +213,40 @@ impl<'a, 'b> LineComposer<'a> for LineTruncator<'a, 'b> {
     }
 }
 
+/// This function will return a str slice which start at specified offset.
+/// As src is a unicode str, start offset has to be calculated with each character.
+fn trim_offset(src: &str, mut offset: usize) -> &str {
+    let mut start = 0;
+    for c in UnicodeSegmentation::graphemes(src, true) {
+        let w = c.width();
+        if w <= offset {
+            offset -= w;
+            start += c.len();
+        } else {
+            break;
+        }
+    }
+    &src[start..]
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use unicode_segmentation::UnicodeSegmentation;
 
     enum Composer {
-        WordWrapper,
+        WordWrapper { trim: bool },
         LineTruncator,
     }
 
     fn run_composer(which: Composer, text: &str, text_area_width: u16) -> (Vec<String>, Vec<u16>) {
         let style = Default::default();
-        let mut styled = UnicodeSegmentation::graphemes(text, true).map(|g| Styled(g, style));
+        let mut styled =
+            UnicodeSegmentation::graphemes(text, true).map(|g| StyledGrapheme { symbol: g, style });
         let mut composer: Box<dyn LineComposer> = match which {
-            Composer::WordWrapper => Box::new(WordWrapper::new(&mut styled, text_area_width)),
+            Composer::WordWrapper { trim } => {
+                Box::new(WordWrapper::new(&mut styled, text_area_width, trim))
+            }
             Composer::LineTruncator => Box::new(LineTruncator::new(&mut styled, text_area_width)),
         };
         let mut lines = vec![];
@@ -211,7 +254,7 @@ mod test {
         while let Some((styled, width)) = composer.next_line() {
             let line = styled
                 .iter()
-                .map(|Styled(g, _style)| *g)
+                .map(|StyledGrapheme { symbol, .. }| *symbol)
                 .collect::<String>();
             assert!(width <= text_area_width);
             lines.push(line);
@@ -225,7 +268,8 @@ mod test {
         let width = 40;
         for i in 1..width {
             let text = "a".repeat(i);
-            let (word_wrapper, _) = run_composer(Composer::WordWrapper, &text, width as u16);
+            let (word_wrapper, _) =
+                run_composer(Composer::WordWrapper { trim: true }, &text, width as u16);
             let (line_truncator, _) = run_composer(Composer::LineTruncator, &text, width as u16);
             let expected = vec![text];
             assert_eq!(word_wrapper, expected);
@@ -238,7 +282,7 @@ mod test {
         let width = 20;
         let text =
             "abcdefg\nhijklmno\npabcdefg\nhijklmn\nopabcdefghijk\nlmnopabcd\n\n\nefghijklmno";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
 
         let wrapped: Vec<&str> = text.split('\n').collect();
@@ -250,7 +294,8 @@ mod test {
     fn line_composer_long_word() {
         let width = 20;
         let text = "abcdefghijklmnopabcdefghijklmnopabcdefghijklmnopabcdefghijklmno";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width as u16);
+        let (word_wrapper, _) =
+            run_composer(Composer::WordWrapper { trim: true }, text, width as u16);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width as u16);
 
         let wrapped = vec![
@@ -261,7 +306,7 @@ mod test {
         ];
         assert_eq!(
             word_wrapper, wrapped,
-            "WordWrapper should deect the line cannot be broken on word boundary and \
+            "WordWrapper should detect the line cannot be broken on word boundary and \
              break it at line width limit."
         );
         assert_eq!(line_truncator, vec![&text[..width]]);
@@ -276,9 +321,12 @@ mod test {
             "abcd efghij    klmnopabcd efgh     ijklmnopabcdefg hijkl mnopab c d e f g h i j k l \
              m n o";
         let (word_wrapper_single_space, _) =
-            run_composer(Composer::WordWrapper, text, width as u16);
-        let (word_wrapper_multi_space, _) =
-            run_composer(Composer::WordWrapper, text_multi_space, width as u16);
+            run_composer(Composer::WordWrapper { trim: true }, text, width as u16);
+        let (word_wrapper_multi_space, _) = run_composer(
+            Composer::WordWrapper { trim: true },
+            text_multi_space,
+            width as u16,
+        );
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width as u16);
 
         let word_wrapped = vec![
@@ -298,7 +346,7 @@ mod test {
     fn line_composer_zero_width() {
         let width = 0;
         let text = "abcd efghij klmnopabcd efgh ijklmnopabcdefg hijkl mnopab ";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
 
         let expected: Vec<&str> = Vec::new();
@@ -310,7 +358,7 @@ mod test {
     fn line_composer_max_line_width_of_1() {
         let width = 1;
         let text = "abcd efghij klmnopabcd efgh ijklmnopabcdefg hijkl mnopab ";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
 
         let expected: Vec<&str> = UnicodeSegmentation::graphemes(text, true)
@@ -325,7 +373,7 @@ mod test {
         let width = 1;
         let text = "コンピュータ上で文字を扱う場合、典型的には文字\naaaによる通信を行う場合にその\
                     両端点では、";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
         assert_eq!(word_wrapper, vec!["", "a", "a", "a"]);
         assert_eq!(line_truncator, vec!["", "a"]);
@@ -336,7 +384,7 @@ mod test {
     fn line_composer_word_wrapper_mixed_length() {
         let width = 20;
         let text = "abcd efghij klmnopabcdefghijklmnopabcdefghijkl mnopab cdefghi j klmno";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         assert_eq!(
             word_wrapper,
             vec![
@@ -354,7 +402,8 @@ mod test {
         let width = 20;
         let text = "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点\
                     では、";
-        let (word_wrapper, word_wrapper_width) = run_composer(Composer::WordWrapper, &text, width);
+        let (word_wrapper, word_wrapper_width) =
+            run_composer(Composer::WordWrapper { trim: true }, &text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, &text, width);
         assert_eq!(line_truncator, vec!["コンピュータ上で文字"]);
         let wrapped = vec![
@@ -372,7 +421,7 @@ mod test {
     fn line_composer_leading_whitespace_removal() {
         let width = 20;
         let text = "AAAAAAAAAAAAAAAAAAAA    AAA";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
         assert_eq!(word_wrapper, vec!["AAAAAAAAAAAAAAAAAAAA", "AAA",]);
         assert_eq!(line_truncator, vec!["AAAAAAAAAAAAAAAAAAAA"]);
@@ -383,7 +432,7 @@ mod test {
     fn line_composer_lots_of_spaces() {
         let width = 20;
         let text = "                                                                     ";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
         assert_eq!(word_wrapper, vec![""]);
         assert_eq!(line_truncator, vec!["                    "]);
@@ -395,7 +444,7 @@ mod test {
     fn line_composer_char_plus_lots_of_spaces() {
         let width = 20;
         let text = "a                                                                     ";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         let (line_truncator, _) = run_composer(Composer::LineTruncator, text, width);
         // What's happening below is: the first line gets consumed, trailing spaces discarded,
         // after 20 of which a word break occurs (probably shouldn't). The second line break
@@ -414,7 +463,8 @@ mod test {
         // hiragana and katakana...
         // This happens to also be a test case for mixed width because regular spaces are single width.
         let text = "コンピュ ータ上で文字を扱う場合、 典型的には文 字による 通信を行 う場合にその両端点では、";
-        let (word_wrapper, word_wrapper_width) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, word_wrapper_width) =
+            run_composer(Composer::WordWrapper { trim: true }, text, width);
         assert_eq!(
             word_wrapper,
             vec![
@@ -435,12 +485,50 @@ mod test {
     fn line_composer_word_wrapper_nbsp() {
         let width = 20;
         let text = "AAAAAAAAAAAAAAA AAAA\u{00a0}AAA";
-        let (word_wrapper, _) = run_composer(Composer::WordWrapper, text, width);
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: true }, text, width);
         assert_eq!(word_wrapper, vec!["AAAAAAAAAAAAAAA", "AAAA\u{00a0}AAA",]);
 
         // Ensure that if the character was a regular space, it would be wrapped differently.
         let text_space = text.replace("\u{00a0}", " ");
-        let (word_wrapper_space, _) = run_composer(Composer::WordWrapper, &text_space, width);
+        let (word_wrapper_space, _) =
+            run_composer(Composer::WordWrapper { trim: true }, &text_space, width);
         assert_eq!(word_wrapper_space, vec!["AAAAAAAAAAAAAAA AAAA", "AAA",]);
+    }
+
+    #[test]
+    fn line_composer_word_wrapper_preserve_indentation() {
+        let width = 20;
+        let text = "AAAAAAAAAAAAAAAAAAAA    AAA";
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: false }, text, width);
+        assert_eq!(word_wrapper, vec!["AAAAAAAAAAAAAAAAAAAA", "   AAA",]);
+    }
+
+    #[test]
+    fn line_composer_word_wrapper_preserve_indentation_with_wrap() {
+        let width = 10;
+        let text = "AAA AAA AAAAA AA AAAAAA\n B\n  C\n   D";
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: false }, text, width);
+        assert_eq!(
+            word_wrapper,
+            vec!["AAA AAA", "AAAAA AA", "AAAAAA", " B", "  C", "   D"]
+        );
+    }
+
+    #[test]
+    fn line_composer_word_wrapper_preserve_indentation_lots_of_whitespace() {
+        let width = 10;
+        let text = "               4 Indent\n                 must wrap!";
+        let (word_wrapper, _) = run_composer(Composer::WordWrapper { trim: false }, text, width);
+        assert_eq!(
+            word_wrapper,
+            vec![
+                "          ",
+                "    4",
+                "Indent",
+                "          ",
+                "      must",
+                "wrap!"
+            ]
+        );
     }
 }

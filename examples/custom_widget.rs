@@ -1,20 +1,12 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::buffer::Buffer;
-use tui::layout::Rect;
-use tui::style::Style;
-use tui::widgets::Widget;
-use tui::Terminal;
-
 use crate::util::event::{Event, Events};
+use std::{error::Error, io};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use tui::{
+    backend::TermionBackend, buffer::Buffer, layout::Rect, style::Style, widgets::Widget, Terminal,
+};
 
 struct Label<'a> {
     text: &'a str,
@@ -27,19 +19,19 @@ impl<'a> Default for Label<'a> {
 }
 
 impl<'a> Widget for Label<'a> {
-    fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         buf.set_string(area.left(), area.top(), self.text, Style::default());
     }
 }
 
 impl<'a> Label<'a> {
-    fn text(&mut self, text: &'a str) -> &mut Label<'a> {
+    fn text(mut self, text: &'a str) -> Label<'a> {
         self.text = text;
         self
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -50,18 +42,16 @@ fn main() -> Result<(), failure::Error> {
     let events = Events::new();
 
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let size = f.size();
-            Label::default().text("Test").render(&mut f, size);
+            let label = Label::default().text("Test");
+            f.render_widget(label, size);
         })?;
 
-        match events.next()? {
-            Event::Input(key) => {
-                if key == Key::Char('q') {
-                    break;
-                }
+        if let Event::Input(key) = events.next()? {
+            if key == Key::Char('q') {
+                break;
             }
-            _ => {}
         }
     }
 

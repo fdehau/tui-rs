@@ -1,20 +1,19 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
-
-use termion::event::Key;
-use termion::input::MouseTerminal;
-use termion::raw::IntoRawMode;
-use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Sparkline, Widget};
-use tui::Terminal;
-
-use crate::util::event::{Event, Events};
-use crate::util::RandomSignal;
+use crate::util::{
+    event::{Event, Events},
+    RandomSignal,
+};
+use std::{error::Error, io};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use tui::{
+    backend::TermionBackend,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Style},
+    widgets::{Block, Borders, Sparkline},
+    Terminal,
+};
 
 struct App {
     signal: RandomSignal,
@@ -50,14 +49,13 @@ impl App {
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     // Setup event handlers
     let events = Events::new();
@@ -66,7 +64,7 @@ fn main() -> Result<(), failure::Error> {
     let mut app = App::new();
 
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
@@ -80,34 +78,34 @@ fn main() -> Result<(), failure::Error> {
                     .as_ref(),
                 )
                 .split(f.size());
-            Sparkline::default()
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data1")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data1)
-                .style(Style::default().fg(Color::Yellow))
-                .render(&mut f, chunks[0]);
-            Sparkline::default()
+                .style(Style::default().fg(Color::Yellow));
+            f.render_widget(sparkline, chunks[0]);
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data2")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data2)
-                .style(Style::default().bg(Color::Green))
-                .render(&mut f, chunks[1]);
+                .style(Style::default().bg(Color::Green));
+            f.render_widget(sparkline, chunks[1]);
             // Multiline
-            Sparkline::default()
+            let sparkline = Sparkline::default()
                 .block(
                     Block::default()
                         .title("Data3")
                         .borders(Borders::LEFT | Borders::RIGHT),
                 )
                 .data(&app.data3)
-                .style(Style::default().fg(Color::Red))
-                .render(&mut f, chunks[2]);
+                .style(Style::default().fg(Color::Red));
+            f.render_widget(sparkline, chunks[2]);
         })?;
 
         match events.next()? {

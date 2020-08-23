@@ -16,7 +16,7 @@ can either choose from:
 
   - [termion](https://github.com/ticki/termion)
   - [rustbox](https://github.com/gchp/rustbox)
-  - [crossterm](https://github.com/TimonPost/crossterm)
+  - [crossterm](https://github.com/crossterm-rs/crossterm)
   - [pancurses](https://github.com/ihalila/pancurses)
 
 However, some features may only be available in one of the four.
@@ -32,20 +32,40 @@ comes from the terminal emulator than the library itself.
 Moreover, the library does not provide any input handling nor any event system and
 you may rely on the previously cited libraries to achieve such features.
 
+### Rust version requirements
+
+Since version 0.10.0, `tui` requires **rustc version 1.44.0 or greater**.
+
 ### [Documentation](https://docs.rs/tui)
 
 ### Demo
 
 The demo shown in the gif can be run with all available backends
-(`exmples/*_demo.rs` files). For example to see the `termion` version one could
+(`examples/*_demo.rs` files). For example to see the `termion` version one could
 run:
 
 ```
 cargo run --example termion_demo --release -- --tick-rate 200
 ```
 
+where `tick-rate` is the UI refresh rate in ms.
+
 The UI code is in [examples/demo/ui.rs](examples/demo/ui.rs) while the
 application state is in [examples/demo/app.rs](examples/demo/app.rs).
+
+Beware that the `termion_demo` only works on Unix platforms. If you are a Windows user,
+you can see the same demo using the `crossterm` backend with the following command:
+
+```
+cargo run --example crossterm_demo --no-default-features --features="crossterm" --release -- --tick-rate 200
+```
+
+If the user interface contains glyphs that are not displayed correctly by your terminal, you may want to run
+the demo without those symbols:
+
+```
+cargo run --example crossterm_demo --no-default-features --features="crossterm" --release -- --tick-rate 200 --enhanced-graphics false
+```
 
 ### Widgets
 
@@ -70,6 +90,21 @@ You can run all examples by running `make run-examples`.
 ### Third-party widgets
 
 * [tui-logger](https://github.com/gin66/tui-logger)
+
+### Apps using tui
+
+* [spotify-tui](https://github.com/Rigellute/spotify-tui)
+* [bandwhich](https://github.com/imsnif/bandwhich)
+* [kmon](https://github.com/orhun/kmon)
+* [ytop](https://github.com/cjbassi/ytop)
+* [zenith](https://github.com/bvaisvil/zenith)
+* [bottom](https://github.com/ClementTsang/bottom)
+* [oha](https://github.com/hatoo/oha)
+* [gitui](https://github.com/extrawurst/gitui)
+* [rust-sadari-cli](https://github.com/24seconds/rust-sadari-cli)
+* [desed](https://github.com/SoptikHa2/desed)
+* [diskonaut](https://github.com/imsnif/diskonaut)
+* [tickrs](https://github.com/tarkah/tickrs)
 
 ### Alternatives
 

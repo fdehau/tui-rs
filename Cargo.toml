@@ -1,20 +1,19 @@
 [package]
 name = "tui"
-version = "0.6.2"
+version = "0.10.0"
 authors = ["Florian Dehau <work@fdehau.com>"]
 description = """
 A library to build rich terminal user interfaces or dashboards
 """
+documentation = "https://docs.rs/tui/0.10.0/tui/"
 keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
-exclude = ["assets/*", ".travis.yml"]
+exclude = ["assets/*", ".github"]
 autoexamples = true
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "fdehau/tui-rs" }
-appveyor = { repository = "fdehau/tui-rs" }
 
 [features]
 default = ["termion"]
@@ -23,22 +22,18 @@ curses = ["easycurses", "pancurses"]
 [dependencies]
 bitflags = "1.0"
 cassowary = "0.3"
-itertools = "0.8"
-log = "0.4"
-either = "1.5"
 unicode-segmentation = "1.2"
 unicode-width = "0.1"
-termion = { version = "1.5" , optional = true }
+termion = { version = "1.5", optional = true }
 rustbox = { version = "0.11", optional = true }
-crossterm = { version = "^0.10", optional = true }
+crossterm = { version = "0.17", optional = true }
 easycurses = { version = "0.12.2", optional = true }
 pancurses = { version = "0.16.1", optional = true, features = ["win32a"] }
+serde = { version = "1", "optional" = true, features = ["derive"]}
 
 [dev-dependencies]
-stderrlog = "0.4"
-rand = "0.6"
-failure = "0.1"
-structopt = "0.2"
+rand = "0.7"
+argh = "0.1"
 
 [[example]]
 name = "canvas"
@@ -93,6 +88,11 @@ required-features = ["termion"]
 [[example]]
 name = "layout"
 path = "examples/layout.rs"
+required-features = ["termion"]
+
+[[example]]
+name = "popup"
+path = "examples/popup.rs"
 required-features = ["termion"]
 
 [[example]]

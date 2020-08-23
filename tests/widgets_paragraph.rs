@@ -1,37 +1,39 @@
-use tui::backend::TestBackend;
-use tui::buffer::Buffer;
-use tui::layout::Alignment;
-use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
-use tui::Terminal;
+use tui::{
+    backend::TestBackend,
+    buffer::Buffer,
+    layout::Alignment,
+    text::{Spans, Text},
+    widgets::{Block, Borders, Paragraph, Wrap},
+    Terminal,
+};
 
-const SAMPLE_STRING: &str =
-    "The library is based on the principle of immediate rendering with \
+const SAMPLE_STRING: &str = "The library is based on the principle of immediate rendering with \
      intermediate buffers. This means that at each new frame you should build all widgets that are \
      supposed to be part of the UI. While providing a great flexibility for rich and \
      interactive UI, this may introduce overhead for highly dynamic content.";
 
 #[test]
-fn paragraph_render_wrap() {
-    let render = |alignment| {
+fn widgets_paragraph_can_wrap_its_content() {
+    let test_case = |alignment, expected| {
         let backend = TestBackend::new(20, 10);
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
-                let text = [Text::raw(SAMPLE_STRING)];
-                Paragraph::new(text.iter())
+                let text = vec![Spans::from(SAMPLE_STRING)];
+                let paragraph = Paragraph::new(text)
                     .block(Block::default().borders(Borders::ALL))
                     .alignment(alignment)
-                    .wrap(true)
-                    .render(&mut f, size);
+                    .wrap(Wrap { trim: true });
+                f.render_widget(paragraph, size);
             })
             .unwrap();
-        terminal.backend().buffer().clone()
+        terminal.backend().assert_buffer(&expected);
     };
 
-    assert_eq!(
-        render(Alignment::Left),
+    test_case(
+        Alignment::Left,
         Buffer::with_lines(vec![
             "┌──────────────────┐",
             "│The library is    │",
@@ -43,10 +45,10 @@ fn paragraph_render_wrap() {
             "│buffers. This     │",
             "│means that at each│",
             "└──────────────────┘",
-        ])
+        ]),
     );
-    assert_eq!(
-        render(Alignment::Right),
+    test_case(
+        Alignment::Right,
         Buffer::with_lines(vec![
             "┌──────────────────┐",
             "│    The library is│",
@@ -58,10 +60,10 @@ fn paragraph_render_wrap() {
             "│     buffers. This│",
             "│means that at each│",
             "└──────────────────┘",
-        ])
+        ]),
     );
-    assert_eq!(
-        render(Alignment::Center),
+    test_case(
+        Alignment::Center,
         Buffer::with_lines(vec![
             "┌──────────────────┐",
             "│  The library is  │",
@@ -73,24 +75,24 @@ fn paragraph_render_wrap() {
             "│   buffers. This  │",
             "│means that at each│",
             "└──────────────────┘",
-        ])
+        ]),
     );
 }
 
 #[test]
-fn paragraph_render_double_width() {
+fn widgets_paragraph_renders_double_width_graphemes() {
     let backend = TestBackend::new(10, 10);
     let mut terminal = Terminal::new(backend).unwrap();
 
     let s = "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点では、";
     terminal
-        .draw(|mut f| {
+        .draw(|f| {
             let size = f.size();
-            let text = [Text::raw(s)];
-            Paragraph::new(text.iter())
+            let text = vec![Spans::from(s)];
+            let paragraph = Paragraph::new(text)
                 .block(Block::default().borders(Borders::ALL))
-                .wrap(true)
-                .render(&mut f, size);
+                .wrap(Wrap { trim: true });
+            f.render_widget(paragraph, size);
         })
         .unwrap();
 
@@ -106,23 +108,23 @@ fn paragraph_render_double_width() {
         "│を行う場│",
         "└────────┘",
     ]);
-    assert_eq!(&expected, terminal.backend().buffer());
+    terminal.backend().assert_buffer(&expected);
 }
 
 #[test]
-fn paragraph_render_mixed_width() {
+fn widgets_paragraph_renders_mixed_width_graphemes() {
     let backend = TestBackend::new(10, 7);
     let mut terminal = Terminal::new(backend).unwrap();
 
     let s = "aコンピュータ上で文字を扱う場合、";
     terminal
-        .draw(|mut f| {
+        .draw(|f| {
             let size = f.size();
-            let text = [Text::raw(s)];
-            Paragraph::new(text.iter())
+            let text = vec![Spans::from(s)];
+            let paragraph = Paragraph::new(text)
                 .block(Block::default().borders(Borders::ALL))
-                .wrap(true)
-                .render(&mut f, size);
+                .wrap(Wrap { trim: true });
+            f.render_widget(paragraph, size);
         })
         .unwrap();
 
@@ -136,5 +138,62 @@ fn paragraph_render_mixed_width() {
         "│、      │",
         "└────────┘",
     ]);
-    assert_eq!(&expected, terminal.backend().buffer());
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_paragraph_can_scroll_horizontally() {
+    let test_case = |alignment, scroll, expected| {
+        let backend = TestBackend::new(20, 10);
+        let mut terminal = Terminal::new(backend).unwrap();
+
+        terminal
+            .draw(|f| {
+                let size = f.size();
+                let text = Text::from(
+                    "段落现在可以水平滚动了！\nParagraph can scroll horizontally!\nShort line",
+                );
+                let paragraph = Paragraph::new(text)
+                    .block(Block::default().borders(Borders::ALL))
+                    .alignment(alignment)
+                    .scroll(scroll);
+                f.render_widget(paragraph, size);
+            })
+            .unwrap();
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(
+        Alignment::Left,
+        (0, 7),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│在可以水平滚动了！│",
+            "│ph can scroll hori│",
+            "│ine               │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "└──────────────────┘",
+        ]),
+    );
+    // only support Alignment::Left
+    test_case(
+        Alignment::Right,
+        (0, 7),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│段落现在可以水平滚│",
+            "│Paragraph can scro│",
+            "│        Short line│",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "└──────────────────┘",
+        ]),
+    );
 }

@@ -1,19 +1,19 @@
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::layout::Constraint;
-use tui::widgets::{Block, Borders, Row, Table, Widget};
+use tui::widgets::{Block, Borders, Row, Table};
 use tui::Terminal;
 
 #[test]
-fn table_column_spacing() {
-    let render = |column_spacing| {
+fn widgets_table_column_spacing_can_be_changed() {
+    let test_case = |column_spacing, expected| {
         let backend = TestBackend::new(30, 10);
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -29,16 +29,16 @@ fn table_column_spacing() {
                     Constraint::Length(5),
                     Constraint::Length(5),
                 ])
-                .column_spacing(column_spacing)
-                .render(&mut f, size);
+                .column_spacing(column_spacing);
+                f.render_widget(table, size);
             })
             .unwrap();
-        terminal.backend().buffer().clone()
+        terminal.backend().assert_buffer(&expected);
     };
 
     // no space between columns
-    assert_eq!(
-        render(0),
+    test_case(
+        0,
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1Head2Head3             │",
@@ -50,12 +50,12 @@ fn table_column_spacing() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // one space between columns
-    assert_eq!(
-        render(1),
+    test_case(
+        1,
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1 Head2 Head3           │",
@@ -67,12 +67,12 @@ fn table_column_spacing() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // enough space to just not hide the third column
-    assert_eq!(
-        render(6),
+    test_case(
+        6,
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1      Head2      Head3 │",
@@ -84,12 +84,12 @@ fn table_column_spacing() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // enough space to hide part of the third column
-    assert_eq!(
-        render(7),
+    test_case(
+        7,
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1       Head2       Head│",
@@ -101,20 +101,20 @@ fn table_column_spacing() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 }
 
 #[test]
-fn table_widths() {
-    let render = |widths| {
+fn widgets_table_columns_widths_can_use_fixed_length_constraints() {
+    let test_case = |widths, expected| {
         let backend = TestBackend::new(30, 10);
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -125,20 +125,20 @@ fn table_widths() {
                     .into_iter(),
                 )
                 .block(Block::default().borders(Borders::ALL))
-                .widths(widths)
-                .render(&mut f, size);
+                .widths(widths);
+                f.render_widget(table, size);
             })
             .unwrap();
-        terminal.backend().buffer().clone()
+        terminal.backend().assert_buffer(&expected);
     };
 
     // columns of zero width show nothing
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Length(0),
             Constraint::Length(0),
-            Constraint::Length(0)
-        ]),
+            Constraint::Length(0),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│                            │",
@@ -150,16 +150,16 @@ fn table_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of 1 width trim
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Length(1),
             Constraint::Length(1),
-            Constraint::Length(1)
-        ]),
+            Constraint::Length(1),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│H H H                       │",
@@ -171,16 +171,16 @@ fn table_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of large width just before pushing a column off
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Length(8),
             Constraint::Length(8),
-            Constraint::Length(8)
-        ]),
+            Constraint::Length(8),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1    Head2    Head3     │",
@@ -192,20 +192,20 @@ fn table_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 }
 
 #[test]
-fn table_percentage_widths() {
-    let render = |widths| {
+fn widgets_table_columns_widths_can_use_percentage_constraints() {
+    let test_case = |widths, expected| {
         let backend = TestBackend::new(30, 10);
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -217,20 +217,20 @@ fn table_percentage_widths() {
                 )
                 .block(Block::default().borders(Borders::ALL))
                 .widths(widths)
-                .column_spacing(0)
-                .render(&mut f, size);
+                .column_spacing(0);
+                f.render_widget(table, size);
             })
             .unwrap();
-        terminal.backend().buffer().clone()
+        terminal.backend().assert_buffer(&expected);
     };
 
     // columns of zero width show nothing
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(0),
             Constraint::Percentage(0),
-            Constraint::Percentage(0)
-        ]),
+            Constraint::Percentage(0),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│                            │",
@@ -242,16 +242,16 @@ fn table_percentage_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of not enough width trims the data
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(10),
             Constraint::Percentage(10),
-            Constraint::Percentage(10)
-        ]),
+            Constraint::Percentage(10),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│HeaHeaHea                   │",
@@ -263,16 +263,16 @@ fn table_percentage_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of large width just before pushing a column off
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(30),
             Constraint::Percentage(30),
-            Constraint::Percentage(30)
-        ]),
+            Constraint::Percentage(30),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1    Head2    Head3     │",
@@ -284,12 +284,12 @@ fn table_percentage_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // percentages summing to 100 should give equal widths
-    assert_eq!(
-        render(&[Constraint::Percentage(50), Constraint::Percentage(50)]),
+    test_case(
+        &[Constraint::Percentage(50), Constraint::Percentage(50)],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1          Head2        │",
@@ -301,20 +301,20 @@ fn table_percentage_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 }
 
 #[test]
-fn table_mixed_widths() {
-    let render = |widths| {
+fn widgets_table_columns_widths_can_use_mixed_constraints() {
+    let test_case = |widths, expected| {
         let backend = TestBackend::new(30, 10);
         let mut terminal = Terminal::new(backend).unwrap();
 
         terminal
-            .draw(|mut f| {
+            .draw(|f| {
                 let size = f.size();
-                Table::new(
+                let table = Table::new(
                     ["Head1", "Head2", "Head3"].iter(),
                     vec![
                         Row::Data(["Row11", "Row12", "Row13"].iter()),
@@ -325,20 +325,20 @@ fn table_mixed_widths() {
                     .into_iter(),
                 )
                 .block(Block::default().borders(Borders::ALL))
-                .widths(widths)
-                .render(&mut f, size);
+                .widths(widths);
+                f.render_widget(table, size);
             })
             .unwrap();
-        terminal.backend().buffer().clone()
+        terminal.backend().assert_buffer(&expected);
     };
 
     // columns of zero width show nothing
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(0),
             Constraint::Length(0),
-            Constraint::Percentage(0)
-        ]),
+            Constraint::Percentage(0),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│                            │",
@@ -350,16 +350,16 @@ fn table_mixed_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of not enough width trims the data
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(10),
             Constraint::Length(20),
-            Constraint::Percentage(10)
-        ]),
+            Constraint::Percentage(10),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Hea Head2                Hea│",
@@ -371,16 +371,16 @@ fn table_mixed_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of large width just before pushing a column off
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(30),
             Constraint::Length(10),
-            Constraint::Percentage(30)
-        ]),
+            Constraint::Percentage(30),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1     Head2      Head3  │",
@@ -392,16 +392,16 @@ fn table_mixed_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 
     // columns of large size (>100% total) hide the last column
-    assert_eq!(
-        render(&[
+    test_case(
+        &[
             Constraint::Percentage(60),
             Constraint::Length(10),
-            Constraint::Percentage(60)
-        ]),
+            Constraint::Percentage(60),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1            Head2      │",
@@ -413,6 +413,6 @@ fn table_mixed_widths() {
             "│                            │",
             "│                            │",
             "└────────────────────────────┘",
-        ])
+        ]),
     );
 }
