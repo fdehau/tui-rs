@@ -269,6 +269,27 @@ impl<'a> Default for Text<'a> {
 }
 
 impl<'a> Text<'a> {
+    pub fn raw<T>(content: T) -> Text<'a>
+    where
+        T: Into<Cow<'a, str>>,
+    {
+        Text {
+            lines: match content.into() {
+                Cow::Borrowed(s) => s.lines().map(Spans::from).collect(),
+                Cow::Owned(s) => s.lines().map(|l| Spans::from(l.to_owned())).collect(),
+            },
+        }
+    }
+
+    pub fn styled<T>(content: T, style: Style) -> Text<'a>
+    where
+        T: Into<Cow<'a, str>>,
+    {
+        let mut text = Text::raw(content);
+        text.patch_style(style);
+        text
+    }
+
     /// Returns the max width of all the lines.
     ///
     /// ## Examples
@@ -304,11 +325,15 @@ impl<'a> Text<'a> {
     }
 }
 
+impl<'a> From<String> for Text<'a> {
+    fn from(s: String) -> Text<'a> {
+        Text::raw(s)
+    }
+}
+
 impl<'a> From<&'a str> for Text<'a> {
     fn from(s: &'a str) -> Text<'a> {
-        Text {
-            lines: s.lines().map(Spans::from).collect(),
-        }
+        Text::raw(s)
     }
 }
 
@@ -329,5 +354,20 @@ impl<'a> From<Spans<'a>> for Text<'a> {
 impl<'a> From<Vec<Spans<'a>>> for Text<'a> {
     fn from(lines: Vec<Spans<'a>>) -> Text<'a> {
         Text { lines }
+    }
+}
+
+impl<'a> IntoIterator for Text<'a> {
+    type Item = Spans<'a>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.lines.into_iter()
+    }
+}
+
+impl<'a> Extend<Spans<'a>> for Text<'a> {
+    fn extend<T: IntoIterator<Item = Spans<'a>>>(&mut self, iter: T) {
+        self.lines.extend(iter);
     }
 }
