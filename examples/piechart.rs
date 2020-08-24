@@ -9,8 +9,8 @@ use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, PieChart, Widget};
+use tui::style::Color;
+use tui::widgets::{Block, Borders, PieChart};
 use tui::Terminal;
 
 use crate::util::event::{Event, Events};
