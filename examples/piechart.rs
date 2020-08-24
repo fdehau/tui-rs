@@ -62,7 +62,6 @@ fn main() -> Result<(), failure::Error> {
             PieChart::default()
                 .block(Block::default().title("Data1").borders(Borders::ALL))
                 .data(&app.data)
-                .background(Color::Black)
                 .render(&mut f, chunks[0]);
         })?;
 
