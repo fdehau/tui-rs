@@ -1,7 +1,7 @@
 #[allow(dead_code)]
 mod util;
 
-use std::io;
+use std::{error::Error, io};
 
 use termion::event::Key;
 use termion::input::MouseTerminal;
@@ -37,7 +37,7 @@ impl App {
     }
 }
 
-fn main() -> Result<(), failure::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
