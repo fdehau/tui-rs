@@ -51,10 +51,11 @@ impl<'a> PieChart<'a> {
 
 impl<'a> Widget for PieChart<'a> {
     fn render(mut self, area: Rect, buf: &mut Buffer) {
-        let chart_area = match self.block {
-            Some(ref mut b) => {
+        let chart_area = match self.block.take() {
+            Some(b) => {
+                let inner_area = b.inner(area);
                 b.render(area, buf);
-                b.inner(area)
+                inner_area
             }
             None => area,
         };
