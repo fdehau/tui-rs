@@ -53,16 +53,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app = App::new();
 
     loop {
-        terminal.draw(|mut f| {
+        terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .split(f.size());
-            PieChart::default()
+            let piechart = PieChart::default()
                 .block(Block::default().title("Data1").borders(Borders::ALL))
-                .data(&app.data)
-                .render(&mut f, chunks[0]);
+                .data(&app.data);
+            f.render_widget(piechart, chunks[0]);
         })?;
 
         match events.next()? {
