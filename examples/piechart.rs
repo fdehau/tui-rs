@@ -32,8 +32,8 @@ impl App {
     }
 
     fn update(&mut self) {
-        // let value = self.data.pop().unwrap();
-        // self.data.insert(0, value);
+        let value = self.data.pop().unwrap();
+        self.data.insert(0, value);
     }
 }
 
