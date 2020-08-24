@@ -11,7 +11,6 @@ const TAU: f64 = PI * 2.0;
 
 pub struct PieChart<'a> {
     block: Option<Block<'a>>,
-    background: Option<Color>,
     angles: Vec<((f64, f64), Color)>,
 }
 
@@ -20,7 +19,6 @@ impl<'a> Default for PieChart<'a> {
         PieChart {
             block: None,
             angles: Vec::new(),
-            background: None,
         }
     }
 }
@@ -41,11 +39,6 @@ impl<'a> PieChart<'a> {
             })
             .collect();
         self.angles = angles;
-        self
-    }
-
-    pub fn background(mut self, background: Color) -> PieChart<'a> {
-        self.background = Some(background);
         self
     }
 
@@ -74,10 +67,6 @@ impl<'a> Widget for PieChart<'a> {
             return;
         }
         let radius: f64 = (radius - 2).into();
-
-        if let Some(background) = self.background {
-            Widget::background(self, chart_area, buf, background);
-        }
 
         let cell_count = buf.content.len();
         for i in 0..cell_count {
