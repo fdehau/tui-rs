@@ -49,7 +49,7 @@ impl<'a> PieChart<'a> {
 }
 
 impl<'a> Widget for PieChart<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(mut self, area: Rect, buf: &mut Buffer) {
         let chart_area = match self.block {
             Some(ref mut b) => {
                 b.render(area, buf);
