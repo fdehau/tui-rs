@@ -111,7 +111,7 @@ impl Grid for BrailleGrid {
 }
 
 #[derive(Debug, Clone)]
-struct SingleCellGrid {
+struct CharGrid {
     width: u16,
     height: u16,
     cells: Vec<char>,
@@ -119,10 +119,10 @@ struct SingleCellGrid {
     cell_char: char,
 }
 
-impl SingleCellGrid {
-    fn new(width: u16, height: u16, cell_char: char) -> SingleCellGrid {
+impl CharGrid {
+    fn new(width: u16, height: u16, cell_char: char) -> CharGrid {
         let length = usize::from(width * height);
-        SingleCellGrid {
+        CharGrid {
             width,
             height,
             cells: vec![' '; length],
@@ -132,7 +132,7 @@ impl SingleCellGrid {
     }
 }
 
-impl Grid for SingleCellGrid {
+impl Grid for CharGrid {
     fn width(&self) -> u16 {
         self.width
     }
@@ -261,8 +261,8 @@ impl<'a> Context<'a> {
         marker: symbols::Marker,
     ) -> Context<'a> {
         let grid: Box<dyn Grid> = match marker {
-            symbols::Marker::Dot => Box::new(SingleCellGrid::new(width, height, '•')),
-            symbols::Marker::Block => Box::new(SingleCellGrid::new(width, height, '▄')),
+            symbols::Marker::Dot => Box::new(CharGrid::new(width, height, '•')),
+            symbols::Marker::Block => Box::new(CharGrid::new(width, height, '▄')),
             symbols::Marker::Braille => Box::new(BrailleGrid::new(width, height)),
         };
         Context {
