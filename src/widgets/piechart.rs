@@ -9,6 +9,7 @@ use crate::widgets::{Block, Widget};
 
 const TAU: f64 = PI * 2.0;
 
+#[derive(Debug, Clone)]
 pub struct PieChart<'a> {
     block: Option<Block<'a>>,
     angles: Vec<((f64, f64), Color)>,
