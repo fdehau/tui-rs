@@ -101,6 +101,8 @@ pub struct Table<'a, H, R> {
     highlight_symbol: Option<&'a str>,
     /// Data to display in each row
     rows: R,
+    /// Use background highlight style to highlight the selected row
+    highlight_row: bool,
 }
 
 impl<'a, H, R> Default for Table<'a, H, R>
@@ -120,6 +122,7 @@ where
             highlight_style: Style::default(),
             highlight_symbol: None,
             rows: R::default(),
+            highlight_row: false,
         }
     }
 }
@@ -142,6 +145,7 @@ where
             highlight_style: Style::default(),
             highlight_symbol: None,
             rows,
+            highlight_row: false,
         }
     }
     pub fn block(mut self, block: Block<'a>) -> Table<'a, H, R> {
@@ -185,6 +189,13 @@ where
 
     pub fn style(mut self, style: Style) -> Table<'a, H, R> {
         self.style = style;
+        self
+    }
+
+    /// Use background highlight style to highlight the selected row.
+    /// Background of the highlight style have be non-default for visible effect.
+    pub fn highlight_row(mut self, highligh: bool) -> Table<'a, H, R> {
+        self.highlight_row = highligh;
         self
     }
 
@@ -337,6 +348,21 @@ where
                     buf.set_stringn(x, y + i as u16, s, *w as usize, style);
                     x += *w + self.column_spacing;
                 }
+            }
+            if self.highlight_row && state.selected.is_some() {
+                let selected_y = 1
+                    + self.header_gap
+                    + table_area.top()
+                    + (state.selected.unwrap() - state.offset) as u16;
+                buf.set_style(
+                    Rect::new(
+                        table_area.left(),
+                        selected_y,
+                        table_area.right() - table_area.left(),
+                        1,
+                    ),
+                    highlight_style,
+                )
             }
         }
     }
