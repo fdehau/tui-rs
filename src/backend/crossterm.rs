@@ -165,7 +165,6 @@ struct ModifierDiff {
     pub to: Modifier,
 }
 
-#[cfg(unix)]
 impl ModifierDiff {
     fn queue<W>(&self, mut w: W) -> io::Result<()>
     where
@@ -224,31 +223,6 @@ impl ModifierDiff {
             map_error(queue!(w, SetAttribute(CAttribute::RapidBlink)))?;
         }
 
-        Ok(())
-    }
-}
-
-#[cfg(windows)]
-impl ModifierDiff {
-    fn queue<W>(&self, mut w: W) -> io::Result<()>
-    where
-        W: fmt::Write,
-    {
-        let removed = self.from - self.to;
-        if removed.contains(Modifier::BOLD) {
-            map_error(queue!(w, SetAttribute(CAttribute::NormalIntensity)))?;
-        }
-        if removed.contains(Modifier::UNDERLINED) {
-            map_error(queue!(w, SetAttribute(CAttribute::NoUnderline)))?;
-        }
-
-        let added = self.to - self.from;
-        if added.contains(Modifier::BOLD) {
-            map_error(queue!(w, SetAttribute(CAttribute::Bold)))?;
-        }
-        if added.contains(Modifier::UNDERLINED) {
-            map_error(queue!(w, SetAttribute(CAttribute::Underlined)))?;
-        }
         Ok(())
     }
 }
