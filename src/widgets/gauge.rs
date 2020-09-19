@@ -100,8 +100,8 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         let center = gauge_area.height / 2 + gauge_area.top();
-        let width = (f64::from(gauge_area.width) * self.ratio).round() as u16;
-        let end = gauge_area.left() + width;
+        let width = f64::from(gauge_area.width) * self.ratio;
+        let end = gauge_area.left() + (width.floor() as u16);
         // Label
         let ratio = self.ratio;
         let label = self
@@ -111,6 +111,11 @@ impl<'a> Widget for Gauge<'a> {
             // Gauge
             for x in gauge_area.left()..end {
                 buf.get_mut(x, y).set_symbol(" ");
+            }
+
+            //set ascii block
+            if self.ratio < 1.0{
+                buf.get_mut(end, y).set_symbol(get_ascii_block(width%1.0));
             }
 
             if y == center {
@@ -126,6 +131,20 @@ impl<'a> Widget for Gauge<'a> {
                     .set_bg(self.gauge_style.fg.unwrap_or(Color::Reset));
             }
         }
+    }
+}
+
+fn get_ascii_block<'a>(frac: f64) -> &'a str {
+    match (frac*8.0).round() as u16{ //get how many eighths the fraction is closest to
+        1 => "▏",
+        2 => "▎",
+        3 => "▍",
+        4 => "▌",
+        5 => "▋",
+        6 => "▊",
+        7 => "▉",
+        8 => {if frac < 0.0 { " " } else {""}},
+        _ => " "
     }
 }
 
