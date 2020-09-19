@@ -113,9 +113,9 @@ impl<'a> Widget for Gauge<'a> {
                 buf.get_mut(x, y).set_symbol(" ");
             }
 
-            //set ascii block
+            //set unicode block
             if self.ratio < 1.0{
-                buf.get_mut(end, y).set_symbol(get_ascii_block(width%1.0));
+                buf.get_mut(end, y).set_symbol(get_unicode_block(width%1.0));
             }
 
             if y == center {
@@ -134,7 +134,7 @@ impl<'a> Widget for Gauge<'a> {
     }
 }
 
-fn get_ascii_block<'a>(frac: f64) -> &'a str {
+fn get_unicode_block<'a>(frac: f64) -> &'a str {
     match (frac*8.0).round() as u16{ //get how many eighths the fraction is closest to
         1 => "▏",
         2 => "▎",
