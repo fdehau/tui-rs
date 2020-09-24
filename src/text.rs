@@ -257,6 +257,28 @@ impl<'a> From<Spans<'a>> for String {
 
 /// A string split over multiple lines where each line is composed of several clusters, each with
 /// their own style.
+///
+/// A [`Text`], like a [`Span`], can be constructed using one of the many `From` implementations
+/// or via the [`Text::raw`] and [`Text::styled`] methods. Helpfully, [`Text`] also implements
+/// [`core::iter::Extend`] which enables the concatenation of several [`Text`] blocks.
+///
+/// ```rust
+/// # use tui::text::Text;
+/// # use tui::style::{Color, Modifier, Style};
+/// let style = Style::default().fg(Color::Yellow).add_modifier(Modifier::ITALIC);
+///
+/// // An initial two lines of `Text` built from a `&str`
+/// let mut text = Text::from("The first line\nThe second line");
+/// assert_eq!(2, text.height());
+///
+/// // Adding two more unstyled lines
+/// text.extend(Text::raw("These are two\nmore lines!"));
+/// assert_eq!(4, text.height());
+///
+/// // Adding a final two styled lines
+/// text.extend(Text::styled("Some more lines\nnow with more style!", style));
+/// assert_eq!(6, text.height());
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Text<'a> {
     pub lines: Vec<Spans<'a>>,
@@ -269,6 +291,15 @@ impl<'a> Default for Text<'a> {
 }
 
 impl<'a> Text<'a> {
+    /// Create some text (potentially multiple lines) with no style.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// # use tui::text::Text;
+    /// Text::raw("The first line\nThe second line");
+    /// Text::raw(String::from("The first line\nThe second line"));
+    /// ```
     pub fn raw<T>(content: T) -> Text<'a>
     where
         T: Into<Cow<'a, str>>,
@@ -281,6 +312,17 @@ impl<'a> Text<'a> {
         }
     }
 
+    /// Create some text (potentially multiple lines) with a style.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use tui::text::Text;
+    /// # use tui::style::{Color, Modifier, Style};
+    /// let style = Style::default().fg(Color::Yellow).add_modifier(Modifier::ITALIC);
+    /// Text::styled("The first line\nThe second line", style);
+    /// Text::styled(String::from("The first line\nThe second line"), style);
+    /// ```
     pub fn styled<T>(content: T, style: Style) -> Text<'a>
     where
         T: Into<Cow<'a, str>>,
@@ -316,6 +358,21 @@ impl<'a> Text<'a> {
         self.lines.len()
     }
 
+    /// Apply a new style to existing text.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use tui::text::Text;
+    /// # use tui::style::{Color, Modifier, Style};
+    /// let style = Style::default().fg(Color::Yellow).add_modifier(Modifier::ITALIC);
+    /// let mut raw_text = Text::raw("The first line\nThe second line");
+    /// let styled_text = Text::styled(String::from("The first line\nThe second line"), style);
+    /// assert_ne!(raw_text, styled_text);
+    ///
+    /// raw_text.patch_style(style);
+    /// assert_eq!(raw_text, styled_text);
+    /// ```
     pub fn patch_style(&mut self, style: Style) {
         for line in &mut self.lines {
             for span in &mut line.0 {
