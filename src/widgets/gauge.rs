@@ -2,9 +2,9 @@ use crate::{
     buffer::Buffer,
     layout::Rect,
     style::{Color, Style},
+    symbols::block,
     text::Span,
     widgets::{Block, Widget},
-    symbols::block,
 };
 
 /// A widget to display a task progress.
@@ -88,7 +88,7 @@ impl<'a> Gauge<'a> {
     pub fn use_unicode(mut self, unicode: bool) -> Gauge<'a> {
         self.use_block = unicode;
         self
-    } 
+    }
 }
 
 impl<'a> Widget for Gauge<'a> {
@@ -110,7 +110,12 @@ impl<'a> Widget for Gauge<'a> {
         let center = gauge_area.height / 2 + gauge_area.top();
         let width = f64::from(gauge_area.width) * self.ratio;
         //go to regular rounding behavior if we're not using unicode blocks
-        let end = gauge_area.left() + if self.use_block {width.floor() as u16} else {width.round() as u16};
+        let end = gauge_area.left()
+            + if self.use_block {
+                width.floor() as u16
+            } else {
+                width.round() as u16
+            };
         // Label
         let ratio = self.ratio;
         let label = self
@@ -123,8 +128,9 @@ impl<'a> Widget for Gauge<'a> {
             }
 
             //set unicode block
-            if self.use_block && self.ratio < 1.0{
-                buf.get_mut(end, y).set_symbol(get_unicode_block(width%1.0));
+            if self.use_block && self.ratio < 1.0 {
+                buf.get_mut(end, y)
+                    .set_symbol(get_unicode_block(width % 1.0));
             }
 
             let mut color_end = end;
@@ -133,7 +139,7 @@ impl<'a> Widget for Gauge<'a> {
                 let label_width = label.width() as u16;
                 let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
                 buf.set_span(middle, y, &label, gauge_area.right() - middle);
-                if self.use_block && end >= middle && end < middle+label_width{
+                if self.use_block && end >= middle && end < middle + label_width {
                     color_end = gauge_area.left() + (width.round() as u16); //set color on the label to the rounded gauge level
                 }
             }
@@ -149,7 +155,8 @@ impl<'a> Widget for Gauge<'a> {
 }
 
 fn get_unicode_block<'a>(frac: f64) -> &'a str {
-    match (frac*8.0).round() as u16{ //get how many eighths the fraction is closest to
+    match (frac * 8.0).round() as u16 {
+        //get how many eighths the fraction is closest to
         1 => block::ONE_EIGHTH,
         2 => block::ONE_QUARTER,
         3 => block::THREE_EIGHTHS,
@@ -158,7 +165,7 @@ fn get_unicode_block<'a>(frac: f64) -> &'a str {
         6 => block::THREE_QUARTERS,
         7 => block::SEVEN_EIGHTHS,
         8 => "",
-        _ => " "
+        _ => " ",
     }
 }
 

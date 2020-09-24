@@ -44,12 +44,13 @@ fn widgets_gauge_renders() {
 }
 
 #[test]
-fn widgets_gauge_renders_no_unicode(){
+fn widgets_gauge_renders_no_unicode() {
     let backend = TestBackend::new(40, 10);
     let mut terminal = Terminal::new(backend).unwrap();
 
-    terminal.draw(|f| {
-        let chunks = Layout::default()
+    terminal
+        .draw(|f| {
+            let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
@@ -65,7 +66,8 @@ fn widgets_gauge_renders_no_unicode(){
                 .ratio(0.211_313_934_313_1)
                 .use_unicode(false);
             f.render_widget(gauge, chunks[1]);
-    }).unwrap();
+        })
+        .unwrap();
     let expected = Buffer::with_lines(vec![
         "                                        ",
         "                                        ",
