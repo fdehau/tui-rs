@@ -24,7 +24,7 @@ pub struct Gauge<'a> {
     block: Option<Block<'a>>,
     ratio: f64,
     label: Option<Span<'a>>,
-    use_block: bool,
+    use_unicode: bool,
     style: Style,
     gauge_style: Style,
 }
@@ -35,7 +35,7 @@ impl<'a> Default for Gauge<'a> {
             block: None,
             ratio: 0.0,
             label: None,
-            use_block: true,
+            use_unicode: true,
             style: Style::default(),
             gauge_style: Style::default(),
         }
@@ -86,7 +86,7 @@ impl<'a> Gauge<'a> {
     }
 
     pub fn use_unicode(mut self, unicode: bool) -> Gauge<'a> {
-        self.use_block = unicode;
+        self.use_unicode = unicode;
         self
     }
 }
@@ -111,7 +111,7 @@ impl<'a> Widget for Gauge<'a> {
         let width = f64::from(gauge_area.width) * self.ratio;
         //go to regular rounding behavior if we're not using unicode blocks
         let end = gauge_area.left()
-            + if self.use_block {
+            + if self.use_unicode {
                 width.floor() as u16
             } else {
                 width.round() as u16
@@ -128,7 +128,7 @@ impl<'a> Widget for Gauge<'a> {
             }
 
             //set unicode block
-            if self.use_block && self.ratio < 1.0 {
+            if self.use_unicode && self.ratio < 1.0 {
                 buf.get_mut(end, y)
                     .set_symbol(get_unicode_block(width % 1.0));
             }
@@ -139,7 +139,7 @@ impl<'a> Widget for Gauge<'a> {
                 let label_width = label.width() as u16;
                 let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
                 buf.set_span(middle, y, &label, gauge_area.right() - middle);
-                if self.use_block && end >= middle && end < middle + label_width {
+                if self.use_unicode && end >= middle && end < middle + label_width {
                     color_end = gauge_area.left() + (width.round() as u16); //set color on the label to the rounded gauge level
                 }
             }
@@ -164,7 +164,7 @@ fn get_unicode_block<'a>(frac: f64) -> &'a str {
         5 => block::FIVE_EIGHTHS,
         6 => block::THREE_QUARTERS,
         7 => block::SEVEN_EIGHTHS,
-        8 => "",
+        8 => block::FULL,
         _ => " ",
     }
 }
