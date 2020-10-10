@@ -112,7 +112,7 @@ where
         Table {
             block: None,
             style: Style::default(),
-            header: Some(H::default()),
+            header: None,
             header_style: Style::default(),
             widths: &[],
             column_spacing: 1,
@@ -157,6 +157,7 @@ where
         self
     }
 
+    /// Set header to None, so it will not be rendered
     pub fn headerless(mut self) -> Table<'a, H, R> {
         self.header = None;
         self
@@ -376,5 +377,16 @@ mod tests {
     fn table_invalid_percentages() {
         Table::new([""].iter(), vec![Row::Data([""].iter())].into_iter())
             .widths(&[Constraint::Percentage(110)]);
+    }
+
+    #[test]
+    fn table_headerless_valid() {
+        let table = Table::new([""].iter(), vec![Row::Data([""].iter())].into_iter())
+            .headerless()
+            .widths(&[Constraint::Percentage(100)]);
+        match table.header {
+            Some(_) => panic!("There should be no header in headerless table"),
+            None => {}
+        }
     }
 }
