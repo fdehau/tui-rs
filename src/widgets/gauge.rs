@@ -1,7 +1,7 @@
 use crate::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style},
+    style::Style,
     symbols,
     text::{Span, Spans},
     widgets::{Block, Widget},
@@ -122,9 +122,12 @@ impl<'a> Widget for Gauge<'a> {
 
             // Fix colors
             for x in gauge_area.left()..end {
-                buf.get_mut(x, y)
-                    .set_fg(self.gauge_style.bg.unwrap_or(Color::Reset))
-                    .set_bg(self.gauge_style.fg.unwrap_or(Color::Reset));
+                buf.get_mut(x, y).set_style(Style {
+                    fg: self.gauge_style.fg,
+                    bg: None,
+                    add_modifier: self.gauge_style.add_modifier,
+                    sub_modifier: self.gauge_style.sub_modifier,
+                });
             }
         }
     }
