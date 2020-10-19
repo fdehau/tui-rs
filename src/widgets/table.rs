@@ -273,7 +273,7 @@ where
             let value = if value.is_sign_negative() {
                 0
             } else {
-                value as u16
+                value.round() as u16
             };
             solved_widths[index] = value
         }
