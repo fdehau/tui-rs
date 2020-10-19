@@ -417,7 +417,6 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
     );
 }
 
-
 #[test]
 fn widgets_table_columns_widths_can_use_ratio_constraints() {
     let test_case = |widths, expected| {

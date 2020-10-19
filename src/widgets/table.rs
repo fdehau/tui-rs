@@ -249,7 +249,9 @@ where
                     variables[i] | EQ(WEAK) | (f64::from(v * table_area.width) / 100.0)
                 }
                 Constraint::Ratio(n, d) => {
-                    variables[i] | EQ(WEAK) | (f64::from(table_area.width) * f64::from(n) / f64::from(d))
+                    variables[i]
+                        | EQ(WEAK)
+                        | (f64::from(table_area.width) * f64::from(n) / f64::from(d))
                 }
                 Constraint::Min(v) => variables[i] | GE(WEAK) | f64::from(v),
                 Constraint::Max(v) => variables[i] | LE(WEAK) | f64::from(v),
