@@ -24,6 +24,10 @@ impl Default for ListState {
 }
 
 impl ListState {
+    pub fn offset(&self) -> usize {
+        self.offset
+    }
+
     pub fn selected(&self) -> Option<usize> {
         self.selected
     }
