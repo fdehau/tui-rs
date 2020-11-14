@@ -142,7 +142,7 @@ fn widgets_paragraph_renders_mixed_width_graphemes() {
 }
 
 #[test]
-fn white_space_wrap() {
+fn widgets_paragraph_can_wrap_with_a_trailing_nbsp() {
     let NBSP: &str = "\u{00a0}";
     let line = Spans::from(vec![Span::raw("NBSP"), Span::raw(NBSP)]);
     let backend = TestBackend::new(20, 3);
