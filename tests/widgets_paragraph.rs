@@ -2,7 +2,7 @@ use tui::{
     backend::TestBackend,
     buffer::Buffer,
     layout::Alignment,
-    text::{Spans, Text, Span},
+    text::{Span, Spans, Text},
     widgets::{Block, Borders, Paragraph, Wrap},
     Terminal,
 };
@@ -142,13 +142,9 @@ fn widgets_paragraph_renders_mixed_width_graphemes() {
 }
 
 #[test]
-fn white_space_wrap(){
+fn white_space_wrap() {
     let NBSP: &str = "\u{00a0}";
-    let line = Spans::from(vec![
-        Span::raw("NBSP"),
-        Span::raw(NBSP)
-
-    ]);
+    let line = Spans::from(vec![Span::raw("NBSP"), Span::raw(NBSP)]);
     let backend = TestBackend::new(20, 3);
     let mut terminal = Terminal::new(backend).unwrap();
     let expected = Buffer::with_lines(vec![
@@ -160,8 +156,7 @@ fn white_space_wrap(){
         .draw(|f| {
             let size = f.size();
 
-            let paragraph = Paragraph::new(line)
-                .block(Block::default().borders(Borders::ALL));
+            let paragraph = Paragraph::new(line).block(Block::default().borders(Borders::ALL));
             f.render_widget(paragraph, size);
         })
         .unwrap();
