@@ -143,8 +143,8 @@ fn widgets_paragraph_renders_mixed_width_graphemes() {
 
 #[test]
 fn widgets_paragraph_can_wrap_with_a_trailing_nbsp() {
-    let NBSP: &str = "\u{00a0}";
-    let line = Spans::from(vec![Span::raw("NBSP"), Span::raw(NBSP)]);
+    let nbsp: &str = "\u{00a0}";
+    let line = Spans::from(vec![Span::raw("NBSP"), Span::raw(nbsp)]);
     let backend = TestBackend::new(20, 3);
     let mut terminal = Terminal::new(backend).unwrap();
     let expected = Buffer::with_lines(vec![
