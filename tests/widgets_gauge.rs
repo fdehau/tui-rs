@@ -46,19 +46,31 @@ fn widgets_gauge_renders() {
     ]);
 
     for i in 3..17 {
-        expected.get_mut(i, 3).set_bg(Color::Red).set_fg(Color::Blue);
+        expected
+            .get_mut(i, 3)
+            .set_bg(Color::Red)
+            .set_fg(Color::Blue);
     }
     for i in 17..37 {
-        expected.get_mut(i, 3).set_bg(Color::Blue).set_fg(Color::Red);
+        expected
+            .get_mut(i, 3)
+            .set_bg(Color::Blue)
+            .set_fg(Color::Red);
     }
 
     for i in 3..20 {
-        expected.get_mut(i, 6).set_bg(Color::Red).set_fg(Color::Blue);
+        expected
+            .get_mut(i, 6)
+            .set_bg(Color::Red)
+            .set_fg(Color::Blue);
     }
     for i in 20..37 {
-        expected.get_mut(i, 6).set_bg(Color::Blue).set_fg(Color::Red);
+        expected
+            .get_mut(i, 6)
+            .set_bg(Color::Blue)
+            .set_fg(Color::Red);
     }
-    
+
     terminal.backend().assert_buffer(&expected);
 }
 
