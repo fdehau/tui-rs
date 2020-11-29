@@ -451,7 +451,7 @@ impl<'a> Widget for Chart<'a> {
             Canvas::default()
                 .background_color(self.style.bg.unwrap_or(Color::Reset))
                 .x_bounds(dataset.x_axis_bounds.unwrap_or(self.x_axis.bounds))
-                .y_bounds(dataset.y_axis_bounds.unwrap_or(self.y_axis.bounds))
+                .y_bounds(self.y_axis.bounds)
                 .marker(dataset.marker)
                 .paint(|ctx| {
                     ctx.draw(&Points {
