@@ -109,7 +109,7 @@ impl<'a> Default for Dataset<'a> {
             graph_type: GraphType::Scatter,
             style: Style::default(),
             x_axis_bounds: None,
-            y_axis_bounds: None
+            y_axis_bounds: None,
         }
     }
 }

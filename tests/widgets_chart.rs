@@ -126,14 +126,19 @@ fn widgets_chart_can_have_empty_datasets() {
         .unwrap();
 }
 
-
 #[test]
 fn widgets_chart_disjoint_axis() {
     let backend = TestBackend::new(100, 100);
     let mut terminal = Terminal::new(backend).unwrap();
 
-    let dataset_1 = Dataset::default().data(&[(0.0, 0.0), (1.0, 1.0), (2.0, 2.0)]).x_axis_bounds([1.0, 2.0]).graph_type(Line);
-    let dataset_2 = Dataset::default().data(&[(0.0, 0.0), (1.0, 1.0)]).x_axis_bounds([0.0, 1.0]).graph_type(Line);
+    let dataset_1 = Dataset::default()
+        .data(&[(0.0, 0.0), (1.0, 1.0), (2.0, 2.0)])
+        .x_axis_bounds([1.0, 2.0])
+        .graph_type(Line);
+    let dataset_2 = Dataset::default()
+        .data(&[(0.0, 0.0), (1.0, 1.0)])
+        .x_axis_bounds([0.0, 1.0])
+        .graph_type(Line);
     terminal
         .draw(|f| {
             let datasets = vec![dataset_1, dataset_2];

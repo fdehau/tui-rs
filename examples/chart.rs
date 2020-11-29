@@ -44,7 +44,6 @@ struct App {
     window4: [f64; 2],
 }
 
-
 fn update_data(data: &mut Vec<(f64, f64)>, signal: &mut SinSignal, amount: usize) {
     for _ in 0..amount {
         data.remove(0);
@@ -275,12 +274,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .name("data3")
                     .marker(symbols::Marker::Braille)
                     .style(Style::default().fg(Color::Yellow))
-                    .data(&app.data3).x_axis_bounds(app.window),
+                    .data(&app.data3)
+                    .x_axis_bounds(app.window),
                 Dataset::default()
                     .name("data3")
                     .marker(symbols::Marker::Braille)
                     .style(Style::default().fg(Color::Yellow))
-                    .data(&app.data4).x_axis_bounds(app.window4),
+                    .data(&app.data4)
+                    .x_axis_bounds(app.window4),
             ];
 
             let chart = Chart::new(datasets)
@@ -306,7 +307,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .bounds([-20.0, 20.0]),
                 );
             f.render_widget(chart, bottom_chunks[1]);
-
         })?;
 
         match events.next()? {
