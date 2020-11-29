@@ -95,9 +95,8 @@ pub struct Dataset<'a> {
     graph_type: GraphType,
     /// Style used to plot this dataset
     style: Style,
-    ///
+    /// Bounds of the x-axis for this Dataset
     x_axis_bounds: Option<[f64; 2]>,
-    y_axis_bounds: Option<[f64; 2]>,
 }
 
 impl<'a> Default for Dataset<'a> {
@@ -109,7 +108,6 @@ impl<'a> Default for Dataset<'a> {
             graph_type: GraphType::Scatter,
             style: Style::default(),
             x_axis_bounds: None,
-            y_axis_bounds: None,
         }
     }
 }
@@ -145,11 +143,6 @@ impl<'a> Dataset<'a> {
 
     pub fn x_axis_bounds(mut self, bounds: [f64; 2]) -> Dataset<'a> {
         self.x_axis_bounds = Some(bounds);
-        self
-    }
-
-    pub fn y_axis_bounds(mut self, bounds: [f64; 2]) -> Dataset<'a> {
-        self.y_axis_bounds = Some(bounds);
         self
     }
 }
