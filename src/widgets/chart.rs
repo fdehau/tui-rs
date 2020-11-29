@@ -95,6 +95,9 @@ pub struct Dataset<'a> {
     graph_type: GraphType,
     /// Style used to plot this dataset
     style: Style,
+    ///
+    x_axis_bounds: Option<[f64; 2]>,
+    y_axis_bounds: Option<[f64; 2]>,
 }
 
 impl<'a> Default for Dataset<'a> {
@@ -105,6 +108,8 @@ impl<'a> Default for Dataset<'a> {
             marker: symbols::Marker::Dot,
             graph_type: GraphType::Scatter,
             style: Style::default(),
+            x_axis_bounds: None,
+            y_axis_bounds: None
         }
     }
 }
@@ -135,6 +140,16 @@ impl<'a> Dataset<'a> {
 
     pub fn style(mut self, style: Style) -> Dataset<'a> {
         self.style = style;
+        self
+    }
+
+    pub fn x_axis_bounds(mut self, bounds: [f64; 2]) -> Dataset<'a> {
+        self.x_axis_bounds = Some(bounds);
+        self
+    }
+
+    pub fn y_axis_bounds(mut self, bounds: [f64; 2]) -> Dataset<'a> {
+        self.y_axis_bounds = Some(bounds);
         self
     }
 }
@@ -442,8 +457,8 @@ impl<'a> Widget for Chart<'a> {
         for dataset in &self.datasets {
             Canvas::default()
                 .background_color(self.style.bg.unwrap_or(Color::Reset))
-                .x_bounds(self.x_axis.bounds)
-                .y_bounds(self.y_axis.bounds)
+                .x_bounds(dataset.x_axis_bounds.unwrap_or(self.x_axis.bounds))
+                .y_bounds(dataset.y_axis_bounds.unwrap_or(self.y_axis.bounds))
                 .marker(dataset.marker)
                 .paint(|ctx| {
                     ctx.draw(&Points {

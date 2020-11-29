@@ -2,6 +2,10 @@
 
 ## To be released
 
+### Features
+
+* Add `Dataset.x_axis_bounds` and `Dataset.y_axis_bounds` to allow setting per-dataset axis bounds.
+
 ## v0.13.0 - 2020-11-14
 
 ### Features

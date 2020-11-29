@@ -126,6 +126,46 @@ fn widgets_chart_can_have_empty_datasets() {
         .unwrap();
 }
 
+
+#[test]
+fn widgets_chart_disjoint_axis() {
+    let backend = TestBackend::new(100, 100);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let dataset_1 = Dataset::default().data(&[(0.0, 0.0), (1.0, 1.0), (2.0, 2.0)]).x_axis_bounds([1.0, 2.0]).graph_type(Line);
+    let dataset_2 = Dataset::default().data(&[(0.0, 0.0), (1.0, 1.0)]).x_axis_bounds([0.0, 1.0]).graph_type(Line);
+    terminal
+        .draw(|f| {
+            let datasets = vec![dataset_1, dataset_2];
+            let chart = Chart::new(datasets)
+                .block(
+                    Block::default()
+                        .title("Empty Dataset With Line")
+                        .borders(Borders::ALL),
+                )
+                .x_axis(
+                    Axis::default()
+                        .bounds([0.0, 2.0])
+                        .labels(create_labels(&["0.0", "3.0"])),
+                )
+                .y_axis(
+                    Axis::default()
+                        .bounds([0.0, 3.0])
+                        .labels(create_labels(&["0.0", "3.0"])),
+                );
+            f.render_widget(
+                chart,
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width: 100,
+                    height: 100,
+                },
+            );
+        })
+        .unwrap();
+}
+
 #[test]
 fn widgets_chart_can_have_a_legend() {
     let backend = TestBackend::new(60, 30);
