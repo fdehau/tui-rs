@@ -16,10 +16,9 @@ use tui::{
     Terminal,
 };
 
-/// This struct holds the current state of the app.
-/// The `items` field fulfills all prerequisites for Tui's `StatefulWidget` trait.
-/// This achieves that Tui can, for instance, understand the currently selected item and can
-/// automatically highlight it.
+/// This struct holds the current state of the app. In particular, it has the `items` field which is a wrapper
+/// around `ListState`. Keeping track of the items state let us render the associated widget with its state
+/// and have access to features such as natural scrolling.
 ///
 /// Check the event handling at the bottom to see how to change the state on incoming events.
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
@@ -90,7 +89,7 @@ impl<'a> App<'a> {
     }
 
     /// Rotate through the event list.
-    /// This only exists go simulate some kind of "progress"
+    /// This only exists to simulate some kind of "progress"
     fn advance(&mut self) {
         let event = self.events.remove(0);
         self.events.push(event);
@@ -119,7 +118,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .split(f.size());
 
             // Iterate through all elements in the `items` app and append some debug text to it.
-            // The item list is a state-ful
             let items: Vec<ListItem> = app
                 .items
                 .items
@@ -136,7 +134,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 })
                 .collect();
 
-            // Create a List from all list items and highlight the currenlty selected one
+            // Create a List from all list items and highlight the currently selected one
             let items = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .highlight_style(
@@ -156,7 +154,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .iter()
                 .rev()
                 .map(|&(event, level)| {
-                    // Colorcode the level depending on it's type
+                    // Colorcode the level depending on its type
                     let s = match level {
                         "CRITICAL" => Style::default().fg(Color::Red),
                         "ERROR" => Style::default().fg(Color::Magenta),
@@ -164,7 +162,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         "INFO" => Style::default().fg(Color::Blue),
                         _ => Style::default(),
                     };
-                    // Add a exapmle datetime and apply proper spacing between them
+                    // Add a example datetime and apply proper spacing between them
                     let header = Spans::from(vec![
                         Span::styled(format!("{:<9}", level), s),
                         Span::raw(" "),
