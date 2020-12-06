@@ -26,13 +26,15 @@ jobs:
           rust-version: ${{ matrix.rust }}
           components: rustfmt,clippy
       - uses: actions/checkout@v1
-      - name: "Install cargo-make"
-        run: cargo install cargo-make --version ${{ env.CI_CARGO_MAKE_VERSION }}
       - name: "Cache cargo make"
+        id: cache-cargo-make
         uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/cargo-make
           key: ${{ runner.os }}-${{ matrix.rust }}-${{ env.CI_CARGO_MAKE_VERSION }}
+      - name: "Install cargo-make"
+        if: steps.cache-cargo-make.outputs.cache-hit != 'true'
+        run: cargo install cargo-make --version ${{ env.CI_CARGO_MAKE_VERSION }}
       - name: "Format"
         run: cargo make fmt
       - name: "Check"
@@ -56,13 +58,15 @@ jobs:
           rust-version: ${{ matrix.rust }}
           components: rustfmt,clippy
       - uses: actions/checkout@v1
-      - name: "Install cargo-make"
-        run: cargo install cargo-make --version ${{ env.CI_CARGO_MAKE_VERSION }}
       - name: "Cache cargo make"
-        uses: actions/cache@v1
+        id: cache-cargo-make
+        uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/cargo-make
-          key: ${{ runner.os }}-${{ matrix.rust }}-${{ env.CI_CARGO_MAKE_VERSION }}
+          key: ${{ runner.os }}-${{ matrix.rust }}-${{ env.CI_CARGO_MAKE_VERSION }}
+      - name: "Install cargo-make"
+        if: steps.cache-cargo-make.outputs.cache-hit != 'true'
+        run: cargo install cargo-make --version ${{ env.CI_CARGO_MAKE_VERSION }}
       - name: "Format"
         run: cargo make fmt
       - name: "Check"
