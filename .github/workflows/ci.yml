@@ -18,39 +18,22 @@ jobs:
     steps:
       - name: "Install dependencies"
         run: sudo apt-get install libncurses5-dev
+      - uses: hecrj/setup-rust-action@v1.3.4
+        with:
+          rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: default
-          toolchain: ${{ matrix.rust }}
-          override: true
       - name: "Install cargo-make"
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-make
+        run: cargo install cargo-make
       - name: "Format"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: fmt
+        run: cargo make fmt
       - name: "Check"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: check
+        run: cargo make check
       - name: "Test"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: test
+        run: cargo make test
         env:
           RUST_BACKTRACE: full
       - name: "Clippy"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: clippy
+        run: cargo make clippy
   windows:
     name: Windows
     runs-on: windows-latest
@@ -59,35 +42,19 @@ jobs:
         rust: ["1.44.0", "stable"]
     steps:
       - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: hecrj/setup-rust-action@v1.3.4
         with:
-          profile: default
-          toolchain: ${{ matrix.rust }}
-          override: true
+          rust-version: ${{ matrix.rust }}
+      - uses: actions/checkout@v1
       - name: "Install cargo-make"
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-make
+        run: cargo install cargo-make
       - name: "Format"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: fmt
+        run: cargo make fmt
       - name: "Check"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: check
+        run: cargo make check
       - name: "Test"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: test
+        run: cargo make test
         env:
           RUST_BACKTRACE: full
       - name: "Clippy"
-        uses: actions-rs/cargo@v1
-        with:
-          command: make
-          args: clippy
+        run: cargo make clippy
