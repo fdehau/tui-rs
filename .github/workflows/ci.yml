@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: "Install dependencies"
         run: sudo apt-get install libncurses5-dev
-      - uses: hecrj/setup-rust-action@v1.3.4
+      - uses: hecrj/setup-rust-action@967aec96c6a27a0ce15c1dac3aaba332d60565e2
         with:
           rust-version: ${{ matrix.rust }}
           components: rustfmt,clippy
@@ -29,7 +29,7 @@ jobs:
       - name: "Install cargo-make"
         run: cargo install cargo-make --version v$CI_CARGO_MAKE_VERSION
       - name: "Cache cargo make"
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/cargo-make
           key: ${{ runner.os }}-${{ matrix.rust }}-$CI_CARGO_MAKE_VERSION
@@ -51,9 +51,10 @@ jobs:
         rust: ["1.44.0", "stable"]
     steps:
       - uses: actions/checkout@v1
-      - uses: hecrj/setup-rust-action@v1.3.4
+      - uses: hecrj/setup-rust-action@967aec96c6a27a0ce15c1dac3aaba332d60565e2
         with:
           rust-version: ${{ matrix.rust }}
+          components: rustfmt,clippy
       - uses: actions/checkout@v1
       - name: "Install cargo-make"
         run: cargo install cargo-make --version v$CI_CARGO_MAKE_VERSION
