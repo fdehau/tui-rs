@@ -8,6 +8,9 @@ on:
 
 name: CI
 
+env:
+  CI_CARGO_MAKE_VERSION: v0.32.9
+
 jobs:
   linux:
     name: Linux
@@ -23,7 +26,12 @@ jobs:
           rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@v1
       - name: "Install cargo-make"
-        run: cargo install cargo-make
+        run: cargo install cargo-make --version v$CI_CARGO_MAKE_VERSION
+      - name: "Cache cargo make"
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/cargo-make
+          key: ${{ runner.os }}-${{ matrix.rust }}-$CI_CARGO_MAKE_VERSION
       - name: "Format"
         run: cargo make fmt
       - name: "Check"
@@ -47,7 +55,12 @@ jobs:
           rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@v1
       - name: "Install cargo-make"
-        run: cargo install cargo-make
+        run: cargo install cargo-make --version v$CI_CARGO_MAKE_VERSION
+      - name: "Cache cargo make"
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/cargo-make
+          key: ${{ runner.os }}-${{ matrix.rust }}-$CI_CARGO_MAKE_VERSION
       - name: "Format"
         run: cargo make fmt
       - name: "Check"
