@@ -24,6 +24,7 @@ jobs:
       - uses: hecrj/setup-rust-action@v1.3.4
         with:
           rust-version: ${{ matrix.rust }}
+          components: rustfmt,clippy
       - uses: actions/checkout@v1
       - name: "Install cargo-make"
         run: cargo install cargo-make --version v$CI_CARGO_MAKE_VERSION
