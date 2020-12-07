@@ -93,19 +93,13 @@ args = [
 ]
 
 [tasks.run-examples]
-linux_alias = "run-examples-unix"
-mac_alias = "run-examples-unix"
-windows_alias = "run-examples-windows"
-
-[tasks.run-examples-unix]
 script = '''
-#!/usr/bin/env bash
-cargo build --examples --features ${TUI_FEATURES} --release
-for file in examples/*.rs; do
-  name="$(basename "${file/.rs/}")"
-  cargo run --features ${TUI_FEATURES} --release --example "${name}"
-done
+#!@duckscript
+exec --fail-on-error cargo build --examples --features ${TUI_FEATURES} --release
+files = glob_array ./examples/*.rs
+for file in ${files}
+  name = basename ${file}
+  name = substring ${name} -3
+  exec --fail-on-error cargo run --features ${TUI_FEATURES} --release --example ${name}
+end
 '''
-
-[tasks.run-examples-windows]
-# TODO
