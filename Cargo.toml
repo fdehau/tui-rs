@@ -6,6 +6,8 @@ description = """
 A library to build rich terminal user interfaces or dashboards
 """
 documentation = "https://docs.rs/tui/0.10.0/tui/"
+# crates.io will show the README.md of this repo instead of an empty page
+readme = "README.md"
 keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 license = "MIT"
