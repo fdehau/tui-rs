@@ -8,19 +8,19 @@ use tui::{
     backend::TermionBackend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, Cell, Row, Table, TableState},
+    widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
 
-pub struct StatefulTable<'a> {
-    state: TableState,
+pub struct SelectableTable<'a> {
+    selected: Option<usize>,
     items: Vec<Vec<&'a str>>,
 }
 
-impl<'a> StatefulTable<'a> {
-    fn new() -> StatefulTable<'a> {
-        StatefulTable {
-            state: TableState::default(),
+impl<'a> SelectableTable<'a> {
+    fn new() -> SelectableTable<'a> {
+        SelectableTable {
+            selected: None,
             items: vec![
                 vec!["Row11", "Row12", "Row13"],
                 vec!["Row21", "Row22", "Row23"],
@@ -44,32 +44,19 @@ impl<'a> StatefulTable<'a> {
             ],
         }
     }
+
     pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+        self.selected = self
+            .selected
+            .map(|i| if i >= self.items.len() - 1 { 0 } else { i + 1 })
+            .or(Some(0));
     }
 
     pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+        self.selected = self
+            .selected
+            .map(|i| if i == 0 { self.items.len() - 1 } else { i - 1 })
+            .or(Some(0));
     }
 }
 
@@ -83,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let events = Events::new();
 
-    let mut table = StatefulTable::new();
+    let mut table = SelectableTable::new();
 
     // Input
     loop {
@@ -117,12 +104,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .block(Block::default().borders(Borders::ALL).title("Table"))
                 .highlight_style(selected_style)
                 .highlight_symbol(">> ")
+                .select(table.selected)
                 .widths(&[
                     Constraint::Percentage(50),
                     Constraint::Length(30),
                     Constraint::Max(10),
                 ]);
-            f.render_stateful_widget(t, rects[0], &mut table.state);
+            f.render_widget(t, rects[0]);
         })?;
 
         if let Event::Input(key) = events.next()? {

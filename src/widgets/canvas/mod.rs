@@ -10,11 +10,9 @@ pub use self::points::Points;
 pub use self::rectangle::Rectangle;
 
 use crate::{
-    buffer::Buffer,
-    layout::Rect,
     style::{Color, Style},
     symbols,
-    widgets::{Block, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 use std::fmt::Debug;
 
@@ -423,14 +421,20 @@ impl<'a, F> Widget for Canvas<'a, F>
 where
     F: Fn(&mut Context),
 {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
         let canvas_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         let width = canvas_area.width as usize;
@@ -441,7 +445,7 @@ where
         };
 
         // Create a blank context that match the size of the canvas
-        let mut ctx = Context::new(
+        let mut canvas_ctx = Context::new(
             canvas_area.width,
             canvas_area.height,
             self.x_bounds,
@@ -449,11 +453,11 @@ where
             self.marker,
         );
         // Paint to this context
-        painter(&mut ctx);
-        ctx.finish();
+        painter(&mut canvas_ctx);
+        canvas_ctx.finish();
 
         // Retreive painted points for each layer
-        for layer in ctx.layers {
+        for layer in canvas_ctx.layers {
             for (i, (ch, color)) in layer
                 .string
                 .chars()
@@ -462,7 +466,8 @@ where
             {
                 if ch != ' ' && ch != '\u{2800}' {
                     let (x, y) = (i % width, i / width);
-                    buf.get_mut(x as u16 + canvas_area.left(), y as u16 + canvas_area.top())
+                    ctx.buffer
+                        .get_mut(x as u16 + canvas_area.left(), y as u16 + canvas_area.top())
                         .set_char(ch)
                         .set_fg(color)
                         .set_bg(self.background_color);
@@ -483,14 +488,14 @@ where
             let height = f64::from(canvas_area.height - 1);
             (width, height)
         };
-        for label in ctx
+        for label in canvas_ctx
             .labels
             .iter()
             .filter(|l| l.x >= left && l.x <= right && l.y <= top && l.y >= bottom)
         {
             let x = ((label.x - left) * resolution.0 / width) as u16 + canvas_area.left();
             let y = ((top - label.y) * resolution.1 / height) as u16 + canvas_area.top();
-            buf.set_stringn(
+            ctx.buffer.set_stringn(
                 x,
                 y,
                 label.text,

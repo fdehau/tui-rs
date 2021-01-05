@@ -3,7 +3,6 @@ pub mod event;
 
 use rand::distributions::{Distribution, Uniform};
 use rand::rngs::ThreadRng;
-use tui::widgets::ListState;
 
 #[derive(Clone)]
 pub struct RandomSignal {
@@ -77,55 +76,53 @@ impl<'a> TabsState<'a> {
     }
 }
 
-pub struct StatefulList<T> {
-    pub state: ListState,
+pub struct SelectableList<T> {
+    pub selected: Option<usize>,
     pub items: Vec<T>,
 }
 
-impl<T> StatefulList<T> {
-    pub fn new() -> StatefulList<T> {
-        StatefulList {
-            state: ListState::default(),
+impl<T> SelectableList<T> {
+    pub fn new() -> SelectableList<T> {
+        Self {
+            selected: None,
             items: Vec::new(),
         }
     }
 
-    pub fn with_items(items: Vec<T>) -> StatefulList<T> {
-        StatefulList {
-            state: ListState::default(),
+    pub fn with_items(items: Vec<T>) -> SelectableList<T> {
+        Self {
+            selected: None,
             items,
         }
     }
 
     pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
+        self.selected = self
+            .selected
+            .map(|i| {
+                if i < self.items.len().saturating_sub(1) {
                     i + 1
+                } else {
+                    0
                 }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+            })
+            .or(Some(0));
     }
 
     pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
+        self.selected = self
+            .selected
+            .map(|i| {
+                if i > 0 {
                     i - 1
+                } else {
+                    self.items.len().saturating_sub(1)
                 }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+            })
+            .or(Some(0));
     }
 
     pub fn unselect(&mut self) {
-        self.state.select(None);
+        self.selected = None;
     }
 }

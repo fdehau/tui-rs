@@ -2,9 +2,9 @@ use crate::{
     backend::Backend,
     buffer::Buffer,
     layout::Rect,
-    widgets::{StatefulWidget, Widget},
+    widgets::{RenderContext, Widget},
 };
-use std::io;
+use std::{any::Any, collections::HashMap, hash::Hash, io, panic::Location};
 
 #[derive(Debug, Clone, PartialEq)]
 /// UNSTABLE
@@ -30,6 +30,46 @@ impl Viewport {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct CallLocation(&'static Location<'static>);
+
+impl CallLocation {
+    fn as_ptr(&self) -> *const Location<'static> {
+        self.0
+    }
+}
+
+impl Hash for CallLocation {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.as_ptr().hash(state)
+    }
+}
+
+impl PartialEq for CallLocation {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ptr() == other.as_ptr()
+    }
+}
+
+impl Eq for CallLocation {}
+
+/// StateEntry is used to link a [`Frame::render_widget`] to [`Widget::State`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct StateKey {
+    /// Location of the call to [`Frame::render_widget`].
+    call_location: CallLocation,
+    /// Optional id that can be used to have multiple widgets state at the same call location.
+    id: Option<String>,
+}
+
+/// StateEntry holds the state of a [`Widget`].
+struct StateEntry {
+    /// State of a [`Widget`].
+    state: Box<dyn Any>,
+    /// Index of the frame where the state was used for the last time.
+    frame_index: usize,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 /// Options to pass to [`Terminal::with_options`]
 pub struct TerminalOptions {
@@ -38,7 +78,6 @@ pub struct TerminalOptions {
 }
 
 /// Interface to the terminal backed by Termion
-#[derive(Debug)]
 pub struct Terminal<B>
 where
     B: Backend,
@@ -53,6 +92,11 @@ where
     hidden_cursor: bool,
     /// Viewport
     viewport: Viewport,
+    /// State of the widgets rendered in the previous frame.
+    widget_states: HashMap<StateKey, StateEntry>,
+    /// Index of the current frame. Incremented each time [`Terminal::draw`] is called and wraps
+    /// when it is greater than [`std::usize::MAX`].
+    frame_index: usize,
 }
 
 /// Represents a consistent terminal interface for rendering.
@@ -67,6 +111,31 @@ where
     /// If `None`, the cursor is hidden and its position is controlled by the backend. If `Some((x,
     /// y))`, the cursor is shown and placed at `(x, y)` after the call to `Terminal::draw()`.
     cursor_position: Option<(u16, u16)>,
+}
+
+/// RenderArgs are the arguments required to render a [`Widget`].
+pub struct RenderArgs {
+    /// Area where the widget will be rendered.
+    area: Rect,
+    /// Optional id that can be used to uniquely identify the provided [`Widget`].
+    id: Option<String>,
+}
+
+impl From<Rect> for RenderArgs {
+    fn from(area: Rect) -> RenderArgs {
+        RenderArgs { area, id: None }
+    }
+}
+
+impl RenderArgs {
+    /// Set the [`Widget`] id.
+    pub fn id<S>(mut self, id: S) -> Self
+    where
+        S: Into<String>,
+    {
+        self.id = Some(id.into());
+        self
+    }
 }
 
 impl<'a, B> Frame<'a, B>
@@ -96,45 +165,79 @@ where
     /// let mut frame = terminal.get_frame();
     /// frame.render_widget(block, area);
     /// ```
-    pub fn render_widget<W>(&mut self, widget: W, area: Rect)
-    where
-        W: Widget,
-    {
-        widget.render(area, self.terminal.current_buffer_mut());
-    }
-
-    /// Render a [`StatefulWidget`] to the current buffer using [`StatefulWidget::render`].
     ///
-    /// The last argument should be an instance of the [`StatefulWidget::State`] associated to the
-    /// given [`StatefulWidget`].
+    /// If you happen to render two or more widgets using the same render call, you may want to
+    /// associate them with a unique id so they do not share any internal state.
     ///
-    /// # Examples
-    ///
+    /// For example, let say your app shows a list of songs of a given album:
     /// ```rust,no_run
-    /// # use std::io;
-    /// # use tui::Terminal;
+    /// # use std::{collections::HashMap, io};
+    /// # use tui::{Terminal, RenderArgs};
     /// # use tui::backend::TermionBackend;
     /// # use tui::layout::Rect;
-    /// # use tui::widgets::{List, ListItem, ListState};
+    /// # use tui::widgets::{Block, List, ListItem};
     /// # let stdout = io::stdout();
     /// # let backend = TermionBackend::new(stdout);
     /// # let mut terminal = Terminal::new(backend).unwrap();
-    /// let mut state = ListState::default();
-    /// state.select(Some(1));
-    /// let items = vec![
-    ///     ListItem::new("Item 1"),
-    ///     ListItem::new("Item 2"),
-    /// ];
-    /// let list = List::new(items);
-    /// let area = Rect::new(0, 0, 5, 5);
-    /// let mut frame = terminal.get_frame();
-    /// frame.render_stateful_widget(list, area, &mut state);
+    /// struct App {
+    ///    albums: HashMap<String, Vec<String>>,
+    ///    selected_album: String
+    /// }
+    /// # let app = App {
+    /// #    albums: HashMap::new(),
+    /// #    selected_album: String::new(),
+    /// # };
+    /// terminal.draw(|f| {
+    ///     let songs: Vec<ListItem> = app.albums[&app.selected_album]
+    ///         .iter()
+    ///         .map(|song| ListItem::new(song.as_ref()))
+    ///         .collect();
+    ///     let song_list = List::new(songs)
+    ///         .block(Block::default().title(app.selected_album.as_ref()));
+    ///     // Giving a unique id here makes sure the list state is reset whenever the album
+    ///     // currently displayed changes.
+    ///     let args = RenderArgs::from(f.size()).id(app.selected_album.clone());
+    ///     f.render_widget(song_list, args);
+    /// });
     /// ```
-    pub fn render_stateful_widget<W>(&mut self, widget: W, area: Rect, state: &mut W::State)
+    #[track_caller]
+    pub fn render_widget<W, R>(&mut self, widget: W, args: R)
     where
-        W: StatefulWidget,
+        W: Widget,
+        W::State: 'static + Default,
+        R: Into<RenderArgs>,
     {
-        widget.render(area, self.terminal.current_buffer_mut(), state);
+        // Fetch the previous internal state of the widget (or initialize it with a default value).
+        let args: RenderArgs = args.into();
+        let location = Location::caller();
+        let key = StateKey {
+            call_location: CallLocation(location),
+            id: args.id,
+        };
+        let entry = self
+            .terminal
+            .widget_states
+            .entry(key)
+            .or_insert_with(|| StateEntry {
+                state: Box::new(<W::State>::default()),
+                frame_index: 0,
+            });
+        let state: &mut W::State = entry
+            .state
+            .downcast_mut()
+            .expect("The state associated to a widget is not of an expected type");
+
+        // Update the frame index to communicate that it was used during the current draw call.
+        entry.frame_index = self.terminal.frame_index;
+
+        // Render the widget
+        let buffer = &mut self.terminal.buffers[self.terminal.current];
+        let mut context = RenderContext {
+            area: args.area,
+            buffer,
+            state,
+        };
+        widget.render(&mut context);
     }
 
     /// After drawing this frame, make the cursor visible and put it at the specified (x, y)
@@ -200,6 +303,8 @@ where
             current: 0,
             hidden_cursor: false,
             viewport: options.viewport,
+            widget_states: HashMap::new(),
+            frame_index: 0,
         })
     }
 
@@ -284,6 +389,12 @@ where
         // Swap buffers
         self.buffers[1 - self.current].reset();
         self.current = 1 - self.current;
+
+        // Clean states that were not used in this frame
+        let frame_index = self.frame_index;
+        self.widget_states
+            .retain(|_, v| v.frame_index == frame_index);
+        self.frame_index = self.frame_index.wrapping_add(1);
 
         // Flush
         self.backend.flush()?;

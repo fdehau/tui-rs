@@ -1,9 +1,8 @@
 use crate::{
-    buffer::Buffer,
     layout::{Corner, Rect},
     style::Style,
     text::Text,
-    widgets::{Block, StatefulWidget, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 use std::iter::{self, Iterator};
 use unicode_width::UnicodeWidthStr;
@@ -11,28 +10,11 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct ListState {
     offset: usize,
-    selected: Option<usize>,
 }
 
 impl Default for ListState {
     fn default() -> ListState {
-        ListState {
-            offset: 0,
-            selected: None,
-        }
-    }
-}
-
-impl ListState {
-    pub fn selected(&self) -> Option<usize> {
-        self.selected
-    }
-
-    pub fn select(&mut self, index: Option<usize>) {
-        self.selected = index;
-        if index.is_none() {
-            self.offset = 0;
-        }
+        ListState { offset: 0 }
     }
 }
 
@@ -88,6 +70,7 @@ pub struct List<'a> {
     highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'a str>,
+    selected: Option<usize>,
 }
 
 impl<'a> List<'a> {
@@ -102,6 +85,7 @@ impl<'a> List<'a> {
             start_corner: Corner::TopLeft,
             highlight_style: Style::default(),
             highlight_symbol: None,
+            selected: None,
         }
     }
 
@@ -129,20 +113,29 @@ impl<'a> List<'a> {
         self.start_corner = corner;
         self
     }
+
+    pub fn select(mut self, index: Option<usize>) -> List<'a> {
+        self.selected = index;
+        self
+    }
 }
 
-impl<'a> StatefulWidget for List<'a> {
+impl<'a> Widget for List<'a> {
     type State = ListState;
 
-    fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        buf.set_style(area, self.style);
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
         let list_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if list_area.width < 1 || list_area.height < 1 {
@@ -154,10 +147,14 @@ impl<'a> StatefulWidget for List<'a> {
         }
         let list_height = list_area.height as usize;
 
-        let mut start = state.offset;
-        let mut end = state.offset;
+        if self.selected.is_none() {
+            ctx.state.offset = 0;
+        }
+
+        let mut start = ctx.state.offset;
+        let mut end = ctx.state.offset;
         let mut height = 0;
-        for item in self.items.iter().skip(state.offset) {
+        for item in self.items.iter().skip(ctx.state.offset) {
             if height + item.height() > list_height {
                 break;
             }
@@ -165,7 +162,7 @@ impl<'a> StatefulWidget for List<'a> {
             end += 1;
         }
 
-        let selected = state.selected.unwrap_or(0).min(self.items.len() - 1);
+        let selected = self.selected.unwrap_or(0).min(self.items.len() - 1);
         while selected >= end {
             height = height.saturating_add(self.items[end].height());
             end += 1;
@@ -182,7 +179,7 @@ impl<'a> StatefulWidget for List<'a> {
                 height = height.saturating_sub(self.items[end].height());
             }
         }
-        state.offset = start;
+        ctx.state.offset = start;
 
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
@@ -190,12 +187,12 @@ impl<'a> StatefulWidget for List<'a> {
             .collect::<String>();
 
         let mut current_height = 0;
-        let has_selection = state.selected.is_some();
+        let has_selection = self.selected.is_some();
         for (i, item) in self
             .items
             .iter_mut()
             .enumerate()
-            .skip(state.offset)
+            .skip(ctx.state.offset)
             .take(end - start)
         {
             let (x, y) = match self.start_corner {
@@ -216,34 +213,30 @@ impl<'a> StatefulWidget for List<'a> {
                 height: item.height() as u16,
             };
             let item_style = self.style.patch(item.style);
-            buf.set_style(area, item_style);
+            ctx.buffer.set_style(area, item_style);
 
-            let is_selected = state.selected.map(|s| s == i).unwrap_or(false);
+            let is_selected = self.selected.map(|s| s == i).unwrap_or(false);
             let elem_x = if has_selection {
                 let symbol = if is_selected {
                     highlight_symbol
                 } else {
                     &blank_symbol
                 };
-                let (x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, item_style);
+                let (x, _) =
+                    ctx.buffer
+                        .set_stringn(x, y, symbol, list_area.width as usize, item_style);
                 x
             } else {
                 x
             };
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
             for (j, line) in item.content.lines.iter().enumerate() {
-                buf.set_spans(elem_x, y + j as u16, line, max_element_width as u16);
+                ctx.buffer
+                    .set_spans(elem_x, y + j as u16, line, max_element_width as u16);
             }
             if is_selected {
-                buf.set_style(area, self.highlight_style);
+                ctx.buffer.set_style(area, self.highlight_style);
             }
         }
-    }
-}
-
-impl<'a> Widget for List<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let mut state = ListState::default();
-        StatefulWidget::render(self, area, buf, &mut state);
     }
 }

@@ -1,11 +1,10 @@
 use crate::{
-    buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::Alignment,
     style::Style,
     text::{StyledGrapheme, Text},
     widgets::{
         reflow::{LineComposer, LineTruncator, WordWrapper},
-        Block, Widget,
+        Block, RenderContext, Widget,
     },
 };
 use std::iter;
@@ -133,15 +132,21 @@ impl<'a> Paragraph<'a> {
 }
 
 impl<'a> Widget for Paragraph<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
         let text_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if text_area.height < 1 {
@@ -176,7 +181,8 @@ impl<'a> Widget for Paragraph<'a> {
             if y >= self.scroll.0 {
                 let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
                 for StyledGrapheme { symbol, style } in current_line {
-                    buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
+                    ctx.buffer
+                        .get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
                         .set_symbol(if symbol.is_empty() {
                             // If the symbol is empty, the last char which rendered last time will
                             // leave on the line. It's a quick fix.

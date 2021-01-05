@@ -1,4 +1,4 @@
-use crate::util::{RandomSignal, SinSignal, StatefulList, TabsState};
+use crate::util::{RandomSignal, SelectableList, SinSignal, TabsState};
 
 const TASKS: [&str; 24] = [
     "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10",
@@ -110,8 +110,8 @@ pub struct App<'a> {
     pub show_chart: bool,
     pub progress: f64,
     pub sparkline: Signal<RandomSignal>,
-    pub tasks: StatefulList<&'a str>,
-    pub logs: StatefulList<(&'a str, &'a str)>,
+    pub tasks: SelectableList<&'a str>,
+    pub logs: Vec<(&'a str, &'a str)>,
     pub signals: Signals,
     pub barchart: Vec<(&'a str, u64)>,
     pub servers: Vec<Server<'a>>,
@@ -137,8 +137,8 @@ impl<'a> App<'a> {
                 points: sparkline_points,
                 tick_rate: 1,
             },
-            tasks: StatefulList::with_items(TASKS.to_vec()),
-            logs: StatefulList::with_items(LOGS.to_vec()),
+            tasks: SelectableList::with_items(TASKS.to_vec()),
+            logs: Vec::from(LOGS),
             signals: Signals {
                 sin1: Signal {
                     source: sin_signal,
@@ -221,8 +221,8 @@ impl<'a> App<'a> {
         self.sparkline.on_tick();
         self.signals.on_tick();
 
-        let log = self.logs.items.pop().unwrap();
-        self.logs.items.insert(0, log);
+        let log = self.logs.pop().unwrap();
+        self.logs.insert(0, log);
 
         let event = self.barchart.pop().unwrap();
         self.barchart.insert(0, event);

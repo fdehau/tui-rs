@@ -1,10 +1,9 @@
 use crate::{
-    buffer::Buffer,
     layout::Rect,
     style::Style,
     symbols,
     text::{Span, Spans},
-    widgets::{Block, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 
 /// A widget to display available tabs in a multiple panels context.
@@ -81,15 +80,21 @@ impl<'a> Tabs<'a> {
 }
 
 impl<'a> Widget for Tabs<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
         let tabs_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if tabs_area.height < 1 {
@@ -105,9 +110,11 @@ impl<'a> Widget for Tabs<'a> {
             if remaining_width == 0 {
                 break;
             }
-            let pos = buf.set_spans(x, tabs_area.top(), &title, remaining_width);
+            let pos = ctx
+                .buffer
+                .set_spans(x, tabs_area.top(), &title, remaining_width);
             if i == self.selected {
-                buf.set_style(
+                ctx.buffer.set_style(
                     Rect {
                         x,
                         y: tabs_area.top(),
@@ -122,7 +129,9 @@ impl<'a> Widget for Tabs<'a> {
             if remaining_width == 0 || last_title {
                 break;
             }
-            let pos = buf.set_span(x, tabs_area.top(), &self.divider, remaining_width);
+            let pos = ctx
+                .buffer
+                .set_span(x, tabs_area.top(), &self.divider, remaining_width);
             x = pos.0;
         }
     }

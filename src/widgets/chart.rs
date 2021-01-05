@@ -1,12 +1,11 @@
 use crate::{
-    buffer::Buffer,
     layout::{Constraint, Rect},
     style::{Color, Style},
     symbols,
     text::{Span, Spans},
     widgets::{
         canvas::{Canvas, Line, Points},
-        Block, Borders, Widget,
+        Block, Borders, RenderContext, Widget,
     },
 };
 use std::{borrow::Cow, cmp::max};
@@ -365,23 +364,29 @@ impl<'a> Chart<'a> {
 }
 
 impl<'a> Widget for Chart<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        if area.area() == 0 {
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        if ctx.area.area() == 0 {
             return;
         }
-        buf.set_style(area, self.style);
+        ctx.buffer.set_style(ctx.area, self.style);
         // Sample the style of the entire widget. This sample will be used to reset the style of
         // the cells that are part of the components put on top of the grah area (i.e legend and
         // axis names).
-        let original_style = buf.get(area.left(), area.top()).style();
+        let original_style = ctx.buffer.get(ctx.area.left(), ctx.area.top()).style();
 
         let chart_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         let layout = self.layout(chart_area);
@@ -396,7 +401,7 @@ impl<'a> Widget for Chart<'a> {
             let labels_len = labels.len() as u16;
             if total_width < graph_area.width && labels_len > 1 {
                 for (i, label) in labels.iter().enumerate() {
-                    buf.set_span(
+                    ctx.buffer.set_span(
                         graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1)
                             - label.content.width() as u16,
                         y,
@@ -413,14 +418,20 @@ impl<'a> Widget for Chart<'a> {
             for (i, label) in labels.iter().enumerate() {
                 let dy = i as u16 * (graph_area.height - 1) / (labels_len - 1);
                 if dy < graph_area.bottom() {
-                    buf.set_span(x, graph_area.bottom() - 1 - dy, label, label.width() as u16);
+                    ctx.buffer.set_span(
+                        x,
+                        graph_area.bottom() - 1 - dy,
+                        label,
+                        label.width() as u16,
+                    );
                 }
             }
         }
 
         if let Some(y) = layout.axis_x {
             for x in graph_area.left()..graph_area.right() {
-                buf.get_mut(x, y)
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_symbol(symbols::line::HORIZONTAL)
                     .set_style(self.x_axis.style);
             }
@@ -428,7 +439,8 @@ impl<'a> Widget for Chart<'a> {
 
         if let Some(x) = layout.axis_y {
             for y in graph_area.top()..graph_area.bottom() {
-                buf.get_mut(x, y)
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_symbol(symbols::line::VERTICAL)
                     .set_style(self.y_axis.style);
             }
@@ -436,7 +448,8 @@ impl<'a> Widget for Chart<'a> {
 
         if let Some(y) = layout.axis_x {
             if let Some(x) = layout.axis_y {
-                buf.get_mut(x, y)
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_symbol(symbols::line::BOTTOM_LEFT)
                     .set_style(self.x_axis.style);
             }
@@ -465,16 +478,24 @@ impl<'a> Widget for Chart<'a> {
                         }
                     }
                 })
-                .render(graph_area, buf);
+                .render(&mut RenderContext {
+                    area: graph_area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
         }
 
         if let Some(legend_area) = layout.legend_area {
-            buf.set_style(legend_area, original_style);
+            ctx.buffer.set_style(legend_area, original_style);
             Block::default()
                 .borders(Borders::ALL)
-                .render(legend_area, buf);
+                .render(&mut RenderContext {
+                    area: legend_area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
             for (i, dataset) in self.datasets.iter().enumerate() {
-                buf.set_string(
+                ctx.buffer.set_string(
                     legend_area.x + 1,
                     legend_area.y + 1 + i as u16,
                     &dataset.name,
@@ -486,7 +507,7 @@ impl<'a> Widget for Chart<'a> {
         if let Some((x, y)) = layout.title_x {
             let title = self.x_axis.title.unwrap();
             let width = graph_area.right().saturating_sub(x);
-            buf.set_style(
+            ctx.buffer.set_style(
                 Rect {
                     x,
                     y,
@@ -495,13 +516,13 @@ impl<'a> Widget for Chart<'a> {
                 },
                 original_style,
             );
-            buf.set_spans(x, y, &title, width);
+            ctx.buffer.set_spans(x, y, &title, width);
         }
 
         if let Some((x, y)) = layout.title_y {
             let title = self.y_axis.title.unwrap();
             let width = graph_area.right().saturating_sub(x);
-            buf.set_style(
+            ctx.buffer.set_style(
                 Rect {
                     x,
                     y,
@@ -510,7 +531,7 @@ impl<'a> Widget for Chart<'a> {
                 },
                 original_style,
             );
-            buf.set_spans(x, y, &title, width);
+            ctx.buffer.set_spans(x, y, &title, width);
         }
     }
 }

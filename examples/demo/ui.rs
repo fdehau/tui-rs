@@ -140,10 +140,11 @@ where
                 .map(|i| ListItem::new(vec![Spans::from(Span::raw(*i))]))
                 .collect();
             let tasks = List::new(tasks)
-                .block(Block::default().borders(Borders::ALL).title("List"))
+                .select(app.tasks.selected)
+                .block(Block::default().borders(Borders::ALL).title("Tasks"))
                 .highlight_style(Style::default().add_modifier(Modifier::BOLD))
                 .highlight_symbol("> ");
-            f.render_stateful_widget(tasks, chunks[0], &mut app.tasks.state);
+            f.render_widget(tasks, chunks[0]);
 
             // Draw logs
             let info_style = Style::default().fg(Color::Blue);
@@ -152,7 +153,6 @@ where
             let critical_style = Style::default().fg(Color::Red);
             let logs: Vec<ListItem> = app
                 .logs
-                .items
                 .iter()
                 .map(|&(evt, level)| {
                     let s = match level {
@@ -168,8 +168,8 @@ where
                     ListItem::new(content)
                 })
                 .collect();
-            let logs = List::new(logs).block(Block::default().borders(Borders::ALL).title("List"));
-            f.render_stateful_widget(logs, chunks[1], &mut app.logs.state);
+            let logs = List::new(logs).block(Block::default().borders(Borders::ALL).title("Logs"));
+            f.render_widget(logs, chunks[1]);
         }
 
         let barchart = BarChart::default()

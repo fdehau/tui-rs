@@ -1,9 +1,7 @@
 use crate::{
-    buffer::Buffer,
-    layout::Rect,
     style::Style,
     symbols,
-    widgets::{Block, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 use std::cmp::min;
 use unicode_width::UnicodeWidthStr;
@@ -127,16 +125,22 @@ impl<'a> BarChart<'a> {
 }
 
 impl<'a> Widget for BarChart<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
 
         let chart_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if chart_area.height < 2 {
@@ -176,12 +180,13 @@ impl<'a> Widget for BarChart<'a> {
                 };
 
                 for x in 0..self.bar_width {
-                    buf.get_mut(
-                        chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
-                        chart_area.top() + j,
-                    )
-                    .set_symbol(symbol)
-                    .set_style(self.bar_style);
+                    ctx.buffer
+                        .get_mut(
+                            chart_area.left() + i as u16 * (self.bar_width + self.bar_gap) + x,
+                            chart_area.top() + j,
+                        )
+                        .set_symbol(symbol)
+                        .set_style(self.bar_style);
                 }
 
                 if d.1 > 8 {
@@ -197,7 +202,7 @@ impl<'a> Widget for BarChart<'a> {
                 let value_label = &self.values[i];
                 let width = value_label.width() as u16;
                 if width < self.bar_width {
-                    buf.set_string(
+                    ctx.buffer.set_string(
                         chart_area.left()
                             + i as u16 * (self.bar_width + self.bar_gap)
                             + (self.bar_width - width) / 2,
@@ -207,7 +212,7 @@ impl<'a> Widget for BarChart<'a> {
                     );
                 }
             }
-            buf.set_stringn(
+            ctx.buffer.set_stringn(
                 chart_area.left() + i as u16 * (self.bar_width + self.bar_gap),
                 chart_area.bottom() - 1,
                 label,
