@@ -37,7 +37,7 @@ impl App {
                 width: 10.0,
                 height: 10.0,
                 color: Color::Yellow,
-                fill: false
+                fill: false,
             },
             playground: Rect::new(10, 10, 100, 100),
             vx: 1.0,

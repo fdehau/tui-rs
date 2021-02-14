@@ -11,12 +11,11 @@ pub struct Rectangle {
     pub width: f64,
     pub height: f64,
     pub color: Color,
-    pub fill: bool
+    pub fill: bool,
 }
 
 impl Shape for Rectangle {
     fn draw(&self, painter: &mut Painter) {
-
         let mut lines: Vec<Line> = Vec::new();
 
         if !self.fill {
@@ -49,23 +48,22 @@ impl Shape for Rectangle {
                     y2: self.y,
                     color: self.color,
                 },
-            ].to_vec();
-        }else{
-
+            ]
+            .to_vec();
+        } else {
             let mut n: f64 = 0.0;
 
             while n < self.height {
-                lines.push(Line{
+                lines.push(Line {
                     x1: self.x,
                     y1: self.y + n,
                     x2: self.x + self.width,
                     y2: self.y + n,
-                    color: self.color
+                    color: self.color,
                 });
 
                 n += 0.5
             }
-
         }
 
         for line in &lines {
