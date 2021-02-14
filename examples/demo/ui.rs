@@ -345,6 +345,7 @@ where
                 width: 10.0,
                 height: 10.0,
                 color: Color::Yellow,
+                fill: false
             });
             for (i, s1) in app.servers.iter().enumerate() {
                 for s2 in &app.servers[i + 1..] {
