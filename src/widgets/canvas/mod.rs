@@ -336,7 +336,8 @@ impl<'a> Context<'a> {
 ///             y: 20.0,
 ///             width: 10.0,
 ///             height: 10.0,
-///             color: Color::Red
+///             color: Color::Red,
+///             fill: false
 ///         });
 ///     });
 /// ```
