@@ -1,6 +1,8 @@
+#[allow(dead_code)]
 mod util;
-use crate::util::event::{Config, Event, Events};
+
 use rand::Rng;
+use crate::util::event::{Config, Event, Events};
 use std::{error::Error, io, time::Duration};
 use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
@@ -10,8 +12,7 @@ use tui::{
     widgets::{
         canvas::{Canvas, Rectangle},
         Block, Borders, Paragraph,
-    },
-    Terminal,
+    },Terminal
 };
 
 struct Snake {

@@ -42,6 +42,11 @@ path = "examples/canvas.rs"
 required-features = ["termion"]
 
 [[example]]
+name = "snake"
+path = "examples/snake.rs"
+required-features = ["termion"]
+
+[[example]]
 name = "user_input"
 path = "examples/user_input.rs"
 required-features = ["termion"]
@@ -125,3 +130,4 @@ required-features = ["crossterm"]
 name = "curses_demo"
 path = "examples/curses_demo.rs"
 required-features = ["curses"]
+
