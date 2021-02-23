@@ -26,6 +26,13 @@ impl BorderType {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TitleAlignment {
+    Left,
+    Center,
+    Right,
+}
+
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
 ///
@@ -54,6 +61,8 @@ pub struct Block<'a> {
     border_type: BorderType,
     /// Widget style
     style: Style,
+    /// Title alignment
+    title_alignment: TitleAlignment,
 }
 
 impl<'a> Default for Block<'a> {
@@ -64,6 +73,7 @@ impl<'a> Default for Block<'a> {
             border_style: Default::default(),
             border_type: BorderType::Plain,
             style: Default::default(),
+            title_alignment: TitleAlignment::Left,
         }
     }
 }
@@ -106,6 +116,11 @@ impl<'a> Block<'a> {
 
     pub fn border_type(mut self, border_type: BorderType) -> Block<'a> {
         self.border_type = border_type;
+        self
+    }
+
+    pub fn title_alignment(mut self, title_alignment: TitleAlignment) -> Block<'a> {
+        self.title_alignment = title_alignment;
         self
     }
 
@@ -192,6 +207,7 @@ impl<'a> Widget for Block<'a> {
                 .set_style(self.border_style);
         }
 
+        // Title
         if let Some(title) = self.title {
             let lx = if self.borders.intersects(Borders::LEFT) {
                 1
@@ -204,7 +220,29 @@ impl<'a> Widget for Block<'a> {
                 0
             };
             let width = area.width.saturating_sub(lx).saturating_sub(rx);
-            buf.set_spans(area.left() + lx, area.top(), &title, width);
+
+            // Title alignment
+            match self.title_alignment {
+                TitleAlignment::Left => {
+                    buf.set_spans(area.left() + lx, area.top(), &title, width);
+                }
+                TitleAlignment::Center => {
+                    buf.set_spans(
+                        area.left() + width / 2 - (title.width() as u16) / 2 + lx,
+                        area.top(),
+                        &title,
+                        width,
+                    );
+                }
+                TitleAlignment::Right => {
+                    buf.set_spans(
+                        area.right() - title.width() as u16 - rx,
+                        area.top(),
+                        &title,
+                        width,
+                    );
+                }
+            }
         }
     }
 }
