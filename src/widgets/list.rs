@@ -8,19 +8,10 @@ use crate::{
 use std::iter::{self, Iterator};
 use unicode_width::UnicodeWidthStr;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ListState {
-    offset: usize,
+    offset:   usize,
     selected: Option<usize>,
-}
-
-impl Default for ListState {
-    fn default() -> ListState {
-        ListState {
-            offset: 0,
-            selected: None,
-        }
-    }
 }
 
 impl ListState {
@@ -36,24 +27,31 @@ impl ListState {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct ListItem<'a> {
-    content: Text<'a>,
-    style: Style,
+    content:    Text<'a>,
+    pub style:  Style,
 }
 
 impl<'a> ListItem<'a> {
-    pub fn new<T>(content: T) -> ListItem<'a>
+    pub fn new<T>(content: T) -> Self
     where
         T: Into<Text<'a>>,
     {
-        ListItem {
-            content: content.into(),
-            style: Style::default(),
+        Self {
+            content:  content.into(),
+            style:    Style::default(),
         }
     }
 
-    pub fn style(mut self, style: Style) -> ListItem<'a> {
+    pub fn content<T>(&mut self, content: T)
+    where
+        T: Into<Text<'a>>,
+    {
+        self.content = content.into();
+    }
+
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
@@ -79,53 +77,53 @@ impl<'a> ListItem<'a> {
 /// ```
 #[derive(Debug, Clone)]
 pub struct List<'a> {
-    block: Option<Block<'a>>,
-    items: Vec<ListItem<'a>>,
+    pub block:            Option<Block<'a>>,
+    pub items:            Vec<ListItem<'a>>,
     /// Style used as a base style for the widget
-    style: Style,
-    start_corner: Corner,
+    pub style:            Style,
+    pub start_corner:     Corner,
     /// Style used to render selected item
-    highlight_style: Style,
+    pub highlight_style:  Style,
     /// Symbol in front of the selected item (Shift all items to the right)
-    highlight_symbol: Option<&'a str>,
+    pub highlight_symbol: Option<&'a str>,
 }
 
 impl<'a> List<'a> {
-    pub fn new<T>(items: T) -> List<'a>
+    pub fn new<T>(items: T) -> Self
     where
         T: Into<Vec<ListItem<'a>>>,
     {
         List {
-            block: None,
-            style: Style::default(),
-            items: items.into(),
-            start_corner: Corner::TopLeft,
-            highlight_style: Style::default(),
+            block:            None,
+            style:            Style::default(),
+            items:            items.into(),
+            start_corner:     Corner::TopLeft,
+            highlight_style:  Style::default(),
             highlight_symbol: None,
         }
     }
 
-    pub fn block(mut self, block: Block<'a>) -> List<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn style(mut self, style: Style) -> List<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> List<'a> {
+    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> Self {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
 
-    pub fn highlight_style(mut self, style: Style) -> List<'a> {
+    pub fn highlight_style(mut self, style: Style) -> Self {
         self.highlight_style = style;
         self
     }
 
-    pub fn start_corner(mut self, corner: Corner) -> List<'a> {
+    pub fn start_corner(mut self, corner: Corner) -> Self {
         self.start_corner = corner;
         self
     }
@@ -134,10 +132,10 @@ impl<'a> List<'a> {
 impl<'a> StatefulWidget for List<'a> {
     type State = ListState;
 
-    fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         buf.set_style(area, self.style);
         let list_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -242,7 +240,7 @@ impl<'a> StatefulWidget for List<'a> {
 }
 
 impl<'a> Widget for List<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         let mut state = ListState::default();
         StatefulWidget::render(self, area, buf, &mut state);
     }

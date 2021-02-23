@@ -18,11 +18,17 @@ pub enum BorderType {
 impl BorderType {
     pub fn line_symbols(border_type: BorderType) -> line::Set {
         match border_type {
-            BorderType::Plain => line::NORMAL,
+            BorderType::Plain   => line::NORMAL,
             BorderType::Rounded => line::ROUNDED,
-            BorderType::Double => line::DOUBLE,
-            BorderType::Thick => line::THICK,
+            BorderType::Double  => line::DOUBLE,
+            BorderType::Thick   => line::THICK,
         }
+    }
+}
+
+impl Default for BorderType {
+    fn default() -> Self {
+        Self::Plain
     }
 }
 
@@ -41,35 +47,24 @@ impl BorderType {
 ///     .border_type(BorderType::Rounded)
 ///     .style(Style::default().bg(Color::Black));
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Block<'a> {
-    /// Optional title place on the upper left of the block
-    title: Option<Spans<'a>>,
+    /// Optional title place on the upper left of the block.
+    /// Cannot be modified directly, only with `retitle()` and `untitle()`.
+    title:            Option<Spans<'a>>,
     /// Visible borders
-    borders: Borders,
+    pub borders:      Borders,
     /// Border style
-    border_style: Style,
+    pub border_style: Style,
     /// Type of the border. The default is plain lines but one can choose to have rounded corners
     /// or doubled lines instead.
-    border_type: BorderType,
+    pub border_type:  BorderType,
     /// Widget style
-    style: Style,
-}
-
-impl<'a> Default for Block<'a> {
-    fn default() -> Block<'a> {
-        Block {
-            title: None,
-            borders: Borders::NONE,
-            border_style: Default::default(),
-            border_type: BorderType::Plain,
-            style: Default::default(),
-        }
-    }
+    pub style:        Style,
 }
 
 impl<'a> Block<'a> {
-    pub fn title<T>(mut self, title: T) -> Block<'a>
+    pub fn title<T>(mut self, title: T) -> Self
     where
         T: Into<Spans<'a>>,
     {
@@ -77,11 +72,22 @@ impl<'a> Block<'a> {
         self
     }
 
+    pub fn retitle<T>(&mut self, title: T)
+    where
+        T: Into<Spans<'a>>,
+    {
+        self.title = Some(title.into());
+    }
+
+    pub fn untitle(&mut self) {
+        self.title = None;
+    }
+
     #[deprecated(
         since = "0.10.0",
         note = "You should use styling capabilities of `text::Spans` given as argument of the `title` method to apply styling to the title."
     )]
-    pub fn title_style(mut self, style: Style) -> Block<'a> {
+    pub fn title_style(mut self, style: Style) -> Self {
         if let Some(t) = self.title {
             let title = String::from(t);
             self.title = Some(Spans::from(Span::styled(title, style)));
@@ -89,22 +95,26 @@ impl<'a> Block<'a> {
         self
     }
 
-    pub fn border_style(mut self, style: Style) -> Block<'a> {
+    pub fn border_style(mut self, style: Style) -> Self {
         self.border_style = style;
         self
     }
 
-    pub fn style(mut self, style: Style) -> Block<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn borders(mut self, flag: Borders) -> Block<'a> {
+    pub fn borders(mut self, flag: Borders) -> Self {
         self.borders = flag;
         self
     }
 
-    pub fn border_type(mut self, border_type: BorderType) -> Block<'a> {
+    pub fn set_borders(&mut self, flag: Borders) {
+        self.borders = flag;
+    }
+
+    pub fn border_type(mut self, border_type: BorderType) -> Self {
         self.border_type = border_type;
         self
     }
@@ -131,7 +141,7 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         if area.area() == 0 {
             return;
         }
@@ -192,7 +202,7 @@ impl<'a> Widget for Block<'a> {
                 .set_style(self.border_style);
         }
 
-        if let Some(title) = self.title {
+        if let Some(title) = &self.title {
             let lx = if self.borders.intersects(Borders::LEFT) {
                 1
             } else {

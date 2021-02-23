@@ -46,17 +46,23 @@ bitflags! {
     /// Bitflags that can be composed to set the visible borders essentially on the block widget.
     pub struct Borders: u32 {
         /// Show no border (default)
-        const NONE  = 0b0000_0001;
+        const NONE    = 0b0000_0001;
         /// Show the top border
-        const TOP   = 0b0000_0010;
+        const TOP     = 0b0000_0010;
         /// Show the right border
-        const RIGHT = 0b0000_0100;
+        const RIGHT   = 0b0000_0100;
         /// Show the bottom border
-        const BOTTOM = 0b000_1000;
+        const BOTTOM  = 0b000_1000;
         /// Show the left border
-        const LEFT = 0b0001_0000;
+        const LEFT    = 0b0001_0000;
         /// Show all borders
-        const ALL = Self::TOP.bits | Self::RIGHT.bits | Self::BOTTOM.bits | Self::LEFT.bits;
+        const ALL     = Self::TOP.bits | Self::RIGHT.bits | Self::BOTTOM.bits | Self::LEFT.bits;
+    }
+}
+
+impl Default for Borders {
+    fn default() -> Self {
+        Borders::NONE
     }
 }
 
@@ -64,7 +70,7 @@ bitflags! {
 pub trait Widget {
     /// Draws the current state of the widget in the given buffer. That the only method required to
     /// implement a custom widget.
-    fn render(self, area: Rect, buf: &mut Buffer);
+    fn render(&mut self, area: Rect, buf: &mut Buffer);
 }
 
 /// A `StatefulWidget` is a widget that can take advantage of some local state to remember things
@@ -116,7 +122,7 @@ pub trait Widget {
 ///     }
 ///
 ///     // Select the next item. This will not be reflected until the widget is drawn in the
-///     // `Terminal::draw` callback using `Frame::render_stateful_widget`.
+///     // `Terminal::draw` callback using `Frame::render_stateful`.
 ///     pub fn next(&mut self) {
 ///         let i = match self.state.selected() {
 ///             Some(i) => {
@@ -132,7 +138,7 @@ pub trait Widget {
 ///     }
 ///
 ///     // Select the previous item. This will not be reflected until the widget is drawn in the
-///     // `Terminal::draw` callback using `Frame::render_stateful_widget`.
+///     // `Terminal::draw` callback using `Frame::render_stateful`.
 ///     pub fn previous(&mut self) {
 ///         let i = match self.state.selected() {
 ///             Some(i) => {
@@ -169,10 +175,10 @@ pub trait Widget {
 ///         // that is understood by tui.
 ///         let items: Vec<ListItem>= events.items.iter().map(|i| ListItem::new(i.as_ref())).collect();
 ///         // The `List` widget is then built with those items.
-///         let list = List::new(items);
+///         let mut list = List::new(items);
 ///         // Finally the widget is rendered using the associated state. `events.state` is
 ///         // effectively the only thing that we will "remember" from this draw call.
-///         f.render_stateful_widget(list, f.size(), &mut events.state);
+///         f.render_stateful(&mut list, f.size(), &mut events.state);
 ///     });
 ///
 ///     // In response to some input events or an external http request or whatever:
@@ -181,5 +187,5 @@ pub trait Widget {
 /// ```
 pub trait StatefulWidget {
     type State;
-    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State);
+    fn render(&mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State);
 }

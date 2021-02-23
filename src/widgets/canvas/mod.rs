@@ -20,7 +20,7 @@ use std::fmt::Debug;
 
 /// Interface for all shapes that may be drawn on a Canvas widget.
 pub trait Shape {
-    fn draw(&self, painter: &mut Painter);
+    fn draw(&self, painter: &mut Painter<'_, '_>);
 }
 
 /// Label to draw some text on the canvas
@@ -142,7 +142,10 @@ impl Grid for CharGrid {
     }
 
     fn resolution(&self) -> (f64, f64) {
-        (f64::from(self.width) - 1.0, f64::from(self.height) - 1.0)
+        (
+            f64::from(self.width) - 1.0,
+            f64::from(self.height) - 1.0,
+        )
     }
 
     fn save(&self) -> Layer {
@@ -198,12 +201,15 @@ impl<'a, 'b> Painter<'a, 'b> {
     /// let point = painter.get_point(1.0, 2.0);
     /// assert_eq!(point, Some((0, 0)));
     /// ```
-    pub fn get_point(&self, x: f64, y: f64) -> Option<(usize, usize)> {
+    pub fn get_point(&self, x: f64, y: f64) -> Option<(usize,usize)> {
         let left = self.context.x_bounds[0];
         let right = self.context.x_bounds[1];
         let top = self.context.y_bounds[1];
         let bottom = self.context.y_bounds[0];
-        if x < left || x > right || y < bottom || y > top {
+        if x < left
+        || x > right
+        || y < bottom
+        || y > top {
             return None;
         }
         let width = (self.context.x_bounds[1] - self.context.x_bounds[0]).abs();
@@ -211,9 +217,10 @@ impl<'a, 'b> Painter<'a, 'b> {
         if width == 0.0 || height == 0.0 {
             return None;
         }
-        let x = ((x - left) * self.resolution.0 / width) as usize;
-        let y = ((top - y) * self.resolution.1 / height) as usize;
-        Some((x, y))
+        Some ((
+            ((x - left) * self.resolution.0 / width) as usize,
+            ((top - y) * self.resolution.1 / height) as usize,
+        ))
     }
 
     /// Paint a point of the grid
@@ -342,7 +349,7 @@ impl<'a> Context<'a> {
 /// ```
 pub struct Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     block: Option<Block<'a>>,
     x_bounds: [f64; 2],
@@ -354,7 +361,7 @@ where
 
 impl<'a, F> Default for Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     fn default() -> Canvas<'a, F> {
         Canvas {
@@ -370,7 +377,7 @@ where
 
 impl<'a, F> Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     pub fn block(mut self, block: Block<'a>) -> Canvas<'a, F> {
         self.block = Some(block);
@@ -421,11 +428,11 @@ where
 
 impl<'a, F> Widget for Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         let canvas_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -486,7 +493,12 @@ where
         for label in ctx
             .labels
             .iter()
-            .filter(|l| l.x >= left && l.x <= right && l.y <= top && l.y >= bottom)
+            .filter (
+                |l| l.x >= left
+                &&  l.x <= right
+                &&  l.y <= top
+                &&  l.y >= bottom
+            )
         {
             let x = ((label.x - left) * resolution.0 / width) as u16 + canvas_area.left();
             let y = ((top - label.y) * resolution.1 / height) as u16 + canvas_area.top();

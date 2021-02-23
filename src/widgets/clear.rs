@@ -12,9 +12,9 @@ use crate::widgets::Widget;
 /// # use tui::Frame;
 /// # use tui::backend::Backend;
 /// fn draw_on_clear<B: Backend>(f: &mut Frame<B>, area: Rect) {
-///     let block = Block::default().title("Block").borders(Borders::ALL);
-///     f.render_widget(Clear, area); // <- this will clear/reset the area first
-///     f.render_widget(block, area); // now render the block widget
+///     let mut block = Block::default().title("Block").borders(Borders::ALL);
+///     f.render(&mut Clear, area); // <- this will clear/reset the area first
+///     f.render(&mut block, area); // now render the block widget
 /// }
 /// ```
 ///
@@ -22,11 +22,11 @@ use crate::widgets::Widget;
 ///
 /// For a more complete example how to utilize `Clear` to realize popups see
 /// the example `examples/popup.rs`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Clear;
 
 impl Widget for Clear {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         for x in area.left()..area.right() {
             for y in area.top()..area.bottom() {
                 buf.get_mut(x, y).reset();

@@ -73,12 +73,71 @@ impl<'a, B> Frame<'a, B>
 where
     B: Backend,
 {
+    /// Render a [`Widget`] to the current buffer using [`Widget::render`] without consuming it.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use std::io;
+    /// # use tui::Terminal;
+    /// # use tui::backend::TermionBackend;
+    /// # use tui::layout::Rect;
+    /// # use tui::widgets::Block;
+    /// # let stdout = io::stdout();
+    /// # let backend = TermionBackend::new(stdout);
+    /// # let mut terminal = Terminal::new(backend).unwrap();
+    /// let mut block = Block::default();
+    /// let area = Rect::new(0, 0, 5, 5);
+    /// let mut frame = terminal.get_frame();
+    /// frame.render(&mut block, area);
+    /// ```
+    pub fn render<W>(&mut self, widget: &mut W, area: Rect)
+    where
+        W: Widget,
+    {
+        widget.render(area, self.terminal.current_buffer_mut());
+    }
+
+    /// Render a [`StatefulWidget`] to the current buffer using [`StatefulWidget::render`] without consuming it.
+    ///
+    /// The last argument should be an instance of the [`StatefulWidget::State`] associated to the
+    /// given [`StatefulWidget`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use std::io;
+    /// # use tui::Terminal;
+    /// # use tui::backend::TermionBackend;
+    /// # use tui::layout::Rect;
+    /// # use tui::widgets::{List, ListItem, ListState};
+    /// # let stdout = io::stdout();
+    /// # let backend = TermionBackend::new(stdout);
+    /// # let mut terminal = Terminal::new(backend).unwrap();
+    /// let mut state = ListState::default();
+    /// state.select(Some(1));
+    /// let items = vec![
+    ///     ListItem::new("Item 1"),
+    ///     ListItem::new("Item 2"),
+    /// ];
+    /// let mut list = List::new(items);
+    /// let area = Rect::new(0, 0, 5, 5);
+    /// let mut frame = terminal.get_frame();
+    /// frame.render_stateful(&mut list, area, &mut state);
+    /// ```
+    pub fn render_stateful<W>(&mut self, widget: &mut W, area: Rect, state: &mut W::State)
+    where
+        W: StatefulWidget,
+    {
+        widget.render(area, self.terminal.current_buffer_mut(), state);
+    }
+
     /// Terminal size, guaranteed not to change when rendering.
     pub fn size(&self) -> Rect {
         self.terminal.viewport.area
     }
 
-    /// Render a [`Widget`] to the current buffer using [`Widget::render`].
+    /// Consume and render a [`Widget`] to the current buffer using [`Widget::render`].
     ///
     /// # Examples
     ///
@@ -96,14 +155,14 @@ where
     /// let mut frame = terminal.get_frame();
     /// frame.render_widget(block, area);
     /// ```
-    pub fn render_widget<W>(&mut self, widget: W, area: Rect)
+    pub fn render_widget<W>(&mut self, mut widget: W, area: Rect)
     where
         W: Widget,
     {
-        widget.render(area, self.terminal.current_buffer_mut());
+        self.render(&mut widget, area);
     }
 
-    /// Render a [`StatefulWidget`] to the current buffer using [`StatefulWidget::render`].
+    /// Consume and render a [`StatefulWidget`] to the current buffer using [`StatefulWidget::render`].
     ///
     /// The last argument should be an instance of the [`StatefulWidget::State`] associated to the
     /// given [`StatefulWidget`].
@@ -130,11 +189,11 @@ where
     /// let mut frame = terminal.get_frame();
     /// frame.render_stateful_widget(list, area, &mut state);
     /// ```
-    pub fn render_stateful_widget<W>(&mut self, widget: W, area: Rect, state: &mut W::State)
+    pub fn render_stateful_widget<W>(&mut self, mut widget: W, area: Rect, state: &mut W::State)
     where
         W: StatefulWidget,
     {
-        widget.render(area, self.terminal.current_buffer_mut(), state);
+        self.render_stateful(&mut widget, area, state);
     }
 
     /// After drawing this frame, make the cursor visible and put it at the specified (x, y)

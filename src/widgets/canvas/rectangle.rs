@@ -14,7 +14,7 @@ pub struct Rectangle {
 }
 
 impl Shape for Rectangle {
-    fn draw(&self, painter: &mut Painter) {
+    fn draw(&self, painter: &mut Painter<'_, '_>) {
         let lines: [Line; 4] = [
             Line {
                 x1: self.x,
