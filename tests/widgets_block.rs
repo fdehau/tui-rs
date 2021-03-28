@@ -1,7 +1,7 @@
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
-    layout::{Rect, Alignment},
+    layout::{Alignment, Rect},
     style::{Color, Style},
     text::Span,
     widgets::{Block, Borders},
@@ -218,9 +218,9 @@ fn widgets_block_renders_title_top_left_all_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Left)
-                .borders(Borders::ALL);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Left)
+        .borders(Borders::ALL);
 
     let area = Rect {
         x: 1,
@@ -229,7 +229,11 @@ fn widgets_block_renders_title_top_left_all_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -253,9 +257,9 @@ fn widgets_block_renders_title_top_left_no_left_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Left)
-                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Left)
+        .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -264,7 +268,11 @@ fn widgets_block_renders_title_top_left_no_left_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -288,9 +296,9 @@ fn widgets_block_renders_title_top_left_no_right_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Left)
-                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Left)
+        .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -299,7 +307,11 @@ fn widgets_block_renders_title_top_left_no_right_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -323,9 +335,9 @@ fn widgets_block_renders_title_top_left_no_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Left)
-                .borders(Borders::NONE);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Left)
+        .borders(Borders::NONE);
 
     let area = Rect {
         x: 1,
@@ -334,7 +346,11 @@ fn widgets_block_renders_title_top_left_no_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -358,9 +374,9 @@ fn widgets_block_renders_title_top_center_all_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Center)
-                .borders(Borders::ALL);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL);
 
     let area = Rect {
         x: 1,
@@ -369,7 +385,11 @@ fn widgets_block_renders_title_top_center_all_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -393,9 +413,9 @@ fn widgets_block_renders_title_top_center_no_left_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Center)
-                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Center)
+        .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -404,7 +424,11 @@ fn widgets_block_renders_title_top_center_no_left_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -428,9 +452,9 @@ fn widgets_block_renders_title_top_center_no_right_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Center)
-                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Center)
+        .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -439,7 +463,11 @@ fn widgets_block_renders_title_top_center_no_right_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -463,9 +491,9 @@ fn widgets_block_renders_title_top_center_no_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Center)
-                .borders(Borders::NONE);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Center)
+        .borders(Borders::NONE);
 
     let area = Rect {
         x: 1,
@@ -474,7 +502,11 @@ fn widgets_block_renders_title_top_center_no_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -498,9 +530,9 @@ fn widgets_block_renders_title_top_right_all_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Right)
-                .borders(Borders::ALL);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Right)
+        .borders(Borders::ALL);
 
     let area = Rect {
         x: 1,
@@ -509,7 +541,11 @@ fn widgets_block_renders_title_top_right_all_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -533,9 +569,9 @@ fn widgets_block_renders_title_top_right_no_left_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Right)
-                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Right)
+        .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -544,7 +580,11 @@ fn widgets_block_renders_title_top_right_no_left_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -568,9 +608,9 @@ fn widgets_block_renders_title_top_right_no_right_border() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Right)
-                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Right)
+        .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
 
     let area = Rect {
         x: 1,
@@ -579,7 +619,11 @@ fn widgets_block_renders_title_top_right_no_right_border() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",
@@ -603,9 +647,9 @@ fn widgets_block_renders_title_top_right_no_borders() {
     let mut terminal = Terminal::new(backend).unwrap();
 
     let block = Block::default()
-                .title(Span::styled("Title", Style::default()))
-                .title_alignment(Alignment::Right)
-                .borders(Borders::NONE);
+        .title(Span::styled("Title", Style::default()))
+        .title_alignment(Alignment::Right)
+        .borders(Borders::NONE);
 
     let area = Rect {
         x: 1,
@@ -614,7 +658,11 @@ fn widgets_block_renders_title_top_right_no_borders() {
         height: 8,
     };
 
-    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+    terminal
+        .draw(|f| {
+            f.render_widget(block, area);
+        })
+        .unwrap();
 
     let expected = Buffer::with_lines(vec![
         "                    ",

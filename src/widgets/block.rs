@@ -1,6 +1,6 @@
 use crate::{
     buffer::Buffer,
-    layout::{Rect, Alignment},
+    layout::{Alignment, Rect},
     style::Style,
     symbols::line,
     text::{Span, Spans},
@@ -203,7 +203,6 @@ impl<'a> Widget for Block<'a> {
 
         // Title
         if let Some(title) = self.title {
-
             let left_border_dx = if self.borders.intersects(Borders::LEFT) {
                 1
             } else {
@@ -216,18 +215,20 @@ impl<'a> Widget for Block<'a> {
                 0
             };
 
-            let title_area_width = area.width.saturating_sub(left_border_dx)
-                                             .saturating_sub(right_border_dx);
+            let title_area_width = area
+                .width
+                .saturating_sub(left_border_dx)
+                .saturating_sub(right_border_dx);
 
             let title_dx = match self.title_alignment {
-                Alignment::Left   => 0,
+                Alignment::Left => 0,
                 Alignment::Center => (title_area_width - title.width() as u16) / 2,
-                Alignment::Right  => (title_area_width - title.width() as u16)
+                Alignment::Right => (title_area_width - title.width() as u16),
             };
 
             let title_x = area.left() + left_border_dx + title_dx;
             let title_y = area.top();
-            
+
             buf.set_spans(title_x, title_y, &title, title_area_width);
         }
     }
@@ -533,14 +534,14 @@ mod tests {
         );
         assert_eq!(
             Block::default()
-                  .title("Test")
-                  .title_alignment(Alignment::Center)
-                  .inner(Rect {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 1,
-            }),
+                .title("Test")
+                .title_alignment(Alignment::Center)
+                .inner(Rect {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 1,
+                }),
             Rect {
                 x: 0,
                 y: 1,
@@ -550,14 +551,14 @@ mod tests {
         );
         assert_eq!(
             Block::default()
-                  .title("Test")
-                  .title_alignment(Alignment::Right)
-                  .inner(Rect {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 1,
-            }),
+                .title("Test")
+                .title_alignment(Alignment::Right)
+                .inner(Rect {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 1,
+                }),
             Rect {
                 x: 0,
                 y: 1,

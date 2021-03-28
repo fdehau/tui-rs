@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout, Alignment},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::Span,
     widgets::{Block, BorderType, Borders},
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
                 .split(chunks[0]);
-            
+
             // Top left inner block with green background
             let block = Block::default()
                 .title(vec![
@@ -60,14 +60,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .style(Style::default().bg(Color::Green));
             f.render_widget(block, top_chunks[0]);
 
-            // Top right inner block with styled title aligned to the right 
-            let block = Block::default().title(Span::styled(
-                "Styled title",
-                Style::default()
-                    .fg(Color::White)
-                    .bg(Color::Red)
-                    .add_modifier(Modifier::BOLD),
-            )).title_alignment(Alignment::Right);
+            // Top right inner block with styled title aligned to the right
+            let block = Block::default()
+                .title(Span::styled(
+                    "Styled title",
+                    Style::default()
+                        .fg(Color::White)
+                        .bg(Color::Red)
+                        .add_modifier(Modifier::BOLD),
+                ))
+                .title_alignment(Alignment::Right);
             f.render_widget(block, top_chunks[1]);
 
             // Bottom two inner blocks
