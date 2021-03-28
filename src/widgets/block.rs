@@ -531,5 +531,39 @@ mod tests {
                 height: 0,
             },
         );
+        assert_eq!(
+            Block::default()
+                  .title("Test")
+                  .title_alignment(Alignment::Center)
+                  .inner(Rect {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 1,
+            }),
+            Rect {
+                x: 0,
+                y: 1,
+                width: 0,
+                height: 0,
+            },
+        );
+        assert_eq!(
+            Block::default()
+                  .title("Test")
+                  .title_alignment(Alignment::Right)
+                  .inner(Rect {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 1,
+            }),
+            Rect {
+                x: 0,
+                y: 1,
+                width: 0,
+                height: 0,
+            },
+        );
     }
 }
