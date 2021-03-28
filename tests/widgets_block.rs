@@ -1,7 +1,7 @@
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
-    layout::Rect,
+    layout::{Rect, Alignment},
     style::{Color, Style},
     text::Span,
     widgets::{Block, Borders},
@@ -210,4 +210,424 @@ fn widgets_block_renders_on_small_areas() {
         },
         Buffer::with_lines(vec!["┌Test─"]),
     );
+}
+
+#[test]
+fn widgets_block_renders_title_top_left_all_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Left)
+                .borders(Borders::ALL);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌Title───────────┐ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " └────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_left_no_left_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Left)
+                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " Title────────────┐ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        " ─────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_left_no_right_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Left)
+                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌Title──────────── ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " └───────────────── ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_left_no_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Left)
+                .borders(Borders::NONE);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " Title              ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_center_all_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Center)
+                .borders(Borders::ALL);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌─────Title──────┐ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " └────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_center_no_left_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Center)
+                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ──────Title──────┐ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        " ─────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_center_no_right_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Center)
+                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌──────Title────── ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " └───────────────── ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_center_no_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Center)
+                .borders(Borders::NONE);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        "       Title        ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_right_all_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Right)
+                .borders(Borders::ALL);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌───────────Title┐ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " │                │ ",
+        " └────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_right_no_left_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Right)
+                .borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ────────────Title┐ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        "                  │ ",
+        " ─────────────────┘ ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_right_no_right_border() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Right)
+                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        " ┌────────────Title ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " │                  ",
+        " └───────────────── ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
+}
+
+#[test]
+fn widgets_block_renders_title_top_right_no_borders() {
+    let backend = TestBackend::new(20, 10);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    let block = Block::default()
+                .title(Span::styled("Title", Style::default()))
+                .title_alignment(Alignment::Right)
+                .borders(Borders::NONE);
+
+    let area = Rect {
+        x: 1,
+        y: 1,
+        width: 18,
+        height: 8,
+    };
+
+    terminal.draw(|f| { f.render_widget(block, area); }).unwrap();
+
+    let expected = Buffer::with_lines(vec![
+        "                    ",
+        "              Title ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+        "                    ",
+    ]);
+
+    terminal.backend().assert_buffer(&expected);
 }
