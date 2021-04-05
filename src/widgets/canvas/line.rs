@@ -56,7 +56,14 @@ impl Shape for Line {
     }
 }
 
-fn draw_line_low(painter: &mut Painter<'_, '_>, x1: usize, y1: usize, x2: usize, y2: usize, color: Color) {
+fn draw_line_low(
+    painter: &mut Painter<'_, '_>,
+    x1: usize,
+    y1: usize,
+    x2: usize,
+    y2: usize,
+    color: Color,
+) {
     let dx = (x2 - x1) as isize;
     let dy = (y2 as isize - y1 as isize).abs();
     let mut d = 2 * dy - dx;
@@ -75,7 +82,14 @@ fn draw_line_low(painter: &mut Painter<'_, '_>, x1: usize, y1: usize, x2: usize,
     }
 }
 
-fn draw_line_high(painter: &mut Painter<'_, '_>, x1: usize, y1: usize, x2: usize, y2: usize, color: Color) {
+fn draw_line_high(
+    painter: &mut Painter<'_, '_>,
+    x1: usize,
+    y1: usize,
+    x2: usize,
+    y2: usize,
+    color: Color,
+) {
     let dx = (x2 as isize - x1 as isize).abs();
     let dy = (y2 - y1) as isize;
     let mut d = 2 * dx - dy;

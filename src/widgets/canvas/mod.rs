@@ -142,10 +142,7 @@ impl Grid for CharGrid {
     }
 
     fn resolution(&self) -> (f64, f64) {
-        (
-            f64::from(self.width) - 1.0,
-            f64::from(self.height) - 1.0,
-        )
+        (f64::from(self.width) - 1.0, f64::from(self.height) - 1.0)
     }
 
     fn save(&self) -> Layer {
@@ -201,15 +198,12 @@ impl<'a, 'b> Painter<'a, 'b> {
     /// let point = painter.get_point(1.0, 2.0);
     /// assert_eq!(point, Some((0, 0)));
     /// ```
-    pub fn get_point(&self, x: f64, y: f64) -> Option<(usize,usize)> {
+    pub fn get_point(&self, x: f64, y: f64) -> Option<(usize, usize)> {
         let left = self.context.x_bounds[0];
         let right = self.context.x_bounds[1];
         let top = self.context.y_bounds[1];
         let bottom = self.context.y_bounds[0];
-        if x < left
-        || x > right
-        || y < bottom
-        || y > top {
+        if x < left || x > right || y < bottom || y > top {
             return None;
         }
         let width = (self.context.x_bounds[1] - self.context.x_bounds[0]).abs();
@@ -217,7 +211,7 @@ impl<'a, 'b> Painter<'a, 'b> {
         if width == 0.0 || height == 0.0 {
             return None;
         }
-        Some ((
+        Some((
             ((x - left) * self.resolution.0 / width) as usize,
             ((top - y) * self.resolution.1 / height) as usize,
         ))
@@ -493,12 +487,7 @@ where
         for label in ctx
             .labels
             .iter()
-            .filter (
-                |l| l.x >= left
-                &&  l.x <= right
-                &&  l.y <= top
-                &&  l.y >= bottom
-            )
+            .filter(|l| l.x >= left && l.x <= right && l.y <= top && l.y >= bottom)
         {
             let x = ((label.x - left) * resolution.0 / width) as u16 + canvas_area.left();
             let y = ((top - label.y) * resolution.1 / height) as u16 + canvas_area.top();

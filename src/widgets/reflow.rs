@@ -13,25 +13,25 @@ pub trait LineComposer<'a> {
 
 /// A state machine that wraps lines on word boundaries.
 pub struct WordWrapper<'a, 'b> {
-    pub symbols:        &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+    pub symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
     pub max_line_width: u16,
-    pub current_line:   Vec<StyledGrapheme<'a>>,
-    pub next_line:      Vec<StyledGrapheme<'a>>,
+    pub current_line: Vec<StyledGrapheme<'a>>,
+    pub next_line: Vec<StyledGrapheme<'a>>,
     /// Removes the leading whitespace from lines
-    pub trim:           bool,
+    pub trim: bool,
 }
 
 impl<'a, 'b> WordWrapper<'a, 'b> {
     pub fn new(
-        symbols:        &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+        symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
-        trim:           bool,
+        trim: bool,
     ) -> Self {
         Self {
             symbols,
             max_line_width,
             current_line: Vec::new(),
-            next_line:    Vec::new(),
+            next_line: Vec::new(),
             trim,
         }
     }
@@ -124,23 +124,23 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
 
 /// A state machine that truncates overhanging lines.
 pub struct LineTruncator<'a, 'b> {
-    pub symbols:            &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
-    pub max_line_width:     u16,
-    pub current_line:       Vec<StyledGrapheme<'a>>,
+    pub symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+    pub max_line_width: u16,
+    pub current_line: Vec<StyledGrapheme<'a>>,
     /// Record the offet to skip render
-    pub horizontal_offset:  u16,
+    pub horizontal_offset: u16,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
-        symbols:        &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+        symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
     ) -> Self {
         Self {
             symbols,
             max_line_width,
-            horizontal_offset:  0,
-            current_line:       Vec::new(),
+            horizontal_offset: 0,
+            current_line: Vec::new(),
         }
     }
 

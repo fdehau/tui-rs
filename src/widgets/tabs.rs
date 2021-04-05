@@ -26,28 +26,28 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct Tabs<'a> {
     /// A block to wrap this widget in if necessary
-    pub block:            Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// One title for each tab
-    pub titles:           Vec<Spans<'a>>,
+    pub titles: Vec<Spans<'a>>,
     /// The index of the selected tabs
-    pub selected:         usize,
+    pub selected: usize,
     /// The style used to draw the text
-    pub style:            Style,
+    pub style: Style,
     /// Style to apply to the selected item
-    pub highlight_style:  Style,
+    pub highlight_style: Style,
     /// Tab divider
-    divider:              Span<'a>,
+    divider: Span<'a>,
 }
 
 impl<'a> Tabs<'a> {
     pub fn new(titles: Vec<Spans<'a>>) -> Self {
         Tabs {
-            block:            None,
+            block: None,
             titles,
-            selected:         0,
-            style:            Default::default(),
-            highlight_style:  Default::default(),
-            divider:          Span::raw(symbols::line::VERTICAL),
+            selected: 0,
+            style: Default::default(),
+            highlight_style: Default::default(),
+            divider: Span::raw(symbols::line::VERTICAL),
         }
     }
 

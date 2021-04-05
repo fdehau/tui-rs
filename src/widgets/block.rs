@@ -18,10 +18,10 @@ pub enum BorderType {
 impl BorderType {
     pub fn line_symbols(border_type: BorderType) -> line::Set {
         match border_type {
-            BorderType::Plain   => line::NORMAL,
+            BorderType::Plain => line::NORMAL,
             BorderType::Rounded => line::ROUNDED,
-            BorderType::Double  => line::DOUBLE,
-            BorderType::Thick   => line::THICK,
+            BorderType::Double => line::DOUBLE,
+            BorderType::Thick => line::THICK,
         }
     }
 }
@@ -51,16 +51,16 @@ impl Default for BorderType {
 pub struct Block<'a> {
     /// Optional title place on the upper left of the block.
     /// Cannot be modified directly, only with `retitle()` and `untitle()`.
-    title:            Option<Spans<'a>>,
+    title: Option<Spans<'a>>,
     /// Visible borders
-    pub borders:      Borders,
+    pub borders: Borders,
     /// Border style
     pub border_style: Style,
     /// Type of the border. The default is plain lines but one can choose to have rounded corners
     /// or doubled lines instead.
-    pub border_type:  BorderType,
+    pub border_type: BorderType,
     /// Widget style
-    pub style:        Style,
+    pub style: Style,
 }
 
 impl<'a> Block<'a> {

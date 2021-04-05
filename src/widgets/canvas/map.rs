@@ -37,7 +37,7 @@ pub struct Map {
 impl Shape for Map {
     fn draw(&self, painter: &mut Painter<'_, '_>) {
         for (x, y) in self.resolution.data() {
-            if let Some((x,y)) = painter.get_point(*x, *y) {
+            if let Some((x, y)) = painter.get_point(*x, *y) {
                 painter.paint(x, y, self.color);
             }
         }

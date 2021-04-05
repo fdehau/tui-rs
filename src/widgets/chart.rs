@@ -17,13 +17,13 @@ use unicode_width::UnicodeWidthStr;
 pub struct Axis<'a> {
     /// Title displayed next to axis end.
     /// Cannot be modified directly, only with `retitle()` and `untitle()`.
-    title:      Option<Spans<'a>>,
+    title: Option<Spans<'a>>,
     /// Bounds for the axis (all data points outside these limits will not be represented)
     pub bounds: [f64; 2],
     /// A list of labels to put to the left or below the axis
     pub labels: Option<Vec<Span<'a>>>,
     /// The style used to draw the axis itself
-    pub style:  Style,
+    pub style: Style,
 }
 
 impl<'a> Axis<'a> {
@@ -94,15 +94,15 @@ impl Default for GraphType {
 pub struct Dataset<'a> {
     /// Name of the dataset (used in the legend if shown).
     /// Cannot be modified directly, only with `rename()`.
-    name:           Cow<'a, str>,
+    name: Cow<'a, str>,
     /// A reference to the actual data
-    pub data:       &'a [(f64, f64)],
+    pub data: &'a [(f64, f64)],
     /// Symbol used for each points of this dataset
-    pub marker:     symbols::Marker,
+    pub marker: symbols::Marker,
     /// Determines graph type used for drawing points
     pub graph_type: GraphType,
     /// Style used to plot this dataset
-    pub style:      Style,
+    pub style: Style,
 }
 
 impl<'a> Default for Dataset<'a> {
@@ -159,21 +159,21 @@ impl<'a> Dataset<'a> {
 #[derive(Debug, Default, Clone, PartialEq)]
 struct ChartLayout {
     /// Location of the title of the x axis
-    title_x:      Option<(u16, u16)>,
+    title_x: Option<(u16, u16)>,
     /// Location of the title of the y axis
-    title_y:      Option<(u16, u16)>,
+    title_y: Option<(u16, u16)>,
     /// Location of the first label of the x axis
-    label_x:      Option<u16>,
+    label_x: Option<u16>,
     /// Location of the first label of the y axis
-    label_y:      Option<u16>,
+    label_y: Option<u16>,
     /// Y coordinate of the horizontal axis
-    axis_x:       Option<u16>,
+    axis_x: Option<u16>,
     /// X coordinate of the vertical axis
-    axis_y:       Option<u16>,
+    axis_y: Option<u16>,
     /// Area of the legend
-    legend_area:  Option<Rect>,
+    legend_area: Option<Rect>,
     /// Area of the graph
-    graph_area:   Rect,
+    graph_area: Rect,
 }
 
 /// A widget to plot one or more dataset in a cartesian coordinate system
@@ -215,26 +215,26 @@ struct ChartLayout {
 #[derive(Debug, Clone)]
 pub struct Chart<'a> {
     /// A block to display around the widget eventually
-    pub block:                      Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// The horizontal axis
-    pub x_axis:                     Axis<'a>,
+    pub x_axis: Axis<'a>,
     /// The vertical axis
-    pub y_axis:                     Axis<'a>,
+    pub y_axis: Axis<'a>,
     /// A reference to the datasets
-    pub datasets:                   Vec<Dataset<'a>>,
+    pub datasets: Vec<Dataset<'a>>,
     /// The widget base style
-    pub style:                      Style,
+    pub style: Style,
     /// Constraints used to determine whether the legend should be shown or not
-    pub hidden_legend_constraints:  (Constraint, Constraint),
+    pub hidden_legend_constraints: (Constraint, Constraint),
 }
 
 impl<'a> Chart<'a> {
     pub fn new(datasets: Vec<Dataset<'a>>) -> Self {
         Self {
-            block:  None,
+            block: None,
             x_axis: Axis::default(),
             y_axis: Axis::default(),
-            style:  Default::default(),
+            style: Default::default(),
             datasets,
             hidden_legend_constraints: (Constraint::Ratio(1, 4), Constraint::Ratio(1, 4)),
         }
@@ -400,7 +400,8 @@ impl<'a> Widget for Chart<'a> {
                 if total_width < graph_area.width && labels_len > 1 {
                     for (i, label) in labels.iter().enumerate() {
                         buf.set_span(
-                            graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1)
+                            graph_area.left()
+                                + i as u16 * (graph_area.width - 1) / (labels_len - 1)
                                 - label.content.width() as u16,
                             y,
                             label,
@@ -535,9 +536,9 @@ mod tests {
     use super::*;
 
     struct LegendTestCase {
-        chart_area:                 Rect,
-        hidden_legend_constraints:  (Constraint, Constraint),
-        legend_area:                Option<Rect>,
+        chart_area: Rect,
+        hidden_legend_constraints: (Constraint, Constraint),
+        legend_area: Option<Rect>,
     }
 
     #[test]

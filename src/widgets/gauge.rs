@@ -21,13 +21,13 @@ use crate::{
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct Gauge<'a> {
-    pub block:        Option<Block<'a>>,
-    ratio:            f64,
+    pub block: Option<Block<'a>>,
+    ratio: f64,
     /// Cannot be modified directly, only with `relabel()` and `unlabel()`.
-    label:            Option<Span<'a>>,
-    pub use_unicode:  bool,
-    pub style:        Style,
-    pub gauge_style:  Style,
+    label: Option<Span<'a>>,
+    pub use_unicode: bool,
+    pub style: Style,
+    pub gauge_style: Style,
 }
 
 impl<'a> Gauge<'a> {
@@ -135,7 +135,8 @@ impl<'a> Widget for Gauge<'a> {
         //    this allocates memory,
         //  otherwise this clone is only copy by value.
         let label = self
-            .label.clone  ( )
+            .label
+            .clone()
             .unwrap_or_else(|| Span::from(format!("{}%", (ratio * 100.0).round())));
         for y in gauge_area.top()..gauge_area.bottom() {
             // Gauge
@@ -201,13 +202,13 @@ fn get_unicode_block<'a>(frac: f64) -> &'a str {
 /// ```
 #[derive(Clone, Debug)]
 pub struct LineGauge<'a> {
-    pub block:        Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Cannot be modified directly, only with `set_percent()` and `set_ration()`.
-    ratio:            f64,
-    pub label:        Option<Spans<'a>>,
-    pub line_set:     symbols::line::Set,
-    pub style:        Style,
-    pub gauge_style:  Style,
+    ratio: f64,
+    pub label: Option<Spans<'a>>,
+    pub line_set: symbols::line::Set,
+    pub style: Style,
+    pub gauge_style: Style,
 }
 
 impl<'a> Default for LineGauge<'a> {
@@ -302,7 +303,8 @@ impl<'a> Widget for LineGauge<'a> {
         //    this allocates memory,
         //  otherwise this clone is only copy by value.
         let label = self
-            .label.clone()
+            .label
+            .clone()
             .unwrap_or_else(|| Spans::from(format!("{:.0}%", ratio * 100.0)));
         let (col, row) = buf.set_spans(
             gauge_area.left(),

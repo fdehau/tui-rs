@@ -28,45 +28,45 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct BarChart<'a> {
     /// Block to wrap the widget in
-    pub block:        Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// The width of each bar
-    pub bar_width:    u16,
+    pub bar_width: u16,
     /// The gap between each bar
-    pub bar_gap:      u16,
+    pub bar_gap: u16,
     /// Set of symbols used to display the data
-    pub bar_set:      symbols::bar::Set,
+    pub bar_set: symbols::bar::Set,
     /// Style of the bars
-    pub bar_style:    Style,
+    pub bar_style: Style,
     /// Style of the values printed at the bottom of each bar
-    pub value_style:  Style,
+    pub value_style: Style,
     /// Style of the labels printed under each bar
-    pub label_style:  Style,
+    pub label_style: Style,
     /// Style for the widget
-    pub style:        Style,
+    pub style: Style,
     /// Slice of (label, value) pair to plot on the chart.
     /// Cannot be modified directly, only with `set_data()`.
-    data:             &'a [(&'a str, u64)],
+    data: &'a [(&'a str, u64)],
     /// Value necessary for a bar to reach the maximum height (if no value is specified,
     /// the maximum value in the data is taken as reference)
-    pub max:          Option<u64>,
+    pub max: Option<u64>,
     /// Values to display on the bar (computed when the data is passed to the widget)
-    pub values:       Vec<String>,
+    pub values: Vec<String>,
 }
 
 impl<'a> Default for BarChart<'a> {
     fn default() -> Self {
         Self {
-            block:        None,
-            max:          None,
-            data:         &[],
-            values:       Vec::new(),
-            bar_style:    Style::default(),
-            bar_width:    1,
-            bar_gap:      1,
-            bar_set:      symbols::bar::NINE_LEVELS,
-            value_style:  Default::default(),
-            label_style:  Default::default(),
-            style:        Default::default(),
+            block: None,
+            max: None,
+            data: &[],
+            values: Vec::new(),
+            bar_style: Style::default(),
+            bar_width: 1,
+            bar_gap: 1,
+            bar_set: symbols::bar::NINE_LEVELS,
+            value_style: Default::default(),
+            label_style: Default::default(),
+            style: Default::default(),
         }
     }
 }

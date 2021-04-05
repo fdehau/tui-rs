@@ -39,8 +39,8 @@ use unicode_width::UnicodeWidthStr;
 /// capabilities of [`Text`].
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Cell<'a> {
-    content:    Text<'a>,
-    pub style:  Style,
+    content: Text<'a>,
+    pub style: Style,
 }
 
 impl<'a> Cell<'a> {
@@ -64,8 +64,8 @@ where
 {
     fn from(content: T) -> Self {
         Self {
-            content:  content.into(),
-            style:    Style::default(),
+            content: content.into(),
+            style: Style::default(),
         }
     }
 }
@@ -91,10 +91,10 @@ where
 /// By default, a row has a height of 1 but you can change this using [`Row::height`].
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Row<'a> {
-    pub cells:          Vec<Cell<'a>>,
-    pub height:         u16,
-    pub style:          Style,
-    pub bottom_margin:  u16,
+    pub cells: Vec<Cell<'a>>,
+    pub height: u16,
+    pub style: Style,
+    pub bottom_margin: u16,
 }
 
 impl<'a> Row<'a> {
@@ -105,10 +105,10 @@ impl<'a> Row<'a> {
         T::Item: Into<Cell<'a>>,
     {
         Self {
-            cells:          cells.into_iter().map(|c| c.into()).collect(),
-            height:         1,
-            style:          Style::default(),
-            bottom_margin:  0,
+            cells: cells.into_iter().map(|c| c.into()).collect(),
+            height: 1,
+            style: Style::default(),
+            bottom_margin: 0,
         }
     }
 
@@ -192,21 +192,21 @@ impl<'a> Row<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Table<'a> {
     /// A block to wrap the widget in
-    pub block:            Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Base style for the widget
-    pub style:            Style,
+    pub style: Style,
     /// Width constraints for each column
-    widths:               &'a [Constraint],
+    widths: &'a [Constraint],
     /// Space between each column
-    pub column_spacing:   u16,
+    pub column_spacing: u16,
     /// Style used to render the selected row
-    pub highlight_style:  Style,
+    pub highlight_style: Style,
     /// Symbol in front of the selected rom
     pub highlight_symbol: Option<&'a str>,
     /// Optional header
-    pub header:           Option<Row<'a>>,
+    pub header: Option<Row<'a>>,
     /// Data to display in each row
-    pub rows:             Vec<Row<'a>>,
+    pub rows: Vec<Row<'a>>,
 }
 
 impl<'a> Table<'a> {
@@ -215,14 +215,14 @@ impl<'a> Table<'a> {
         T: IntoIterator<Item = Row<'a>>,
     {
         Self {
-            block:            None,
-            style:            Style::default(),
-            widths:           &[],
-            column_spacing:   1,
-            highlight_style:  Style::default(),
+            block: None,
+            style: Style::default(),
+            widths: &[],
+            column_spacing: 1,
+            highlight_style: Style::default(),
             highlight_symbol: None,
-            header:           None,
-            rows:             rows.into_iter().collect(),
+            header: None,
+            rows: rows.into_iter().collect(),
         }
     }
 
@@ -375,7 +375,7 @@ impl<'a> Table<'a> {
 
 #[derive(Debug, Default, Clone)]
 pub struct TableState {
-    offset:   usize,
+    offset: usize,
     selected: Option<usize>,
 }
 

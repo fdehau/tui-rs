@@ -14,8 +14,8 @@ use unicode_width::UnicodeWidthStr;
 fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) -> u16 {
     match alignment {
         Alignment::Center => (text_area_width / 2).saturating_sub(line_width / 2),
-        Alignment::Right  => text_area_width.saturating_sub(line_width),
-        Alignment::Left   => 0,
+        Alignment::Right => text_area_width.saturating_sub(line_width),
+        Alignment::Left => 0,
     }
 }
 
@@ -45,18 +45,18 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a> {
     /// A block to wrap the widget in
-    pub block:      Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Widget style
-    pub style:      Style,
+    pub style: Style,
     /// How to wrap the text
-    pub wrap:       Option<Wrap>,
+    pub wrap: Option<Wrap>,
     /// The text to display.
     /// This cannot be modified directly, only with `text()`.
-    text:           Text<'a>,
+    text: Text<'a>,
     /// Scroll
-    pub scroll:     (u16, u16),
+    pub scroll: (u16, u16),
     /// Alignment of the text
-    pub alignment:  Alignment,
+    pub alignment: Alignment,
 }
 
 /// Describes how to wrap text across lines.
@@ -98,12 +98,12 @@ impl<'a> Paragraph<'a> {
         T: Into<Text<'a>>,
     {
         Self {
-            block:      None,
-            style:      Default::default(),
-            wrap:       None,
-            text:       text.into(),
-            scroll:     (0, 0),
-            alignment:  Alignment::Left,
+            block: None,
+            style: Default::default(),
+            wrap: None,
+            text: text.into(),
+            scroll: (0, 0),
+            alignment: Alignment::Left,
         }
     }
 

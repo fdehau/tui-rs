@@ -10,7 +10,7 @@ use unicode_width::UnicodeWidthStr;
 
 #[derive(Debug, Default, Clone)]
 pub struct ListState {
-    offset:   usize,
+    offset: usize,
     selected: Option<usize>,
 }
 
@@ -29,8 +29,8 @@ impl ListState {
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct ListItem<'a> {
-    content:    Text<'a>,
-    pub style:  Style,
+    content: Text<'a>,
+    pub style: Style,
 }
 
 impl<'a> ListItem<'a> {
@@ -39,8 +39,8 @@ impl<'a> ListItem<'a> {
         T: Into<Text<'a>>,
     {
         Self {
-            content:  content.into(),
-            style:    Style::default(),
+            content: content.into(),
+            style: Style::default(),
         }
     }
 
@@ -77,13 +77,13 @@ impl<'a> ListItem<'a> {
 /// ```
 #[derive(Debug, Clone)]
 pub struct List<'a> {
-    pub block:            Option<Block<'a>>,
-    pub items:            Vec<ListItem<'a>>,
+    pub block: Option<Block<'a>>,
+    pub items: Vec<ListItem<'a>>,
     /// Style used as a base style for the widget
-    pub style:            Style,
-    pub start_corner:     Corner,
+    pub style: Style,
+    pub start_corner: Corner,
     /// Style used to render selected item
-    pub highlight_style:  Style,
+    pub highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
     pub highlight_symbol: Option<&'a str>,
 }
@@ -94,11 +94,11 @@ impl<'a> List<'a> {
         T: Into<Vec<ListItem<'a>>>,
     {
         List {
-            block:            None,
-            style:            Style::default(),
-            items:            items.into(),
-            start_corner:     Corner::TopLeft,
-            highlight_style:  Style::default(),
+            block: None,
+            style: Style::default(),
+            items: items.into(),
+            start_corner: Corner::TopLeft,
+            highlight_style: Style::default(),
             highlight_symbol: None,
         }
     }

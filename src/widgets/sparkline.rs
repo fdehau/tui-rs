@@ -21,18 +21,18 @@ use std::cmp::min;
 ///     .style(Style::default().fg(Color::Red).bg(Color::White));
 /// ```
 #[derive(Debug, Clone)]
-pub struct    Sparkline<'a> {
+pub struct Sparkline<'a> {
     /// A block to wrap the widget in
-    pub block:    Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Widget style
-    pub style:    Style,
+    pub style: Style,
     /// A slice of the data to display
-    pub data:     &'a [u64],
+    pub data: &'a [u64],
     /// The maximum value to take to compute the maximum bar height (if nothing is specified, the
     /// widget uses the max of the dataset)
-    pub max:      Option<u64>,
+    pub max: Option<u64>,
     /// A set of bar symbols used to represent the give data
-    pub bar_set:  symbols::bar::Set,
+    pub bar_set: symbols::bar::Set,
 }
 
 impl<'a> Default for Sparkline<'a> {
