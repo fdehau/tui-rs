@@ -28,33 +28,34 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct BarChart<'a> {
     /// Block to wrap the widget in
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// The width of each bar
-    bar_width: u16,
+    pub bar_width: u16,
     /// The gap between each bar
-    bar_gap: u16,
+    pub bar_gap: u16,
     /// Set of symbols used to display the data
-    bar_set: symbols::bar::Set,
+    pub bar_set: symbols::bar::Set,
     /// Style of the bars
-    bar_style: Style,
+    pub bar_style: Style,
     /// Style of the values printed at the bottom of each bar
-    value_style: Style,
+    pub value_style: Style,
     /// Style of the labels printed under each bar
-    label_style: Style,
+    pub label_style: Style,
     /// Style for the widget
-    style: Style,
-    /// Slice of (label, value) pair to plot on the chart
+    pub style: Style,
+    /// Slice of (label, value) pair to plot on the chart.
+    /// Cannot be modified directly, only with `set_data()`.
     data: &'a [(&'a str, u64)],
     /// Value necessary for a bar to reach the maximum height (if no value is specified,
     /// the maximum value in the data is taken as reference)
-    max: Option<u64>,
+    pub max: Option<u64>,
     /// Values to display on the bar (computed when the data is passed to the widget)
-    values: Vec<String>,
+    pub values: Vec<String>,
 }
 
 impl<'a> Default for BarChart<'a> {
-    fn default() -> BarChart<'a> {
-        BarChart {
+    fn default() -> Self {
+        Self {
             block: None,
             max: None,
             data: &[],
@@ -71,67 +72,71 @@ impl<'a> Default for BarChart<'a> {
 }
 
 impl<'a> BarChart<'a> {
-    pub fn data(mut self, data: &'a [(&'a str, u64)]) -> BarChart<'a> {
+    pub fn data(mut self, data: &'a [(&'a str, u64)]) -> Self {
+        self.set_data(data);
+        self
+    }
+
+    pub fn set_data(&mut self, data: &'a [(&'a str, u64)]) {
         self.data = data;
         self.values = Vec::with_capacity(self.data.len());
         for &(_, v) in self.data {
             self.values.push(format!("{}", v));
         }
-        self
     }
 
-    pub fn block(mut self, block: Block<'a>) -> BarChart<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn max(mut self, max: u64) -> BarChart<'a> {
+    pub fn max(mut self, max: u64) -> Self {
         self.max = Some(max);
         self
     }
 
-    pub fn bar_style(mut self, style: Style) -> BarChart<'a> {
+    pub fn bar_style(mut self, style: Style) -> Self {
         self.bar_style = style;
         self
     }
 
-    pub fn bar_width(mut self, width: u16) -> BarChart<'a> {
+    pub fn bar_width(mut self, width: u16) -> Self {
         self.bar_width = width;
         self
     }
 
-    pub fn bar_gap(mut self, gap: u16) -> BarChart<'a> {
+    pub fn bar_gap(mut self, gap: u16) -> Self {
         self.bar_gap = gap;
         self
     }
 
-    pub fn bar_set(mut self, bar_set: symbols::bar::Set) -> BarChart<'a> {
+    pub fn bar_set(mut self, bar_set: symbols::bar::Set) -> Self {
         self.bar_set = bar_set;
         self
     }
 
-    pub fn value_style(mut self, style: Style) -> BarChart<'a> {
+    pub fn value_style(mut self, style: Style) -> Self {
         self.value_style = style;
         self
     }
 
-    pub fn label_style(mut self, style: Style) -> BarChart<'a> {
+    pub fn label_style(mut self, style: Style) -> Self {
         self.label_style = style;
         self
     }
 
-    pub fn style(mut self, style: Style) -> BarChart<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 }
 
 impl<'a> Widget for BarChart<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_style(area, self.style);
 
         let chart_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -163,17 +168,7 @@ impl<'a> Widget for BarChart<'a> {
             .collect::<Vec<(&str, u64)>>();
         for j in (0..chart_area.height - 1).rev() {
             for (i, d) in data.iter_mut().enumerate() {
-                let symbol = match d.1 {
-                    0 => self.bar_set.empty,
-                    1 => self.bar_set.one_eighth,
-                    2 => self.bar_set.one_quarter,
-                    3 => self.bar_set.three_eighths,
-                    4 => self.bar_set.half,
-                    5 => self.bar_set.five_eighths,
-                    6 => self.bar_set.three_quarters,
-                    7 => self.bar_set.seven_eighths,
-                    _ => self.bar_set.full,
-                };
+                let symbol = self.bar_set.symbol(d.1 as usize);
 
                 for x in 0..self.bar_width {
                     buf.get_mut(

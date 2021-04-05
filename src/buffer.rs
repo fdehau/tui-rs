@@ -17,29 +17,29 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn set_symbol(&mut self, symbol: &str) -> &mut Cell {
+    pub fn set_symbol(&mut self, symbol: &str) -> &mut Self {
         self.symbol.clear();
         self.symbol.push_str(symbol);
         self
     }
 
-    pub fn set_char(&mut self, ch: char) -> &mut Cell {
+    pub fn set_char(&mut self, ch: char) -> &mut Self {
         self.symbol.clear();
         self.symbol.push(ch);
         self
     }
 
-    pub fn set_fg(&mut self, color: Color) -> &mut Cell {
+    pub fn set_fg(&mut self, color: Color) -> &mut Self {
         self.fg = color;
         self
     }
 
-    pub fn set_bg(&mut self, color: Color) -> &mut Cell {
+    pub fn set_bg(&mut self, color: Color) -> &mut Self {
         self.bg = color;
         self
     }
 
-    pub fn set_style(&mut self, style: Style) -> &mut Cell {
+    pub fn set_style(&mut self, style: Style) -> &mut Self {
         if let Some(c) = style.fg {
             self.fg = c;
         }
@@ -78,6 +78,15 @@ impl Default for Cell {
     }
 }
 
+impl Into<Cell> for char {
+    fn into(self) -> Cell {
+        Cell {
+            symbol: self.into(),
+            ..Default::default()
+        }
+    }
+}
+
 /// A buffer that maps to the desired content of the terminal after the draw call
 ///
 /// No widget in the library interacts directly with the terminal. Instead each of them is required
@@ -105,22 +114,13 @@ impl Default for Cell {
 /// buf.get_mut(5, 0).set_char('x');
 /// assert_eq!(buf.get(5, 0).symbol, "x");
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Buffer {
     /// The area represented by this buffer
     pub area: Rect,
     /// The content of the buffer. The length of this Vec should always be equal to area.width *
     /// area.height
     pub content: Vec<Cell>,
-}
-
-impl Default for Buffer {
-    fn default() -> Buffer {
-        Buffer {
-            area: Default::default(),
-            content: Vec::new(),
-        }
-    }
 }
 
 impl Buffer {

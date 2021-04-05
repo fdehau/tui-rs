@@ -19,55 +19,57 @@ use crate::{
 ///     .gauge_style(Style::default().fg(Color::White).bg(Color::Black).add_modifier(Modifier::ITALIC))
 ///     .percent(20);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Gauge<'a> {
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     ratio: f64,
+    /// Cannot be modified directly, only with `relabel()` and `unlabel()`.
     label: Option<Span<'a>>,
-    use_unicode: bool,
-    style: Style,
-    gauge_style: Style,
-}
-
-impl<'a> Default for Gauge<'a> {
-    fn default() -> Gauge<'a> {
-        Gauge {
-            block: None,
-            ratio: 0.0,
-            label: None,
-            use_unicode: false,
-            style: Style::default(),
-            gauge_style: Style::default(),
-        }
-    }
+    pub use_unicode: bool,
+    pub style: Style,
+    pub gauge_style: Style,
 }
 
 impl<'a> Gauge<'a> {
-    pub fn block(mut self, block: Block<'a>) -> Gauge<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn percent(mut self, percent: u16) -> Gauge<'a> {
+    pub fn percent(mut self, percent: u16) -> Self {
+        self.set_percent(percent);
+        self
+    }
+
+    pub fn set_percent(&mut self, percent: u16) {
         assert!(
             percent <= 100,
             "Percentage should be between 0 and 100 inclusively."
         );
         self.ratio = f64::from(percent) / 100.0;
+    }
+
+    /// Sets ratio ([0.0, 1.0]) directly.
+    pub fn ratio(mut self, ratio: f64) -> Self {
+        self.set_ratio(ratio);
         self
     }
 
     /// Sets ratio ([0.0, 1.0]) directly.
-    pub fn ratio(mut self, ratio: f64) -> Gauge<'a> {
+    pub fn set_ratio(&mut self, ratio: f64) {
         assert!(
             ratio <= 1.0 && ratio >= 0.0,
             "Ratio should be between 0 and 1 inclusively."
         );
         self.ratio = ratio;
-        self
     }
 
-    pub fn label<T>(mut self, label: T) -> Gauge<'a>
+    /// Gets the ratio.
+    pub fn get_ratio(&self) -> f64 {
+        self.ratio
+    }
+
+    pub fn label<T>(mut self, label: T) -> Self
     where
         T: Into<Span<'a>>,
     {
@@ -75,27 +77,38 @@ impl<'a> Gauge<'a> {
         self
     }
 
-    pub fn style(mut self, style: Style) -> Gauge<'a> {
+    pub fn relabel<T>(&mut self, label: T)
+    where
+        T: Into<Span<'a>>,
+    {
+        self.label = Some(label.into());
+    }
+
+    pub fn unlabel(&mut self) {
+        self.label = None;
+    }
+
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn gauge_style(mut self, style: Style) -> Gauge<'a> {
+    pub fn gauge_style(mut self, style: Style) -> Self {
         self.gauge_style = style;
         self
     }
 
-    pub fn use_unicode(mut self, unicode: bool) -> Gauge<'a> {
+    pub fn use_unicode(mut self, unicode: bool) -> Self {
         self.use_unicode = unicode;
         self
     }
 }
 
 impl<'a> Widget for Gauge<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_style(area, self.style);
         let gauge_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -118,8 +131,12 @@ impl<'a> Widget for Gauge<'a> {
             };
         // Label
         let ratio = self.ratio;
+        //  If label is Some(Span{content: Cow::Owned(…), style: …}),
+        //    this allocates memory,
+        //  otherwise this clone is only copy by value.
         let label = self
             .label
+            .clone()
             .unwrap_or_else(|| Span::from(format!("{}%", (ratio * 100.0).round())));
         for y in gauge_area.top()..gauge_area.bottom() {
             // Gauge
@@ -155,18 +172,8 @@ impl<'a> Widget for Gauge<'a> {
 }
 
 fn get_unicode_block<'a>(frac: f64) -> &'a str {
-    match (frac * 8.0).round() as u16 {
-        //get how many eighths the fraction is closest to
-        1 => symbols::block::ONE_EIGHTH,
-        2 => symbols::block::ONE_QUARTER,
-        3 => symbols::block::THREE_EIGHTHS,
-        4 => symbols::block::HALF,
-        5 => symbols::block::FIVE_EIGHTHS,
-        6 => symbols::block::THREE_QUARTERS,
-        7 => symbols::block::SEVEN_EIGHTHS,
-        8 => symbols::block::FULL,
-        _ => " ",
-    }
+    //get how many eighths the fraction is closest to
+    symbols::block::from_level(frac)
 }
 
 /// A compact widget to display a task progress over a single line.
@@ -183,26 +190,15 @@ fn get_unicode_block<'a>(frac: f64) -> &'a str {
 ///     .line_set(symbols::line::THICK)
 ///     .ratio(0.4);
 /// ```
+#[derive(Clone, Debug, Default)]
 pub struct LineGauge<'a> {
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
+    /// Cannot be modified directly, only with `set_percent()` and `set_ration()`.
     ratio: f64,
-    label: Option<Spans<'a>>,
-    line_set: symbols::line::Set,
-    style: Style,
-    gauge_style: Style,
-}
-
-impl<'a> Default for LineGauge<'a> {
-    fn default() -> Self {
-        Self {
-            block: None,
-            ratio: 0.0,
-            label: None,
-            style: Style::default(),
-            line_set: symbols::line::NORMAL,
-            gauge_style: Style::default(),
-        }
-    }
+    pub label: Option<Spans<'a>>,
+    pub line_set: symbols::line::Set,
+    pub style: Style,
+    pub gauge_style: Style,
 }
 
 impl<'a> LineGauge<'a> {
@@ -211,13 +207,32 @@ impl<'a> LineGauge<'a> {
         self
     }
 
+    pub fn percent(mut self, percent: u16) -> Self {
+        self.set_percent(percent);
+        self
+    }
+
+    pub fn set_percent(&mut self, percent: u16) {
+        assert!(
+            percent <= 100,
+            "Percentage should be between 0 and 100 inclusively."
+        );
+        self.ratio = f64::from(percent) / 100.0;
+    }
+
+    /// Sets ratio ([0.0, 1.0]) directly.
     pub fn ratio(mut self, ratio: f64) -> Self {
+        self.set_ratio(ratio);
+        self
+    }
+
+    /// Sets ratio ([0.0, 1.0]) directly.
+    pub fn set_ratio(&mut self, ratio: f64) {
         assert!(
             ratio <= 1.0 && ratio >= 0.0,
             "Ratio should be between 0 and 1 inclusively."
         );
         self.ratio = ratio;
-        self
     }
 
     pub fn line_set(mut self, set: symbols::line::Set) -> Self {
@@ -245,10 +260,10 @@ impl<'a> LineGauge<'a> {
 }
 
 impl<'a> Widget for LineGauge<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_style(area, self.style);
         let gauge_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -261,9 +276,13 @@ impl<'a> Widget for LineGauge<'a> {
         }
 
         let ratio = self.ratio;
+        //  If label is Some(Span{content: Cow::Owned(…), style: …}),
+        //    this allocates memory,
+        //  otherwise this clone is only copy by value.
         let label = self
             .label
-            .unwrap_or_else(move || Spans::from(format!("{:.0}%", ratio * 100.0)));
+            .clone()
+            .unwrap_or_else(|| Spans::from(format!("{:.0}%", ratio * 100.0)));
         let (col, row) = buf.set_spans(
             gauge_area.left(),
             gauge_area.top(),

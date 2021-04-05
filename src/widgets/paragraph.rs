@@ -42,20 +42,21 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .alignment(Alignment::Center)
 ///     .wrap(Wrap { trim: true });
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Paragraph<'a> {
     /// A block to wrap the widget in
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Widget style
-    style: Style,
+    pub style: Style,
     /// How to wrap the text
-    wrap: Option<Wrap>,
-    /// The text to display
+    pub wrap: Option<Wrap>,
+    /// The text to display.
+    /// This cannot be modified directly, only with `text()`.
     text: Text<'a>,
     /// Scroll
-    scroll: (u16, u16),
+    pub scroll: (u16, u16),
     /// Alignment of the text
-    alignment: Alignment,
+    pub alignment: Alignment,
 }
 
 /// Describes how to wrap text across lines.
@@ -92,11 +93,11 @@ pub struct Wrap {
 }
 
 impl<'a> Paragraph<'a> {
-    pub fn new<T>(text: T) -> Paragraph<'a>
+    pub fn new<T>(text: T) -> Self
     where
         T: Into<Text<'a>>,
     {
-        Paragraph {
+        Self {
             block: None,
             style: Default::default(),
             wrap: None,
@@ -106,37 +107,44 @@ impl<'a> Paragraph<'a> {
         }
     }
 
-    pub fn block(mut self, block: Block<'a>) -> Paragraph<'a> {
+    pub fn text<T>(&mut self, text: T)
+    where
+        T: Into<Text<'a>>,
+    {
+        self.text = text.into();
+    }
+
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn style(mut self, style: Style) -> Paragraph<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn wrap(mut self, wrap: Wrap) -> Paragraph<'a> {
+    pub fn wrap(mut self, wrap: Wrap) -> Self {
         self.wrap = Some(wrap);
         self
     }
 
-    pub fn scroll(mut self, offset: (u16, u16)) -> Paragraph<'a> {
+    pub fn scroll(mut self, offset: (u16, u16)) -> Self {
         self.scroll = offset;
         self
     }
 
-    pub fn alignment(mut self, alignment: Alignment) -> Paragraph<'a> {
+    pub fn alignment(mut self, alignment: Alignment) -> Self {
         self.alignment = alignment;
         self
     }
 }
 
 impl<'a> Widget for Paragraph<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_style(area, self.style);
         let text_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -162,7 +170,7 @@ impl<'a> Widget for Paragraph<'a> {
                 }))
         });
 
-        let mut line_composer: Box<dyn LineComposer> = if let Some(Wrap { trim }) = self.wrap {
+        let mut line_composer: Box<dyn LineComposer<'_>> = if let Some(Wrap { trim }) = self.wrap {
             Box::new(WordWrapper::new(&mut styled, text_area.width, trim))
         } else {
             let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));

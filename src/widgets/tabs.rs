@@ -26,21 +26,21 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct Tabs<'a> {
     /// A block to wrap this widget in if necessary
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// One title for each tab
-    titles: Vec<Spans<'a>>,
+    pub titles: Vec<Spans<'a>>,
     /// The index of the selected tabs
-    selected: usize,
+    pub selected: usize,
     /// The style used to draw the text
-    style: Style,
+    pub style: Style,
     /// Style to apply to the selected item
-    highlight_style: Style,
+    pub highlight_style: Style,
     /// Tab divider
     divider: Span<'a>,
 }
 
 impl<'a> Tabs<'a> {
-    pub fn new(titles: Vec<Spans<'a>>) -> Tabs<'a> {
+    pub fn new(titles: Vec<Spans<'a>>) -> Self {
         Tabs {
             block: None,
             titles,
@@ -51,40 +51,47 @@ impl<'a> Tabs<'a> {
         }
     }
 
-    pub fn block(mut self, block: Block<'a>) -> Tabs<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn select(mut self, selected: usize) -> Tabs<'a> {
+    pub fn select(mut self, selected: usize) -> Self {
         self.selected = selected;
         self
     }
 
-    pub fn style(mut self, style: Style) -> Tabs<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn highlight_style(mut self, style: Style) -> Tabs<'a> {
+    pub fn highlight_style(mut self, style: Style) -> Self {
         self.highlight_style = style;
         self
     }
 
-    pub fn divider<T>(mut self, divider: T) -> Tabs<'a>
+    pub fn divider<T>(mut self, divider: T) -> Self
     where
         T: Into<Span<'a>>,
     {
         self.divider = divider.into();
         self
     }
+
+    pub fn divide<T>(&mut self, divider: T)
+    where
+        T: Into<Span<'a>>,
+    {
+        self.divider = divider.into();
+    }
 }
 
 impl<'a> Widget for Tabs<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         buf.set_style(area, self.style);
         let tabs_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -98,7 +105,7 @@ impl<'a> Widget for Tabs<'a> {
 
         let mut x = tabs_area.left();
         let titles_length = self.titles.len();
-        for (i, title) in self.titles.into_iter().enumerate() {
+        for (i, title) in self.titles.iter().enumerate() {
             let last_title = titles_length - 1 == i;
             x = x.saturating_add(1);
             let remaining_width = tabs_area.right().saturating_sub(x);

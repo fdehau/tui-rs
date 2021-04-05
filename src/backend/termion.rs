@@ -20,6 +20,7 @@ impl<W> TermionBackend<W>
 where
     W: Write,
 {
+    /// Construct a new `TermionBackend` for `stdout`.
     pub fn new(stdout: W) -> TermionBackend<W> {
         TermionBackend { stdout }
     }
@@ -142,7 +143,7 @@ struct ModifierDiff {
 }
 
 impl fmt::Display for Fg {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use termion::color::Color as TermionColor;
         match self.0 {
             Color::Reset => termion::color::Reset.write_fg(f),
@@ -168,7 +169,7 @@ impl fmt::Display for Fg {
     }
 }
 impl fmt::Display for Bg {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use termion::color::Color as TermionColor;
         match self.0 {
             Color::Reset => termion::color::Reset.write_bg(f),
@@ -195,7 +196,7 @@ impl fmt::Display for Bg {
 }
 
 impl fmt::Display for ModifierDiff {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let remove = self.from - self.to;
         if remove.contains(Modifier::REVERSED) {
             write!(f, "{}", termion::style::NoInvert)?;

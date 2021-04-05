@@ -1,3 +1,42 @@
+macro_rules! const_set {
+    (
+      $Name:ident {
+          full:           $Full:expr,
+          seven_eighths:  $SevenEighths:expr,
+          three_quarters: $ThreeQuarters:expr,
+          five_eighths:   $FiveEighths:expr,
+          half:           $Half:expr,
+          three_eighths:  $ThreeEighths:expr,
+          one_quarter:    $OneQuarter:expr,
+          one_eighth:     $OneEighth:expr,
+          empty:          $Empty:expr,
+      }
+  ) => {
+        pub const $Name: Set = Set([
+            $Empty,
+            $OneEighth,
+            $OneQuarter,
+            $ThreeEighths,
+            $Half,
+            $FiveEighths,
+            $ThreeQuarters,
+            $SevenEighths,
+            $Full,
+        ]);
+        /*pub const $Name: Set = Set {
+          full:           $Full,
+          seven_eighths:  $SevenEighths,
+          three_quarters: $ThreeQuarters,
+          five_eighths:   $FiveEighths,
+          half:           $Half,
+          three_eighths:  $ThreeEighths,
+          one_quarter:    $OneQuarter,
+          one_eighth:     $OneEighth,
+          empty:          $Empty,
+        };*/
+    };
+}
+
 pub mod block {
     pub const FULL: &str = "█";
     pub const SEVEN_EIGHTHS: &str = "▉";
@@ -7,21 +46,32 @@ pub mod block {
     pub const THREE_EIGHTHS: &str = "▍";
     pub const ONE_QUARTER: &str = "▎";
     pub const ONE_EIGHTH: &str = "▏";
+    pub const EMPTY: &str = " ";
+    pub const MAP: [&str; 9] = [
+        EMPTY,
+        ONE_EIGHTH,
+        ONE_QUARTER,
+        THREE_EIGHTHS,
+        HALF,
+        FIVE_EIGHTHS,
+        THREE_QUARTERS,
+        SEVEN_EIGHTHS,
+        FULL,
+    ];
 
-    #[derive(Debug, Clone)]
-    pub struct Set {
-        pub full: &'static str,
-        pub seven_eighths: &'static str,
-        pub three_quarters: &'static str,
-        pub five_eighths: &'static str,
-        pub half: &'static str,
-        pub three_eighths: &'static str,
-        pub one_quarter: &'static str,
-        pub one_eighth: &'static str,
-        pub empty: &'static str,
+    pub fn from_level(level: f64) -> &'static str {
+        let level = (level * 8.0).round() as usize;
+        if level < 9 {
+            MAP[level]
+        } else {
+            EMPTY
+        }
     }
 
-    pub const THREE_LEVELS: Set = Set {
+    #[derive(Debug, Clone)]
+    pub struct Set([&'static str; 9]);
+
+    const_set!(THREE_LEVELS {
         full: FULL,
         seven_eighths: FULL,
         three_quarters: HALF,
@@ -29,11 +79,11 @@ pub mod block {
         half: HALF,
         three_eighths: HALF,
         one_quarter: HALF,
-        one_eighth: " ",
-        empty: " ",
-    };
+        one_eighth: EMPTY,
+        empty: EMPTY,
+    });
 
-    pub const NINE_LEVELS: Set = Set {
+    const_set!(NINE_LEVELS {
         full: FULL,
         seven_eighths: SEVEN_EIGHTHS,
         three_quarters: THREE_QUARTERS,
@@ -42,8 +92,8 @@ pub mod block {
         three_eighths: THREE_EIGHTHS,
         one_quarter: ONE_QUARTER,
         one_eighth: ONE_EIGHTH,
-        empty: " ",
-    };
+        empty: EMPTY,
+    });
 }
 
 pub mod bar {
@@ -55,21 +105,28 @@ pub mod bar {
     pub const THREE_EIGHTHS: &str = "▃";
     pub const ONE_QUARTER: &str = "▂";
     pub const ONE_EIGHTH: &str = "▁";
+    pub const EMPTY: &str = " ";
 
     #[derive(Debug, Clone)]
-    pub struct Set {
-        pub full: &'static str,
-        pub seven_eighths: &'static str,
-        pub three_quarters: &'static str,
-        pub five_eighths: &'static str,
-        pub half: &'static str,
-        pub three_eighths: &'static str,
-        pub one_quarter: &'static str,
-        pub one_eighth: &'static str,
-        pub empty: &'static str,
+    pub struct Set([&'static str; 9]);
+
+    impl Set {
+        pub fn symbol(&self, level: usize) -> &'static str {
+            if level < 8 {
+                self.0[level]
+            } else {
+                self.0[8]
+            }
+        }
     }
 
-    pub const THREE_LEVELS: Set = Set {
+    impl Default for Set {
+        fn default() -> Self {
+            NINE_LEVELS
+        }
+    }
+
+    const_set!(THREE_LEVELS {
         full: FULL,
         seven_eighths: FULL,
         three_quarters: HALF,
@@ -77,11 +134,11 @@ pub mod bar {
         half: HALF,
         three_eighths: HALF,
         one_quarter: HALF,
-        one_eighth: " ",
-        empty: " ",
-    };
+        one_eighth: EMPTY,
+        empty: EMPTY,
+    });
 
-    pub const NINE_LEVELS: Set = Set {
+    const_set!(NINE_LEVELS {
         full: FULL,
         seven_eighths: SEVEN_EIGHTHS,
         three_quarters: THREE_QUARTERS,
@@ -90,8 +147,8 @@ pub mod bar {
         three_eighths: THREE_EIGHTHS,
         one_quarter: ONE_QUARTER,
         one_eighth: ONE_EIGHTH,
-        empty: " ",
-    };
+        empty: EMPTY,
+    });
 }
 
 pub mod line {
@@ -143,7 +200,7 @@ pub mod line {
     pub const DOUBLE_CROSS: &str = "╬";
     pub const THICK_CROSS: &str = "╋";
 
-    #[derive(Debug, Clone)]
+    #[derive(Clone, Copy, Debug)]
     pub struct Set {
         pub vertical: &'static str,
         pub horizontal: &'static str,
@@ -156,6 +213,12 @@ pub mod line {
         pub horizontal_down: &'static str,
         pub horizontal_up: &'static str,
         pub cross: &'static str,
+    }
+
+    impl Default for Set {
+        fn default() -> Self {
+            NORMAL
+        }
     }
 
     pub const NORMAL: Set = Set {
@@ -230,4 +293,10 @@ pub enum Marker {
     Block,
     /// Up to 8 points per cell
     Braille,
+}
+
+impl Default for Marker {
+    fn default() -> Self {
+        Self::Dot
+    }
 }

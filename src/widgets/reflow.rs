@@ -13,12 +13,12 @@ pub trait LineComposer<'a> {
 
 /// A state machine that wraps lines on word boundaries.
 pub struct WordWrapper<'a, 'b> {
-    symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
-    max_line_width: u16,
-    current_line: Vec<StyledGrapheme<'a>>,
-    next_line: Vec<StyledGrapheme<'a>>,
+    pub symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+    pub max_line_width: u16,
+    pub current_line: Vec<StyledGrapheme<'a>>,
+    pub next_line: Vec<StyledGrapheme<'a>>,
     /// Removes the leading whitespace from lines
-    trim: bool,
+    pub trim: bool,
 }
 
 impl<'a, 'b> WordWrapper<'a, 'b> {
@@ -26,12 +26,12 @@ impl<'a, 'b> WordWrapper<'a, 'b> {
         symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
         trim: bool,
-    ) -> WordWrapper<'a, 'b> {
-        WordWrapper {
+    ) -> Self {
+        Self {
             symbols,
             max_line_width,
-            current_line: vec![],
-            next_line: vec![],
+            current_line: Vec::new(),
+            next_line: Vec::new(),
             trim,
         }
     }
@@ -124,23 +124,23 @@ impl<'a, 'b> LineComposer<'a> for WordWrapper<'a, 'b> {
 
 /// A state machine that truncates overhanging lines.
 pub struct LineTruncator<'a, 'b> {
-    symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
-    max_line_width: u16,
-    current_line: Vec<StyledGrapheme<'a>>,
+    pub symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
+    pub max_line_width: u16,
+    pub current_line: Vec<StyledGrapheme<'a>>,
     /// Record the offet to skip render
-    horizontal_offset: u16,
+    pub horizontal_offset: u16,
 }
 
 impl<'a, 'b> LineTruncator<'a, 'b> {
     pub fn new(
         symbols: &'b mut dyn Iterator<Item = StyledGrapheme<'a>>,
         max_line_width: u16,
-    ) -> LineTruncator<'a, 'b> {
-        LineTruncator {
+    ) -> Self {
+        Self {
             symbols,
             max_line_width,
             horizontal_offset: 0,
-            current_line: vec![],
+            current_line: Vec::new(),
         }
     }
 
@@ -243,7 +243,7 @@ mod test {
         let style = Default::default();
         let mut styled =
             UnicodeSegmentation::graphemes(text, true).map(|g| StyledGrapheme { symbol: g, style });
-        let mut composer: Box<dyn LineComposer> = match which {
+        let mut composer: Box<dyn LineComposer<'_>> = match which {
             Composer::WordWrapper { trim } => {
                 Box::new(WordWrapper::new(&mut styled, text_area_width, trim))
             }

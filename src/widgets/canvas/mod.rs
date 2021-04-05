@@ -20,7 +20,7 @@ use std::fmt::Debug;
 
 /// Interface for all shapes that may be drawn on a Canvas widget.
 pub trait Shape {
-    fn draw(&self, painter: &mut Painter);
+    fn draw(&self, painter: &mut Painter<'_, '_>);
 }
 
 /// Label to draw some text on the canvas
@@ -211,9 +211,10 @@ impl<'a, 'b> Painter<'a, 'b> {
         if width == 0.0 || height == 0.0 {
             return None;
         }
-        let x = ((x - left) * self.resolution.0 / width) as usize;
-        let y = ((top - y) * self.resolution.1 / height) as usize;
-        Some((x, y))
+        Some((
+            ((x - left) * self.resolution.0 / width) as usize,
+            ((top - y) * self.resolution.1 / height) as usize,
+        ))
     }
 
     /// Paint a point of the grid
@@ -342,7 +343,7 @@ impl<'a> Context<'a> {
 /// ```
 pub struct Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     block: Option<Block<'a>>,
     x_bounds: [f64; 2],
@@ -354,7 +355,7 @@ where
 
 impl<'a, F> Default for Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     fn default() -> Canvas<'a, F> {
         Canvas {
@@ -370,7 +371,7 @@ where
 
 impl<'a, F> Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
     pub fn block(mut self, block: Block<'a>) -> Canvas<'a, F> {
         self.block = Some(block);
@@ -421,11 +422,11 @@ where
 
 impl<'a, F> Widget for Canvas<'a, F>
 where
-    F: Fn(&mut Context),
+    F: Fn(&mut Context<'_>),
 {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         let canvas_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area

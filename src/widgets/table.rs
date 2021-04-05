@@ -40,7 +40,7 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Cell<'a> {
     content: Text<'a>,
-    style: Style,
+    pub style: Style,
 }
 
 impl<'a> Cell<'a> {
@@ -49,14 +49,21 @@ impl<'a> Cell<'a> {
         self.style = style;
         self
     }
+
+    pub fn content<T>(&mut self, content: T)
+    where
+        T: Into<Text<'a>>,
+    {
+        self.content = content.into();
+    }
 }
 
 impl<'a, T> From<T> for Cell<'a>
 where
     T: Into<Text<'a>>,
 {
-    fn from(content: T) -> Cell<'a> {
-        Cell {
+    fn from(content: T) -> Self {
+        Self {
             content: content.into(),
             style: Style::default(),
         }
@@ -84,10 +91,10 @@ where
 /// By default, a row has a height of 1 but you can change this using [`Row::height`].
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Row<'a> {
-    cells: Vec<Cell<'a>>,
-    height: u16,
-    style: Style,
-    bottom_margin: u16,
+    pub cells: Vec<Cell<'a>>,
+    pub height: u16,
+    pub style: Style,
+    pub bottom_margin: u16,
 }
 
 impl<'a> Row<'a> {
@@ -98,8 +105,8 @@ impl<'a> Row<'a> {
         T::Item: Into<Cell<'a>>,
     {
         Self {
-            height: 1,
             cells: cells.into_iter().map(|c| c.into()).collect(),
+            height: 1,
             style: Style::default(),
             bottom_margin: 0,
         }
@@ -185,21 +192,21 @@ impl<'a> Row<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Table<'a> {
     /// A block to wrap the widget in
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// Base style for the widget
-    style: Style,
+    pub style: Style,
     /// Width constraints for each column
     widths: &'a [Constraint],
     /// Space between each column
-    column_spacing: u16,
+    pub column_spacing: u16,
     /// Style used to render the selected row
-    highlight_style: Style,
+    pub highlight_style: Style,
     /// Symbol in front of the selected rom
-    highlight_symbol: Option<&'a str>,
+    pub highlight_symbol: Option<&'a str>,
     /// Optional header
-    header: Option<Row<'a>>,
+    pub header: Option<Row<'a>>,
     /// Data to display in each row
-    rows: Vec<Row<'a>>,
+    pub rows: Vec<Row<'a>>,
 }
 
 impl<'a> Table<'a> {
@@ -366,19 +373,10 @@ impl<'a> Table<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct TableState {
     offset: usize,
     selected: Option<usize>,
-}
-
-impl Default for TableState {
-    fn default() -> TableState {
-        TableState {
-            offset: 0,
-            selected: None,
-        }
-    }
 }
 
 impl TableState {
@@ -397,13 +395,13 @@ impl TableState {
 impl<'a> StatefulWidget for Table<'a> {
     type State = TableState;
 
-    fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         if area.area() == 0 {
             return;
         }
         buf.set_style(area, self.style);
         let table_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -509,7 +507,7 @@ impl<'a> StatefulWidget for Table<'a> {
     }
 }
 
-fn render_cell(buf: &mut Buffer, cell: &Cell, area: Rect) {
+fn render_cell(buf: &mut Buffer, cell: &Cell<'_>, area: Rect) {
     buf.set_style(area, cell.style);
     for (i, spans) in cell.content.lines.iter().enumerate() {
         if i as u16 >= area.height {
@@ -520,7 +518,7 @@ fn render_cell(buf: &mut Buffer, cell: &Cell, area: Rect) {
 }
 
 impl<'a> Widget for Table<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         let mut state = TableState::default();
         StatefulWidget::render(self, area, buf, &mut state);
     }

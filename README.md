@@ -82,7 +82,7 @@ The library comes with the following list of widgets:
   * [Canvas (with line, point cloud, map)](examples/canvas.rs)
   * [Tabs](examples/tabs.rs)
 
-Click on each item to see the source of the example. Run the examples with with 
+Click on each item to see the source of the example. Run the examples with with
 cargo (e.g. to run the demo `cargo run --example demo`), and quit by pressing `q`.
 
 You can run all examples by running `make run-examples`.
@@ -109,6 +109,7 @@ You can run all examples by running `make run-examples`.
 * [termchat](https://github.com/lemunozm/termchat)
 * [taskwarrior-tui](https://github.com/kdheepak/taskwarrior-tui)
 * [gping](https://github.com/orf/gping/)
+* [Vector](https://vector.dev) 
 
 ### Alternatives
 

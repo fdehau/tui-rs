@@ -12,6 +12,12 @@ pub enum MapResolution {
     High,
 }
 
+impl Default for MapResolution {
+    fn default() -> Self {
+        Self::Low
+    }
+}
+
 impl MapResolution {
     fn data(self) -> &'static [(f64, f64)] {
         match self {
@@ -22,23 +28,14 @@ impl MapResolution {
 }
 
 /// Shape to draw a world map with the given resolution and color
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Map {
     pub resolution: MapResolution,
     pub color: Color,
 }
 
-impl Default for Map {
-    fn default() -> Map {
-        Map {
-            resolution: MapResolution::Low,
-            color: Color::Reset,
-        }
-    }
-}
-
 impl Shape for Map {
-    fn draw(&self, painter: &mut Painter) {
+    fn draw(&self, painter: &mut Painter<'_, '_>) {
         for (x, y) in self.resolution.data() {
             if let Some((x, y)) = painter.get_point(*x, *y) {
                 painter.paint(x, y, self.color);

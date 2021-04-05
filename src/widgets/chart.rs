@@ -13,31 +13,21 @@ use std::{borrow::Cow, cmp::max};
 use unicode_width::UnicodeWidthStr;
 
 /// An X or Y axis for the chart widget
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Axis<'a> {
-    /// Title displayed next to axis end
+    /// Title displayed next to axis end.
+    /// Cannot be modified directly, only with `retitle()` and `untitle()`.
     title: Option<Spans<'a>>,
     /// Bounds for the axis (all data points outside these limits will not be represented)
-    bounds: [f64; 2],
+    pub bounds: [f64; 2],
     /// A list of labels to put to the left or below the axis
-    labels: Option<Vec<Span<'a>>>,
+    pub labels: Option<Vec<Span<'a>>>,
     /// The style used to draw the axis itself
-    style: Style,
-}
-
-impl<'a> Default for Axis<'a> {
-    fn default() -> Axis<'a> {
-        Axis {
-            title: None,
-            bounds: [0.0, 0.0],
-            labels: None,
-            style: Default::default(),
-        }
-    }
+    pub style: Style,
 }
 
 impl<'a> Axis<'a> {
-    pub fn title<T>(mut self, title: T) -> Axis<'a>
+    pub fn title<T>(mut self, title: T) -> Self
     where
         T: Into<Spans<'a>>,
     {
@@ -45,11 +35,22 @@ impl<'a> Axis<'a> {
         self
     }
 
+    pub fn retitle<T>(&mut self, title: T)
+    where
+        T: Into<Spans<'a>>,
+    {
+        self.title = Some(title.into());
+    }
+
+    pub fn untitle(&mut self) {
+        self.title = None;
+    }
+
     #[deprecated(
         since = "0.10.0",
         note = "You should use styling capabilities of `text::Spans` given as argument of the `title` method to apply styling to the title."
     )]
-    pub fn title_style(mut self, style: Style) -> Axis<'a> {
+    pub fn title_style(mut self, style: Style) -> Self {
         if let Some(t) = self.title {
             let title = String::from(t);
             self.title = Some(Spans::from(Span::styled(title, style)));
@@ -57,17 +58,17 @@ impl<'a> Axis<'a> {
         self
     }
 
-    pub fn bounds(mut self, bounds: [f64; 2]) -> Axis<'a> {
+    pub fn bounds(mut self, bounds: [f64; 2]) -> Self {
         self.bounds = bounds;
         self
     }
 
-    pub fn labels(mut self, labels: Vec<Span<'a>>) -> Axis<'a> {
+    pub fn labels(mut self, labels: Vec<Span<'a>>) -> Self {
         self.labels = Some(labels);
         self
     }
 
-    pub fn style(mut self, style: Style) -> Axis<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
@@ -82,35 +83,30 @@ pub enum GraphType {
     Line,
 }
 
-/// A group of data points
-#[derive(Debug, Clone)]
-pub struct Dataset<'a> {
-    /// Name of the dataset (used in the legend if shown)
-    name: Cow<'a, str>,
-    /// A reference to the actual data
-    data: &'a [(f64, f64)],
-    /// Symbol used for each points of this dataset
-    marker: symbols::Marker,
-    /// Determines graph type used for drawing points
-    graph_type: GraphType,
-    /// Style used to plot this dataset
-    style: Style,
-}
-
-impl<'a> Default for Dataset<'a> {
-    fn default() -> Dataset<'a> {
-        Dataset {
-            name: Cow::from(""),
-            data: &[],
-            marker: symbols::Marker::Dot,
-            graph_type: GraphType::Scatter,
-            style: Style::default(),
-        }
+impl Default for GraphType {
+    fn default() -> Self {
+        Self::Scatter
     }
 }
 
+/// A group of data points
+#[derive(Debug, Default, Clone)]
+pub struct Dataset<'a> {
+    /// Name of the dataset (used in the legend if shown).
+    /// Cannot be modified directly, only with `rename()`.
+    name: Cow<'a, str>,
+    /// A reference to the actual data
+    pub data: &'a [(f64, f64)],
+    /// Symbol used for each points of this dataset
+    pub marker: symbols::Marker,
+    /// Determines graph type used for drawing points
+    pub graph_type: GraphType,
+    /// Style used to plot this dataset
+    pub style: Style,
+}
+
 impl<'a> Dataset<'a> {
-    pub fn name<S>(mut self, name: S) -> Dataset<'a>
+    pub fn name<S>(mut self, name: S) -> Self
     where
         S: Into<Cow<'a, str>>,
     {
@@ -118,22 +114,29 @@ impl<'a> Dataset<'a> {
         self
     }
 
-    pub fn data(mut self, data: &'a [(f64, f64)]) -> Dataset<'a> {
+    pub fn rename<S>(&mut self, name: S)
+    where
+        S: Into<Cow<'a, str>>,
+    {
+        self.name = name.into();
+    }
+
+    pub fn data(mut self, data: &'a [(f64, f64)]) -> Self {
         self.data = data;
         self
     }
 
-    pub fn marker(mut self, marker: symbols::Marker) -> Dataset<'a> {
+    pub fn marker(mut self, marker: symbols::Marker) -> Self {
         self.marker = marker;
         self
     }
 
-    pub fn graph_type(mut self, graph_type: GraphType) -> Dataset<'a> {
+    pub fn graph_type(mut self, graph_type: GraphType) -> Self {
         self.graph_type = graph_type;
         self
     }
 
-    pub fn style(mut self, style: Style) -> Dataset<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
@@ -141,7 +144,7 @@ impl<'a> Dataset<'a> {
 
 /// A container that holds all the infos about where to display each elements of the chart (axis,
 /// labels, legend, ...).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 struct ChartLayout {
     /// Location of the title of the x axis
     title_x: Option<(u16, u16)>,
@@ -159,21 +162,6 @@ struct ChartLayout {
     legend_area: Option<Rect>,
     /// Area of the graph
     graph_area: Rect,
-}
-
-impl Default for ChartLayout {
-    fn default() -> ChartLayout {
-        ChartLayout {
-            title_x: None,
-            title_y: None,
-            label_x: None,
-            label_y: None,
-            axis_x: None,
-            axis_y: None,
-            legend_area: None,
-            graph_area: Rect::default(),
-        }
-    }
 }
 
 /// A widget to plot one or more dataset in a cartesian coordinate system
@@ -212,25 +200,25 @@ impl Default for ChartLayout {
 ///         .bounds([0.0, 10.0])
 ///         .labels(["0.0", "5.0", "10.0"].iter().cloned().map(Span::from).collect()));
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Chart<'a> {
     /// A block to display around the widget eventually
-    block: Option<Block<'a>>,
+    pub block: Option<Block<'a>>,
     /// The horizontal axis
-    x_axis: Axis<'a>,
+    pub x_axis: Axis<'a>,
     /// The vertical axis
-    y_axis: Axis<'a>,
+    pub y_axis: Axis<'a>,
     /// A reference to the datasets
-    datasets: Vec<Dataset<'a>>,
+    pub datasets: Vec<Dataset<'a>>,
     /// The widget base style
-    style: Style,
+    pub style: Style,
     /// Constraints used to determine whether the legend should be shown or not
-    hidden_legend_constraints: (Constraint, Constraint),
+    pub hidden_legend_constraints: (Constraint, Constraint),
 }
 
 impl<'a> Chart<'a> {
-    pub fn new(datasets: Vec<Dataset<'a>>) -> Chart<'a> {
-        Chart {
+    pub fn new(datasets: Vec<Dataset<'a>>) -> Self {
+        Self {
             block: None,
             x_axis: Axis::default(),
             y_axis: Axis::default(),
@@ -240,22 +228,25 @@ impl<'a> Chart<'a> {
         }
     }
 
-    pub fn block(mut self, block: Block<'a>) -> Chart<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn style(mut self, style: Style) -> Chart<'a> {
+    /// Style the `Chart`.
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn x_axis(mut self, axis: Axis<'a>) -> Chart<'a> {
+    /// Set the abscissa of the `Chart`.
+    pub fn x_axis(mut self, axis: Axis<'a>) -> Self {
         self.x_axis = axis;
         self
     }
 
-    pub fn y_axis(mut self, axis: Axis<'a>) -> Chart<'a> {
+    /// Set the ordinate of the `Chart`.
+    pub fn y_axis(mut self, axis: Axis<'a>) -> Self {
         self.y_axis = axis;
         self
     }
@@ -276,7 +267,7 @@ impl<'a> Chart<'a> {
     /// let _chart: Chart = Chart::new(vec![])
     ///     .hidden_legend_constraints(constraints);
     /// ```
-    pub fn hidden_legend_constraints(mut self, constraints: (Constraint, Constraint)) -> Chart<'a> {
+    pub fn hidden_legend_constraints(mut self, constraints: (Constraint, Constraint)) -> Self {
         self.hidden_legend_constraints = constraints;
         self
     }
@@ -365,7 +356,7 @@ impl<'a> Chart<'a> {
 }
 
 impl<'a> Widget for Chart<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    fn render(&mut self, area: Rect, buf: &mut Buffer) {
         if area.area() == 0 {
             return;
         }
@@ -376,7 +367,7 @@ impl<'a> Widget for Chart<'a> {
         let original_style = buf.get(area.left(), area.top()).style();
 
         let chart_area = match self.block.take() {
-            Some(b) => {
+            Some(mut b) => {
                 let inner_area = b.inner(area);
                 b.render(area, buf);
                 inner_area
@@ -391,30 +382,37 @@ impl<'a> Widget for Chart<'a> {
         }
 
         if let Some(y) = layout.label_x {
-            let labels = self.x_axis.labels.unwrap();
-            let total_width = labels.iter().map(Span::width).sum::<usize>() as u16;
-            let labels_len = labels.len() as u16;
-            if total_width < graph_area.width && labels_len > 1 {
-                for (i, label) in labels.iter().enumerate() {
-                    buf.set_span(
-                        graph_area.left() + i as u16 * (graph_area.width - 1) / (labels_len - 1)
-                            - label.content.width() as u16,
-                        y,
-                        label,
-                        label.width() as u16,
-                    );
+            if let Some(labels) = &self.x_axis.labels {
+                let total_width = labels.iter().map(Span::width).sum::<usize>() as u16;
+                let labels_len = labels.len() as u16;
+                if total_width < graph_area.width && labels_len > 1 {
+                    for (i, label) in labels.iter().enumerate() {
+                        buf.set_span(
+                            graph_area.left()
+                                + i as u16 * (graph_area.width - 1) / (labels_len - 1)
+                                - label.content.width() as u16,
+                            y,
+                            label,
+                            label.width() as u16,
+                        );
+                    }
                 }
+            } else {
+                panic!("x_axis_labels must be something!");
             }
         }
 
         if let Some(x) = layout.label_y {
-            let labels = self.y_axis.labels.unwrap();
-            let labels_len = labels.len() as u16;
-            for (i, label) in labels.iter().enumerate() {
-                let dy = i as u16 * (graph_area.height - 1) / (labels_len - 1);
-                if dy < graph_area.bottom() {
-                    buf.set_span(x, graph_area.bottom() - 1 - dy, label, label.width() as u16);
+            if let Some(labels) = &self.y_axis.labels {
+                let labels_len = labels.len() as u16;
+                for (i, label) in labels.iter().enumerate() {
+                    let dy = i as u16 * (graph_area.height - 1) / (labels_len - 1);
+                    if dy < graph_area.bottom() {
+                        buf.set_span(x, graph_area.bottom() - 1 - dy, label, label.width() as u16);
+                    }
                 }
+            } else {
+                panic!("y_axis_labels must be something!");
             }
         }
 
@@ -484,7 +482,10 @@ impl<'a> Widget for Chart<'a> {
         }
 
         if let Some((x, y)) = layout.title_x {
-            let title = self.x_axis.title.unwrap();
+            //  If title is Some(Span{content: Cow::Owned(…), style: …}),
+            //    this allocates memory,
+            //  otherwise this clone is only copy by value.
+            let title = self.x_axis.title.clone().unwrap();
             let width = graph_area.right().saturating_sub(x);
             buf.set_style(
                 Rect {
@@ -499,7 +500,10 @@ impl<'a> Widget for Chart<'a> {
         }
 
         if let Some((x, y)) = layout.title_y {
-            let title = self.y_axis.title.unwrap();
+            //  If title is Some(Span{content: Cow::Owned(…), style: …}),
+            //    this allocates memory,
+            //  otherwise this clone is only copy by value.
+            let title = self.y_axis.title.clone().unwrap();
             let width = graph_area.right().saturating_sub(x);
             buf.set_style(
                 Rect {
