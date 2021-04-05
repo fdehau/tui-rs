@@ -26,6 +26,12 @@ pub enum Color {
     Indexed(u8),
 }
 
+impl Default for Color {
+    fn default() -> Self {
+        Self::Reset
+    }
+}
+
 bitflags! {
     /// Modifier changes the way a piece of text is displayed.
     ///

@@ -42,7 +42,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .alignment(Alignment::Center)
 ///     .wrap(Wrap { trim: true });
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Paragraph<'a> {
     /// A block to wrap the widget in
     pub block: Option<Block<'a>>,

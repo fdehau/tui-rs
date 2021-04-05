@@ -172,18 +172,8 @@ impl<'a> Widget for Gauge<'a> {
 }
 
 fn get_unicode_block<'a>(frac: f64) -> &'a str {
-    match (frac * 8.0).round() as u16 {
-        //get how many eighths the fraction is closest to
-        1 => symbols::block::ONE_EIGHTH,
-        2 => symbols::block::ONE_QUARTER,
-        3 => symbols::block::THREE_EIGHTHS,
-        4 => symbols::block::HALF,
-        5 => symbols::block::FIVE_EIGHTHS,
-        6 => symbols::block::THREE_QUARTERS,
-        7 => symbols::block::SEVEN_EIGHTHS,
-        8 => symbols::block::FULL,
-        _ => " ",
-    }
+    //get how many eighths the fraction is closest to
+    symbols::block::from_level(frac)
 }
 
 /// A compact widget to display a task progress over a single line.
@@ -200,7 +190,7 @@ fn get_unicode_block<'a>(frac: f64) -> &'a str {
 ///     .line_set(symbols::line::THICK)
 ///     .ratio(0.4);
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct LineGauge<'a> {
     pub block: Option<Block<'a>>,
     /// Cannot be modified directly, only with `set_percent()` and `set_ration()`.
@@ -209,19 +199,6 @@ pub struct LineGauge<'a> {
     pub line_set: symbols::line::Set,
     pub style: Style,
     pub gauge_style: Style,
-}
-
-impl<'a> Default for LineGauge<'a> {
-    fn default() -> Self {
-        Self {
-            block: None,
-            ratio: 0.0,
-            label: None,
-            style: Style::default(),
-            line_set: symbols::line::NORMAL,
-            gauge_style: Style::default(),
-        }
-    }
 }
 
 impl<'a> LineGauge<'a> {

@@ -28,7 +28,7 @@ impl MapResolution {
 }
 
 /// Shape to draw a world map with the given resolution and color
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Map {
     pub resolution: MapResolution,
     pub color: Color,

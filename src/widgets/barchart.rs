@@ -168,17 +168,7 @@ impl<'a> Widget for BarChart<'a> {
             .collect::<Vec<(&str, u64)>>();
         for j in (0..chart_area.height - 1).rev() {
             for (i, d) in data.iter_mut().enumerate() {
-                let symbol = match d.1 {
-                    0 => self.bar_set.empty,
-                    1 => self.bar_set.one_eighth,
-                    2 => self.bar_set.one_quarter,
-                    3 => self.bar_set.three_eighths,
-                    4 => self.bar_set.half,
-                    5 => self.bar_set.five_eighths,
-                    6 => self.bar_set.three_quarters,
-                    7 => self.bar_set.seven_eighths,
-                    _ => self.bar_set.full,
-                };
+                let symbol = self.bar_set.symbol(d.1 as usize);
 
                 for x in 0..self.bar_width {
                     buf.get_mut(

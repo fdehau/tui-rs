@@ -56,7 +56,7 @@ where
 }
 
 /// Represents a consistent terminal interface for rendering.
-pub struct Frame<'a, B: 'a>
+pub struct Frame<'a, B>
 where
     B: Backend,
 {
@@ -263,7 +263,7 @@ where
     }
 
     /// Get a Frame object which provides a consistent view into the terminal state for rendering.
-    pub fn get_frame(&mut self) -> Frame<B> {
+    pub fn get_frame(&mut self) -> Frame<'_, B> {
         Frame {
             terminal: self,
             cursor_position: None,
@@ -314,9 +314,9 @@ where
 
     /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
     /// and prepares for the next draw call.
-    pub fn draw<F>(&mut self, f: F) -> io::Result<CompletedFrame>
+    pub fn draw<F>(&mut self, f: F) -> io::Result<CompletedFrame<'_>>
     where
-        F: FnOnce(&mut Frame<B>),
+        F: FnOnce(&mut Frame<'_, B>),
     {
         // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
         // and the terminal (if growing), which may OOB.

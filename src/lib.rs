@@ -71,7 +71,7 @@
 //! implement your own.
 //!
 //! Each widget follows a builder pattern API providing a default configuration along with methods
-//! to customize them. The widget is then rendered using the [`Frame::render_widget`] which take
+//! to customize them. The widget is then rendered using the [`Frame::render`] which take
 //! your widget instance an area to draw to.
 //!
 //! The following example renders a block of the size of the terminal:
@@ -90,10 +90,10 @@
 //!     let mut terminal = Terminal::new(backend)?;
 //!     terminal.draw(|f| {
 //!         let size = f.size();
-//!         let block = Block::default()
+//!         let mut block = Block::default()
 //!             .title("Block")
 //!             .borders(Borders::ALL);
-//!         f.render_widget(block, size);
+//!         f.render(&mut block, size);
 //!     })?;
 //!     Ok(())
 //! }
@@ -129,14 +129,14 @@
 //!                 ].as_ref()
 //!             )
 //!             .split(f.size());
-//!         let block = Block::default()
+//!         let mut block = Block::default()
 //!              .title("Block")
 //!              .borders(Borders::ALL);
-//!         f.render_widget(block, chunks[0]);
-//!         let block = Block::default()
+//!         f.render(&mut block, chunks[0]);
+//!         let mut block = Block::default()
 //!              .title("Block 2")
 //!              .borders(Borders::ALL);
-//!         f.render_widget(block, chunks[1]);
+//!         f.render(&mut block, chunks[1]);
 //!     })?;
 //!     Ok(())
 //! }
@@ -146,6 +146,26 @@
 //! default the computed layout tries to fill the available space completely. So if for any reason
 //! you might need a blank space somewhere, try to pass an additional constraint and don't use the
 //! corresponding area.
+
+#![warn(
+    clippy::all,
+    clippy::cargo,
+    clippy::nursery,
+    clippy::pedantic,
+    clippy::restriction,
+    future_incompatible,
+    //missing_docs,
+    rust_2018_idioms,
+    warnings,
+)]
+#![deny(
+    clippy::pedantic,
+    clippy::float_cmp_const,
+    clippy::indexing_slicing,
+    clippy::integer_arithmetic,
+    clippy::unwrap_used
+)]
+#![forbid(bare_trait_objects, unsafe_code)]
 
 pub mod backend;
 pub mod buffer;

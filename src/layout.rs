@@ -20,6 +20,12 @@ pub enum Direction {
     Vertical,
 }
 
+impl Default for Direction {
+    fn default() -> Self {
+        Self::Vertical
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Constraint {
     // TODO: enforce range 0 - 100
@@ -28,6 +34,12 @@ pub enum Constraint {
     Length(u16),
     Max(u16),
     Min(u16),
+}
+
+impl Default for Constraint {
+    fn default() -> Self {
+        Self::Ratio(1, 4)
+    }
 }
 
 impl Constraint {
@@ -45,7 +57,7 @@ impl Constraint {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct Margin {
     pub vertical: u16,
     pub horizontal: u16,
@@ -56,6 +68,12 @@ pub enum Alignment {
     Left,
     Center,
     Right,
+}
+
+impl Default for Alignment {
+    fn default() -> Self {
+        Self::Left
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -350,23 +368,12 @@ impl Element {
 
 /// A simple rectangle used in the computation of the layout and to give widgets an hint about the
 /// area they are supposed to render to.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
     pub width: u16,
     pub height: u16,
-}
-
-impl Default for Rect {
-    fn default() -> Rect {
-        Rect {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-        }
-    }
 }
 
 impl Rect {

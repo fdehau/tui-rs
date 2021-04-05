@@ -20,7 +20,7 @@ use std::cmp::min;
 ///     .max(5)
 ///     .style(Style::default().fg(Color::Red).bg(Color::White));
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Sparkline<'a> {
     /// A block to wrap the widget in
     pub block: Option<Block<'a>>,
@@ -33,18 +33,6 @@ pub struct Sparkline<'a> {
     pub max: Option<u64>,
     /// A set of bar symbols used to represent the give data
     pub bar_set: symbols::bar::Set,
-}
-
-impl<'a> Default for Sparkline<'a> {
-    fn default() -> Sparkline<'a> {
-        Sparkline {
-            block: None,
-            style: Default::default(),
-            data: &[],
-            max: None,
-            bar_set: symbols::bar::NINE_LEVELS,
-        }
-    }
 }
 
 impl<'a> Sparkline<'a> {
@@ -108,17 +96,7 @@ impl<'a> Widget for Sparkline<'a> {
             .collect::<Vec<u64>>();
         for j in (0..spark_area.height).rev() {
             for (i, d) in data.iter_mut().enumerate() {
-                let symbol = match *d {
-                    0 => self.bar_set.empty,
-                    1 => self.bar_set.one_eighth,
-                    2 => self.bar_set.one_quarter,
-                    3 => self.bar_set.three_eighths,
-                    4 => self.bar_set.half,
-                    5 => self.bar_set.five_eighths,
-                    6 => self.bar_set.three_quarters,
-                    7 => self.bar_set.seven_eighths,
-                    _ => self.bar_set.full,
-                };
+                let symbol = self.bar_set.symbol(*d as usize);
                 buf.get_mut(spark_area.left() + i as u16, spark_area.top() + j)
                     .set_symbol(symbol)
                     .set_style(self.style);

@@ -90,7 +90,7 @@ impl Default for GraphType {
 }
 
 /// A group of data points
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Dataset<'a> {
     /// Name of the dataset (used in the legend if shown).
     /// Cannot be modified directly, only with `rename()`.
@@ -103,18 +103,6 @@ pub struct Dataset<'a> {
     pub graph_type: GraphType,
     /// Style used to plot this dataset
     pub style: Style,
-}
-
-impl<'a> Default for Dataset<'a> {
-    fn default() -> Dataset<'a> {
-        Dataset {
-            name: Cow::from(""),
-            data: &[],
-            marker: symbols::Marker::Dot,
-            graph_type: GraphType::Scatter,
-            style: Style::default(),
-        }
-    }
 }
 
 impl<'a> Dataset<'a> {
@@ -212,7 +200,7 @@ struct ChartLayout {
 ///         .bounds([0.0, 10.0])
 ///         .labels(["0.0", "5.0", "10.0"].iter().cloned().map(Span::from).collect()));
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Chart<'a> {
     /// A block to display around the widget eventually
     pub block: Option<Block<'a>>,
