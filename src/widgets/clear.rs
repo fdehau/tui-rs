@@ -1,6 +1,4 @@
-use crate::buffer::Buffer;
-use crate::layout::Rect;
-use crate::widgets::Widget;
+use crate::widgets::{RenderContext, Widget};
 
 /// A widget to to clear/reset a certain area to allow overdrawing (e.g. for popups)
 ///
@@ -26,10 +24,12 @@ use crate::widgets::Widget;
 pub struct Clear;
 
 impl Widget for Clear {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        for x in area.left()..area.right() {
-            for y in area.top()..area.bottom() {
-                buf.get_mut(x, y).reset();
+    type State = ();
+
+    fn render(self, ctx: &mut RenderContext<Self::State>) {
+        for x in ctx.area.left()..ctx.area.right() {
+            for y in ctx.area.top()..ctx.area.bottom() {
+                ctx.buffer.get_mut(x, y).reset();
             }
         }
     }

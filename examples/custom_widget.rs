@@ -5,7 +5,10 @@ use crate::util::event::{Event, Events};
 use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
-    backend::TermionBackend, buffer::Buffer, layout::Rect, style::Style, widgets::Widget, Terminal,
+    backend::TermionBackend,
+    style::Style,
+    widgets::{RenderContext, Widget},
+    Terminal,
 };
 
 struct Label<'a> {
@@ -19,8 +22,11 @@ impl<'a> Default for Label<'a> {
 }
 
 impl<'a> Widget for Label<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        buf.set_string(area.left(), area.top(), self.text, Style::default());
+    type State = ();
+
+    fn render(self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer
+            .set_string(ctx.area.left(), ctx.area.top(), self.text, Style::default());
     }
 }
 

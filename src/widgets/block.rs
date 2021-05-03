@@ -1,10 +1,9 @@
 use crate::{
-    buffer::Buffer,
     layout::Rect,
     style::Style,
     symbols::line,
     text::{Span, Spans},
-    widgets::{Borders, Widget},
+    widgets::{Borders, RenderContext, Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -131,40 +130,46 @@ impl<'a> Block<'a> {
 }
 
 impl<'a> Widget for Block<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        if area.area() == 0 {
+    type State = ();
+
+    fn render(self, ctx: &mut RenderContext<Self::State>) {
+        if ctx.area.area() == 0 {
             return;
         }
-        buf.set_style(area, self.style);
+        ctx.buffer.set_style(ctx.area, self.style);
         let symbols = BorderType::line_symbols(self.border_type);
 
         // Sides
         if self.borders.intersects(Borders::LEFT) {
-            for y in area.top()..area.bottom() {
-                buf.get_mut(area.left(), y)
+            for y in ctx.area.top()..ctx.area.bottom() {
+                ctx.buffer
+                    .get_mut(ctx.area.left(), y)
                     .set_symbol(symbols.vertical)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::TOP) {
-            for x in area.left()..area.right() {
-                buf.get_mut(x, area.top())
+            for x in ctx.area.left()..ctx.area.right() {
+                ctx.buffer
+                    .get_mut(x, ctx.area.top())
                     .set_symbol(symbols.horizontal)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::RIGHT) {
-            let x = area.right() - 1;
-            for y in area.top()..area.bottom() {
-                buf.get_mut(x, y)
+            let x = ctx.area.right() - 1;
+            for y in ctx.area.top()..ctx.area.bottom() {
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_symbol(symbols.vertical)
                     .set_style(self.border_style);
             }
         }
         if self.borders.intersects(Borders::BOTTOM) {
-            let y = area.bottom() - 1;
-            for x in area.left()..area.right() {
-                buf.get_mut(x, y)
+            let y = ctx.area.bottom() - 1;
+            for x in ctx.area.left()..ctx.area.right() {
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_symbol(symbols.horizontal)
                     .set_style(self.border_style);
             }
@@ -172,22 +177,26 @@ impl<'a> Widget for Block<'a> {
 
         // Corners
         if self.borders.contains(Borders::RIGHT | Borders::BOTTOM) {
-            buf.get_mut(area.right() - 1, area.bottom() - 1)
+            ctx.buffer
+                .get_mut(ctx.area.right() - 1, ctx.area.bottom() - 1)
                 .set_symbol(symbols.bottom_right)
                 .set_style(self.border_style);
         }
         if self.borders.contains(Borders::RIGHT | Borders::TOP) {
-            buf.get_mut(area.right() - 1, area.top())
+            ctx.buffer
+                .get_mut(ctx.area.right() - 1, ctx.area.top())
                 .set_symbol(symbols.top_right)
                 .set_style(self.border_style);
         }
         if self.borders.contains(Borders::LEFT | Borders::BOTTOM) {
-            buf.get_mut(area.left(), area.bottom() - 1)
+            ctx.buffer
+                .get_mut(ctx.area.left(), ctx.area.bottom() - 1)
                 .set_symbol(symbols.bottom_left)
                 .set_style(self.border_style);
         }
         if self.borders.contains(Borders::LEFT | Borders::TOP) {
-            buf.get_mut(area.left(), area.top())
+            ctx.buffer
+                .get_mut(ctx.area.left(), ctx.area.top())
                 .set_symbol(symbols.top_left)
                 .set_style(self.border_style);
         }
@@ -203,8 +212,9 @@ impl<'a> Widget for Block<'a> {
             } else {
                 0
             };
-            let width = area.width.saturating_sub(lx).saturating_sub(rx);
-            buf.set_spans(area.left() + lx, area.top(), &title, width);
+            let width = ctx.area.width.saturating_sub(lx).saturating_sub(rx);
+            ctx.buffer
+                .set_spans(ctx.area.left() + lx, ctx.area.top(), &title, width);
         }
     }
 }

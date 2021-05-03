@@ -3,7 +3,7 @@ use crate::{
     layout::{Constraint, Rect},
     style::Style,
     text::Text,
-    widgets::{Block, StatefulWidget, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 use cassowary::{
     strength::{MEDIUM, REQUIRED, WEAK},
@@ -200,6 +200,7 @@ pub struct Table<'a> {
     header: Option<Row<'a>>,
     /// Data to display in each row
     rows: Vec<Row<'a>>,
+    selected: Option<usize>,
 }
 
 impl<'a> Table<'a> {
@@ -216,6 +217,7 @@ impl<'a> Table<'a> {
             highlight_symbol: None,
             header: None,
             rows: rows.into_iter().collect(),
+            selected: None,
         }
     }
 
@@ -259,6 +261,11 @@ impl<'a> Table<'a> {
 
     pub fn column_spacing(mut self, spacing: u16) -> Self {
         self.column_spacing = spacing;
+        self
+    }
+
+    pub fn select(mut self, index: Option<usize>) -> Self {
+        self.selected = index;
         self
     }
 
@@ -328,12 +335,7 @@ impl<'a> Table<'a> {
         widths
     }
 
-    fn get_row_bounds(
-        &self,
-        selected: Option<usize>,
-        offset: usize,
-        max_height: u16,
-    ) -> (usize, usize) {
+    fn get_row_bounds(&self, offset: usize, max_height: u16) -> (usize, usize) {
         let mut start = offset;
         let mut end = offset;
         let mut height = 0;
@@ -345,7 +347,7 @@ impl<'a> Table<'a> {
             end += 1;
         }
 
-        let selected = selected.unwrap_or(0).min(self.rows.len() - 1);
+        let selected = self.selected.unwrap_or(0).min(self.rows.len() - 1);
         while selected >= end {
             height = height.saturating_add(self.rows[end].total_height());
             end += 1;
@@ -369,49 +371,39 @@ impl<'a> Table<'a> {
 #[derive(Debug, Clone)]
 pub struct TableState {
     offset: usize,
-    selected: Option<usize>,
 }
 
 impl Default for TableState {
     fn default() -> TableState {
-        TableState {
-            offset: 0,
-            selected: None,
-        }
+        TableState { offset: 0 }
     }
 }
 
-impl TableState {
-    pub fn selected(&self) -> Option<usize> {
-        self.selected
-    }
-
-    pub fn select(&mut self, index: Option<usize>) {
-        self.selected = index;
-        if index.is_none() {
-            self.offset = 0;
-        }
-    }
-}
-
-impl<'a> StatefulWidget for Table<'a> {
+impl<'a> Widget for Table<'a> {
     type State = TableState;
 
-    fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        if area.area() == 0 {
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        if ctx.area.area() == 0 {
             return;
         }
-        buf.set_style(area, self.style);
+        ctx.buffer.set_style(ctx.area, self.style);
         let table_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
-        let has_selection = state.selected.is_some();
+        let has_selection = self.selected.is_some();
+        if !has_selection {
+            ctx.state.offset = 0;
+        }
         let columns_widths = self.get_columns_widths(table_area.width, has_selection);
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = iter::repeat(" ")
@@ -423,7 +415,7 @@ impl<'a> StatefulWidget for Table<'a> {
         // Draw header
         if let Some(ref header) = self.header {
             let max_header_height = table_area.height.min(header.total_height());
-            buf.set_style(
+            ctx.buffer.set_style(
                 Rect {
                     x: table_area.left(),
                     y: table_area.top(),
@@ -438,7 +430,7 @@ impl<'a> StatefulWidget for Table<'a> {
             }
             for (width, cell) in columns_widths.iter().zip(header.cells.iter()) {
                 render_cell(
-                    buf,
+                    ctx.buffer,
                     cell,
                     Rect {
                         x: col,
@@ -457,13 +449,13 @@ impl<'a> StatefulWidget for Table<'a> {
         if self.rows.is_empty() {
             return;
         }
-        let (start, end) = self.get_row_bounds(state.selected, state.offset, rows_height);
-        state.offset = start;
+        let (start, end) = self.get_row_bounds(ctx.state.offset, rows_height);
+        ctx.state.offset = start;
         for (i, table_row) in self
             .rows
             .iter_mut()
             .enumerate()
-            .skip(state.offset)
+            .skip(ctx.state.offset)
             .take(end - start)
         {
             let (row, col) = (table_area.top() + current_height, table_area.left());
@@ -474,16 +466,21 @@ impl<'a> StatefulWidget for Table<'a> {
                 width: table_area.width,
                 height: table_row.height,
             };
-            buf.set_style(table_row_area, table_row.style);
-            let is_selected = state.selected.map(|s| s == i).unwrap_or(false);
+            ctx.buffer.set_style(table_row_area, table_row.style);
+            let is_selected = self.selected.map(|s| s == i).unwrap_or(false);
             let table_row_start_col = if has_selection {
                 let symbol = if is_selected {
                     highlight_symbol
                 } else {
                     &blank_symbol
                 };
-                let (col, _) =
-                    buf.set_stringn(col, row, symbol, table_area.width as usize, table_row.style);
+                let (col, _) = ctx.buffer.set_stringn(
+                    col,
+                    row,
+                    symbol,
+                    table_area.width as usize,
+                    table_row.style,
+                );
                 col
             } else {
                 col
@@ -491,7 +488,7 @@ impl<'a> StatefulWidget for Table<'a> {
             let mut col = table_row_start_col;
             for (width, cell) in columns_widths.iter().zip(table_row.cells.iter()) {
                 render_cell(
-                    buf,
+                    ctx.buffer,
                     cell,
                     Rect {
                         x: col,
@@ -503,7 +500,7 @@ impl<'a> StatefulWidget for Table<'a> {
                 col += *width + self.column_spacing;
             }
             if is_selected {
-                buf.set_style(table_row_area, self.highlight_style);
+                ctx.buffer.set_style(table_row_area, self.highlight_style);
             }
         }
     }
@@ -516,13 +513,6 @@ fn render_cell(buf: &mut Buffer, cell: &Cell, area: Rect) {
             break;
         }
         buf.set_spans(area.x, area.y + i as u16, spans, area.width);
-    }
-}
-
-impl<'a> Widget for Table<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let mut state = TableState::default();
-        StatefulWidget::render(self, area, buf, &mut state);
     }
 }
 

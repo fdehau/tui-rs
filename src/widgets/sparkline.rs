@@ -1,9 +1,7 @@
 use crate::{
-    buffer::Buffer,
-    layout::Rect,
     style::Style,
     symbols,
-    widgets::{Block, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 use std::cmp::min;
 
@@ -75,14 +73,20 @@ impl<'a> Sparkline<'a> {
 }
 
 impl<'a> Widget for Sparkline<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
         let spark_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if spark_area.height < 1 {
@@ -119,7 +123,8 @@ impl<'a> Widget for Sparkline<'a> {
                     7 => self.bar_set.seven_eighths,
                     _ => self.bar_set.full,
                 };
-                buf.get_mut(spark_area.left() + i as u16, spark_area.top() + j)
+                ctx.buffer
+                    .get_mut(spark_area.left() + i as u16, spark_area.top() + j)
                     .set_symbol(symbol)
                     .set_style(self.style);
 
@@ -135,14 +140,23 @@ impl<'a> Widget for Sparkline<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{
+        buffer::Buffer,
+        layout::Rect,
+        widgets::{RenderContext, Sparkline, Widget},
+    };
 
     #[test]
     fn it_does_not_panic_if_max_is_zero() {
         let widget = Sparkline::default().data(&[0, 0, 0]);
         let area = Rect::new(0, 0, 3, 1);
         let mut buffer = Buffer::empty(area);
-        widget.render(area, &mut buffer);
+        let mut ctx = RenderContext {
+            area,
+            buffer: &mut buffer,
+            state: &mut (),
+        };
+        widget.render(&mut ctx);
     }
 
     #[test]
@@ -150,6 +164,11 @@ mod tests {
         let widget = Sparkline::default().data(&[0, 1, 2]).max(0);
         let area = Rect::new(0, 0, 3, 1);
         let mut buffer = Buffer::empty(area);
-        widget.render(area, &mut buffer);
+        let mut ctx = RenderContext {
+            area,
+            buffer: &mut buffer,
+            state: &mut (),
+        };
+        widget.render(&mut ctx);
     }
 }

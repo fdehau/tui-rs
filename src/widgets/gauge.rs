@@ -1,10 +1,8 @@
 use crate::{
-    buffer::Buffer,
-    layout::Rect,
     style::{Color, Style},
     symbols,
     text::{Span, Spans},
-    widgets::{Block, Widget},
+    widgets::{Block, RenderContext, Widget},
 };
 
 /// A widget to display a task progress.
@@ -92,17 +90,23 @@ impl<'a> Gauge<'a> {
 }
 
 impl<'a> Widget for Gauge<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
         let gauge_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
-        buf.set_style(gauge_area, self.gauge_style);
+        ctx.buffer.set_style(gauge_area, self.gauge_style);
         if gauge_area.height < 1 {
             return;
         }
@@ -124,12 +128,13 @@ impl<'a> Widget for Gauge<'a> {
         for y in gauge_area.top()..gauge_area.bottom() {
             // Gauge
             for x in gauge_area.left()..end {
-                buf.get_mut(x, y).set_symbol(" ");
+                ctx.buffer.get_mut(x, y).set_symbol(" ");
             }
 
             //set unicode block
             if self.use_unicode && self.ratio < 1.0 {
-                buf.get_mut(end, y)
+                ctx.buffer
+                    .get_mut(end, y)
                     .set_symbol(get_unicode_block(width % 1.0));
             }
 
@@ -138,7 +143,8 @@ impl<'a> Widget for Gauge<'a> {
             if y == center {
                 let label_width = label.width() as u16;
                 let middle = (gauge_area.width - label_width) / 2 + gauge_area.left();
-                buf.set_span(middle, y, &label, gauge_area.right() - middle);
+                ctx.buffer
+                    .set_span(middle, y, &label, gauge_area.right() - middle);
                 if self.use_unicode && end >= middle && end < middle + label_width {
                     color_end = gauge_area.left() + (width.round() as u16); //set color on the label to the rounded gauge level
                 }
@@ -146,7 +152,8 @@ impl<'a> Widget for Gauge<'a> {
 
             // Fix colors
             for x in gauge_area.left()..color_end {
-                buf.get_mut(x, y)
+                ctx.buffer
+                    .get_mut(x, y)
                     .set_fg(self.gauge_style.bg.unwrap_or(Color::Reset))
                     .set_bg(self.gauge_style.fg.unwrap_or(Color::Reset));
             }
@@ -245,15 +252,21 @@ impl<'a> LineGauge<'a> {
 }
 
 impl<'a> Widget for LineGauge<'a> {
-    fn render(mut self, area: Rect, buf: &mut Buffer) {
-        buf.set_style(area, self.style);
+    type State = ();
+
+    fn render(mut self, ctx: &mut RenderContext<Self::State>) {
+        ctx.buffer.set_style(ctx.area, self.style);
         let gauge_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
-                b.render(area, buf);
+                let inner_area = b.inner(ctx.area);
+                b.render(&mut RenderContext {
+                    area: ctx.area,
+                    buffer: ctx.buffer,
+                    state: &mut (),
+                });
                 inner_area
             }
-            None => area,
+            None => ctx.area,
         };
 
         if gauge_area.height < 1 {
@@ -264,7 +277,7 @@ impl<'a> Widget for LineGauge<'a> {
         let label = self
             .label
             .unwrap_or_else(move || Spans::from(format!("{:.0}%", ratio * 100.0)));
-        let (col, row) = buf.set_spans(
+        let (col, row) = ctx.buffer.set_spans(
             gauge_area.left(),
             gauge_area.top(),
             &label,
@@ -278,7 +291,8 @@ impl<'a> Widget for LineGauge<'a> {
         let end = start
             + (f64::from(gauge_area.right().saturating_sub(start)) * self.ratio).floor() as u16;
         for col in start..end {
-            buf.get_mut(col, row)
+            ctx.buffer
+                .get_mut(col, row)
                 .set_symbol(self.line_set.horizontal)
                 .set_style(Style {
                     fg: self.gauge_style.fg,
@@ -288,7 +302,8 @@ impl<'a> Widget for LineGauge<'a> {
                 });
         }
         for col in end..gauge_area.right() {
-            buf.get_mut(col, row)
+            ctx.buffer
+                .get_mut(col, row)
                 .set_symbol(self.line_set.horizontal)
                 .set_style(Style {
                     fg: self.gauge_style.bg,

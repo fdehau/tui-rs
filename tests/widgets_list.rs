@@ -4,7 +4,7 @@ use tui::{
     layout::Rect,
     style::{Color, Style},
     symbols,
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem},
     Terminal,
 };
 
@@ -12,8 +12,6 @@ use tui::{
 fn widgets_list_should_highlight_the_selected_item() {
     let backend = TestBackend::new(10, 3);
     let mut terminal = Terminal::new(backend).unwrap();
-    let mut state = ListState::default();
-    state.select(Some(1));
     terminal
         .draw(|f| {
             let size = f.size();
@@ -23,9 +21,10 @@ fn widgets_list_should_highlight_the_selected_item() {
                 ListItem::new("Item 3"),
             ];
             let list = List::new(items)
+                .select(Some(1))
                 .highlight_style(Style::default().bg(Color::Yellow))
                 .highlight_symbol(">> ");
-            f.render_stateful_widget(list, size, &mut state);
+            f.render_widget(list, size);
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec!["   Item 1 ", ">> Item 2 ", "   Item 3 "]);
@@ -73,14 +72,13 @@ fn widgets_list_should_truncate_items() {
         },
     ];
     for case in cases {
-        let mut state = ListState::default();
-        state.select(case.selected);
         terminal
             .draw(|f| {
                 let list = List::new(case.items.clone())
                     .block(Block::default().borders(Borders::RIGHT))
+                    .select(case.selected)
                     .highlight_symbol(">> ");
-                f.render_stateful_widget(list, Rect::new(0, 0, 8, 2), &mut state);
+                f.render_widget(list, Rect::new(0, 0, 8, 2));
             })
             .unwrap();
         terminal.backend().assert_buffer(&case.expected);

@@ -3,7 +3,7 @@ mod util;
 
 use crate::util::{
     event::{Event, Events},
-    StatefulList,
+    SelectableList,
 };
 use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
@@ -23,14 +23,14 @@ use tui::{
 /// Check the event handling at the bottom to see how to change the state on incoming events.
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
 struct App<'a> {
-    items: StatefulList<(&'a str, usize)>,
+    items: SelectableList<(&'a str, usize)>,
     events: Vec<(&'a str, &'a str)>,
 }
 
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
-            items: StatefulList::with_items(vec![
+            items: SelectableList::with_items(vec![
                 ("Item0", 1),
                 ("Item1", 2),
                 ("Item2", 1),
@@ -137,6 +137,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             // Create a List from all list items and highlight the currently selected one
             let items = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title("List"))
+                .select(app.items.selected)
                 .highlight_style(
                     Style::default()
                         .bg(Color::LightGreen)
@@ -145,7 +146,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .highlight_symbol(">> ");
 
             // We can now render the item list
-            f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+            f.render_widget(items, chunks[0]);
 
             // Let's do the same for the events.
             // The event list doesn't have any state and only displays the current state of the list.

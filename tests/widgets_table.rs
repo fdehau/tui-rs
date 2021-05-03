@@ -4,7 +4,7 @@ use tui::{
     layout::Constraint,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{Block, Borders, Cell, Row, Table, TableState},
+    widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
 
@@ -517,7 +517,7 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
 
 #[test]
 fn widgets_table_can_have_rows_with_multi_lines() {
-    let test_case = |state: &mut TableState, expected: Buffer| {
+    let test_case = |selected: Option<usize>, expected: Buffer| {
         let backend = TestBackend::new(30, 8);
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
@@ -537,17 +537,17 @@ fn widgets_table_can_have_rows_with_multi_lines() {
                     Constraint::Length(5),
                     Constraint::Length(5),
                 ])
+                .select(selected)
                 .column_spacing(1);
-                f.render_stateful_widget(table, size, state);
+                f.render_widget(table, size);
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
     };
 
-    let mut state = TableState::default();
     // no selection
     test_case(
-        &mut state,
+        None,
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1 Head2 Head3           │",
@@ -561,9 +561,8 @@ fn widgets_table_can_have_rows_with_multi_lines() {
     );
 
     // select first
-    state.select(Some(0));
     test_case(
-        &mut state,
+        Some(0),
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│   Head1 Head2 Head3        │",
@@ -577,9 +576,8 @@ fn widgets_table_can_have_rows_with_multi_lines() {
     );
 
     // select second (we don't show partially the 4th row)
-    state.select(Some(1));
     test_case(
-        &mut state,
+        Some(1),
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│   Head1 Head2 Head3        │",
@@ -593,9 +591,8 @@ fn widgets_table_can_have_rows_with_multi_lines() {
     );
 
     // select 4th (we don't show partially the 1st row)
-    state.select(Some(3));
     test_case(
-        &mut state,
+        Some(3),
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│   Head1 Head2 Head3        │",
@@ -613,8 +610,6 @@ fn widgets_table_can_have_rows_with_multi_lines() {
 fn widgets_table_can_have_elements_styled_individually() {
     let backend = TestBackend::new(30, 4);
     let mut terminal = Terminal::new(backend).unwrap();
-    let mut state = TableState::default();
-    state.select(Some(0));
     terminal
         .draw(|f| {
             let size = f.size();
@@ -640,8 +635,9 @@ fn widgets_table_can_have_elements_styled_individually() {
                 Constraint::Length(6),
                 Constraint::Length(6),
             ])
+            .select(Some(0))
             .column_spacing(1);
-            f.render_stateful_widget(table, size, &mut state);
+            f.render_widget(table, size);
         })
         .unwrap();
 
