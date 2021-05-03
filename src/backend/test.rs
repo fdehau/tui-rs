@@ -137,7 +137,7 @@ impl Backend for TestBackend {
         Ok(())
     }
 
-    fn clear(&mut self) -> Result<(), io::Error> {
+    fn clear(&mut self) -> Result<(), Error> {
         self.buffer.reset();
         Ok(())
     }
