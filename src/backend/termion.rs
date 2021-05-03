@@ -3,6 +3,7 @@ use crate::{
     buffer::Cell,
     layout::Rect,
     style::{Color, Modifier},
+    Error,
 };
 use std::{
     fmt,
@@ -43,36 +44,41 @@ where
     W: Write,
 {
     /// Clears the entire screen and move the cursor to the top left of the screen
-    fn clear(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::clear::All)?;
-        write!(self.stdout, "{}", termion::cursor::Goto(1, 1))?;
-        self.stdout.flush()
+    fn clear(&mut self) -> Result<(), Error> {
+        write!(self.stdout, "{}", termion::clear::All).map_err(Error::Clear)?;
+        write!(self.stdout, "{}", termion::cursor::Goto(1, 1))
+            .map_err(|e| Error::MoveCursor(Box::new(e), (1, 1)))?;
+        self.stdout.flush().map_err(Error::Flush)
     }
 
     /// Hides cursor
-    fn hide_cursor(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Hide)?;
-        self.stdout.flush()
+    fn hide_cursor(&mut self) -> Result<(), Error> {
+        write!(self.stdout, "{}", termion::cursor::Hide).map_err(Error::HideCursor)?;
+        self.stdout.flush().map_err(Error::Flush)
     }
 
     /// Shows cursor
-    fn show_cursor(&mut self) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Show)?;
-        self.stdout.flush()
+    fn show_cursor(&mut self) -> Result<(), Error> {
+        write!(self.stdout, "{}", termion::cursor::Show).map_err(Error::ShowCursor)?;
+        self.stdout.flush().map_err(Error::Flush)
     }
 
     /// Gets cursor position (0-based index)
-    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
-        termion::cursor::DetectCursorPos::cursor_pos(&mut self.stdout).map(|(x, y)| (x - 1, y - 1))
+    fn get_cursor(&mut self) -> Result<(u16, u16), Error> {
+        termion::cursor::DetectCursorPos::cursor_pos(&mut self.stdout)
+            .map(|(x, y)| (x - 1, y - 1))
+            .map_err(Error::GetCursosPos)
     }
 
     /// Sets cursor position (0-based index)
-    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
-        write!(self.stdout, "{}", termion::cursor::Goto(x + 1, y + 1))?;
-        self.stdout.flush()
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error> {
+        let (new_x, new_y) = (x + 1, y + 1);
+        write!(self.stdout, "{}", termion::cursor::Goto(new_x, new_y))
+            .map_err(|e| Error::MoveCursor(Box::new(e), (new_x, new_y)))?;
+        self.stdout.flush().map_err(Error::Flush)
     }
 
-    fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -86,7 +92,8 @@ where
         for (x, y, cell) in content {
             // Move the cursor if the previous location was not (x - 1, y)
             if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
-                write!(string, "{}", termion::cursor::Goto(x + 1, y + 1)).unwrap();
+                write!(string, "{}", termion::cursor::Goto(x + 1, y + 1))
+                    .map_err(|e| Error::MoveCursor(Box::new(e), (x + 1, y + 1)))?;
             }
             last_pos = Some((x, y));
             if cell.modifier != modifier {
@@ -98,15 +105,15 @@ where
                         to: cell.modifier
                     }
                 )
-                .unwrap();
+                .map_err(Error::ModifierDiff)?;
                 modifier = cell.modifier;
             }
             if cell.fg != fg {
-                write!(string, "{}", Fg(cell.fg)).unwrap();
+                write!(string, "{}", Fg(cell.fg)).map_err(Error::DrawForeground)?;
                 fg = cell.fg;
             }
             if cell.bg != bg {
-                write!(string, "{}", Bg(cell.bg)).unwrap();
+                write!(string, "{}", Bg(cell.bg)).map_err(Error::DrawBackground)?;
                 bg = cell.bg;
             }
             string.push_str(&cell.symbol);
@@ -119,16 +126,17 @@ where
             Bg(Color::Reset),
             termion::style::Reset,
         )
+        .map_err(|e| Error::Draw(Box::new(e)))
     }
 
     /// Return the size of the terminal
-    fn size(&self) -> io::Result<Rect> {
-        let terminal = termion::terminal_size()?;
+    fn size(&self) -> Result<Rect, Error> {
+        let terminal = termion::terminal_size().map_err(Error::GetTerminalSize)?;
         Ok(Rect::new(0, 0, terminal.0, terminal.1))
     }
 
-    fn flush(&mut self) -> io::Result<()> {
-        self.stdout.flush()
+    fn flush(&mut self) -> Result<(), Error> {
+        self.stdout.flush().map_err(Error::Flush)
     }
 }
 

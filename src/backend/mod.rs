@@ -1,7 +1,6 @@
-use std::io;
-
 use crate::buffer::Cell;
 use crate::layout::Rect;
+use crate::Error;
 
 #[cfg(feature = "rustbox")]
 mod rustbox;
@@ -27,14 +26,14 @@ mod test;
 pub use self::test::TestBackend;
 
 pub trait Backend {
-    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>;
-    fn hide_cursor(&mut self) -> Result<(), io::Error>;
-    fn show_cursor(&mut self) -> Result<(), io::Error>;
-    fn get_cursor(&mut self) -> Result<(u16, u16), io::Error>;
-    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), io::Error>;
-    fn clear(&mut self) -> Result<(), io::Error>;
-    fn size(&self) -> Result<Rect, io::Error>;
-    fn flush(&mut self) -> Result<(), io::Error>;
+    fn hide_cursor(&mut self) -> Result<(), Error>;
+    fn show_cursor(&mut self) -> Result<(), Error>;
+    fn get_cursor(&mut self) -> Result<(u16, u16), Error>;
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error>;
+    fn clear(&mut self) -> Result<(), Error>;
+    fn size(&self) -> Result<Rect, Error>;
+    fn flush(&mut self) -> Result<(), Error>;
 }

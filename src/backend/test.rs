@@ -2,8 +2,9 @@ use crate::{
     backend::Backend,
     buffer::{Buffer, Cell},
     layout::Rect,
+    Error,
 };
-use std::{fmt::Write, io};
+use std::fmt::Write;
 use unicode_width::UnicodeWidthStr;
 
 /// A backend used for the integration tests.
@@ -106,7 +107,7 @@ impl TestBackend {
 }
 
 impl Backend for TestBackend {
-    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -117,21 +118,21 @@ impl Backend for TestBackend {
         Ok(())
     }
 
-    fn hide_cursor(&mut self) -> Result<(), io::Error> {
+    fn hide_cursor(&mut self) -> Result<(), Error> {
         self.cursor = false;
         Ok(())
     }
 
-    fn show_cursor(&mut self) -> Result<(), io::Error> {
+    fn show_cursor(&mut self) -> Result<(), Error> {
         self.cursor = true;
         Ok(())
     }
 
-    fn get_cursor(&mut self) -> Result<(u16, u16), io::Error> {
+    fn get_cursor(&mut self) -> Result<(u16, u16), Error> {
         Ok(self.pos)
     }
 
-    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), io::Error> {
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error> {
         self.pos = (x, y);
         Ok(())
     }
@@ -141,11 +142,11 @@ impl Backend for TestBackend {
         Ok(())
     }
 
-    fn size(&self) -> Result<Rect, io::Error> {
+    fn size(&self) -> Result<Rect, Error> {
         Ok(Rect::new(0, 0, self.width, self.height))
     }
 
-    fn flush(&mut self) -> Result<(), io::Error> {
+    fn flush(&mut self) -> Result<(), Error> {
         Ok(())
     }
 }

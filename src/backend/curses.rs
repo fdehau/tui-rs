@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::backend::Backend;
 use crate::buffer::Cell;
 use crate::layout::Rect;
@@ -7,8 +5,10 @@ use crate::style::{Color, Modifier};
 use crate::symbols::{bar, block};
 #[cfg(unix)]
 use crate::symbols::{line, DOT};
+use crate::Error;
 #[cfg(unix)]
 use pancurses::{chtype, ToChtype};
+use std::io;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
@@ -35,7 +35,7 @@ impl CursesBackend {
 }
 
 impl Backend for CursesBackend {
-    fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
