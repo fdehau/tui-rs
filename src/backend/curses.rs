@@ -7,7 +7,7 @@ use crate::symbols::{bar, block};
 use crate::symbols::{line, DOT};
 #[cfg(unix)]
 use pancurses::{chtype, ToChtype};
-use std::convert::Infallible;
+pub use std::convert::Infallible as Error;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
@@ -34,7 +34,7 @@ impl CursesBackend {
 }
 
 impl Backend for CursesBackend {
-    type Error = Infallible;
+    type Error = Error;
 
     fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where

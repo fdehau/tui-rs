@@ -4,10 +4,14 @@ use crate::layout::Rect;
 #[cfg(feature = "rustbox")]
 pub(super) mod rustbox;
 #[cfg(feature = "rustbox")]
+pub use self::rustbox::Error as RustboxError;
+#[cfg(feature = "rustbox")]
 pub use self::rustbox::RustboxBackend;
 
 #[cfg(feature = "termion")]
 pub(super) mod termion;
+#[cfg(feature = "termion")]
+pub use self::termion::Error as TermionError;
 #[cfg(feature = "termion")]
 pub use self::termion::TermionBackend;
 
@@ -15,11 +19,15 @@ pub use self::termion::TermionBackend;
 pub(super) mod crossterm;
 #[cfg(feature = "crossterm")]
 pub use self::crossterm::CrosstermBackend;
+#[cfg(feature = "crossterm")]
+pub use self::crossterm::Error as CrosstermError;
 
 #[cfg(feature = "curses")]
 pub(super) mod curses;
 #[cfg(feature = "curses")]
 pub use self::curses::CursesBackend;
+#[cfg(feature = "curses")]
+pub use self::curses::Error as CursesError;
 
 mod test;
 pub use self::test::TestBackend;
