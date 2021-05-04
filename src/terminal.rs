@@ -176,8 +176,8 @@ where
 {
     /// Wrapper around Terminal initialization. Each buffer is initialized with a blank string and
     /// default colors for the foreground and the background
-    pub fn new(backend: B) -> Result<Terminal<B>, Error<B::Error>> {
-        let size = backend.size().map_err(Error::Backend)?;
+    pub fn new(backend: B) -> Result<Terminal<B>, B::Error> {
+        let size = backend.size()?;
         Terminal::with_options(
             backend,
             TerminalOptions {
@@ -190,10 +190,7 @@ where
     }
 
     /// UNSTABLE
-    pub fn with_options(
-        backend: B,
-        options: TerminalOptions,
-    ) -> Result<Terminal<B>, Error<B::Error>> {
+    pub fn with_options(backend: B, options: TerminalOptions) -> Result<Terminal<B>, B::Error> {
         Ok(Terminal {
             backend,
             buffers: [
@@ -228,19 +225,17 @@ where
 
     /// Obtains a difference between the previous and the current buffer and passes it to the
     /// current backend for drawing.
-    pub fn flush(&mut self) -> Result<(), Error<B::Error>> {
+    pub fn flush(&mut self) -> Result<(), B::Error> {
         let previous_buffer = &self.buffers[1 - self.current];
         let current_buffer = &self.buffers[self.current];
         let updates = previous_buffer.diff(current_buffer);
-        self.backend
-            .draw(updates.into_iter())
-            .map_err(Error::Backend)
+        self.backend.draw(updates.into_iter())
     }
 
     /// Updates the Terminal so that internal buffers match the requested size. Requested size will
     /// be saved so the size can remain consistent when rendering.
     /// This leads to a full clear of the screen.
-    pub fn resize(&mut self, area: Rect) -> Result<(), Error<B::Error>> {
+    pub fn resize(&mut self, area: Rect) -> Result<(), B::Error> {
         self.buffers[self.current].resize(area);
         self.buffers[1 - self.current].resize(area);
         self.viewport.area = area;
@@ -248,7 +243,7 @@ where
     }
 
     /// Queries the backend for size and resizes if it doesn't match the previous size.
-    pub fn autoresize(&mut self) -> Result<(), Error<B::Error>> {
+    pub fn autoresize(&mut self) -> Result<(), B::Error> {
         if self.viewport.resize_behavior == ResizeBehavior::Auto {
             let size = self.size()?;
             if size != self.viewport.area {
@@ -260,30 +255,30 @@ where
 
     /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
     /// and prepares for the next draw call.
-    pub fn draw<E, F>(&mut self, f: F) -> Result<CompletedFrame, Error<B::Error>>
+    pub fn draw<E, F>(&mut self, f: F) -> Result<CompletedFrame, Error<B::Error, E>>
     where
         E: std::error::Error + Send + Sync + 'static,
         F: FnOnce(&mut Frame<B>) -> Result<(), E>,
     {
         // Autoresize - otherwise we get glitches if shrinking or potential desync between widgets
         // and the terminal (if growing), which may OOB.
-        self.autoresize()?;
+        self.autoresize().map_err(Error::Backend)?;
 
         let mut frame = self.get_frame();
-        f(&mut frame).map_err(|e| Error::DrawFrame(Box::new(e)))?;
+        f(&mut frame).map_err(Error::DrawFrame)?;
         // We can't change the cursor position right away because we have to flush the frame to
         // stdout first. But we also can't keep the frame around, since it holds a &mut to
         // Terminal. Thus, we're taking the important data out of the Frame and dropping it.
         let cursor_position = frame.cursor_position;
 
         // Draw to stdout
-        self.flush()?;
+        self.flush().map_err(Error::Backend)?;
 
         match cursor_position {
-            None => self.hide_cursor()?,
+            None => self.hide_cursor().map_err(Error::Backend)?,
             Some((x, y)) => {
-                self.show_cursor()?;
-                self.set_cursor(x, y)?;
+                self.show_cursor().map_err(Error::Backend)?;
+                self.set_cursor(x, y).map_err(Error::Backend)?;
             }
         }
 
@@ -299,36 +294,36 @@ where
         })
     }
 
-    pub fn hide_cursor(&mut self) -> Result<(), Error<B::Error>> {
-        self.backend.hide_cursor().map_err(Error::Backend)?;
+    pub fn hide_cursor(&mut self) -> Result<(), B::Error> {
+        self.backend.hide_cursor()?;
         self.hidden_cursor = true;
         Ok(())
     }
 
-    pub fn show_cursor(&mut self) -> Result<(), Error<B::Error>> {
-        self.backend.show_cursor().map_err(Error::Backend)?;
+    pub fn show_cursor(&mut self) -> Result<(), B::Error> {
+        self.backend.show_cursor()?;
         self.hidden_cursor = false;
         Ok(())
     }
 
-    pub fn get_cursor(&mut self) -> Result<(u16, u16), Error<B::Error>> {
-        self.backend.get_cursor().map_err(Error::Backend)
+    pub fn get_cursor(&mut self) -> Result<(u16, u16), B::Error> {
+        self.backend.get_cursor()
     }
 
-    pub fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error<B::Error>> {
-        self.backend.set_cursor(x, y).map_err(Error::Backend)
+    pub fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), B::Error> {
+        self.backend.set_cursor(x, y)
     }
 
     /// Clear the terminal and force a full redraw on the next draw call.
-    pub fn clear(&mut self) -> Result<(), Error<B::Error>> {
-        self.backend.clear().map_err(Error::Backend)?;
+    pub fn clear(&mut self) -> Result<(), B::Error> {
+        self.backend.clear()?;
         // Reset the back buffer to make sure the next update will redraw everything.
         self.buffers[1 - self.current].reset();
         Ok(())
     }
 
     /// Queries the real size of the backend.
-    pub fn size(&self) -> Result<Rect, Error<B::Error>> {
-        self.backend.size().map_err(Error::Backend)
+    pub fn size(&self) -> Result<Rect, B::Error> {
+        self.backend.size()
     }
 }
