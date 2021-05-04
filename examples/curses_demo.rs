@@ -5,6 +5,7 @@ mod util;
 use crate::demo::{ui, App};
 use argh::FromArgs;
 use std::{
+    convert::Infallible,
     error::Error,
     io,
     time::{Duration, Instant},
@@ -40,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut last_tick = Instant::now();
     let tick_rate = Duration::from_millis(cli.tick_rate);
     loop {
-        terminal.draw(|f| ui::draw(f, &mut app))?;
+        terminal.draw(|f| Ok::<_, Infallible>(ui::draw(f, &mut app)))?;
         if let Some(input) = terminal.backend_mut().get_curses_mut().get_input() {
             match input {
                 easycurses::Input::Character(c) => {

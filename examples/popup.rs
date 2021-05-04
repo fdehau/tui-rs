@@ -2,7 +2,8 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -41,7 +42,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1]
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -93,6 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let area = centered_rect(60, 20, size);
             f.render_widget(Clear, area); //this clears out the background
             f.render_widget(block, area);
+            Ok::<_, Infallible>(())
         })?;
 
         if let Event::Input(input) = events.next()? {

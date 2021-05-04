@@ -3,12 +3,50 @@ use crate::{
     buffer::Cell,
     layout::Rect,
     style::{Color, Modifier},
-    Error,
 };
 use std::{
     fmt,
     io::{self, Write},
 };
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("failed to reset terminal")]
+    Reset(#[source] std::io::Error),
+
+    #[error("failed to flush")]
+    Flush(#[source] std::io::Error),
+
+    #[error("failed to get terminal size")]
+    GetTerminalSize(#[source] std::io::Error),
+
+    #[error("failed to draw background")]
+    DrawBackground(#[source] std::fmt::Error),
+
+    #[error("failed to draw foreground")]
+    DrawForeground(#[source] std::fmt::Error),
+
+    #[error("failed to construct modifier diff")]
+    ModifierDiff(#[source] std::fmt::Error),
+
+    #[error("failed to move cursor to position in stdout: {1:?}")]
+    MoveCursorStdout(#[source] std::io::Error, (u16, u16)),
+
+    #[error("failed to move cursor to position in string: {1:?}")]
+    MoveCursorString(#[source] std::fmt::Error, (u16, u16)),
+
+    #[error("failed to get cursor position")]
+    GetCursosPos(#[source] std::io::Error),
+
+    #[error("failed to show cursor")]
+    ShowCursor(#[source] std::io::Error),
+
+    #[error("failed to hide cursor")]
+    HideCursor(#[source] std::io::Error),
+
+    #[error("failed to clear terminal")]
+    Clear(#[source] std::io::Error),
+}
 
 pub struct TermionBackend<W>
 where
@@ -43,11 +81,13 @@ impl<W> Backend for TermionBackend<W>
 where
     W: Write,
 {
+    type Error = Error;
+
     /// Clears the entire screen and move the cursor to the top left of the screen
-    fn clear(&mut self) -> Result<(), Error> {
+    fn clear(&mut self) -> Result<(), Self::Error> {
         write!(self.stdout, "{}", termion::clear::All).map_err(Error::Clear)?;
         write!(self.stdout, "{}", termion::cursor::Goto(1, 1))
-            .map_err(|e| Error::MoveCursor(Box::new(e), (1, 1)))?;
+            .map_err(|e| Error::MoveCursorStdout(e, (1, 1)))?;
         self.stdout.flush().map_err(Error::Flush)
     }
 
@@ -74,7 +114,7 @@ where
     fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error> {
         let (new_x, new_y) = (x + 1, y + 1);
         write!(self.stdout, "{}", termion::cursor::Goto(new_x, new_y))
-            .map_err(|e| Error::MoveCursor(Box::new(e), (new_x, new_y)))?;
+            .map_err(|e| Error::MoveCursorStdout(e, (new_x, new_y)))?;
         self.stdout.flush().map_err(Error::Flush)
     }
 
@@ -93,7 +133,7 @@ where
             // Move the cursor if the previous location was not (x - 1, y)
             if !matches!(last_pos, Some(p) if x == p.0 + 1 && y == p.1) {
                 write!(string, "{}", termion::cursor::Goto(x + 1, y + 1))
-                    .map_err(|e| Error::MoveCursor(Box::new(e), (x + 1, y + 1)))?;
+                    .map_err(|e| Error::MoveCursorString(e, (x + 1, y + 1)))?;
             }
             last_pos = Some((x, y));
             if cell.modifier != modifier {
@@ -126,13 +166,13 @@ where
             Bg(Color::Reset),
             termion::style::Reset,
         )
-        .map_err(|e| Error::Draw(Box::new(e)))
+        .map_err(Error::Reset)
     }
 
     /// Return the size of the terminal
     fn size(&self) -> Result<Rect, Error> {
-        let terminal = termion::terminal_size().map_err(Error::GetTerminalSize)?;
-        Ok(Rect::new(0, 0, terminal.0, terminal.1))
+        let (width, height) = termion::terminal_size().map_err(Error::GetTerminalSize)?;
+        Ok(Rect::new(0, 0, width, height))
     }
 
     fn flush(&mut self) -> Result<(), Error> {

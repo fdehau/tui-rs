@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -27,6 +29,7 @@ fn widgets_paragraph_can_wrap_its_content() {
                     .alignment(alignment)
                     .wrap(Wrap { trim: true });
                 f.render_widget(paragraph, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -93,6 +96,7 @@ fn widgets_paragraph_renders_double_width_graphemes() {
                 .block(Block::default().borders(Borders::ALL))
                 .wrap(Wrap { trim: true });
             f.render_widget(paragraph, size);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 
@@ -125,6 +129,7 @@ fn widgets_paragraph_renders_mixed_width_graphemes() {
                 .block(Block::default().borders(Borders::ALL))
                 .wrap(Wrap { trim: true });
             f.render_widget(paragraph, size);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 
@@ -158,6 +163,7 @@ fn widgets_paragraph_can_wrap_with_a_trailing_nbsp() {
 
             let paragraph = Paragraph::new(line).block(Block::default().borders(Borders::ALL));
             f.render_widget(paragraph, size);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     terminal.backend().assert_buffer(&expected);
@@ -179,6 +185,7 @@ fn widgets_paragraph_can_scroll_horizontally() {
                     .alignment(alignment)
                     .scroll(scroll);
                 f.render_widget(paragraph, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);

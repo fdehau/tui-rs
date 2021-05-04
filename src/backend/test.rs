@@ -2,9 +2,8 @@ use crate::{
     backend::Backend,
     buffer::{Buffer, Cell},
     layout::Rect,
-    Error,
 };
-use std::fmt::Write;
+use std::{convert::Infallible, fmt::Write};
 use unicode_width::UnicodeWidthStr;
 
 /// A backend used for the integration tests.
@@ -47,8 +46,8 @@ fn buffer_view(buffer: &Buffer) -> String {
 }
 
 impl TestBackend {
-    pub fn new(width: u16, height: u16) -> TestBackend {
-        TestBackend {
+    pub fn new(width: u16, height: u16) -> Self {
+        Self {
             width,
             height,
             buffer: Buffer::empty(Rect::new(0, 0, width, height)),
@@ -107,7 +106,9 @@ impl TestBackend {
 }
 
 impl Backend for TestBackend {
-    fn draw<'a, I>(&mut self, content: I) -> Result<(), Error>
+    type Error = Infallible;
+
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -118,35 +119,35 @@ impl Backend for TestBackend {
         Ok(())
     }
 
-    fn hide_cursor(&mut self) -> Result<(), Error> {
+    fn hide_cursor(&mut self) -> Result<(), Infallible> {
         self.cursor = false;
         Ok(())
     }
 
-    fn show_cursor(&mut self) -> Result<(), Error> {
+    fn show_cursor(&mut self) -> Result<(), Infallible> {
         self.cursor = true;
         Ok(())
     }
 
-    fn get_cursor(&mut self) -> Result<(u16, u16), Error> {
+    fn get_cursor(&mut self) -> Result<(u16, u16), Infallible> {
         Ok(self.pos)
     }
 
-    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Error> {
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Infallible> {
         self.pos = (x, y);
         Ok(())
     }
 
-    fn clear(&mut self) -> Result<(), Error> {
+    fn clear(&mut self) -> Result<(), Infallible> {
         self.buffer.reset();
         Ok(())
     }
 
-    fn size(&self) -> Result<Rect, Error> {
+    fn size(&self) -> Result<Rect, Infallible> {
         Ok(Rect::new(0, 0, self.width, self.height))
     }
 
-    fn flush(&mut self) -> Result<(), Error> {
+    fn flush(&mut self) -> Result<(), Infallible> {
         Ok(())
     }
 }

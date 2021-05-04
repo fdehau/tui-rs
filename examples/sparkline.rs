@@ -5,7 +5,8 @@ use crate::util::{
     event::{Event, Events},
     RandomSignal,
 };
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -106,6 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .data(&app.data3)
                 .style(Style::default().fg(Color::Red));
             f.render_widget(sparkline, chunks[2]);
+            Ok::<_, Infallible>(())
         })?;
 
         match events.next()? {

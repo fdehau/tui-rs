@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use tui::backend::TestBackend;
 use tui::buffer::Buffer;
 use tui::widgets::{BarChart, Block, Borders};
@@ -19,6 +20,7 @@ fn widgets_barchart_not_full_below_max_value() {
                     .bar_width(7)
                     .bar_gap(0);
                 f.render_widget(barchart, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);

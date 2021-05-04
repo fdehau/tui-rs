@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use tui::{
     backend::TestBackend, buffer::Buffer, layout::Rect, symbols, text::Spans, widgets::Tabs,
     Terminal,
@@ -19,6 +20,7 @@ fn widgets_tabs_should_not_panic_on_narrow_areas() {
                     height: 1,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let expected = Buffer::with_lines(vec![" "]);
@@ -41,6 +43,7 @@ fn widgets_tabs_should_truncate_the_last_item() {
                     height: 1,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let expected = Buffer::with_lines(vec![format!(" Tab1 {} T ", symbols::line::VERTICAL)]);

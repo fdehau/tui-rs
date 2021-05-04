@@ -2,7 +2,8 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -13,7 +14,7 @@ use tui::{
     Terminal,
 };
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -74,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .borders(Borders::LEFT | Borders::RIGHT)
                 .border_type(BorderType::Double);
             f.render_widget(block, bottom_chunks[1]);
+            Ok::<_, Infallible>(())
         })?;
 
         if let Event::Input(key) = events.next()? {

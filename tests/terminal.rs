@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{convert::Infallible, error::Error};
 use tui::{
     backend::{Backend, TestBackend},
     layout::Rect,
@@ -22,6 +22,7 @@ fn terminal_draw_returns_the_completed_frame() -> Result<(), Box<dyn Error>> {
     let frame = terminal.draw(|f| {
         let paragrah = Paragraph::new("Test");
         f.render_widget(paragrah, f.size());
+        Ok::<_, Infallible>(())
     })?;
     assert_eq!(frame.buffer.get(0, 0).symbol, "T");
     assert_eq!(frame.area, Rect::new(0, 0, 10, 10));
@@ -29,6 +30,7 @@ fn terminal_draw_returns_the_completed_frame() -> Result<(), Box<dyn Error>> {
     let frame = terminal.draw(|f| {
         let paragrah = Paragraph::new("test");
         f.render_widget(paragrah, f.size());
+        Ok::<_, Infallible>(())
     })?;
     assert_eq!(frame.buffer.get(0, 0).symbol, "t");
     assert_eq!(frame.area, Rect::new(0, 0, 8, 8));

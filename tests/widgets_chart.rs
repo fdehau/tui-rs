@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -37,6 +38,7 @@ fn widgets_chart_can_render_on_small_areas() {
                             .labels(create_labels(&["0.0", "1.0"])),
                     );
                 f.render_widget(chart, f.size());
+                Ok::<_, Infallible>(())
             })
             .unwrap();
     };
@@ -79,6 +81,7 @@ fn widgets_chart_can_have_axis_with_zero_length_bounds() {
                     height: 100,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 }
@@ -119,6 +122,7 @@ fn widgets_chart_handles_overflows() {
                     height: 30,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 }
@@ -156,6 +160,7 @@ fn widgets_chart_can_have_empty_datasets() {
                     height: 100,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 }
@@ -226,6 +231,7 @@ fn widgets_chart_can_have_a_legend() {
                     height: 30,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec![

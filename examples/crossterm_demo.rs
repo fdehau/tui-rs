@@ -11,6 +11,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::{
+    convert::Infallible,
     error::Error,
     io::stdout,
     sync::mpsc,
@@ -75,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.clear()?;
 
     loop {
-        terminal.draw(|f| ui::draw(f, &mut app))?;
+        terminal.draw(|f| Ok::<_, Infallible>(ui::draw(f, &mut app)))?;
         match rx.recv()? {
             Event::Input(event) => match event.code {
                 KeyCode::Char('q') => {

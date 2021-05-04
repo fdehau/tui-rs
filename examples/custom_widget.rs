@@ -2,7 +2,8 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend, buffer::Buffer, layout::Rect, style::Style, widgets::Widget, Terminal,
@@ -31,7 +32,7 @@ impl<'a> Label<'a> {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -46,6 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let size = f.size();
             let label = Label::default().text("Test");
             f.render_widget(label, size);
+            Ok::<_, Infallible>(())
         })?;
 
         if let Event::Input(key) = events.next()? {

@@ -5,7 +5,7 @@ use crate::util::{
     event::{Event, Events},
     TabsState,
 };
-use std::{error::Error, io};
+use std::{convert::Infallible, error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -77,6 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => unreachable!(),
             };
             f.render_widget(inner, chunks[1]);
+            Ok::<_, Infallible>(())
         })?;
 
         if let Event::Input(input) = events.next()? {

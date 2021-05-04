@@ -2,7 +2,7 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use std::{convert::Infallible, error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -114,6 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .add_modifier(Modifier::ITALIC),
                 );
             f.render_widget(barchart, chunks[1]);
+            Ok::<_, Infallible>(())
         })?;
 
         match events.next()? {

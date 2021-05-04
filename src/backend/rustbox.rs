@@ -4,7 +4,12 @@ use crate::{
     layout::Rect,
     style::{Color, Modifier},
 };
-use std::io;
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("rustbox does not support getting cursor position")]
+    GetCursosPos,
+}
 
 pub struct RustboxBackend {
     rustbox: rustbox::RustBox,
@@ -26,7 +31,9 @@ impl RustboxBackend {
 }
 
 impl Backend for RustboxBackend {
-    fn draw<'a, I>(&mut self, content: I) -> Result<(), io::Error>
+    type Error = Error;
+
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -42,24 +49,30 @@ impl Backend for RustboxBackend {
         }
         Ok(())
     }
-    fn hide_cursor(&mut self) -> Result<(), io::Error> {
+
+    fn hide_cursor(&mut self) -> Result<(), Self::Error> {
         Ok(())
     }
-    fn show_cursor(&mut self) -> Result<(), io::Error> {
+
+    fn show_cursor(&mut self) -> Result<(), Self::Error> {
         Ok(())
     }
-    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
-        Err(io::Error::from(io::ErrorKind::Other))
+
+    fn get_cursor(&mut self) -> Result<(u16, u16), Self::Error> {
+        Err(Error::GetCursosPos)
     }
-    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Self::Error> {
         self.rustbox.set_cursor(x as isize, y as isize);
         Ok(())
     }
-    fn clear(&mut self) -> Result<(), io::Error> {
+
+    fn clear(&mut self) -> Result<(), Self::Error> {
         self.rustbox.clear();
         Ok(())
     }
-    fn size(&self) -> Result<Rect, io::Error> {
+
+    fn size(&self) -> Result<Rect, Self::Error> {
         let term_width = self.rustbox.width();
         let term_height = self.rustbox.height();
         let max = u16::max_value();
@@ -78,7 +91,8 @@ impl Backend for RustboxBackend {
             },
         ))
     }
-    fn flush(&mut self) -> Result<(), io::Error> {
+
+    fn flush(&mut self) -> Result<(), Self::Error> {
         self.rustbox.present();
         Ok(())
     }

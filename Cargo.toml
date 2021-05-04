@@ -35,6 +35,7 @@ thiserror = "1"
 
 [dev-dependencies]
 rand = "0.8"
+anyhow = "1"
 argh = "0.1"
 
 [[example]]

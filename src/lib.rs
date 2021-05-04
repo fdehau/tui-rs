@@ -32,12 +32,13 @@
 //! screen, hiding the cursor, etc.
 //!
 //! ```rust,no_run
+//! use anyhow::Result;
 //! use std::io;
 //! use tui::Terminal;
 //! use tui::backend::TermionBackend;
 //! use termion::raw::IntoRawMode;
 //!
-//! fn main() -> Result<(), io::Error> {
+//! fn main() -> Result<()> {
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
@@ -77,14 +78,15 @@
 //! The following example renders a block of the size of the terminal:
 //!
 //! ```rust,no_run
-//! use std::io;
+//! use anyhow::Result;
+//! use std::{convert::Infallible, io};
 //! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
 //! use tui::backend::TermionBackend;
 //! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Layout, Constraint, Direction};
 //!
-//! fn main() -> Result<(), io::Error> {
+//! fn main() -> Result<()> {
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
@@ -94,6 +96,7 @@
 //!             .title("Block")
 //!             .borders(Borders::ALL);
 //!         f.render_widget(block, size);
+//!         Ok::<_, Infallible>(())
 //!     })?;
 //!     Ok(())
 //! }
@@ -106,14 +109,15 @@
 //! full customization. And `Layout` is no exception:
 //!
 //! ```rust,no_run
-//! use std::io;
+//! use anyhow::Result;
+//! use std::{convert::Infallible, io};
 //! use termion::raw::IntoRawMode;
 //! use tui::Terminal;
 //! use tui::backend::TermionBackend;
 //! use tui::widgets::{Widget, Block, Borders};
 //! use tui::layout::{Layout, Constraint, Direction};
 //!
-//! fn main() -> Result<(), io::Error> {
+//! fn main() -> Result<()> {
 //!     let stdout = io::stdout().into_raw_mode()?;
 //!     let backend = TermionBackend::new(stdout);
 //!     let mut terminal = Terminal::new(backend)?;
@@ -137,6 +141,7 @@
 //!              .title("Block 2")
 //!              .borders(Borders::ALL);
 //!         f.render_widget(block, chunks[1]);
+//!         Ok::<_, Infallible>(())
 //!     })?;
 //!     Ok(())
 //! }
