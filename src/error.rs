@@ -1,12 +1,8 @@
 #[derive(Debug, thiserror::Error)]
-pub enum Error<B, D>
-where
-    B: std::error::Error + Sync + Sync + 'static,
-    D: std::error::Error + Sync + Sync + 'static,
-{
+pub enum Error {
     #[error("failed to execute backend operation")]
-    Backend(#[source] B),
+    Backend(#[source] Box<dyn std::error::Error + Send + Sync + 'static>),
 
     #[error("failed to draw frame")]
-    DrawFrame(#[source] D),
+    DrawFrame(#[source] Box<dyn std::error::Error + Send + Sync + 'static>),
 }
