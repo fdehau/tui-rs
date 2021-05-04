@@ -255,7 +255,7 @@ where
 
     /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
     /// and prepares for the next draw call.
-    pub fn draw<E, F>(&mut self, f: F) -> Result<CompletedFrame, Error<B::Error>>
+    pub fn draw<E, F>(&mut self, f: F) -> Result<CompletedFrame, Error<B::Error, E>>
     where
         E: std::error::Error + Send + Sync + 'static,
         F: FnOnce(&mut Frame<B>) -> Result<(), E>,
@@ -265,7 +265,7 @@ where
         self.autoresize().map_err(Error::Backend)?;
 
         let mut frame = self.get_frame();
-        f(&mut frame).map_err(|e| Error::DrawFrame(Box::new(e)))?;
+        f(&mut frame).map_err(Error::DrawFrame)?;
         // We can't change the cursor position right away because we have to flush the frame to
         // stdout first. But we also can't keep the frame around, since it holds a &mut to
         // Terminal. Thus, we're taking the important data out of the Frame and dropping it.
