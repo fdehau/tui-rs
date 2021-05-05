@@ -221,12 +221,15 @@ impl<'a> Widget for Block<'a> {
                 .saturating_sub(right_border_dx);
 
             let title_dx = match self.title_alignment {
-                Alignment::Left => 0,
-                Alignment::Center => (title_area_width - title.width() as u16) / 2,
-                Alignment::Right => (title_area_width - title.width() as u16),
+                Alignment::Left => left_border_dx,
+                Alignment::Center => area.width.saturating_sub(title.width() as u16) / 2,
+                Alignment::Right => area
+                    .width
+                    .saturating_sub(title.width() as u16)
+                    .saturating_sub(right_border_dx),
             };
 
-            let title_x = area.left() + left_border_dx + title_dx;
+            let title_x = area.left() + title_dx;
             let title_y = area.top();
 
             buf.set_spans(title_x, title_y, &title, title_area_width);
