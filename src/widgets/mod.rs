@@ -67,7 +67,7 @@ bitflags! {
 /// ## Examples
 ///
 ///```
-/// # use tui::widgets::{Block};
+/// # use tui::widgets::{Block, Borders};
 /// # use tui::style::{Style, Color};
 /// # use tui::border;
 ///
