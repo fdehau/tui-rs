@@ -71,7 +71,7 @@ bitflags! {
 /// # use tui::style::{Style, Color};
 /// Block::default()
 ///     //Construct a `Borders` object and use it in place
-///     .borders(border!(TOP, BOTTOM))
+///     .borders(border!(TOP, BOTTOM));
 ///
 /// //`border!` can be called with any order of individual sides
 /// let bottom_first = border!(BOTTOM, LEFT, TOP);
