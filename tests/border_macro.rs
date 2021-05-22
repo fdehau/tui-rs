@@ -11,12 +11,12 @@ use tui::{
 
 #[test]
 fn border_empty_test() {
-    let empty = Borders::empty();
+    let empty = Borders::NONE;
     assert_eq!(empty, border!());
 }
 #[test]
 fn border_all_test() {
-    let all = Borders::all();
+    let all = Borders::ALL;
     assert_eq!(all, border!(ALL));
     assert_eq!(all, border!(TOP, BOTTOM, LEFT, RIGHT));
 }

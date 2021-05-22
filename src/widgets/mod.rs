@@ -60,7 +60,7 @@ bitflags! {
     }
 }
 
-/// Macro that constructs and returns a [`Borders`] object from TOP, BOTTOM, LEFT, RIGHT, and ALL.
+/// Macro that constructs and returns a [`Borders`] object from TOP, BOTTOM, LEFT, RIGHT, NONE, and ALL.
 /// Internally it creates an empty `Borders` object and then inserts each bit flag specified
 /// into it using `Borders::insert()`.
 ///
@@ -77,19 +77,22 @@ bitflags! {
 /// let bottom_first = border!(BOTTOM, LEFT, TOP);
 /// //with the ALL keyword which works as expected
 /// let all = border!(ALL);
-/// //or with nothing at all to return `Borders::empty()`.
-/// let empty = border!();
+/// //or with nothing to return a `Borders::NONE' bitflag.
+/// let none = border!(NONE);
 ///
 ///```
 #[macro_export]
 macro_rules! border {
-    ( $($b:tt), *) => {{
+    ( $($b:tt), +) => {{
             let mut border = Borders::empty();
             $(
                border.insert(Borders::$b);
             )*
             border
     }};
+    () =>{
+        Borders::NONE
+    }
 }
 
 /// Base requirements for a Widget
