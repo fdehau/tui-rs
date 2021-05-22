@@ -1,12 +1,6 @@
 use tui::{
-    backend::TestBackend,
     border,
-    buffer::Buffer,
-    layout::Rect,
-    style::{Color, Style},
-    text::Span,
     widgets::{Block, Borders},
-    Terminal,
 };
 
 #[test]
