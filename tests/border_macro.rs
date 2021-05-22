@@ -1,7 +1,4 @@
-use tui::{
-    border,
-    widgets::{Block, Borders},
-};
+use tui::{border, widgets::Borders};
 
 #[test]
 fn border_empty_test() {
