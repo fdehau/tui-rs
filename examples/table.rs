@@ -2,7 +2,7 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use std::{convert::Infallible, error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -123,6 +123,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Constraint::Max(10),
                 ]);
             f.render_stateful_widget(t, rects[0], &mut table.state);
+            Ok::<_, Infallible>(())
         })?;
 
         if let Event::Input(key) = events.next()? {

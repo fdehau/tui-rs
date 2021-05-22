@@ -5,7 +5,8 @@ use crate::util::{
     event::{Event, Events},
     StatefulList,
 };
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -96,7 +97,7 @@ impl<'a> App<'a> {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -191,6 +192,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .block(Block::default().borders(Borders::ALL).title("List"))
                 .start_corner(Corner::BottomLeft);
             f.render_widget(events_list, chunks[1]);
+            Ok::<_, Infallible>(())
         })?;
 
         // This is a simple example on how to handle events

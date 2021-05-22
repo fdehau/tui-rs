@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -32,6 +33,7 @@ fn widgets_gauge_renders() {
                 .use_unicode(true)
                 .ratio(0.511_313_934_313_1);
             f.render_widget(gauge, chunks[1]);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec![
@@ -99,6 +101,7 @@ fn widgets_gauge_renders_no_unicode() {
                 .ratio(0.211_313_934_313_1)
                 .use_unicode(false);
             f.render_widget(gauge, chunks[1]);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let expected = Buffer::with_lines(vec![
@@ -148,6 +151,7 @@ fn widgets_line_gauge_renders() {
                     height: 3,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec![

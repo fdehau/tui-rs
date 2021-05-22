@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -32,6 +34,7 @@ fn widgets_table_column_spacing_can_be_changed() {
                 ])
                 .column_spacing(column_spacing);
                 f.render_widget(table, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -125,6 +128,7 @@ fn widgets_table_columns_widths_can_use_fixed_length_constraints() {
                 .block(Block::default().borders(Borders::ALL))
                 .widths(widths);
                 f.render_widget(table, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -214,6 +218,7 @@ fn widgets_table_columns_widths_can_use_percentage_constraints() {
                 .widths(widths)
                 .column_spacing(0);
                 f.render_widget(table, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -319,6 +324,7 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
                 .block(Block::default().borders(Borders::ALL))
                 .widths(widths);
                 f.render_widget(table, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -429,6 +435,7 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
                 .widths(widths)
                 .column_spacing(0);
                 f.render_widget(table, size);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -539,6 +546,7 @@ fn widgets_table_can_have_rows_with_multi_lines() {
                 ])
                 .column_spacing(1);
                 f.render_stateful_widget(table, size, state);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);
@@ -642,6 +650,7 @@ fn widgets_table_can_have_elements_styled_individually() {
             ])
             .column_spacing(1);
             f.render_stateful_widget(table, size, &mut state);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 
@@ -703,6 +712,7 @@ fn widgets_table_should_render_even_if_empty() {
                 ])
                 .column_spacing(1);
             f.render_widget(table, size);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
 

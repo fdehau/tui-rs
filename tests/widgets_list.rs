@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -26,6 +28,7 @@ fn widgets_list_should_highlight_the_selected_item() {
                 .highlight_style(Style::default().bg(Color::Yellow))
                 .highlight_symbol(">> ");
             f.render_stateful_widget(list, size, &mut state);
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec!["   Item 1 ", ">> Item 2 ", "   Item 3 "]);
@@ -81,6 +84,7 @@ fn widgets_list_should_truncate_items() {
                     .block(Block::default().borders(Borders::RIGHT))
                     .highlight_symbol(">> ");
                 f.render_stateful_widget(list, Rect::new(0, 0, 8, 2), &mut state);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&case.expected);

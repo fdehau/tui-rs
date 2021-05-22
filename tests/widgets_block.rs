@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
@@ -26,6 +27,7 @@ fn widgets_block_renders() {
                     height: 8,
                 },
             );
+            Ok::<_, Infallible>(())
         })
         .unwrap();
     let mut expected = Buffer::with_lines(vec![
@@ -54,6 +56,7 @@ fn widgets_block_renders_on_small_areas() {
         terminal
             .draw(|f| {
                 f.render_widget(block, area);
+                Ok::<_, Infallible>(())
             })
             .unwrap();
         terminal.backend().assert_buffer(&expected);

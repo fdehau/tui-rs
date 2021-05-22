@@ -6,8 +6,9 @@ use crate::{
     demo::{ui, App},
     util::event::{Config, Event, Events},
 };
+use anyhow::Result;
 use argh::FromArgs;
-use std::{error::Error, io, time::Duration};
+use std::{convert::Infallible, io, time::Duration};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{backend::TermionBackend, Terminal};
 
@@ -22,7 +23,7 @@ struct Cli {
     enhanced_graphics: bool,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let cli: Cli = argh::from_env();
 
     let events = Events::with_config(Config {
@@ -38,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut app = App::new("Termion demo", cli.enhanced_graphics);
     loop {
-        terminal.draw(|f| ui::draw(f, &mut app))?;
+        terminal.draw(|f| Ok::<_, Infallible>(ui::draw(f, &mut app)))?;
 
         match events.next()? {
             Event::Input(key) => match key {

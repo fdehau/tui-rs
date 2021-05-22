@@ -2,7 +2,8 @@
 mod util;
 
 use crate::util::event::{Config, Event, Events};
-use std::{error::Error, io, time::Duration};
+use anyhow::Result;
+use std::{convert::Infallible, io, time::Duration};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -72,7 +73,7 @@ impl App {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -116,6 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .x_bounds([10.0, 110.0])
                 .y_bounds([10.0, 110.0]);
             f.render_widget(canvas, chunks[1]);
+            Ok::<_, Infallible>(())
         })?;
 
         match events.next()? {

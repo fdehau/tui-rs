@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::backend::Backend;
 use crate::buffer::Cell;
 use crate::layout::Rect;
@@ -9,6 +7,7 @@ use crate::symbols::{bar, block};
 use crate::symbols::{line, DOT};
 #[cfg(unix)]
 use pancurses::{chtype, ToChtype};
+pub use std::convert::Infallible as Error;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub struct CursesBackend {
@@ -35,7 +34,9 @@ impl CursesBackend {
 }
 
 impl Backend for CursesBackend {
-    fn draw<'a, I>(&mut self, content: I) -> io::Result<()>
+    type Error = Error;
+
+    fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where
         I: Iterator<Item = (u16, u16, &'a Cell)>,
     {
@@ -93,34 +94,41 @@ impl Backend for CursesBackend {
         ));
         Ok(())
     }
-    fn hide_cursor(&mut self) -> io::Result<()> {
+
+    fn hide_cursor(&mut self) -> Result<(), Self::Error> {
         self.curses
             .set_cursor_visibility(easycurses::CursorVisibility::Invisible);
         Ok(())
     }
-    fn show_cursor(&mut self) -> io::Result<()> {
+
+    fn show_cursor(&mut self) -> Result<(), Self::Error> {
         self.curses
             .set_cursor_visibility(easycurses::CursorVisibility::Visible);
         Ok(())
     }
-    fn get_cursor(&mut self) -> io::Result<(u16, u16)> {
+
+    fn get_cursor(&mut self) -> Result<(u16, u16), Self::Error> {
         let (y, x) = self.curses.get_cursor_rc();
         Ok((x as u16, y as u16))
     }
-    fn set_cursor(&mut self, x: u16, y: u16) -> io::Result<()> {
+
+    fn set_cursor(&mut self, x: u16, y: u16) -> Result<(), Self::Error> {
         self.curses.move_rc(i32::from(y), i32::from(x));
         Ok(())
     }
-    fn clear(&mut self) -> io::Result<()> {
+
+    fn clear(&mut self) -> Result<(), Self::Error> {
         self.curses.clear();
         // self.curses.refresh();
         Ok(())
     }
-    fn size(&self) -> Result<Rect, io::Error> {
+
+    fn size(&self) -> Result<Rect, Self::Error> {
         let (nrows, ncols) = self.curses.get_row_col_count();
         Ok(Rect::new(0, 0, ncols as u16, nrows as u16))
     }
-    fn flush(&mut self) -> io::Result<()> {
+
+    fn flush(&mut self) -> Result<(), Self::Error> {
         self.curses.refresh();
         Ok(())
     }

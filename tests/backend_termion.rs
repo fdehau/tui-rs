@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 #[cfg(feature = "termion")]
 #[test]
 fn backend_termion_should_only_write_diffs() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,12 +22,15 @@ fn backend_termion_should_only_write_diffs() -> Result<(), Box<dyn std::error::E
         )?;
         terminal.draw(|f| {
             f.render_widget(Paragraph::new("a"), area);
+            Ok::<_, Infallible>(())
         })?;
         terminal.draw(|f| {
             f.render_widget(Paragraph::new("ab"), area);
+            Ok::<_, Infallible>(())
         })?;
         terminal.draw(|f| {
             f.render_widget(Paragraph::new("abc"), area);
+            Ok::<_, Infallible>(())
         })?;
     }
 

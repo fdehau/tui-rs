@@ -5,7 +5,8 @@ use crate::util::{
     event::{Event, Events},
     SinSignal,
 };
-use std::{error::Error, io};
+use anyhow::Result;
+use std::{convert::Infallible, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -65,7 +66,7 @@ impl App {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -228,6 +229,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         ]),
                 );
             f.render_widget(chart, chunks[2]);
+            Ok::<_, Infallible>(())
         })?;
 
         match events.next()? {
