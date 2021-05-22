@@ -69,6 +69,8 @@ bitflags! {
 ///```
 /// # use tui::widgets::{Block};
 /// # use tui::style::{Style, Color};
+/// # use tui::border;
+///
 /// Block::default()
 ///     //Construct a `Borders` object and use it in place
 ///     .borders(border!(TOP, BOTTOM));
