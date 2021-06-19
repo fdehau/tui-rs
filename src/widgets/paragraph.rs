@@ -40,9 +40,8 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
-///     .wrap(Wrap { trim: true });
+///     .wrap(Wrap::default());
 /// ```
-#[derive(Debug, Clone)]
 pub struct Paragraph<'a> {
     /// A block to wrap the widget in
     block: Option<Block<'a>>,
@@ -70,7 +69,7 @@ pub struct Paragraph<'a> {
 ///     - Here is another point that is long enough to wrap"#);
 ///
 /// // With leading spaces trimmed (window width of 30 chars):
-/// Paragraph::new(bullet_points.clone()).wrap(Wrap { trim: true });
+/// Paragraph::new(bullet_points.clone()).wrap(Wrap::default());
 /// // Some indented points:
 /// // - First thing goes here and is
 /// // long so that it wraps
@@ -78,18 +77,29 @@ pub struct Paragraph<'a> {
 /// // is long enough to wrap
 ///
 /// // But without trimming, indentation is preserved:
-/// Paragraph::new(bullet_points).wrap(Wrap { trim: false });
+/// Paragraph::new(bullet_points).wrap(Wrap { trim: false, ..Wrap::default() });
 /// // Some indented points:
 /// //     - First thing goes here
 /// // and is long so that it wraps
 /// //     - Here is another point
 /// // that is long enough to wrap
 /// ```
-#[derive(Debug, Clone, Copy)]
 pub struct Wrap {
     /// Should leading whitespace be trimmed
     pub trim: bool,
+    pub scroll_callback: Option<Box<ScrollCallback>>,
 }
+
+impl Default for Wrap {
+    fn default() -> Wrap {
+        Wrap {
+            trim: true,
+            scroll_callback: None,
+        }
+    }
+}
+
+pub type ScrollCallback = dyn FnOnce(Rect, &[(Vec<StyledGrapheme<'_>>, u16)]) -> (u16, u16);
 
 impl<'a> Paragraph<'a> {
     pub fn new<T>(text: T) -> Paragraph<'a>
@@ -130,6 +140,42 @@ impl<'a> Paragraph<'a> {
         self.alignment = alignment;
         self
     }
+
+    fn draw_lines<'b, T>(
+        &self,
+        text_area: Rect,
+        buf: &mut Buffer,
+        mut line_composer: T,
+        scroll: (u16, u16),
+    ) where
+        T: LineComposer<'b>,
+    {
+        let mut y = 0;
+        let mut i = 0;
+        while let Some((current_line, current_line_width)) = line_composer.next_line() {
+            if i >= scroll.0 {
+                let cell_y = text_area.top().saturating_add(y);
+                let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
+                for StyledGrapheme { symbol, style } in current_line {
+                    buf.get_mut(text_area.left() + x, cell_y)
+                        .set_symbol(if symbol.is_empty() {
+                            // If the symbol is empty, the last char which rendered last time will
+                            // leave on the line. It's a quick fix.
+                            " "
+                        } else {
+                            symbol
+                        })
+                        .set_style(*style);
+                    x += symbol.width() as u16;
+                }
+                y += 1;
+            }
+            i += 1;
+            if y >= text_area.height {
+                break;
+            }
+        }
+    }
 }
 
 impl<'a> Widget for Paragraph<'a> {
@@ -158,40 +204,54 @@ impl<'a> Widget for Paragraph<'a> {
                 // composers to operate on lines instead of a stream of graphemes.
                 .chain(iter::once(StyledGrapheme {
                     symbol: "\n",
-                    style: self.style,
+                    style,
                 }))
         });
 
-        let mut line_composer: Box<dyn LineComposer> = if let Some(Wrap { trim }) = self.wrap {
-            Box::new(WordWrapper::new(&mut styled, text_area.width, trim))
-        } else {
-            let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
-            if let Alignment::Left = self.alignment {
-                line_composer.set_horizontal_offset(self.scroll.1);
-            }
-            line_composer
-        };
-        let mut y = 0;
-        while let Some((current_line, current_line_width)) = line_composer.next_line() {
-            if y >= self.scroll.0 {
-                let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
-                for StyledGrapheme { symbol, style } in current_line {
-                    buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
-                        .set_symbol(if symbol.is_empty() {
-                            // If the symbol is empty, the last char which rendered last time will
-                            // leave on the line. It's a quick fix.
-                            " "
-                        } else {
-                            symbol
-                        })
-                        .set_style(*style);
-                    x += symbol.width() as u16;
+        match self.wrap {
+            None => {
+                let mut line_composer = LineTruncator::new(&mut styled, text_area.width);
+                if let Alignment::Left = self.alignment {
+                    line_composer.set_horizontal_offset(self.scroll.1);
                 }
+                self.draw_lines(text_area, buf, line_composer, self.scroll);
             }
-            y += 1;
-            if y >= text_area.height + self.scroll.0 {
-                break;
+            Some(Wrap {
+                trim,
+                scroll_callback: None,
+            }) => {
+                let line_composer = WordWrapper::new(&mut styled, text_area.width, trim);
+                self.draw_lines(text_area, buf, line_composer, self.scroll);
             }
+            Some(Wrap {
+                trim,
+                ref mut scroll_callback,
+            }) => {
+                let mut line_composer = WordWrapper::new(&mut styled, text_area.width, trim);
+                let mut lines = Vec::new();
+                while let Some((current_line, current_line_width)) = line_composer.next_line() {
+                    lines.push((Vec::from(current_line), current_line_width));
+                }
+                let f = scroll_callback.take().unwrap();
+                let scroll = f(text_area, lines.as_ref());
+                self.draw_lines(text_area, buf, WrappedLines { lines, index: 0 }, scroll);
+            }
+        };
+    }
+}
+
+struct WrappedLines<'a> {
+    lines: Vec<(Vec<StyledGrapheme<'a>>, u16)>,
+    index: usize,
+}
+
+impl<'a> LineComposer<'a> for WrappedLines<'a> {
+    fn next_line(&mut self) -> Option<(&[StyledGrapheme<'a>], u16)> {
+        if self.index >= self.lines.len() {
+            return None;
         }
+        let (line, width) = &self.lines[self.index];
+        self.index += 1;
+        Some((&line, *width))
     }
 }
