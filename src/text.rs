@@ -51,6 +51,8 @@ use std::borrow::Cow;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
+const NBSP: &str = "\u{00a0}";
+
 /// A grapheme associated to a style.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StyledGrapheme<'a> {
@@ -179,6 +181,29 @@ impl<'a> Span<'a> {
             })
             .filter(|s| s.symbol != "\n")
     }
+
+    fn split_at_in_place(&mut self, mid: usize) -> Span<'a> {
+        let content = match self.content {
+            Cow::Owned(ref mut s) => {
+                let s2 = s[mid..].to_string();
+                s.truncate(mid);
+                Cow::Owned(s2)
+            }
+            Cow::Borrowed(s) => {
+                let (s1, s2) = s.split_at(mid);
+                self.content = Cow::Borrowed(s1);
+                Cow::Borrowed(s2)
+            }
+        };
+        Span {
+            content,
+            style: self.style,
+        }
+    }
+
+    fn trim_start(&mut self) {
+        self.content = Cow::Owned(String::from(self.content.trim_start()));
+    }
 }
 
 impl<'a> From<String> for Span<'a> {
@@ -252,6 +277,15 @@ impl<'a> From<Spans<'a>> for String {
             acc.push_str(s.content.as_ref());
             acc
         })
+    }
+}
+
+impl<'a> IntoIterator for Spans<'a> {
+    type Item = Span<'a>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
@@ -436,5 +470,155 @@ impl<'a> IntoIterator for Text<'a> {
 impl<'a> Extend<Spans<'a>> for Text<'a> {
     fn extend<T: IntoIterator<Item = Spans<'a>>>(&mut self, iter: T) {
         self.lines.extend(iter);
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WrappedText<'a> {
+    text: Text<'a>,
+    trim: bool,
+    width: u16,
+    column: u16,
+    last_word_end: u16,
+    was_whitespace: bool,
+}
+
+impl<'a> WrappedText<'a> {
+    pub fn new(width: u16) -> Self {
+        Self {
+            text: Text::default(),
+            width,
+            trim: true,
+            column: 0,
+            last_word_end: 0,
+            was_whitespace: false,
+        }
+    }
+
+    pub fn trim(mut self, trim: bool) -> Self {
+        self.trim = trim;
+        self
+    }
+
+    fn push_span(&mut self, span: Span<'a>) {
+        if self.text.lines.is_empty() {
+            self.text.lines.push(Spans::default());
+        }
+        let last_line = self.text.lines.len() - 1;
+        self.text.lines[last_line].0.push(span);
+    }
+
+    fn push_spans<T>(&mut self, spans: T)
+    where
+        T: IntoIterator<Item = Span<'a>>,
+    {
+        let mut iter = spans.into_iter();
+        let mut pending_span = iter.next();
+        while let Some(mut span) = pending_span.take() {
+            let span_position = self.column;
+            let mut breakpoint = None;
+            // Skip leading whitespaces when trim is enabled
+            if self.column == 0 && self.trim {
+                span.trim_start();
+            }
+            for grapheme in UnicodeSegmentation::graphemes(span.content.as_ref(), true) {
+                let grapheme_width = grapheme.width() as u16;
+                // Ignore grapheme that are larger than the allowed width
+                if grapheme_width > self.width {
+                    continue;
+                }
+                let is_whitespace = grapheme.chars().all(&char::is_whitespace);
+                if is_whitespace && !self.was_whitespace && grapheme != NBSP {
+                    self.last_word_end = self.column;
+                }
+                let next_column = self.column.saturating_add(grapheme_width);
+                if next_column > self.width {
+                    let width = self.last_word_end.saturating_sub(span_position) as usize;
+                    breakpoint = Some(width);
+                    break;
+                }
+                self.column = next_column;
+                self.was_whitespace = is_whitespace;
+            }
+            if let Some(b) = breakpoint {
+                pending_span = if b > 0 {
+                    let new_span = span.split_at_in_place(b);
+                    self.push_span(span);
+                    Some(new_span)
+                } else {
+                    Some(span)
+                };
+                self.start_new_line();
+            } else {
+                self.push_span(span);
+                pending_span = iter.next();
+            }
+        }
+    }
+
+    fn start_new_line(&mut self) {
+        self.column = 0;
+        self.last_word_end = 0;
+        self.text.lines.push(Spans::default());
+    }
+}
+
+impl<'a> Extend<Spans<'a>> for WrappedText<'a> {
+    fn extend<T: IntoIterator<Item = Spans<'a>>>(&mut self, iter: T) {
+        for spans in iter {
+            self.start_new_line();
+            self.push_spans(spans);
+        }
+    }
+}
+
+impl<'a> From<WrappedText<'a>> for Text<'a> {
+    fn from(text: WrappedText<'a>) -> Text<'a> {
+        text.text
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::style::{Color, Modifier, Style};
+
+    #[test]
+    fn text_can_be_wrapped() {
+        let mut t = WrappedText::new(10);
+        t.extend(Text::from(Spans::from(vec![
+            Span::raw("This is "),
+            Span::styled("a test.", Style::default().fg(Color::Red)),
+        ])));
+        t.extend(Text::from("It should wrap."));
+        let t = Text::from(t);
+        let expected = Text::from(vec![
+            Spans::from(vec![
+                Span::raw("This is "),
+                Span::styled("a", Style::default().fg(Color::Red)),
+            ]),
+            Spans::from(Span::styled("test.", Style::default().fg(Color::Red))),
+            Spans::from("It should"),
+            Spans::from("wrap."),
+        ]);
+        assert_eq!(expected, t);
+    }
+
+    #[test]
+    fn text_with_trailing_nbsp_can_be_wrapped() {
+        let mut t = WrappedText::new(10);
+        t.extend(Text::from(Spans::from(vec![
+            Span::raw("Line1"),
+            Span::styled(NBSP, Style::default().add_modifier(Modifier::UNDERLINED)),
+            Span::raw("Line2"),
+        ])));
+        let expected = Text::from(vec![
+            Spans::from(vec![
+                Span::raw("Line1"),
+                Span::styled(NBSP, Style::default().add_modifier(Modifier::UNDERLINED)),
+            ]),
+            Spans::from(vec![Span::raw("Line2")]),
+        ]);
+        assert_eq!(expected, Text::from(t));
     }
 }
