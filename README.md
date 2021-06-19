@@ -11,15 +11,16 @@ user interfaces and dashboards. It is heavily inspired by the `Javascript`
 library [blessed-contrib](https://github.com/yaronn/blessed-contrib) and the
 `Go` library [termui](https://github.com/gizak/termui).
 
-The library itself supports four different backends to draw to the terminal. You
+The library itself supports five different backends to draw to the terminal. You
 can either choose from:
 
   - [termion](https://github.com/ticki/termion)
   - [rustbox](https://github.com/gchp/rustbox)
   - [crossterm](https://github.com/crossterm-rs/crossterm)
   - [pancurses](https://github.com/ihalila/pancurses)
+  - [termwiz](https://github.com/wez/wezterm/tree/master/termwiz)
 
-However, some features may only be available in one of the four.
+However, some features may only be available in one of the five.
 
 The library is based on the principle of immediate rendering with intermediate
 buffers. This means that at each new frame you should build all widgets that are
