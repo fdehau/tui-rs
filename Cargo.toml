@@ -36,6 +36,10 @@ serde = { version = "1", "optional" = true, features = ["derive"]}
 rand = "0.8"
 argh = "0.1"
 
+[package.metadata.docs.rs]
+# Have docs.rs build with more backends then just the default
+features = ["termion", "crossterm", "curses"]
+
 [[example]]
 name = "canvas"
 path = "examples/canvas.rs"
