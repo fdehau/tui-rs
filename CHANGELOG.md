@@ -2,6 +2,10 @@
 
 ## To be released
 
+### Features
+
+* Update `crossterm` to `0.20`.
+
 ## v0.15.0 - 2021-05-02
 
 ### Features
