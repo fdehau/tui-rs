@@ -114,6 +114,7 @@ You can run all examples by running `make run-examples`.
 * [KDash](https://github.com/kdash-rs/kdash)
 * [xplr](https://github.com/sayanarijit/xplr)
 * [minesweep](https://github.com/cpcloud/minesweep-rs)
+* [joshuto](https://github.com/kamiyaa/joshuto)
 
 ### Alternatives
 
