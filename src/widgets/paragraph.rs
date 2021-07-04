@@ -1,6 +1,6 @@
 use crate::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Margin, Rect},
     style::Style,
     text::{StyledGrapheme, Text},
     widgets::{
@@ -56,6 +56,8 @@ pub struct Paragraph<'a> {
     scroll: (u16, u16),
     /// Alignment of the text
     alignment: Alignment,
+    /// Margin around the text
+    margin: Margin,
 }
 
 /// Describes how to wrap text across lines.
@@ -103,6 +105,7 @@ impl<'a> Paragraph<'a> {
             text: text.into(),
             scroll: (0, 0),
             alignment: Alignment::Left,
+            margin: Default::default(),
         }
     }
 
@@ -130,6 +133,11 @@ impl<'a> Paragraph<'a> {
         self.alignment = alignment;
         self
     }
+
+    pub fn margin(mut self, margin: Margin) -> Paragraph<'a> {
+        self.margin = margin;
+        self
+    }
 }
 
 impl<'a> Widget for Paragraph<'a> {
@@ -142,7 +150,8 @@ impl<'a> Widget for Paragraph<'a> {
                 inner_area
             }
             None => area,
-        };
+        }
+        .inner(&self.margin);
 
         if text_area.height < 1 {
             return;
