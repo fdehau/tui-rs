@@ -1,7 +1,7 @@
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
-    layout::Alignment,
+    layout::{Alignment, Margin},
     text::{Span, Spans, Text},
     widgets::{Block, Borders, Paragraph, Wrap},
     Terminal,
@@ -209,6 +209,107 @@ fn widgets_paragraph_can_scroll_horizontally() {
             "│段落现在可以水平滚│",
             "│Paragraph can scro│",
             "│        Short line│",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "│                  │",
+            "└──────────────────┘",
+        ]),
+    );
+}
+
+#[test]
+fn widgets_paragraph_respects_margins() {
+    let test_case = |margin, expected| {
+        let backend = TestBackend::new(20, 10);
+        let mut terminal = Terminal::new(backend).unwrap();
+
+        terminal
+            .draw(|f| {
+                let size = f.size();
+                let text = vec![Spans::from(SAMPLE_STRING)];
+                let paragraph = Paragraph::new(text)
+                    .block(Block::default().borders(Borders::ALL))
+                    .wrap(Wrap { trim: true })
+                    .margin(margin);
+                f.render_widget(paragraph, size);
+            })
+            .unwrap();
+        terminal.backend().assert_buffer(&expected);
+    };
+
+    test_case(
+        Margin::default(),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│The library is    │",
+            "│based on the      │",
+            "│principle of      │",
+            "│immediate         │",
+            "│rendering with    │",
+            "│intermediate      │",
+            "│buffers. This     │",
+            "│means that at each│",
+            "└──────────────────┘",
+        ]),
+    );
+
+    test_case(
+        Margin::default().horizontal(1),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│ The library is   │",
+            "│ based on the     │",
+            "│ principle of     │",
+            "│ immediate        │",
+            "│ rendering with   │",
+            "│ intermediate     │",
+            "│ buffers. This    │",
+            "│ means that at    │",
+            "└──────────────────┘",
+        ]),
+    );
+
+    test_case(
+        Margin::default().vertical(1),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│                  │",
+            "│The library is    │",
+            "│based on the      │",
+            "│principle of      │",
+            "│immediate         │",
+            "│rendering with    │",
+            "│intermediate      │",
+            "│                  │",
+            "└──────────────────┘",
+        ]),
+    );
+
+    test_case(
+        Margin::default().both(1),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│                  │",
+            "│ The library is   │",
+            "│ based on the     │",
+            "│ principle of     │",
+            "│ immediate        │",
+            "│ rendering with   │",
+            "│ intermediate     │",
+            "│                  │",
+            "└──────────────────┘",
+        ]),
+    );
+
+    test_case(
+        Margin::default().horizontal(9).vertical(4),
+        Buffer::with_lines(vec![
+            "┌──────────────────┐",
+            "│                  │",
+            "│                  │",
+            "│                  │",
             "│                  │",
             "│                  │",
             "│                  │",

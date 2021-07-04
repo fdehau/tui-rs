@@ -1,6 +1,6 @@
 use crate::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Margin, Rect},
     style::Style,
     text::{StyledGrapheme, Text},
     widgets::{
@@ -27,7 +27,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # use tui::text::{Text, Spans, Span};
 /// # use tui::widgets::{Block, Borders, Paragraph, Wrap};
 /// # use tui::style::{Style, Color, Modifier};
-/// # use tui::layout::{Alignment};
+/// # use tui::layout::{Alignment, Margin};
 /// let text = vec![
 ///     Spans::from(vec![
 ///         Span::raw("First"),
@@ -40,7 +40,8 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
-///     .wrap(Wrap { trim: true });
+///     .wrap(Wrap { trim: true })
+///     .margin(Margin::default().both(1));
 /// ```
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a> {
@@ -56,6 +57,8 @@ pub struct Paragraph<'a> {
     scroll: (u16, u16),
     /// Alignment of the text
     alignment: Alignment,
+    /// Margin around the text
+    margin: Margin,
 }
 
 /// Describes how to wrap text across lines.
@@ -103,6 +106,7 @@ impl<'a> Paragraph<'a> {
             text: text.into(),
             scroll: (0, 0),
             alignment: Alignment::Left,
+            margin: Default::default(),
         }
     }
 
@@ -130,6 +134,11 @@ impl<'a> Paragraph<'a> {
         self.alignment = alignment;
         self
     }
+
+    pub fn margin(mut self, margin: Margin) -> Paragraph<'a> {
+        self.margin = margin;
+        self
+    }
 }
 
 impl<'a> Widget for Paragraph<'a> {
@@ -142,7 +151,8 @@ impl<'a> Widget for Paragraph<'a> {
                 inner_area
             }
             None => area,
-        };
+        }
+        .inner(&self.margin);
 
         if text_area.height < 1 {
             return;
