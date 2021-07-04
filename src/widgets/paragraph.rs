@@ -27,7 +27,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 /// # use tui::text::{Text, Spans, Span};
 /// # use tui::widgets::{Block, Borders, Paragraph, Wrap};
 /// # use tui::style::{Style, Color, Modifier};
-/// # use tui::layout::{Alignment};
+/// # use tui::layout::{Alignment, Margin};
 /// let text = vec![
 ///     Spans::from(vec![
 ///         Span::raw("First"),
@@ -40,7 +40,8 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
-///     .wrap(Wrap { trim: true });
+///     .wrap(Wrap { trim: true })
+///     .margin(Margin::default().both(1));
 /// ```
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a> {
