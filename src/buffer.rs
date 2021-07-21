@@ -353,8 +353,10 @@ impl Buffer {
     }
 
     pub fn set_style(&mut self, area: Rect, style: Style) {
+        // Ensure styling doesn't overflow buffer - https://github.com/fdehau/tui-rs/issues/470
+        let right = min(area.right(), self.area.width);
         for y in area.top()..area.bottom() {
-            for x in area.left()..area.right() {
+            for x in area.left()..right {
                 self.get_mut(x, y).set_style(style);
             }
         }

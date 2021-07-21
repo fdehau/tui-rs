@@ -2,6 +2,11 @@
 
 ## To be released
 
+### Fixes
+
+* Some combinations of `Table` widths and `Rect` width would cause a panic due to accessing area
+outside the buffer - (#470)
+
 ## v0.15.0 - 2021-05-02
 
 ### Features

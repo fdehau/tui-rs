@@ -715,3 +715,66 @@ fn widgets_table_should_render_even_if_empty() {
 
     terminal.backend().assert_buffer(&expected);
 }
+
+/// Testing fix for https://github.com/fdehau/tui-rs/issues/470
+#[test]
+fn widgets_table_columns_dont_panic() {
+    let test_case = |state: &mut TableState, table: Table, width: u16| {
+        let backend = TestBackend::new(width, 8);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|f| {
+                let size = f.size();
+                f.render_stateful_widget(table, size, state);
+            })
+            .unwrap();
+    };
+
+    // based on https://github.com/fdehau/tui-rs/issues/470#issuecomment-852562848
+    let table1_width = 98;
+    let table1 = Table::new(vec![Row::new(vec!["r1", "r2", "r3", "r4"])])
+        .header(Row::new(vec!["h1", "h2", "h3", "h4"]))
+        .block(Block::default().borders(Borders::ALL))
+        .highlight_symbol(">> ")
+        .column_spacing(1)
+        .widths(&[
+            Constraint::Percentage(15),
+            Constraint::Percentage(15),
+            Constraint::Percentage(25),
+            Constraint::Percentage(45),
+        ]);
+
+    // based on https://github.com/fdehau/tui-rs/issues/470#issuecomment-831171722
+    let table2_width = 189;
+    let table2 = Table::new(vec![Row::new(vec![
+        "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
+    ])])
+    .header(Row::new(vec![
+        "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9", "h10",
+    ]))
+    .block(Block::default().borders(Borders::TOP))
+    .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
+    .highlight_symbol("=>")
+    .widths(&[
+        Constraint::Percentage(30),
+        Constraint::Percentage(10),
+        Constraint::Percentage(15),
+        Constraint::Percentage(10),
+        Constraint::Percentage(5),
+        Constraint::Percentage(5),
+        Constraint::Percentage(5),
+        Constraint::Percentage(5),
+        Constraint::Percentage(5),
+        Constraint::Percentage(10),
+    ]);
+
+    let mut state = TableState::default();
+    // no selection, no panic
+    test_case(&mut state, table1.clone(), table1_width);
+    test_case(&mut state, table2.clone(), table2_width);
+
+    // select first, which would cause a panic before fix
+    state.select(Some(0));
+    test_case(&mut state, table1.clone(), table1_width);
+    test_case(&mut state, table2.clone(), table2_width);
+}
