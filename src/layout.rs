@@ -21,27 +21,127 @@ pub enum Direction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Constraint {
-    // TODO: enforce range 0 - 100
+pub enum Unit {
+    Length(u16),
     Percentage(u16),
     Ratio(u32, u32),
-    Length(u16),
-    Max(u16),
-    Min(u16),
 }
 
-impl Constraint {
-    pub fn apply(&self, length: u16) -> u16 {
+impl From<u16> for Unit {
+    fn from(v: u16) -> Unit {
+        Unit::Length(v)
+    }
+}
+
+impl Unit {
+    pub(crate) fn apply(&self, length: u16) -> u16 {
         match *self {
-            Constraint::Percentage(p) => length * p / 100,
-            Constraint::Ratio(num, den) => {
+            Unit::Percentage(p) => length * p / 100,
+            Unit::Ratio(num, den) => {
                 let r = num * u32::from(length) / den;
                 r as u16
             }
-            Constraint::Length(l) => length.min(l),
-            Constraint::Max(m) => length.min(m),
-            Constraint::Min(m) => length.max(m),
+            Unit::Length(l) => length.min(l),
         }
+    }
+
+    fn check(&self) {
+        match *self {
+            Unit::Percentage(p) => {
+                assert!(
+                    p <= 100,
+                    "Percentages should be between 0 and 100 inclusively."
+                );
+            }
+            Unit::Ratio(num, den) => {
+                assert!(
+                    num <= den,
+                    "Ratio numerator should be less than or equalt to denominator."
+                );
+            }
+            _ => {}
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Operator {
+    Equal,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Constraint {
+    operator: Operator,
+    unit: Unit,
+    weight: u8,
+}
+
+impl Constraint {
+    pub fn gte<T>(u: T) -> Constraint
+    where
+        T: Into<Unit>,
+    {
+        let u = u.into();
+        u.check();
+        Constraint {
+            operator: Operator::GreaterThanOrEqual,
+            unit: u,
+            weight: 0,
+        }
+    }
+
+    pub fn lte<T>(u: T) -> Constraint
+    where
+        T: Into<Unit>,
+    {
+        let u = u.into();
+        u.check();
+        Constraint {
+            operator: Operator::LessThanOrEqual,
+            unit: u,
+            weight: 0,
+        }
+    }
+
+    pub fn eq<T>(u: T) -> Constraint
+    where
+        T: Into<Unit>,
+    {
+        let u = u.into();
+        u.check();
+        Constraint {
+            operator: Operator::Equal,
+            unit: u,
+            weight: 0,
+        }
+    }
+
+    pub fn weight(mut self, weight: u8) -> Constraint {
+        self.weight = weight;
+        self
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Constraints(Vec<Constraint>);
+
+impl From<Constraint> for Constraints {
+    fn from(c: Constraint) -> Constraints {
+        Constraints(vec![c])
+    }
+}
+
+impl<T> std::iter::FromIterator<T> for Constraints
+where
+    T: Into<Constraint>,
+{
+    fn from_iter<I>(iter: I) -> Constraints
+    where
+        I: IntoIterator<Item = T>,
+    {
+        Constraints(iter.into_iter().map(|c| c.into()).collect())
     }
 }
 
@@ -62,10 +162,7 @@ pub enum Alignment {
 pub struct Layout {
     direction: Direction,
     margin: Margin,
-    constraints: Vec<Constraint>,
-    /// Whether the last chunk of the computed layout should be expanded to fill the available
-    /// space.
-    expand_to_fill: bool,
+    constraints: Vec<Constraints>,
 }
 
 thread_local! {
@@ -81,17 +178,17 @@ impl Default for Layout {
                 vertical: 0,
             },
             constraints: Vec::new(),
-            expand_to_fill: true,
         }
     }
 }
 
 impl Layout {
-    pub fn constraints<C>(mut self, constraints: C) -> Layout
+    pub fn constraints<I>(mut self, constraints: I) -> Layout
     where
-        C: Into<Vec<Constraint>>,
+        I: IntoIterator,
+        I::Item: Into<Constraints>,
     {
-        self.constraints = constraints.into();
+        self.constraints = constraints.into_iter().map(|c| c.into()).collect();
         self
     }
 
@@ -118,20 +215,18 @@ impl Layout {
         self
     }
 
-    pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
-        self.expand_to_fill = expand_to_fill;
-        self
-    }
-
     /// Wrapper function around the cassowary-rs solver to be able to split a given
     /// area into smaller ones based on the preferred widths or heights and the direction.
     ///
     /// # Examples
     /// ```
-    /// # use tui::layout::{Rect, Constraint, Direction, Layout};
+    /// # use tui::layout::{Rect, Constraint, Direction, Layout, Unit};
     /// let chunks = Layout::default()
     ///     .direction(Direction::Vertical)
-    ///     .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
+    ///     .constraints([
+    ///         Constraint::eq(5).weight(10),
+    ///         Constraint::eq(Unit::Percentage(100)).weight(5)
+    ///     ])
     ///     .split(Rect {
     ///         x: 2,
     ///         y: 2,
@@ -158,7 +253,7 @@ impl Layout {
     ///
     /// let chunks = Layout::default()
     ///     .direction(Direction::Horizontal)
-    ///     .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)].as_ref())
+    ///     .constraints([Constraint::eq(Unit::Ratio(1, 3)), Constraint::eq(Unit::Ratio(2, 3))])
     ///     .split(Rect {
     ///         x: 0,
     ///         y: 0,
@@ -231,57 +326,25 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
             Direction::Vertical => first.top() | EQ(REQUIRED) | f64::from(dest_area.top()),
         });
     }
-    if layout.expand_to_fill {
-        if let Some(last) = elements.last() {
-            ccs.push(match layout.direction {
-                Direction::Horizontal => last.right() | EQ(REQUIRED) | f64::from(dest_area.right()),
-                Direction::Vertical => last.bottom() | EQ(REQUIRED) | f64::from(dest_area.bottom()),
-            });
-        }
-    }
     match layout.direction {
         Direction::Horizontal => {
             for pair in elements.windows(2) {
                 ccs.push((pair[0].x + pair[0].width) | EQ(REQUIRED) | pair[1].x);
             }
-            for (i, size) in layout.constraints.iter().enumerate() {
+            for (i, c) in layout.constraints.iter().enumerate() {
                 ccs.push(elements[i].y | EQ(REQUIRED) | f64::from(dest_area.y));
                 ccs.push(elements[i].height | EQ(REQUIRED) | f64::from(dest_area.height));
-                ccs.push(match *size {
-                    Constraint::Length(v) => elements[i].width | EQ(WEAK) | f64::from(v),
-                    Constraint::Percentage(v) => {
-                        elements[i].width | EQ(WEAK) | (f64::from(v * dest_area.width) / 100.0)
-                    }
-                    Constraint::Ratio(n, d) => {
-                        elements[i].width
-                            | EQ(WEAK)
-                            | (f64::from(dest_area.width) * f64::from(n) / f64::from(d))
-                    }
-                    Constraint::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
-                    Constraint::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
-                });
+                apply_constraints(&mut ccs, c, elements[i].width, dest_area.width);
             }
         }
         Direction::Vertical => {
             for pair in elements.windows(2) {
                 ccs.push((pair[0].y + pair[0].height) | EQ(REQUIRED) | pair[1].y);
             }
-            for (i, size) in layout.constraints.iter().enumerate() {
+            for (i, c) in layout.constraints.iter().enumerate() {
                 ccs.push(elements[i].x | EQ(REQUIRED) | f64::from(dest_area.x));
                 ccs.push(elements[i].width | EQ(REQUIRED) | f64::from(dest_area.width));
-                ccs.push(match *size {
-                    Constraint::Length(v) => elements[i].height | EQ(WEAK) | f64::from(v),
-                    Constraint::Percentage(v) => {
-                        elements[i].height | EQ(WEAK) | (f64::from(v * dest_area.height) / 100.0)
-                    }
-                    Constraint::Ratio(n, d) => {
-                        elements[i].height
-                            | EQ(WEAK)
-                            | (f64::from(dest_area.height) * f64::from(n) / f64::from(d))
-                    }
-                    Constraint::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
-                    Constraint::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
-                });
+                apply_constraints(&mut ccs, c, elements[i].height, dest_area.height);
             }
         }
     }
@@ -309,21 +372,29 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
             _ => {}
         }
     }
-
-    if layout.expand_to_fill {
-        // Fix imprecision by extending the last item a bit if necessary
-        if let Some(last) = results.last_mut() {
-            match layout.direction {
-                Direction::Vertical => {
-                    last.height = dest_area.bottom() - last.y;
-                }
-                Direction::Horizontal => {
-                    last.width = dest_area.right() - last.x;
-                }
-            }
-        }
-    }
     results
+}
+
+fn apply_constraints(
+    ccs: &mut Vec<CassowaryConstraint>,
+    constraints: &Constraints,
+    var: Variable,
+    total_length: u16,
+) {
+    for c in &constraints.0 {
+        let weight = WEAK + f64::from(c.weight);
+        let value = match c.unit {
+            Unit::Length(v) => f64::from(v),
+            Unit::Percentage(v) => f64::from(v * total_length) / 100.0,
+            Unit::Ratio(n, d) => f64::from(total_length) * f64::from(n) / f64::from(d),
+        };
+        let operator = match c.operator {
+            Operator::GreaterThanOrEqual => GE(weight),
+            Operator::Equal => EQ(weight),
+            Operator::LessThanOrEqual => LE(weight),
+        };
+        ccs.push(var | operator | value);
+    }
 }
 
 /// A container used by the solver inside split
@@ -477,6 +548,12 @@ mod tests {
     use super::*;
 
     #[test]
+    #[should_panic]
+    fn constraint_invalid_percentages() {
+        Constraint::eq(Unit::Percentage(110));
+    }
+
+    #[test]
     fn test_vertical_split_by_height() {
         let target = Rect {
             x: 2,
@@ -487,14 +564,12 @@ mod tests {
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Max(5),
-                    Constraint::Min(1),
-                ]
-                .as_ref(),
-            )
+            .constraints([
+                Constraint::eq(10),
+                Constraint::eq(10),
+                Constraint::lte(5),
+                Constraint::gte(1),
+            ])
             .split(target);
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());

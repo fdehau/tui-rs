@@ -9,7 +9,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Unit},
     style::{Color, Style},
     widgets::{Block, Borders, Sparkline},
     Terminal,
@@ -68,15 +68,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
-                .constraints(
-                    [
-                        Constraint::Length(3),
-                        Constraint::Length(3),
-                        Constraint::Length(7),
-                        Constraint::Min(0),
-                    ]
-                    .as_ref(),
-                )
+                .constraints([
+                    Constraint::eq(3).weight(10),
+                    Constraint::eq(3).weight(10),
+                    Constraint::eq(7).weight(10),
+                    Constraint::eq(Unit::Percentage(100)),
+                ])
                 .split(f.size());
             let sparkline = Sparkline::default()
                 .block(

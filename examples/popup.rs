@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect, Unit},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
@@ -18,26 +18,20 @@ use tui::{
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(
-            [
-                Constraint::Percentage((100 - percent_y) / 2),
-                Constraint::Percentage(percent_y),
-                Constraint::Percentage((100 - percent_y) / 2),
-            ]
-            .as_ref(),
-        )
+        .constraints(vec![
+            Constraint::eq(Unit::Percentage((100 - percent_y) / 2)),
+            Constraint::eq(Unit::Percentage(percent_y)),
+            Constraint::eq(Unit::Percentage((100 - percent_y) / 2)),
+        ])
         .split(r);
 
     Layout::default()
         .direction(Direction::Horizontal)
-        .constraints(
-            [
-                Constraint::Percentage((100 - percent_x) / 2),
-                Constraint::Percentage(percent_x),
-                Constraint::Percentage((100 - percent_x) / 2),
-            ]
-            .as_ref(),
-        )
+        .constraints(vec![
+            Constraint::eq(Unit::Percentage((100 - percent_x) / 2)),
+            Constraint::eq(Unit::Percentage(percent_x)),
+            Constraint::eq(Unit::Percentage((100 - percent_x) / 2)),
+        ])
         .split(popup_layout[1])[1]
 }
 
@@ -57,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([Constraint::eq(Unit::Percentage(50)), Constraint::eq(Unit::Percentage(50))])
                 .split(size);
 
                 let s = "Veeeeeeeeeeeeeeeery    loooooooooooooooooong   striiiiiiiiiiiiiiiiiiiiiiiiiing.   ";

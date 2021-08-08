@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     text::Span,
     widgets::{Block, BorderType, Borders},
@@ -42,13 +42,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(4)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
 
             // Top two inner blocks
             let top_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(chunks[0]);
 
             // Top left inner block with green background
@@ -75,7 +81,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             // Bottom two inner blocks
             let bottom_chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(chunks[1]);
 
             // Bottom left block with all default borders

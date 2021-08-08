@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Unit},
     widgets::{Block, Borders},
     Terminal,
 };
@@ -25,14 +25,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Percentage(10),
-                        Constraint::Percentage(80),
-                        Constraint::Percentage(10),
-                    ]
-                    .as_ref(),
-                )
+                .constraints([
+                    Constraint::eq(Unit::Percentage(10)),
+                    Constraint::eq(Unit::Percentage(80)),
+                    Constraint::eq(Unit::Percentage(10)),
+                ])
                 .split(f.size());
 
             let block = Block::default().title("Block").borders(Borders::ALL);

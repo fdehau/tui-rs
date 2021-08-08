@@ -1,6 +1,6 @@
 use crate::{
     buffer::Buffer,
-    layout::{Constraint, Rect},
+    layout::{Rect, Unit},
     style::{Color, Style},
     symbols,
     text::{Span, Spans},
@@ -225,7 +225,7 @@ pub struct Chart<'a> {
     /// The widget base style
     style: Style,
     /// Constraints used to determine whether the legend should be shown or not
-    hidden_legend_constraints: (Constraint, Constraint),
+    hidden_legend_constraints: (Unit, Unit),
 }
 
 impl<'a> Chart<'a> {
@@ -236,7 +236,7 @@ impl<'a> Chart<'a> {
             y_axis: Axis::default(),
             style: Default::default(),
             datasets,
-            hidden_legend_constraints: (Constraint::Ratio(1, 4), Constraint::Ratio(1, 4)),
+            hidden_legend_constraints: (Unit::Ratio(1, 4), Unit::Ratio(1, 4)),
         }
     }
 
@@ -266,17 +266,17 @@ impl<'a> Chart<'a> {
     ///
     /// ```
     /// # use tui::widgets::Chart;
-    /// # use tui::layout::Constraint;
+    /// # use tui::layout::Unit;
     /// let constraints = (
-    ///     Constraint::Ratio(1, 3),
-    ///     Constraint::Ratio(1, 4)
+    ///     Unit::Ratio(1, 3),
+    ///     Unit::Ratio(1, 4)
     /// );
     /// // Hide the legend when either its width is greater than 33% of the total widget width
     /// // or if its height is greater than 25% of the total widget height.
     /// let _chart: Chart = Chart::new(vec![])
     ///     .hidden_legend_constraints(constraints);
     /// ```
-    pub fn hidden_legend_constraints(mut self, constraints: (Constraint, Constraint)) -> Chart<'a> {
+    pub fn hidden_legend_constraints(mut self, constraints: (Unit, Unit)) -> Chart<'a> {
         self.hidden_legend_constraints = constraints;
         self
     }
@@ -562,7 +562,7 @@ mod tests {
 
     struct LegendTestCase {
         chart_area: Rect,
-        hidden_legend_constraints: (Constraint, Constraint),
+        hidden_legend_constraints: (Unit, Unit),
         legend_area: Option<Rect>,
     }
 
@@ -572,12 +572,12 @@ mod tests {
         let cases = [
             LegendTestCase {
                 chart_area: Rect::new(0, 0, 100, 100),
-                hidden_legend_constraints: (Constraint::Ratio(1, 4), Constraint::Ratio(1, 4)),
+                hidden_legend_constraints: (Unit::Ratio(1, 4), Unit::Ratio(1, 4)),
                 legend_area: Some(Rect::new(88, 0, 12, 12)),
             },
             LegendTestCase {
                 chart_area: Rect::new(0, 0, 100, 100),
-                hidden_legend_constraints: (Constraint::Ratio(1, 10), Constraint::Ratio(1, 4)),
+                hidden_legend_constraints: (Unit::Ratio(1, 10), Unit::Ratio(1, 4)),
                 legend_area: None,
             },
         ];

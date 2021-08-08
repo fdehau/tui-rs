@@ -1,7 +1,7 @@
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect, Unit},
     style::{Color, Modifier, Style},
     symbols,
     text::Span,
@@ -18,7 +18,10 @@ fn widgets_gauge_renders() {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
 
             let gauge = Gauge::default()
@@ -87,7 +90,10 @@ fn widgets_gauge_renders_no_unicode() {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
 
             let gauge = Gauge::default()

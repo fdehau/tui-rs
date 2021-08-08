@@ -9,7 +9,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Tabs},
@@ -42,7 +42,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(5)
-                .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+                .constraints([
+                    Constraint::eq(3).weight(10),
+                    Constraint::eq(Unit::Percentage(100)),
+                ])
                 .split(size);
 
             let block = Block::default().style(Style::default().bg(Color::White).fg(Color::Black));

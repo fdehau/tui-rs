@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     widgets::{BarChart, Block, Borders},
     Terminal,
@@ -73,7 +73,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(2)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
             let barchart = BarChart::default()
                 .block(Block::default().title("Data1").borders(Borders::ALL))
@@ -85,7 +88,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(chunks[1]);
 
             let barchart = BarChart::default()

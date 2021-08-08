@@ -2,11 +2,11 @@
 mod util;
 
 use crate::util::event::{Event, Events};
-use std::{error::Error, io};
+use std::{error::Error, io, iter::FromIterator};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Layout},
+    layout::{Constraint, Constraints, Layout, Unit},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Cell, Row, Table, TableState},
     Terminal,
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         terminal.draw(|f| {
             let rects = Layout::default()
-                .constraints([Constraint::Percentage(100)].as_ref())
+                .constraints(vec![Constraint::eq(Unit::Percentage(100))])
                 .margin(5)
                 .split(f.size());
 
@@ -109,18 +109,27 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .max()
                     .unwrap_or(0)
                     + 1;
-                let cells = item.iter().map(|c| Cell::from(*c));
-                Row::new(cells).height(height as u16).bottom_margin(1)
+                let cells = item
+                    .iter()
+                    .map(|c| Cell::from(*c).style(Style::default().bg(Color::Yellow)));
+                Row::new(cells).height(height as u16)
             });
+
             let t = Table::new(rows)
                 .header(header)
                 .block(Block::default().borders(Borders::ALL).title("Table"))
                 .highlight_style(selected_style)
                 .highlight_symbol(">> ")
-                .widths(&[
-                    Constraint::Percentage(50),
-                    Constraint::Length(30),
-                    Constraint::Max(10),
+                .widths([
+                    Constraint::gte(20).weight(30).into(),
+                    Constraints::from_iter([
+                        Constraint::eq(20).weight(10),
+                        Constraint::gte(10).weight(30),
+                    ]),
+                    Constraints::from_iter([
+                        Constraint::eq(Unit::Percentage(100)),
+                        Constraint::gte(30).weight(20),
+                    ]),
                 ]);
             f.render_stateful_widget(t, rects[0], &mut table.state);
         })?;

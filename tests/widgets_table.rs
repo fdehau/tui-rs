@@ -1,7 +1,7 @@
 use tui::{
     backend::TestBackend,
     buffer::Buffer,
-    layout::Constraint,
+    layout::{Constraint, Unit},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Cell, Row, Table, TableState},
@@ -25,11 +25,7 @@ fn widgets_table_column_spacing_can_be_changed() {
                 ])
                 .header(Row::new(vec!["Head1", "Head2", "Head3"]).bottom_margin(1))
                 .block(Block::default().borders(Borders::ALL))
-                .widths(&[
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                ])
+                .widths([Constraint::eq(5), Constraint::eq(5), Constraint::eq(5)])
                 .column_spacing(column_spacing);
                 f.render_widget(table, size);
             })
@@ -132,11 +128,7 @@ fn widgets_table_columns_widths_can_use_fixed_length_constraints() {
 
     // columns of zero width show nothing
     test_case(
-        &[
-            Constraint::Length(0),
-            Constraint::Length(0),
-            Constraint::Length(0),
-        ],
+        vec![Constraint::eq(0), Constraint::eq(0), Constraint::eq(0)],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│                            │",
@@ -153,11 +145,7 @@ fn widgets_table_columns_widths_can_use_fixed_length_constraints() {
 
     // columns of 1 width trim
     test_case(
-        &[
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-        ],
+        vec![Constraint::eq(1), Constraint::eq(1), Constraint::eq(1)],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│H H H                       │",
@@ -174,11 +162,7 @@ fn widgets_table_columns_widths_can_use_fixed_length_constraints() {
 
     // columns of large width just before pushing a column off
     test_case(
-        &[
-            Constraint::Length(8),
-            Constraint::Length(8),
-            Constraint::Length(8),
-        ],
+        vec![Constraint::eq(8), Constraint::eq(8), Constraint::eq(8)],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1    Head2    Head3     │",
@@ -221,10 +205,10 @@ fn widgets_table_columns_widths_can_use_percentage_constraints() {
 
     // columns of zero width show nothing
     test_case(
-        &[
-            Constraint::Percentage(0),
-            Constraint::Percentage(0),
-            Constraint::Percentage(0),
+        vec![
+            Constraint::eq(Unit::Percentage(0)),
+            Constraint::eq(Unit::Percentage(0)),
+            Constraint::eq(Unit::Percentage(0)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -242,10 +226,10 @@ fn widgets_table_columns_widths_can_use_percentage_constraints() {
 
     // columns of not enough width trims the data
     test_case(
-        &[
-            Constraint::Percentage(11),
-            Constraint::Percentage(11),
-            Constraint::Percentage(11),
+        vec![
+            Constraint::eq(Unit::Percentage(11)),
+            Constraint::eq(Unit::Percentage(11)),
+            Constraint::eq(Unit::Percentage(11)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -263,10 +247,10 @@ fn widgets_table_columns_widths_can_use_percentage_constraints() {
 
     // columns of large width just before pushing a column off
     test_case(
-        &[
-            Constraint::Percentage(33),
-            Constraint::Percentage(33),
-            Constraint::Percentage(33),
+        vec![
+            Constraint::eq(Unit::Percentage(33)),
+            Constraint::eq(Unit::Percentage(33)),
+            Constraint::eq(Unit::Percentage(33)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -284,7 +268,10 @@ fn widgets_table_columns_widths_can_use_percentage_constraints() {
 
     // percentages summing to 100 should give equal widths
     test_case(
-        &[Constraint::Percentage(50), Constraint::Percentage(50)],
+        vec![
+            Constraint::eq(Unit::Percentage(50)),
+            Constraint::eq(Unit::Percentage(50)),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1         Head2         │",
@@ -326,10 +313,10 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
 
     // columns of zero width show nothing
     test_case(
-        &[
-            Constraint::Percentage(0),
-            Constraint::Length(0),
-            Constraint::Percentage(0),
+        vec![
+            Constraint::eq(Unit::Percentage(0)),
+            Constraint::eq(0),
+            Constraint::eq(Unit::Percentage(0)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -347,10 +334,10 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
 
     // columns of not enough width trims the data
     test_case(
-        &[
-            Constraint::Percentage(11),
-            Constraint::Length(20),
-            Constraint::Percentage(11),
+        vec![
+            Constraint::eq(Unit::Percentage(11)),
+            Constraint::eq(20),
+            Constraint::eq(Unit::Percentage(11)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -368,10 +355,10 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
 
     // columns of large width just before pushing a column off
     test_case(
-        &[
-            Constraint::Percentage(33),
-            Constraint::Length(10),
-            Constraint::Percentage(33),
+        vec![
+            Constraint::eq(Unit::Percentage(33)),
+            Constraint::eq(10),
+            Constraint::eq(Unit::Percentage(33)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -389,10 +376,10 @@ fn widgets_table_columns_widths_can_use_mixed_constraints() {
 
     // columns of large size (>100% total) hide the last column
     test_case(
-        &[
-            Constraint::Percentage(60),
-            Constraint::Length(10),
-            Constraint::Percentage(60),
+        vec![
+            Constraint::eq(Unit::Percentage(60)),
+            Constraint::eq(10),
+            Constraint::eq(Unit::Percentage(60)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -436,10 +423,10 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
 
     // columns of zero width show nothing
     test_case(
-        &[
-            Constraint::Ratio(0, 1),
-            Constraint::Ratio(0, 1),
-            Constraint::Ratio(0, 1),
+        vec![
+            Constraint::eq(Unit::Ratio(0, 1)),
+            Constraint::eq(Unit::Ratio(0, 1)),
+            Constraint::eq(Unit::Ratio(0, 1)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -457,10 +444,10 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
 
     // columns of not enough width trims the data
     test_case(
-        &[
-            Constraint::Ratio(1, 9),
-            Constraint::Ratio(1, 9),
-            Constraint::Ratio(1, 9),
+        vec![
+            Constraint::eq(Unit::Ratio(1, 9)),
+            Constraint::eq(Unit::Ratio(1, 9)),
+            Constraint::eq(Unit::Ratio(1, 9)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -478,10 +465,10 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
 
     // columns of large width just before pushing a column off
     test_case(
-        &[
-            Constraint::Ratio(1, 3),
-            Constraint::Ratio(1, 3),
-            Constraint::Ratio(1, 3),
+        vec![
+            Constraint::eq(Unit::Ratio(1, 3)),
+            Constraint::eq(Unit::Ratio(1, 3)),
+            Constraint::eq(Unit::Ratio(1, 3)),
         ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
@@ -499,7 +486,10 @@ fn widgets_table_columns_widths_can_use_ratio_constraints() {
 
     // percentages summing to 100 should give equal widths
     test_case(
-        &[Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
+        vec![
+            Constraint::eq(Unit::Ratio(1, 2)),
+            Constraint::eq(Unit::Ratio(1, 2)),
+        ],
         Buffer::with_lines(vec![
             "┌────────────────────────────┐",
             "│Head1         Head2         │",
@@ -532,11 +522,7 @@ fn widgets_table_can_have_rows_with_multi_lines() {
                 .header(Row::new(vec!["Head1", "Head2", "Head3"]).bottom_margin(1))
                 .block(Block::default().borders(Borders::ALL))
                 .highlight_symbol(">> ")
-                .widths(&[
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                ])
+                .widths([Constraint::eq(5), Constraint::eq(5), Constraint::eq(5)])
                 .column_spacing(1);
                 f.render_stateful_widget(table, size, state);
             })
@@ -635,11 +621,7 @@ fn widgets_table_can_have_elements_styled_individually() {
             .block(Block::default().borders(Borders::LEFT | Borders::RIGHT))
             .highlight_symbol(">> ")
             .highlight_style(Style::default().add_modifier(Modifier::BOLD))
-            .widths(&[
-                Constraint::Length(6),
-                Constraint::Length(6),
-                Constraint::Length(6),
-            ])
+            .widths([Constraint::eq(6), Constraint::eq(6), Constraint::eq(6)])
             .column_spacing(1);
             f.render_stateful_widget(table, size, &mut state);
         })
@@ -696,11 +678,7 @@ fn widgets_table_should_render_even_if_empty() {
             let table = Table::new(vec![])
                 .header(Row::new(vec!["Head1", "Head2", "Head3"]))
                 .block(Block::default().borders(Borders::LEFT | Borders::RIGHT))
-                .widths(&[
-                    Constraint::Length(6),
-                    Constraint::Length(6),
-                    Constraint::Length(6),
-                ])
+                .widths([Constraint::eq(6), Constraint::eq(6), Constraint::eq(6)])
                 .column_spacing(1);
             f.render_widget(table, size);
         })
@@ -736,11 +714,11 @@ fn widgets_table_columns_dont_panic() {
         .block(Block::default().borders(Borders::ALL))
         .highlight_symbol(">> ")
         .column_spacing(1)
-        .widths(&[
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(25),
-            Constraint::Percentage(45),
+        .widths([
+            Constraint::eq(Unit::Percentage(15)),
+            Constraint::eq(Unit::Percentage(15)),
+            Constraint::eq(Unit::Percentage(25)),
+            Constraint::eq(Unit::Percentage(45)),
         ]);
 
     let mut state = TableState::default();
@@ -771,11 +749,7 @@ fn widgets_table_should_clamp_offset_if_rows_are_removed() {
             ])
             .header(Row::new(vec!["Head1", "Head2", "Head3"]).bottom_margin(1))
             .block(Block::default().borders(Borders::ALL))
-            .widths(&[
-                Constraint::Length(5),
-                Constraint::Length(5),
-                Constraint::Length(5),
-            ])
+            .widths([Constraint::eq(5), Constraint::eq(5), Constraint::eq(5)])
             .column_spacing(1);
             f.render_stateful_widget(table, size, &mut state);
         })
@@ -800,11 +774,7 @@ fn widgets_table_should_clamp_offset_if_rows_are_removed() {
             let table = Table::new(vec![Row::new(vec!["Row31", "Row32", "Row33"])])
                 .header(Row::new(vec!["Head1", "Head2", "Head3"]).bottom_margin(1))
                 .block(Block::default().borders(Borders::ALL))
-                .widths(&[
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                    Constraint::Length(5),
-                ])
+                .widths([Constraint::eq(5), Constraint::eq(5), Constraint::eq(5)])
                 .column_spacing(1);
             f.render_stateful_widget(table, size, &mut state);
         })

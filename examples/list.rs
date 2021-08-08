@@ -9,7 +9,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Corner, Direction, Layout},
+    layout::{Constraint, Corner, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, List, ListItem},
@@ -114,7 +114,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             // Create two chunks with equal horizontal screen space
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
 
             // Iterate through all elements in the `items` app and append some debug text to it.

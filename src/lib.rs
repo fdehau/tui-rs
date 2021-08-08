@@ -111,7 +111,7 @@
 //! use tui::Terminal;
 //! use tui::backend::TermionBackend;
 //! use tui::widgets::{Widget, Block, Borders};
-//! use tui::layout::{Layout, Constraint, Direction};
+//! use tui::layout::{Layout, Constraint, Direction, Unit};
 //!
 //! fn main() -> Result<(), io::Error> {
 //!     let stdout = io::stdout().into_raw_mode()?;
@@ -123,10 +123,10 @@
 //!             .margin(1)
 //!             .constraints(
 //!                 [
-//!                     Constraint::Percentage(10),
-//!                     Constraint::Percentage(80),
-//!                     Constraint::Percentage(10)
-//!                 ].as_ref()
+//!                     Constraint::eq(Unit::Percentage(10)),
+//!                     Constraint::eq(Unit::Percentage(80)),
+//!                     Constraint::eq(Unit::Percentage(10))
+//!                 ]
 //!             )
 //!             .split(f.size());
 //!         let block = Block::default()
@@ -142,10 +142,7 @@
 //! }
 //! ```
 //!
-//! This let you describe responsive terminal UI by nesting layouts. You should note that by
-//! default the computed layout tries to fill the available space completely. So if for any reason
-//! you might need a blank space somewhere, try to pass an additional constraint and don't use the
-//! corresponding area.
+//! This let you describe responsive terminal UI by nesting layouts.
 
 pub mod backend;
 pub mod buffer;

@@ -1,6 +1,6 @@
 use crate::{
     buffer::Buffer,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Constraints, Direction, Layout, Rect, Unit},
     style::Style,
     text::Text,
     widgets::{Block, StatefulWidget, Widget},
@@ -178,7 +178,7 @@ impl<'a> Row<'a> {
 /// // As any other widget, a Table can be wrapped in a Block.
 /// .block(Block::default().title("Table"))
 /// // Columns widths are constrained in the same way as Layout...
-/// .widths(&[Constraint::Length(5), Constraint::Length(5), Constraint::Length(10)])
+/// .widths([Constraint::eq(5), Constraint::eq(5), Constraint::eq(10)])
 /// // ...and they can be separated by a fixed spacing.
 /// .column_spacing(1)
 /// // If you wish to highlight a row in any specific way when it is selected...
@@ -193,7 +193,7 @@ pub struct Table<'a> {
     /// Base style for the widget
     style: Style,
     /// Width constraints for each column
-    widths: &'a [Constraint],
+    widths: Vec<Constraints>,
     /// Space between each column
     column_spacing: u16,
     /// Style used to render the selected row
@@ -214,7 +214,7 @@ impl<'a> Table<'a> {
         Self {
             block: None,
             style: Style::default(),
-            widths: &[],
+            widths: Vec::new(),
             column_spacing: 1,
             highlight_style: Style::default(),
             highlight_symbol: None,
@@ -233,16 +233,12 @@ impl<'a> Table<'a> {
         self
     }
 
-    pub fn widths(mut self, widths: &'a [Constraint]) -> Self {
-        let between_0_and_100 = |&w| match w {
-            Constraint::Percentage(p) => p <= 100,
-            _ => true,
-        };
-        assert!(
-            widths.iter().all(between_0_and_100),
-            "Percentages should be between 0 and 100 inclusively."
-        );
-        self.widths = widths;
+    pub fn widths<I>(mut self, widths: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: Into<Constraints>,
+    {
+        self.widths = widths.into_iter().map(|w| w.into()).collect();
         self
     }
 
@@ -266,16 +262,24 @@ impl<'a> Table<'a> {
         self
     }
 
-    fn get_columns_widths(&self, max_width: u16, has_selection: bool) -> Vec<u16> {
-        let mut constraints = Vec::with_capacity(self.widths.len() * 2 + 1);
+    fn get_columns_widths(&self, max_width: u16, has_selection: bool) -> (u16, Vec<u16>) {
+        let mut constraints: Vec<Constraints> = Vec::with_capacity(self.widths.len() * 2 + 1);
         if has_selection {
             let highlight_symbol_width =
                 self.highlight_symbol.map(|s| s.width() as u16).unwrap_or(0);
-            constraints.push(Constraint::Length(highlight_symbol_width));
+            constraints.push(
+                Constraint::eq(Unit::Length(highlight_symbol_width))
+                    .weight(u8::MAX)
+                    .into(),
+            );
         }
-        for constraint in self.widths {
-            constraints.push(*constraint);
-            constraints.push(Constraint::Length(self.column_spacing));
+        for constraint in &self.widths {
+            constraints.push(constraint.clone());
+            constraints.push(
+                Constraint::eq(Unit::Length(self.column_spacing))
+                    .weight(u8::MAX)
+                    .into(),
+            );
         }
         if !self.widths.is_empty() {
             constraints.pop();
@@ -283,17 +287,18 @@ impl<'a> Table<'a> {
         let mut chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(constraints)
-            .expand_to_fill(false)
             .split(Rect {
                 x: 0,
                 y: 0,
                 width: max_width,
                 height: 1,
             });
-        if has_selection {
-            chunks.remove(0);
-        }
-        chunks.iter().step_by(2).map(|c| c.width).collect()
+        let first_column = if has_selection {
+            chunks.remove(0).width
+        } else {
+            0
+        };
+        (first_column, chunks.iter().map(|c| c.width).collect())
     }
 
     fn get_row_bounds(
@@ -381,7 +386,8 @@ impl<'a> StatefulWidget for Table<'a> {
         };
 
         let has_selection = state.selected.is_some();
-        let columns_widths = self.get_columns_widths(table_area.width, has_selection);
+        let (first_column, columns_widths) =
+            self.get_columns_widths(table_area.width, has_selection);
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = " ".repeat(highlight_symbol.width());
         let mut current_height = 0;
@@ -401,9 +407,14 @@ impl<'a> StatefulWidget for Table<'a> {
             );
             let mut col = table_area.left();
             if has_selection {
-                col += (highlight_symbol.width() as u16).min(table_area.width);
+                col += first_column
             }
-            for (width, cell) in columns_widths.iter().zip(header.cells.iter()) {
+            for (i, (width, cell)) in columns_widths
+                .iter()
+                .step_by(2)
+                .zip(header.cells.iter())
+                .enumerate()
+            {
                 render_cell(
                     buf,
                     cell,
@@ -414,7 +425,7 @@ impl<'a> StatefulWidget for Table<'a> {
                         height: max_header_height,
                     },
                 );
-                col += *width + self.column_spacing;
+                col += *width + columns_widths.get(i * 2 + 1).unwrap_or(&0);
             }
             current_height += max_header_height;
             rows_height = rows_height.saturating_sub(max_header_height);
@@ -450,13 +461,18 @@ impl<'a> StatefulWidget for Table<'a> {
                     &blank_symbol
                 };
                 let (col, _) =
-                    buf.set_stringn(col, row, symbol, table_area.width as usize, table_row.style);
+                    buf.set_stringn(col, row, symbol, first_column as usize, table_row.style);
                 col
             } else {
                 col
             };
             let mut col = table_row_start_col;
-            for (width, cell) in columns_widths.iter().zip(table_row.cells.iter()) {
+            for (i, (width, cell)) in columns_widths
+                .iter()
+                .step_by(2)
+                .zip(table_row.cells.iter())
+                .enumerate()
+            {
                 render_cell(
                     buf,
                     cell,
@@ -467,7 +483,7 @@ impl<'a> StatefulWidget for Table<'a> {
                         height: table_row.height,
                     },
                 );
-                col += *width + self.column_spacing;
+                col += *width + columns_widths.get(i * 2 + 1).unwrap_or(&0);
             }
             if is_selected {
                 buf.set_style(table_row_area, self.highlight_style);
@@ -490,16 +506,5 @@ impl<'a> Widget for Table<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut state = TableState::default();
         StatefulWidget::render(self, area, buf, &mut state);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[should_panic]
-    fn table_invalid_percentages() {
-        Table::new(vec![]).widths(&[Constraint::Percentage(110)]);
     }
 }

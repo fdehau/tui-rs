@@ -6,7 +6,7 @@ use std::{error::Error, io, time::Duration};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect, Unit},
     style::Color,
     widgets::{
         canvas::{Canvas, Map, MapResolution, Rectangle},
@@ -94,7 +94,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                .constraints([
+                    Constraint::eq(Unit::Percentage(50)),
+                    Constraint::eq(Unit::Percentage(50)),
+                ])
                 .split(f.size());
             let canvas = Canvas::default()
                 .block(Block::default().borders(Borders::ALL).title("World"))

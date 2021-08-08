@@ -6,7 +6,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Paragraph, Wrap},
@@ -42,12 +42,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .margin(5)
                 .constraints(
                     [
-                        Constraint::Percentage(25),
-                        Constraint::Percentage(25),
-                        Constraint::Percentage(25),
-                        Constraint::Percentage(25),
+                        Constraint::eq(Unit::Percentage(25)),
+                        Constraint::eq(Unit::Percentage(25)),
+                        Constraint::eq(Unit::Percentage(25)),
+                        Constraint::eq(Unit::Percentage(25)),
                     ]
-                    .as_ref(),
                 )
                 .split(size);
 

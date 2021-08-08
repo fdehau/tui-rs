@@ -9,7 +9,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Unit},
     style::{Color, Modifier, Style},
     symbols,
     text::Span,
@@ -83,14 +83,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             let size = f.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Ratio(1, 3),
-                        Constraint::Ratio(1, 3),
-                        Constraint::Ratio(1, 3),
-                    ]
-                    .as_ref(),
-                )
+                .constraints([
+                    Constraint::eq(Unit::Ratio(1, 3)),
+                    Constraint::eq(Unit::Ratio(1, 3)),
+                    Constraint::eq(Unit::Ratio(1, 3)),
+                ])
                 .split(size);
             let x_labels = vec![
                 Span::styled(
