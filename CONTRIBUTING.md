@@ -23,7 +23,7 @@ We use Github Actions for the CI where we perform the following checks:
 - The code should conform to the default format enforced by `rustfmt`.
 - The code should not contain common style issues `clippy`.
 
-You can also check most of those things yourself locally using `cargo make ci` which will offer you a shorter feedback loop.
+If you install [cargo-make](https://sagiegurari.github.io/cargo-make/), you can also check most of those things yourself locally by running `cargo make ci`, which will offer you a shorter feedback loop.
 
 ## Tests
 

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
-use cassowary::strength::{REQUIRED, WEAK};
+use cassowary::strength::{REQUIRED, STRONG, WEAK};
 use cassowary::WeightedRelation::*;
 use cassowary::{Constraint as CassowaryConstraint, Expression, Solver, Variable};
 
@@ -242,20 +242,20 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
     match layout.direction {
         Direction::Horizontal => {
             for pair in elements.windows(2) {
-                ccs.push((pair[0].x + pair[0].width) | EQ(REQUIRED) | pair[1].x);
+                ccs.push(pair[0].right() | EQ(REQUIRED) | pair[1].x);
             }
             for (i, size) in layout.constraints.iter().enumerate() {
                 ccs.push(elements[i].y | EQ(REQUIRED) | f64::from(dest_area.y));
                 ccs.push(elements[i].height | EQ(REQUIRED) | f64::from(dest_area.height));
                 ccs.push(match *size {
-                    Constraint::Length(v) => elements[i].width | EQ(WEAK) | f64::from(v),
+                    Constraint::Length(v) => elements[i].width | EQ(STRONG) | f64::from(v),
                     Constraint::Percentage(v) => {
                         elements[i].width | EQ(WEAK) | (f64::from(v * dest_area.width) / 100.0)
                     }
                     Constraint::Ratio(n, d) => {
                         elements[i].width
                             | EQ(WEAK)
-                            | (f64::from(dest_area.width) * f64::from(n) / f64::from(d))
+                            | (f64::from(u32::from(dest_area.width) * n / d))
                     }
                     Constraint::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
@@ -264,20 +264,20 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
         }
         Direction::Vertical => {
             for pair in elements.windows(2) {
-                ccs.push((pair[0].y + pair[0].height) | EQ(REQUIRED) | pair[1].y);
+                ccs.push(pair[0].bottom() | EQ(REQUIRED) | pair[1].y);
             }
             for (i, size) in layout.constraints.iter().enumerate() {
                 ccs.push(elements[i].x | EQ(REQUIRED) | f64::from(dest_area.x));
                 ccs.push(elements[i].width | EQ(REQUIRED) | f64::from(dest_area.width));
                 ccs.push(match *size {
-                    Constraint::Length(v) => elements[i].height | EQ(WEAK) | f64::from(v),
+                    Constraint::Length(v) => elements[i].height | EQ(STRONG) | f64::from(v),
                     Constraint::Percentage(v) => {
                         elements[i].height | EQ(WEAK) | (f64::from(v * dest_area.height) / 100.0)
                     }
                     Constraint::Ratio(n, d) => {
                         elements[i].height
                             | EQ(WEAK)
-                            | (f64::from(dest_area.height) * f64::from(n) / f64::from(d))
+                            | (f64::from(u32::from(dest_area.height) * n / d))
                     }
                     Constraint::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
@@ -543,5 +543,63 @@ mod tests {
         let rect = Rect::new(0, 0, 300, 100);
         assert_eq!(rect.width, 300);
         assert_eq!(rect.height, 100);
+    }
+
+    #[test]
+    fn test_fixed_length_bottom_rows() {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 166,
+            height: 43,
+        };
+
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Ratio(1, 2),
+                    Constraint::Ratio(1, 2),
+                    Constraint::Length(4),
+                ]
+                .as_ref(),
+            )
+            .split(target);
+
+        let sum_height = chunks.iter().map(|r| r.height).sum::<u16>();
+        assert_eq!(sum_height, target.height);
+        assert_eq!(chunks[2].height, 4);
+        chunks
+            .windows(2)
+            .for_each(|w| assert!(w[0].bottom() == w[1].y));
+    }
+
+    #[test]
+    fn test_fixed_length_right_columns() {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 166,
+            height: 43,
+        };
+
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(
+                [
+                    Constraint::Ratio(1, 2),
+                    Constraint::Ratio(1, 2),
+                    Constraint::Length(11),
+                ]
+                .as_ref(),
+            )
+            .split(target);
+
+        let sum_width = chunks.iter().map(|r| r.width).sum::<u16>();
+        assert_eq!(sum_width, target.width);
+        assert_eq!(chunks[2].width, 11);
+        chunks
+            .windows(2)
+            .for_each(|w| assert!(w[0].right() == w[1].x));
     }
 }
