@@ -6,6 +6,7 @@ use crate::{
     style::Style,
 };
 
+#[derive(Clone, Debug)]
 pub struct MultiListState {
     selected: HashSet<usize>,
     highlighted: Option<usize>,
