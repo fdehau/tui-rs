@@ -1,7 +1,5 @@
 use std::collections::HashSet;
 
-use unicode_width::UnicodeWidthStr;
-
 use super::{Block, ListItem, StatefulWidget, Widget};
 use crate::{
     layout::{Corner, Rect},
