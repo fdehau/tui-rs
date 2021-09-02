@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{borrow::Borrow, collections::HashSet};
 
 use super::{Block, ListItem, StatefulWidget, Widget};
 use crate::{
@@ -46,6 +46,10 @@ impl MultiListState {
 
     pub fn get_highlight(&mut self) -> Option<usize> {
         self.highlighted
+    }
+
+    pub fn get_selections(&self) -> &HashSet<usize> {
+        self.selected.borrow()
     }
 }
 
