@@ -1,137 +1,115 @@
-use crate::{
-    buffer::Buffer,
-    layout::{Corner, Rect},
-    style::Style,
-    text::Text,
-    widgets::{Block, StatefulWidget, Widget},
-};
+use std::collections::HashSet;
+
 use unicode_width::UnicodeWidthStr;
 
-#[derive(Debug, Clone)]
-pub struct ListState {
+use super::{Block, ListItem, StatefulWidget, Widget};
+use crate::{
+    layout::{Corner, Rect},
+    style::Style,
+};
+
+pub struct MultiListState {
+    selected: HashSet<usize>,
+    highlighted: Option<usize>,
     offset: usize,
-    selected: Option<usize>,
 }
 
-impl Default for ListState {
-    fn default() -> ListState {
-        ListState {
+impl Default for MultiListState {
+    fn default() -> Self {
+        Self {
+            selected: HashSet::new(),
+            highlighted: None,
             offset: 0,
-            selected: None,
         }
     }
 }
 
-impl ListState {
-    pub fn selected(&self) -> Option<usize> {
-        self.selected
+impl MultiListState {
+    pub fn select(&mut self, i: usize) {
+        self.selected.insert(i);
     }
 
-    pub fn select(&mut self, index: Option<usize>) {
-        self.selected = index;
-        if index.is_none() {
-            self.offset = 0;
-        }
+    pub fn deselect(&mut self, i: usize) {
+        self.selected.remove(&i);
     }
-}
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct ListItem<'a> {
-    pub(crate) content: Text<'a>,
-    pub(crate) style: Style,
-}
-
-impl<'a> ListItem<'a> {
-    pub fn new<T>(content: T) -> ListItem<'a>
-    where
-        T: Into<Text<'a>>,
-    {
-        ListItem {
-            content: content.into(),
-            style: Style::default(),
+    pub fn toggle_selection(&mut self, i: usize) {
+        if self.selected.contains(&i) {
+            self.selected.remove(&i);
+        } else {
+            self.selected.insert(i);
         }
     }
 
-    pub fn style(mut self, style: Style) -> ListItem<'a> {
-        self.style = style;
-        self
+    pub fn highlight(&mut self, i: Option<usize>) {
+        self.highlighted = i;
     }
 
-    pub fn height(&self) -> usize {
-        self.content.height()
+    pub fn get_highlight(&mut self) -> Option<usize> {
+        self.highlighted
     }
 }
 
-/// A widget to display several items among which one can be selected (optional)
-///
-/// # Examples
-///
-/// ```
-/// # use tui::widgets::{Block, Borders, List, ListItem};
-/// # use tui::style::{Style, Color, Modifier};
-/// let items = [ListItem::new("Item 1"), ListItem::new("Item 2"), ListItem::new("Item 3")];
-/// List::new(items)
-///     .block(Block::default().title("List").borders(Borders::ALL))
-///     .style(Style::default().fg(Color::White))
-///     .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-///     .highlight_symbol(">>");
-/// ```
 #[derive(Debug, Clone)]
-pub struct List<'a> {
+pub struct MutliList<'a> {
     block: Option<Block<'a>>,
     items: Vec<ListItem<'a>>,
-    /// Style used as a base style for the widget
     style: Style,
     start_corner: Corner,
-    /// Style used to render selected item
+    selected_style: Style,
     highlight_style: Style,
-    /// Symbol in front of the selected item (Shift all items to the right)
     highlight_symbol: Option<&'a str>,
 }
 
-impl<'a> List<'a> {
-    pub fn new<T>(items: T) -> List<'a>
+impl<'a> MutliList<'a> {
+    pub fn new<T>(items: T) -> Self
     where
         T: Into<Vec<ListItem<'a>>>,
     {
-        List {
+        Self {
             block: None,
             style: Style::default(),
             items: items.into(),
             start_corner: Corner::TopLeft,
+            selected_style: Style::default(),
             highlight_style: Style::default(),
             highlight_symbol: None,
         }
     }
 
-    pub fn block(mut self, block: Block<'a>) -> List<'a> {
+    pub fn block(mut self, block: Block<'a>) -> Self {
         self.block = Some(block);
         self
     }
 
-    pub fn style(mut self, style: Style) -> List<'a> {
+    pub fn style(mut self, style: Style) -> Self {
         self.style = style;
         self
     }
 
-    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> List<'a> {
+    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> Self {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
 
-    pub fn highlight_style(mut self, style: Style) -> List<'a> {
+    pub fn highlight_style(mut self, style: Style) -> Self {
         self.highlight_style = style;
         self
     }
 
-    pub fn start_corner(mut self, corner: Corner) -> List<'a> {
+    pub fn start_corner(mut self, corner: Corner) -> Self {
         self.start_corner = corner;
+        self
+    }
+
+    pub fn selected_style(mut self, selected_style: Style) -> Self {
+        self.selected_style = selected_style;
         self
     }
 
     fn get_items_bounds(
         &self,
-        selected: Option<usize>,
+        highlighted: Option<usize>,
         offset: usize,
         max_height: usize,
     ) -> (usize, usize) {
@@ -147,7 +125,7 @@ impl<'a> List<'a> {
             end += 1;
         }
 
-        let selected = selected.unwrap_or(0).min(self.items.len() - 1);
+        let selected = highlighted.unwrap_or(0).min(self.items.len() - 1);
         while selected >= end {
             height = height.saturating_add(self.items[end].height());
             end += 1;
@@ -168,10 +146,22 @@ impl<'a> List<'a> {
     }
 }
 
-impl<'a> StatefulWidget for List<'a> {
-    type State = ListState;
+impl<'a> Widget for MutliList<'a> {
+    fn render(self, area: crate::layout::Rect, buf: &mut crate::buffer::Buffer) {
+        let mut state = MultiListState::default();
+        StatefulWidget::render(self, area, buf, &mut state);
+    }
+}
 
-    fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+impl<'a> StatefulWidget for MutliList<'a> {
+    type State = MultiListState;
+
+    fn render(
+        mut self,
+        area: crate::layout::Rect,
+        buf: &mut crate::buffer::Buffer,
+        state: &mut Self::State,
+    ) {
         buf.set_style(area, self.style);
         let list_area = match self.block.take() {
             Some(b) => {
@@ -191,14 +181,16 @@ impl<'a> StatefulWidget for List<'a> {
         }
         let list_height = list_area.height as usize;
 
-        let (start, end) = self.get_items_bounds(state.selected, state.offset, list_height);
+        let (start, end) = self.get_items_bounds(state.highlighted, state.offset, list_height);
         state.offset = start;
 
-        let highlight_symbol = self.highlight_symbol.unwrap_or("");
-        let blank_symbol = " ".repeat(highlight_symbol.width());
+        let highlight_symbol = self
+            .highlight_symbol
+            .map(|s| String::from(s))
+            .unwrap_or("".into());
 
         let mut current_height = 0;
-        let has_selection = state.selected.is_some();
+
         for (i, item) in self
             .items
             .iter_mut()
@@ -226,32 +218,38 @@ impl<'a> StatefulWidget for List<'a> {
             let item_style = self.style.patch(item.style);
             buf.set_style(area, item_style);
 
-            let is_selected = state.selected.map(|s| s == i).unwrap_or(false);
-            let elem_x = if has_selection {
-                let symbol = if is_selected {
-                    highlight_symbol
-                } else {
-                    &blank_symbol
-                };
-                let (x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, item_style);
+            let is_selected = state.selected.contains(&i);
+
+            let is_highlighted = state.highlighted.map(|h| h == i).unwrap_or(false);
+
+            let elem_x = if is_highlighted {
+                let (x, _) = buf.set_stringn(
+                    x,
+                    y,
+                    highlight_symbol.clone(),
+                    list_area.width as usize,
+                    item_style,
+                );
                 x
             } else {
                 x
             };
+
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
             for (j, line) in item.content.lines.iter().enumerate() {
                 buf.set_spans(elem_x, y + j as u16, line, max_element_width as u16);
             }
-            if is_selected {
-                buf.set_style(area, self.highlight_style);
-            }
-        }
-    }
-}
+            let mut style = if is_selected {
+                self.selected_style
+            } else {
+                self.style
+            };
 
-impl<'a> Widget for List<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let mut state = ListState::default();
-        StatefulWidget::render(self, area, buf, &mut state);
+            if is_highlighted {
+                style = style.patch(self.highlight_style);
+            }
+
+            buf.set_style(area, style);
+        }
     }
 }
