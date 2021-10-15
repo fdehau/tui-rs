@@ -12,7 +12,6 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct ListState {
     offset: usize,
-    target: Option<usize>,
     selected: BTreeSet<usize>,
 }
 
