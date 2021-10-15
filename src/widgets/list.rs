@@ -151,12 +151,24 @@ impl<'a> List<'a> {
         let mut end = offset;
         let mut height = 0;
 
+        // Fills forwards until max_height is reached
+        // or no more items are left.
         for item in self.items.iter().skip(offset) {
             if height + item.height() > max_height {
                 break;
             }
             height += item.height();
             end += 1;
+        }
+        
+        // Fills backwards, if offset is too large
+        // and we have insufficient items.
+        for item in self.items[..start].iter().rev() {
+            if height + item.height() > max_height {
+                break;
+            }
+            height += item.height();
+            start -= 1;
         }
 
         (start, end)
