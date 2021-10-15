@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use crate::{
     buffer::Buffer,
     layout::{Corner, Rect},
@@ -10,28 +12,42 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone)]
 pub struct ListState {
     offset: usize,
-    selected: Option<usize>,
+    target: Option<usize>,
+    selected: BTreeSet<usize>,
 }
 
 impl Default for ListState {
     fn default() -> ListState {
         ListState {
             offset: 0,
-            selected: None,
+            target: None,
+            selected: BTreeSet::new(),
         }
     }
 }
 
 impl ListState {
-    pub fn selected(&self) -> Option<usize> {
-        self.selected
+    pub fn selected(&self) -> &BTreeSet<usize> {
+        &self.selected
     }
 
-    pub fn select(&mut self, index: Option<usize>) {
-        self.selected = index;
-        if index.is_none() {
-            self.offset = 0;
+    pub fn select(&mut self, index: usize) {
+        self.selected.insert(index);
+    }
+
+    pub fn front_selection(&mut self) -> Option<usize> {
+        match self.target {
+            None => self.selected.iter().next().cloned(),
+            Some(target) => Some(target),
         }
+    }
+
+    pub fn deselect(&mut self, index: usize) {
+        self.selected.remove(&index);
+    }
+
+    pub fn deselect_all(&mut self) {
+        self.selected.clear();
     }
 }
 
@@ -168,6 +184,85 @@ impl<'a> List<'a> {
     }
 }
 
+impl<'a> List<'a> {
+    pub fn new<T>(items: T) -> List<'a>
+    where
+        T: Into<Vec<ListItem<'a>>>,
+    {
+        List {
+            block: None,
+            style: Style::default(),
+            items: items.into(),
+            start_corner: Corner::TopLeft,
+            highlight_style: Style::default(),
+            highlight_symbol: None,
+        }
+    }
+
+    pub fn block(mut self, block: Block<'a>) -> List<'a> {
+        self.block = Some(block);
+        self
+    }
+
+    pub fn style(mut self, style: Style) -> List<'a> {
+        self.style = style;
+        self
+    }
+
+    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> List<'a> {
+        self.highlight_symbol = Some(highlight_symbol);
+        self
+    }
+
+    pub fn highlight_style(mut self, style: Style) -> List<'a> {
+        self.highlight_style = style;
+        self
+    }
+
+    pub fn start_corner(mut self, corner: Corner) -> List<'a> {
+        self.start_corner = corner;
+        self
+    }
+
+    fn get_items_bounds(
+        &self,
+        selected: Option<usize>,
+        offset: usize,
+        max_height: usize,
+    ) -> (usize, usize) {
+        let offset = offset.min(self.items.len().saturating_sub(1));
+        let mut start = offset;
+        let mut end = offset;
+        let mut height = 0;
+        for item in self.items.iter().skip(offset) {
+            if height + item.height() > max_height {
+                break;
+            }
+            height += item.height();
+            end += 1;
+        }
+
+        let selected = selected.unwrap_or(0).min(self.items.len() - 1);
+        while selected >= end {
+            height = height.saturating_add(self.items[end].height());
+            end += 1;
+            while height > max_height {
+                height = height.saturating_sub(self.items[start].height());
+                start += 1;
+            }
+        }
+        while selected < start {
+            start -= 1;
+            height = height.saturating_add(self.items[start].height());
+            while height > max_height {
+                end -= 1;
+                height = height.saturating_sub(self.items[end].height());
+            }
+        }
+        (start, end)
+    }
+}
+
 impl<'a> StatefulWidget for List<'a> {
     type State = ListState;
 
@@ -191,14 +286,15 @@ impl<'a> StatefulWidget for List<'a> {
         }
         let list_height = list_area.height as usize;
 
-        let (start, end) = self.get_items_bounds(state.selected, state.offset, list_height);
+        let (start, end) =
+            self.get_items_bounds(state.front_selection(), state.offset, list_height);
         state.offset = start;
 
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
         let blank_symbol = " ".repeat(highlight_symbol.width());
 
         let mut current_height = 0;
-        let has_selection = state.selected.is_some();
+        let has_selection = !state.selected.is_empty();
         for (i, item) in self
             .items
             .iter_mut()
@@ -226,7 +322,7 @@ impl<'a> StatefulWidget for List<'a> {
             let item_style = self.style.patch(item.style);
             buf.set_style(area, item_style);
 
-            let is_selected = state.selected.map(|s| s == i).unwrap_or(false);
+            let is_selected = state.selected.contains(&i);
             let elem_x = if has_selection {
                 let symbol = if is_selected {
                     highlight_symbol
