@@ -36,7 +36,7 @@ impl Padding {
     pub fn zero() -> Padding {
         Padding {
             horizontal: 0,
-            vertical: 0
+            vertical: 0,
         }
     }
 }
@@ -85,7 +85,7 @@ impl<'a> Default for Block<'a> {
             border_style: Default::default(),
             border_type: BorderType::Plain,
             style: Default::default(),
-            padding: Padding::zero()
+            padding: Padding::zero(),
         }
     }
 }
