@@ -26,6 +26,21 @@ impl BorderType {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Padding {
+    pub vertical: u16,
+    pub horizontal: u16,
+}
+
+impl Padding {
+    pub fn zero() -> Padding {
+        Padding {
+            horizontal: 0,
+            vertical: 0
+        }
+    }
+}
+
 /// Base widget to be used with all upper level ones. It may be used to display a box border around
 /// the widget and/or add a title.
 ///
@@ -57,6 +72,8 @@ pub struct Block<'a> {
     border_type: BorderType,
     /// Widget style
     style: Style,
+    /// Block padding
+    padding: Padding,
 }
 
 impl<'a> Default for Block<'a> {
@@ -68,6 +85,7 @@ impl<'a> Default for Block<'a> {
             border_style: Default::default(),
             border_type: BorderType::Plain,
             style: Default::default(),
+            padding: Padding::zero()
         }
     }
 }
@@ -135,7 +153,32 @@ impl<'a> Block<'a> {
         if self.borders.intersects(Borders::BOTTOM) {
             inner.height = inner.height.saturating_sub(1);
         }
+
+        inner.x = inner.x.saturating_add(self.padding.horizontal);
+        inner.y = inner.y.saturating_add(self.padding.vertical);
+
+        inner.width = inner.width.saturating_sub(self.padding.horizontal * 2);
+        inner.height = inner.height.saturating_sub(self.padding.vertical * 2);
+
         inner
+    }
+
+    pub fn padding(mut self, padding: u16) -> Block<'a> {
+        self.padding = Padding {
+            horizontal: padding,
+            vertical: padding,
+        };
+        self
+    }
+
+    pub fn horizontal_padding(mut self, horizontal: u16) -> Block<'a> {
+        self.padding.horizontal = horizontal;
+        self
+    }
+
+    pub fn vertical_padding(mut self, vertical: u16) -> Block<'a> {
+        self.padding.vertical = vertical;
+        self
     }
 }
 
