@@ -87,3 +87,7 @@ required-features = ["crossterm"]
 [[example]]
 name = "user_input"
 required-features = ["crossterm"]
+
+[[example]]
+name = "filter"
+required-features = ["crossterm"]
