@@ -14,6 +14,22 @@ fn create_labels<'a>(labels: &'a [&'a str]) -> Vec<Span<'a>> {
     labels.iter().map(|l| Span::from(*l)).collect()
 }
 
+fn axis_test_case<S>(width: u16, height: u16, x_axis: Axis, y_axis: Axis, lines: Vec<S>)
+where
+    S: AsRef<str>,
+{
+    let backend = TestBackend::new(width, height);
+    let mut terminal = Terminal::new(backend).unwrap();
+    terminal
+        .draw(|f| {
+            let chart = Chart::new(vec![]).x_axis(x_axis).y_axis(y_axis);
+            f.render_widget(chart, f.size());
+        })
+        .unwrap();
+    let expected = Buffer::with_lines(lines);
+    terminal.backend().assert_buffer(&expected);
+}
+
 #[test]
 fn widgets_chart_can_render_on_small_areas() {
     let test_case = |width, height| {
@@ -51,31 +67,21 @@ fn widgets_chart_can_render_on_small_areas() {
 #[test]
 fn widgets_chart_handles_long_labels() {
     let test_case = |x_labels, y_labels, x_alignment, lines| {
-        let backend = TestBackend::new(10, 5);
-        let mut terminal = Terminal::new(backend).unwrap();
-        terminal
-            .draw(|f| {
-                let datasets = vec![Dataset::default()
-                    .marker(symbols::Marker::Braille)
-                    .style(Style::default().fg(Color::Magenta))
-                    .data(&[(2.0, 2.0)])];
-                let mut x_axis = Axis::default().bounds([0.0, 1.0]);
-                if let Some((left_label, right_label)) = x_labels {
-                    x_axis = x_axis
-                        .labels(vec![Span::from(left_label), Span::from(right_label)])
-                        .label_alignment(x_alignment);
-                }
-                let mut y_axis = Axis::default().bounds([0.0, 1.0]);
-                if let Some((left_label, right_label)) = y_labels {
-                    y_axis = y_axis.labels(vec![Span::from(left_label), Span::from(right_label)]);
-                }
-                let chart = Chart::new(datasets).x_axis(x_axis).y_axis(y_axis);
-                f.render_widget(chart, f.size());
-            })
-            .unwrap();
-        let expected = Buffer::with_lines(lines);
-        terminal.backend().assert_buffer(&expected);
+        let mut x_axis = Axis::default().bounds([0.0, 1.0]);
+        if let Some((left_label, right_label)) = x_labels {
+            x_axis = x_axis
+                .labels(vec![Span::from(left_label), Span::from(right_label)])
+                .label_alignment(x_alignment);
+        }
+
+        let mut y_axis = Axis::default().bounds([0.0, 1.0]);
+        if let Some((left_label, right_label)) = y_labels {
+            y_axis = y_axis.labels(vec![Span::from(left_label), Span::from(right_label)]);
+        }
+
+        axis_test_case(10, 5, x_axis, y_axis, lines);
     };
+
     test_case(
         Some(("AAAA", "B")),
         None,
@@ -164,24 +170,16 @@ fn widgets_chart_handles_long_labels() {
 
 #[test]
 fn widgets_chart_handles_x_axis_labels_alignments() {
-    let test_case = |alignment, lines| {
-        let backend = TestBackend::new(10, 5);
-        let mut terminal = Terminal::new(backend).unwrap();
-        terminal
-            .draw(|f| {
-                let x_axis = Axis::default()
-                    .labels(vec![Span::from("AAAA"), Span::from("B"), Span::from("C")])
-                    .label_alignment(alignment);
+    let test_case = |y_alignment, lines| {
+        let x_axis = Axis::default()
+            .labels(vec![Span::from("AAAA"), Span::from("B"), Span::from("C")])
+            .label_alignment(y_alignment);
 
-                let y_axis = Axis::default();
+        let y_axis = Axis::default();
 
-                let chart = Chart::new(vec![]).x_axis(x_axis).y_axis(y_axis);
-                f.render_widget(chart, f.size());
-            })
-            .unwrap();
-        let expected = Buffer::with_lines(lines);
-        terminal.backend().assert_buffer(&expected);
+        axis_test_case(10, 5, x_axis, y_axis, lines);
     };
+
     test_case(
         Alignment::Left,
         vec![
@@ -217,22 +215,13 @@ fn widgets_chart_handles_x_axis_labels_alignments() {
 #[test]
 fn widgets_chart_handles_y_axis_labels_alignments() {
     let test_case = |y_alignment, lines| {
-        let backend = TestBackend::new(20, 5);
-        let mut terminal = Terminal::new(backend).unwrap();
-        terminal
-            .draw(|f| {
-                let x_axis = Axis::default().labels(create_labels(&["AAAAA", "B"]));
+        let x_axis = Axis::default().labels(create_labels(&["AAAAA", "B"]));
 
-                let y_axis = Axis::default()
-                    .labels(create_labels(&["C", "D"]))
-                    .label_alignment(y_alignment);
+        let y_axis = Axis::default()
+            .labels(create_labels(&["C", "D"]))
+            .label_alignment(y_alignment);
 
-                let chart = Chart::new(vec![]).x_axis(x_axis).y_axis(y_axis);
-                f.render_widget(chart, f.size());
-            })
-            .unwrap();
-        let expected = Buffer::with_lines(lines);
-        terminal.backend().assert_buffer(&expected);
+        axis_test_case(20, 5, x_axis, y_axis, lines);
     };
     test_case(
         Alignment::Left,

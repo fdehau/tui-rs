@@ -378,6 +378,7 @@ impl<'a> Chart<'a> {
                 let mut first_label_width = x_labels[0].content.width() as u16;
                 first_label_width = match self.x_axis.label_alignment {
                     Alignment::Left => {
+                        // The last character of the label should be below the Y-Axis when it exists, not on its left
                         let y_axis_offset = if has_y_axis { 1 } else { 0 };
                         first_label_width.saturating_sub(y_axis_offset)
                     }
