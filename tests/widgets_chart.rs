@@ -169,16 +169,13 @@ fn widgets_chart_handles_x_axis_labels_alignments() {
         let mut terminal = Terminal::new(backend).unwrap();
         terminal
             .draw(|f| {
-                let datasets = vec![Dataset::default()
-                    .marker(symbols::Marker::Braille)
-                    .style(Style::default().fg(Color::Magenta))
-                    .data(&[(2.0, 2.0)])];
                 let x_axis = Axis::default()
-                    .bounds([0.0, 1.0])
                     .labels(vec![Span::from("AAAA"), Span::from("B"), Span::from("C")])
                     .label_alignment(alignment);
-                let y_axis = Axis::default().bounds([0.0, 1.0]);
-                let chart = Chart::new(datasets).x_axis(x_axis).y_axis(y_axis);
+
+                let y_axis = Axis::default();
+
+                let chart = Chart::new(vec![]).x_axis(x_axis).y_axis(y_axis);
                 f.render_widget(chart, f.size());
             })
             .unwrap();
@@ -213,6 +210,58 @@ fn widgets_chart_handles_x_axis_labels_alignments() {
             "          ",
             "──────────",
             "AAA  B   C",
+        ],
+    );
+}
+
+#[test]
+fn widgets_chart_handles_y_axis_labels_alignments() {
+    let test_case = |y_alignment, lines| {
+        let backend = TestBackend::new(20, 5);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|f| {
+                let x_axis = Axis::default().labels(create_labels(&["AAAAA", "B"]));
+
+                let y_axis = Axis::default()
+                    .labels(create_labels(&["C", "D"]))
+                    .label_alignment(y_alignment);
+
+                let chart = Chart::new(vec![]).x_axis(x_axis).y_axis(y_axis);
+                f.render_widget(chart, f.size());
+            })
+            .unwrap();
+        let expected = Buffer::with_lines(lines);
+        terminal.backend().assert_buffer(&expected);
+    };
+    test_case(
+        Alignment::Left,
+        vec![
+            "D   │               ",
+            "    │               ",
+            "C   │               ",
+            "    └───────────────",
+            "AAAAA              B",
+        ],
+    );
+    test_case(
+        Alignment::Center,
+        vec![
+            "  D │               ",
+            "    │               ",
+            "  C │               ",
+            "    └───────────────",
+            "AAAAA              B",
+        ],
+    );
+    test_case(
+        Alignment::Right,
+        vec![
+            "   D│               ",
+            "    │               ",
+            "   C│               ",
+            "    └───────────────",
+            "AAAAA              B",
         ],
     );
 }
