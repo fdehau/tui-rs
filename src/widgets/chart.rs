@@ -1,3 +1,4 @@
+use crate::layout::Alignment;
 use crate::{
     buffer::Buffer,
     layout::{Constraint, Rect},
@@ -23,6 +24,8 @@ pub struct Axis<'a> {
     labels: Option<Vec<Span<'a>>>,
     /// The style used to draw the axis itself
     style: Style,
+    /// The alignment of the labels of the Axis
+    label_alignment: Alignment,
 }
 
 impl<'a> Default for Axis<'a> {
@@ -32,6 +35,7 @@ impl<'a> Default for Axis<'a> {
             bounds: [0.0, 0.0],
             labels: None,
             style: Default::default(),
+            label_alignment: Alignment::Left,
         }
     }
 }
@@ -69,6 +73,15 @@ impl<'a> Axis<'a> {
 
     pub fn style(mut self, style: Style) -> Axis<'a> {
         self.style = style;
+        self
+    }
+
+    /// Defines the alignment of the labels of the axis.
+    /// The alignment behaves differently based on the axis:
+    /// - Y-Axis: The labels are aligned in the area on the left of the axis
+    /// - X-Axis: The first label is aligned relative to the Y-axis
+    pub fn label_alignment(mut self, alignment: Alignment) -> Axis<'a> {
+        self.label_alignment = alignment;
         self
     }
 }
@@ -362,7 +375,13 @@ impl<'a> Chart<'a> {
             .unwrap_or_default();
         if let Some(ref x_labels) = self.x_axis.labels {
             if !x_labels.is_empty() {
-                max_width = max(max_width, x_labels[0].content.width() as u16);
+                let mut first_label_width = x_labels[0].content.width() as u16;
+                first_label_width = match self.x_axis.label_alignment {
+                    Alignment::Left => first_label_width,
+                    Alignment::Center => first_label_width / 2,
+                    Alignment::Right => 0,
+                };
+                max_width = max(max_width, first_label_width);
             }
         }
         // labels of y axis and first label of x axis can take at most 1/3rd of the total width
@@ -385,26 +404,60 @@ impl<'a> Chart<'a> {
         if labels_len < 2 {
             return;
         }
-        let width_between_ticks = graph_area.width / (labels_len - 1);
+
+        let width_between_ticks = graph_area.width / labels_len;
+
         for (i, label) in labels.iter().enumerate() {
-            let label_width = label.width() as u16;
-            let label_width = if i == 0 {
-                // the first label is put between the left border of the chart and the y axis.
-                graph_area
-                    .left()
-                    .saturating_sub(chart_area.left())
-                    .min(label_width)
+            if i == 0 {
+                let label_area =
+                    self.first_x_label_area(y, width_between_ticks, chart_area, graph_area);
+
+                let alignment = match self.x_axis.label_alignment {
+                    Alignment::Left => Alignment::Right,
+                    Alignment::Center => Alignment::Center,
+                    Alignment::Right => Alignment::Left,
+                };
+
+                Self::render_label(buf, label, label_area, alignment);
+            } else if i == labels.len() - 1 {
+                let x = graph_area.right() - width_between_ticks;
+                let label_area = Rect::new(x, y, width_between_ticks, 1);
+                // The last label should be aligned Right to be at the edge of the graph area
+                Self::render_label(buf, label, label_area, Alignment::Right);
             } else {
-                // other labels are put on the left of each tick on the x axis
-                width_between_ticks.min(label_width)
-            };
-            buf.set_span(
-                graph_area.left() + i as u16 * width_between_ticks - label_width,
-                y,
-                label,
-                label_width,
-            );
+                // We do a +1 (and width-1 below) to leave at least one space before intermediate labels
+                let x = graph_area.left() + i as u16 * width_between_ticks + 1;
+                let label_area = Rect::new(x, y, width_between_ticks.saturating_sub(1), 1);
+
+                Self::render_label(buf, label, label_area, Alignment::Center);
+            }
         }
+    }
+
+    fn first_x_label_area(&self, y: u16, width: u16, chart_area: Rect, graph_area: Rect) -> Rect {
+        let (min_x, max_x) = match self.x_axis.label_alignment {
+            Alignment::Left => (chart_area.left(), graph_area.left()),
+            Alignment::Center => (chart_area.left(), graph_area.left() + width),
+            Alignment::Right => (
+                graph_area.left().saturating_sub(1),
+                graph_area.left() + width,
+            ),
+        };
+
+        Rect::new(min_x, y, max_x - min_x, 1)
+    }
+
+    fn render_label(buf: &mut Buffer, label: &Span, label_area: Rect, alignment: Alignment) {
+        let label_width = label.width() as u16;
+        let bounded_label_width = label_area.width.min(label_width);
+
+        let x = match alignment {
+            Alignment::Left => label_area.left(),
+            Alignment::Center => label_area.left() + label_area.width / 2 - bounded_label_width / 2,
+            Alignment::Right => label_area.right() - bounded_label_width,
+        };
+
+        buf.set_span(x, label_area.top(), label, bounded_label_width);
     }
 
     fn render_y_labels(
