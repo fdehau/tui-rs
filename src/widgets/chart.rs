@@ -375,8 +375,8 @@ impl<'a> Chart<'a> {
             .unwrap_or_default();
         if let Some(ref x_labels) = self.x_axis.labels {
             if !x_labels.is_empty() {
-                let mut first_label_width = x_labels[0].content.width() as u16;
-                first_label_width = match self.x_axis.label_alignment {
+                let first_label_width = x_labels[0].content.width() as u16;
+                let width_left_of_y_axis = match self.x_axis.label_alignment {
                     Alignment::Left => {
                         // The last character of the label should be below the Y-Axis when it exists, not on its left
                         let y_axis_offset = if has_y_axis { 1 } else { 0 };
@@ -385,7 +385,7 @@ impl<'a> Chart<'a> {
                     Alignment::Center => first_label_width / 2,
                     Alignment::Right => 0,
                 };
-                max_width = max(max_width, first_label_width);
+                max_width = max(max_width, width_left_of_y_axis);
             }
         }
         // labels of y axis and first label of x axis can take at most 1/3rd of the total width
@@ -429,7 +429,7 @@ impl<'a> Chart<'a> {
                 // The last label should be aligned Right to be at the edge of the graph area
                 Self::render_label(buf, label, label_area, Alignment::Right);
             } else {
-                // We do a +1 (and width-1 below) to leave at least one space before intermediate labels
+                // We do a +1 (and width-1 below) to leave at least one space before each intermediate labels
                 let x = graph_area.left() + i as u16 * width_between_ticks + 1;
                 let label_area = Rect::new(x, y, width_between_ticks.saturating_sub(1), 1);
 
