@@ -413,8 +413,13 @@ impl<'a> Chart<'a> {
 
         for (i, label) in labels.iter().enumerate() {
             if i == 0 {
-                let label_area =
-                    self.first_x_label_area(y, width_between_ticks, chart_area, graph_area);
+                let label_area = self.first_x_label_area(
+                    y,
+                    label.width() as u16,
+                    width_between_ticks,
+                    chart_area,
+                    graph_area,
+                );
 
                 let alignment = match self.x_axis.label_alignment {
                     Alignment::Left => Alignment::Right,
@@ -441,6 +446,7 @@ impl<'a> Chart<'a> {
     fn first_x_label_area(
         &self,
         y: u16,
+        label_width: u16,
         max_width_after_y_axis: u16,
         chart_area: Rect,
         graph_area: Rect,
@@ -449,7 +455,7 @@ impl<'a> Chart<'a> {
             Alignment::Left => (chart_area.left(), graph_area.left()),
             Alignment::Center => (
                 chart_area.left(),
-                graph_area.left() + max_width_after_y_axis,
+                graph_area.left() + max_width_after_y_axis.min(label_width),
             ),
             Alignment::Right => (
                 graph_area.left().saturating_sub(1),
