@@ -434,13 +434,22 @@ impl<'a> Chart<'a> {
         }
     }
 
-    fn first_x_label_area(&self, y: u16, width: u16, chart_area: Rect, graph_area: Rect) -> Rect {
+    fn first_x_label_area(
+        &self,
+        y: u16,
+        max_width_after_y_axis: u16,
+        chart_area: Rect,
+        graph_area: Rect,
+    ) -> Rect {
         let (min_x, max_x) = match self.x_axis.label_alignment {
             Alignment::Left => (chart_area.left(), graph_area.left()),
-            Alignment::Center => (chart_area.left(), graph_area.left() + width),
+            Alignment::Center => (
+                chart_area.left(),
+                graph_area.left() + max_width_after_y_axis,
+            ),
             Alignment::Right => (
                 graph_area.left().saturating_sub(1),
-                graph_area.left() + width,
+                graph_area.left() + max_width_after_y_axis,
             ),
         };
 
