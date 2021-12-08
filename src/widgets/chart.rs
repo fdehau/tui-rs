@@ -25,7 +25,7 @@ pub struct Axis<'a> {
     /// The style used to draw the axis itself
     style: Style,
     /// The alignment of the labels of the Axis
-    label_alignment: Alignment,
+    labels_alignment: Alignment,
 }
 
 impl<'a> Default for Axis<'a> {
@@ -35,7 +35,7 @@ impl<'a> Default for Axis<'a> {
             bounds: [0.0, 0.0],
             labels: None,
             style: Default::default(),
-            label_alignment: Alignment::Left,
+            labels_alignment: Alignment::Left,
         }
     }
 }
@@ -80,8 +80,8 @@ impl<'a> Axis<'a> {
     /// The alignment behaves differently based on the axis:
     /// - Y-Axis: The labels are aligned within the area on the left of the axis
     /// - X-Axis: The first X-axis label is aligned relative to the Y-axis
-    pub fn label_alignment(mut self, alignment: Alignment) -> Axis<'a> {
-        self.label_alignment = alignment;
+    pub fn labels_alignment(mut self, alignment: Alignment) -> Axis<'a> {
+        self.labels_alignment = alignment;
         self
     }
 }
@@ -376,7 +376,7 @@ impl<'a> Chart<'a> {
         if let Some(ref x_labels) = self.x_axis.labels {
             if !x_labels.is_empty() {
                 let first_label_width = x_labels[0].content.width() as u16;
-                let width_left_of_y_axis = match self.x_axis.label_alignment {
+                let width_left_of_y_axis = match self.x_axis.labels_alignment {
                     Alignment::Left => {
                         // The last character of the label should be below the Y-Axis when it exists, not on its left
                         let y_axis_offset = if has_y_axis { 1 } else { 0 };
@@ -421,7 +421,7 @@ impl<'a> Chart<'a> {
                     graph_area,
                 );
 
-                let alignment = match self.x_axis.label_alignment {
+                let alignment = match self.x_axis.labels_alignment {
                     Alignment::Left => Alignment::Right,
                     Alignment::Center => Alignment::Center,
                     Alignment::Right => Alignment::Left,
@@ -451,7 +451,7 @@ impl<'a> Chart<'a> {
         chart_area: Rect,
         graph_area: Rect,
     ) -> Rect {
-        let (min_x, max_x) = match self.x_axis.label_alignment {
+        let (min_x, max_x) = match self.x_axis.labels_alignment {
             Alignment::Left => (chart_area.left(), graph_area.left()),
             Alignment::Center => (
                 chart_area.left(),
@@ -501,7 +501,7 @@ impl<'a> Chart<'a> {
                     (graph_area.left() - chart_area.left()).saturating_sub(1),
                     1,
                 );
-                Self::render_label(buf, label, label_area, self.y_axis.label_alignment);
+                Self::render_label(buf, label, label_area, self.y_axis.labels_alignment);
             }
         }
     }

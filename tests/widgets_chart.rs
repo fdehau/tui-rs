@@ -71,7 +71,7 @@ fn widgets_chart_handles_long_labels() {
         if let Some((left_label, right_label)) = x_labels {
             x_axis = x_axis
                 .labels(vec![Span::from(left_label), Span::from(right_label)])
-                .label_alignment(x_alignment);
+                .labels_alignment(x_alignment);
         }
 
         let mut y_axis = Axis::default().bounds([0.0, 1.0]);
@@ -173,7 +173,7 @@ fn widgets_chart_handles_x_axis_labels_alignments() {
     let test_case = |y_alignment, lines| {
         let x_axis = Axis::default()
             .labels(vec![Span::from("AAAA"), Span::from("B"), Span::from("C")])
-            .label_alignment(y_alignment);
+            .labels_alignment(y_alignment);
 
         let y_axis = Axis::default();
 
@@ -219,7 +219,7 @@ fn widgets_chart_handles_y_axis_labels_alignments() {
 
         let y_axis = Axis::default()
             .labels(create_labels(&["C", "D"]))
-            .label_alignment(y_alignment);
+            .labels_alignment(y_alignment);
 
         axis_test_case(20, 5, x_axis, y_axis, lines);
     };
