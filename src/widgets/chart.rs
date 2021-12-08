@@ -497,8 +497,8 @@ impl<'a> Chart<'a> {
             if dy < graph_area.bottom() {
                 let label_area = Rect::new(
                     x,
-                    graph_area.bottom() - 1 - dy,
-                    graph_area.left() - chart_area.left() - 1,
+                    graph_area.bottom().saturating_sub(1) - dy,
+                    (graph_area.left() - chart_area.left()).saturating_sub(1),
                     1,
                 );
                 Self::render_label(buf, label, label_area, self.y_axis.label_alignment);
