@@ -82,31 +82,31 @@ You can run all examples by running `cargo make run-examples` (require
 
 ### Apps using tui
 
-* [Adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui)
-* [Bandwhich](https://github.com/imsnif/bandwhich)
-* [Battleship.rs](https://github.com/deepu105/battleship-rs)
-* [Bottom](https://github.com/ClementTsang/bottom)
-* [Desed](https://github.com/SoptikHa2/desed)
-* [Diskonaut](https://github.com/imsnif/diskonaut)
-* [Gitui](https://github.com/extrawurst/gitui)
-* [Gpg-tui](https://github.com/orhun/gpg-tui)
-* [Gping](https://github.com/orf/gping/)
-* [Joshuto](https://github.com/kamiyaa/joshuto)
-* [KDash](https://github.com/kdash-rs/kdash)
-* [Kmon](https://github.com/orhun/kmon)
-* [Minesweep](https://github.com/cpcloud/minesweep-rs)
-* [Oha](https://github.com/hatoo/oha)
-* [Rust-sadari-cli](https://github.com/24seconds/rust-sadari-cli)
-* [Rusty-krab-manager](https://github.com/aryakaul/rusty-krab-manager)
-* [Spotify-tui](https://github.com/Rigellute/spotify-tui)
-* [Taskwarrior-tui](https://github.com/kdheepak/taskwarrior-tui)
-* [Termchat](https://github.com/lemunozm/termchat)
-* [Termscp](https://github.com/veeso/termscp)
-* [Tickrs](https://github.com/tarkah/tickrs)
-* [Vector](https://vector.dev)
-* [Xplr](https://github.com/sayanarijit/xplr)
-* [Ytop](https://github.com/cjbassi/ytop)
-* [Zenith](https://github.com/bvaisvil/zenith)
+* [Adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui) — Rust ADS-B decoder + TUI radar application
+* [Bandwhich](https://github.com/imsnif/bandwhich) — Terminal utility for displaying current network utilization by process, connection and remote IP/hostname
+* [Battleship.rs](https://github.com/deepu105/battleship-rs) — A terminal battleship game in Rust
+* [Bottom](https://github.com/ClementTsang/bottom) — Yet another cross-platform graphical process/system monitor
+* [Desed](https://github.com/SoptikHa2/desed) — Debugger for Sed: demystify and debug your sed scripts, from comfort of your terminal
+* [Diskonaut](https://github.com/imsnif/diskonaut) — Terminal disk space navigator
+* [Gitui](https://github.com/extrawurst/gitui) — Blazing fast terminal-ui for Git written in Rust
+* [Gpg-tui](https://github.com/orhun/gpg-tui) — Manage your GnuPG keys with ease!
+* [Gping](https://github.com/orf/gping) — Ping, but with a graph
+* [Joshuto](https://github.com/kamiyaa/joshuto) — Ranger-like terminal file manager written in Rust
+* [KDash](https://github.com/kdash-rs/kdash) — A simple and fast dashboard for Kubernetes
+* [Kmon](https://github.com/orhun/kmon) — Linux Kernel Manager and Activity Monitor
+* [Minesweep](https://github.com/cpcloud/minesweep-rs) — Sweep some mines for fun, and probably not for profit
+* [Oha](https://github.com/hatoo/oha) — HTTP load generator, inspired by rakyll/hey with tui animation
+* [Rust-sadari-cli](https://github.com/24seconds/rust-sadari-cli) — Sadari game based on terminal
+* [Rusty-krab-manager](https://github.com/aryakaul/rusty-krab-manager) — Time-management TUI in Rust
+* [Spotify-tui](https://github.com/Rigellute/spotify-tui) — Spotify for the terminal written in Rust
+* [Taskwarrior-tui](https://github.com/kdheepak/taskwarrior-tui) — A terminal user interface for Taskwarrior
+* [Termchat](https://github.com/lemunozm/termchat) — Terminal chat through the LAN with video streaming and file transfer
+* [Termscp](https://github.com/veeso/termscp) — A feature rich terminal UI file transfer and explorer with support for SCP/SFTP/FTP/S3
+* [Tick-rs](https://github.com/tarkah/tickrs) — Realtime ticker data in your terminal
+* [Vector](https://vector.dev) — A lightweight, ultra-fast tool for building observability pipelines
+* [Xplr](https://github.com/sayanarijit/xplr) — A hackable, minimal, fast TUI file explorer
+* [Ytop](https://github.com/cjbassi/ytop) — A TUI system monitor written in Rust (no longer maintained)
+* [Zenith](https://github.com/bvaisvil/zenith) — Sort of like top or htop but with zoom-able charts, CPU, GPU, network, and disk usage
 
 ### Alternatives
 
