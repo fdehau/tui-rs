@@ -91,7 +91,6 @@ You can run all examples by running `cargo make run-examples` (require
 * [Gitui](https://github.com/extrawurst/gitui)
 * [Gpg-tui](https://github.com/orhun/gpg-tui)
 * [Gping](https://github.com/orf/gping/)
-* [Hoard](https://github.com/Hyde46/hoard)
 * [Joshuto](https://github.com/kamiyaa/joshuto)
 * [KDash](https://github.com/kdash-rs/kdash)
 * [Kmon](https://github.com/orhun/kmon)
