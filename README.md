@@ -86,8 +86,13 @@ You can run all examples by running `cargo make run-examples` (require
 * [Bandwhich](https://github.com/imsnif/bandwhich) — Terminal utility for displaying current network utilization by process, connection and remote IP/hostname
 * [Battleship.rs](https://github.com/deepu105/battleship-rs) — A terminal battleship game in Rust
 * [Bottom](https://github.com/ClementTsang/bottom) — Yet another cross-platform graphical process/system monitor
+* [Conclusive](https://github.com/mrusme/conclusive) — Command line client for Plausible Analytics
+* [Cotp](https://github.com/replydev/cotp) — Trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality
+* [Cube timer](https://github.com/paarthmadan/cube) — A tui-based Rubik's cube timer written in Rust
 * [Desed](https://github.com/SoptikHa2/desed) — Debugger for Sed: demystify and debug your sed scripts, from comfort of your terminal
 * [Diskonaut](https://github.com/imsnif/diskonaut) — Terminal disk space navigator
+* [Exhaust](https://github.com/heyrict/exhaust) — Exhaust all your possibilities.. for the next coming exam
+* [Game-of-life-rs](https://github.com/kachark/game-of-life-rs) — Conway's Game of Life implemented in Rust and visualized with Tui-rs
 * [Gitui](https://github.com/extrawurst/gitui) — Blazing fast terminal-ui for Git written in Rust
 * [Gpg-tui](https://github.com/orhun/gpg-tui) — Manage your GnuPG keys with ease!
 * [Gping](https://github.com/orf/gping) — Ping, but with a graph
@@ -96,6 +101,7 @@ You can run all examples by running `cargo make run-examples` (require
 * [Kmon](https://github.com/orhun/kmon) — Linux Kernel Manager and Activity Monitor
 * [Minesweep](https://github.com/cpcloud/minesweep-rs) — Sweep some mines for fun, and probably not for profit
 * [Oha](https://github.com/hatoo/oha) — HTTP load generator, inspired by rakyll/hey with tui animation
+* [Rrtop](https://github.com/wojciech-zurek/rrtop) — Redis monitoring (top like) app
 * [Rust-sadari-cli](https://github.com/24seconds/rust-sadari-cli) — Sadari game based on terminal
 * [Rusty-krab-manager](https://github.com/aryakaul/rusty-krab-manager) — Time-management TUI in Rust
 * [Spotify-tui](https://github.com/Rigellute/spotify-tui) — Spotify for the terminal written in Rust
@@ -103,6 +109,8 @@ You can run all examples by running `cargo make run-examples` (require
 * [Termchat](https://github.com/lemunozm/termchat) — Terminal chat through the LAN with video streaming and file transfer
 * [Termscp](https://github.com/veeso/termscp) — A feature rich terminal UI file transfer and explorer with support for SCP/SFTP/FTP/S3
 * [Tick-rs](https://github.com/tarkah/tickrs) — Realtime ticker data in your terminal
+* [Tsuchita](https://github.com/kamiyaa/tsuchita) — Client-server notification center for dbus desktop notifications
+* [Tuinance](https://github.com/landchad/tuinance) — Display financial data on the terminal
 * [Vector](https://vector.dev) — A lightweight, ultra-fast tool for building observability pipelines
 * [Xplr](https://github.com/sayanarijit/xplr) — A hackable, minimal, fast TUI file explorer
 * [Ytop](https://github.com/cjbassi/ytop) — A TUI system monitor written in Rust (no longer maintained)
