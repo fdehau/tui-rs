@@ -76,9 +76,20 @@ cargo (e.g. to run the gauge example `cargo run --example gauge`), and quit by p
 You can run all examples by running `cargo make run-examples` (require
 `cargo-make` that can be installed with `cargo install cargo-make`).
 
-### Third-party widgets
+### Third-party libraries, bootstrapping templates and widgets
 
-* [tui-logger](https://github.com/gin66/tui-logger)
+* [Ansi-to-tui](https://github.com/uttarayan21/ansi-to-tui) — Convert ansi colored text to `tui::text::Text`
+* [Color-to-tui](https://github.com/uttarayan21/color-to-tui) — Parse hex colors to `tui::style::Color`
+* [Rust-tui-template](https://github.com/orhun/rust-tui-template) — A template for bootstrapping a Rust TUI application with Tui-rs & crossterm
+* [Simple-tui-rs](https://github.com/pmsanford/simple-tui-rs) — A simple example tui-rs app
+* [Tui-builder](https://github.com/jkelleyrtp/tui-builder) — Batteries-included MVC framework for Tui-rs + Crossterm apps
+* [Tui-clap](https://github.com/kegesch/tui-clap-rs) — Use clap-rs together with Tui-rs
+* [Tui-log](https://github.com/kegesch/tui-log-rs) — Example of how to use logging with Tui-rs
+* [tui-logger](https://github.com/gin66/tui-logger) — Logger and Widget for Tui-rs
+* [Tui-realm](https://github.com/veeso/tui-realm) — Tui-rs framework to build stateful applications with a React/Elm inspired approach
+* [Tui-realm-treeview](https://github.com/veeso/tui-realm-treeview) — Treeview component for Tui-realm
+* [Tui tree widget](https://github.com/EdJoPaTo/tui-rs-tree-widget) — Tree Widget for Tui-rs
+* [Tui-windows](https://github.com/markatk/tui-windows-rs) — Tui-rs abstraction to handle multiple windows and their rendering
 
 ### Apps using tui
 
