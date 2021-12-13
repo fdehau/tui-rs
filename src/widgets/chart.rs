@@ -1,3 +1,7 @@
+use std::{borrow::Cow, cmp::max};
+
+use unicode_width::UnicodeWidthStr;
+
 use crate::layout::Alignment;
 use crate::{
     buffer::Buffer,
@@ -10,8 +14,6 @@ use crate::{
         Block, Borders, Widget,
     },
 };
-use std::{borrow::Cow, cmp::max};
-use unicode_width::UnicodeWidthStr;
 
 /// An X or Y axis for the chart widget
 #[derive(Debug, Clone)]
@@ -373,20 +375,19 @@ impl<'a> Chart<'a> {
             .as_ref()
             .map(|l| l.iter().map(Span::width).max().unwrap_or_default() as u16)
             .unwrap_or_default();
-        if let Some(ref x_labels) = self.x_axis.labels {
-            if !x_labels.is_empty() {
-                let first_label_width = x_labels[0].content.width() as u16;
-                let width_left_of_y_axis = match self.x_axis.labels_alignment {
-                    Alignment::Left => {
-                        // The last character of the label should be below the Y-Axis when it exists, not on its left
-                        let y_axis_offset = if has_y_axis { 1 } else { 0 };
-                        first_label_width.saturating_sub(y_axis_offset)
-                    }
-                    Alignment::Center => first_label_width / 2,
-                    Alignment::Right => 0,
-                };
-                max_width = max(max_width, width_left_of_y_axis);
-            }
+
+        if let Some(first_x_label) = self.x_axis.labels.as_ref().and_then(|labels| labels.get(0)) {
+            let first_label_width = first_x_label.content.width() as u16;
+            let width_left_of_y_axis = match self.x_axis.labels_alignment {
+                Alignment::Left => {
+                    // The last character of the label should be below the Y-Axis when it exists, not on its left
+                    let y_axis_offset = if has_y_axis { 1 } else { 0 };
+                    first_label_width.saturating_sub(y_axis_offset)
+                }
+                Alignment::Center => first_label_width / 2,
+                Alignment::Right => 0,
+            };
+            max_width = max(max_width, width_left_of_y_axis);
         }
         // labels of y axis and first label of x axis can take at most 1/3rd of the total width
         max_width.min(area.width / 3)
