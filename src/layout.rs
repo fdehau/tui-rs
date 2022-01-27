@@ -598,6 +598,31 @@ mod tests {
     }
 
     #[test]
+    fn test_vertical_split_by_height_ref() {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 10,
+            height: 10,
+        };
+
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Percentage(10),
+                    Constraint::Max(5),
+                    Constraint::Min(1),
+                ]
+                .as_ref(),
+            )
+            .split_ref(target);
+
+        assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
+        chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
+    }
+
+    #[test]
     fn test_rect_size_truncation() {
         for width in 256u16..300u16 {
             for height in 256u16..300u16 {
