@@ -45,10 +45,13 @@ impl std::hash::Hasher for CustomHash {
     }
 
     #[inline]
-    fn write(&mut self, bytes: &[u8]) {
-        for byte in bytes.iter() {
-            self.0 = self.0.wrapping_shl(8) + (*byte as u64);
-        }
+    fn write(&mut self, _: &[u8]) {
+        panic!("unsupported operation");
+    }
+
+    #[inline]
+    fn write_u64(&mut self, i: u64) {
+        self.0 = i;
     }
 }
 
@@ -87,7 +90,7 @@ const fn min(a: u16, b: u16) -> u16 {
 
 #[inline]
 const fn max(a: u16, b: u16) -> u16 {
-    if a <= b {
+    if a >= b {
         a
     } else {
         b
