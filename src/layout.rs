@@ -547,54 +547,6 @@ mod tests {
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
     }
 
-    #[bench]
-    fn bench_vertical_split_by_height(b: &mut test::Bencher) {
-        let target = Rect {
-            x: 2,
-            y: 2,
-            width: 10,
-            height: 10,
-        };
-
-        b.iter(|| {
-            Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Percentage(10),
-                        Constraint::Max(5),
-                        Constraint::Min(1),
-                    ]
-                    .as_ref(),
-                )
-                .split(target)
-        });
-    }
-
-    #[bench]
-    fn bench_vertical_split_by_height_ref(b: &mut test::Bencher) {
-        let target = Rect {
-            x: 2,
-            y: 2,
-            width: 10,
-            height: 10,
-        };
-
-        b.iter(|| {
-            Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Percentage(10),
-                        Constraint::Max(5),
-                        Constraint::Min(1),
-                    ]
-                    .as_ref(),
-                )
-                .split_ref(target)
-        });
-    }
-
     #[test]
     fn test_rect_size_truncation() {
         for width in 256u16..300u16 {
