@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::hash::{BuildHasherDefault, Hash, Hasher};
 
@@ -33,16 +32,19 @@ macro_rules! hash_layout {
 struct CustomHash(u64);
 
 impl Default for CustomHash {
+    #[inline]
     fn default() -> Self {
         Self(0)
     }
 }
 
 impl std::hash::Hasher for CustomHash {
+    #[inline]
     fn finish(&self) -> u64 {
         self.0
     }
 
+    #[inline]
     fn write(&mut self, bytes: &[u8]) {
         for byte in bytes.iter() {
             self.0 = self.0.wrapping_shl(8) + (*byte as u64);
@@ -74,17 +76,36 @@ pub enum Constraint {
     Min(u16),
 }
 
+#[inline]
+const fn min(a: u16, b: u16) -> u16 {
+    if a <= b {
+        a
+    } else {
+        b
+    }
+}
+
+#[inline]
+const fn max(a: u16, b: u16) -> u16 {
+    if a <= b {
+        a
+    } else {
+        b
+    }
+}
+
 impl Constraint {
-    pub fn apply(&self, length: u16) -> u16 {
+    #[inline]
+    pub const fn apply(&self, length: u16) -> u16 {
         match *self {
             Constraint::Percentage(p) => length * p / 100,
             Constraint::Ratio(num, den) => {
-                let r = num * u32::from(length) / den;
+                let r = num * length as u32 / den;
                 r as u16
             }
-            Constraint::Length(l) => length.min(l),
-            Constraint::Max(m) => length.min(m),
-            Constraint::Min(m) => length.max(m),
+            Constraint::Length(l) => min(length, l),
+            Constraint::Max(m) => min(length, m),
+            Constraint::Min(m) => max(length, m),
         }
     }
 }
@@ -117,6 +138,7 @@ thread_local! {
 }
 
 impl<'a> Default for Layout<'a> {
+    #[inline]
     fn default() -> Layout<'a> {
         Layout {
             direction: Direction::Vertical,
@@ -131,12 +153,14 @@ impl<'a> Default for Layout<'a> {
 }
 
 impl<'a> Layout<'a> {
-    pub fn constraints(mut self, constraints: &'a [Constraint]) -> Layout<'a> {
+    #[inline]
+    pub const fn constraints(mut self, constraints: &'a [Constraint]) -> Layout<'a> {
         self.constraints = constraints;
         self
     }
 
-    pub fn margin(mut self, margin: u16) -> Layout<'a> {
+    #[inline]
+    pub const fn margin(mut self, margin: u16) -> Layout<'a> {
         self.margin = Margin {
             horizontal: margin,
             vertical: margin,
@@ -144,22 +168,26 @@ impl<'a> Layout<'a> {
         self
     }
 
-    pub fn horizontal_margin(mut self, horizontal: u16) -> Layout<'a> {
+    #[inline]
+    pub const fn horizontal_margin(mut self, horizontal: u16) -> Layout<'a> {
         self.margin.horizontal = horizontal;
         self
     }
 
-    pub fn vertical_margin(mut self, vertical: u16) -> Layout<'a> {
+    #[inline]
+    pub const fn vertical_margin(mut self, vertical: u16) -> Layout<'a> {
         self.margin.vertical = vertical;
         self
     }
 
-    pub fn direction(mut self, direction: Direction) -> Layout<'a> {
+    #[inline]
+    pub const fn direction(mut self, direction: Direction) -> Layout<'a> {
         self.direction = direction;
         self
     }
 
-    pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout<'a> {
+    #[inline]
+    pub(crate) const fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout<'a> {
         self.expand_to_fill = expand_to_fill;
         self
     }
@@ -392,6 +420,7 @@ struct Element {
 }
 
 impl Element {
+    #[inline]
     fn new() -> Element {
         Element {
             x: Variable::new(),
@@ -401,18 +430,22 @@ impl Element {
         }
     }
 
-    fn left(&self) -> Variable {
+    #[inline]
+    const fn left(&self) -> Variable {
         self.x
     }
 
-    fn top(&self) -> Variable {
+    #[inline]
+    const fn top(&self) -> Variable {
         self.y
     }
 
+    #[inline]
     fn right(&self) -> Expression {
         self.x + self.width
     }
 
+    #[inline]
     fn bottom(&self) -> Expression {
         self.y + self.height
     }
@@ -451,29 +484,40 @@ impl Rect {
         }
     }
 
-    pub fn area(self) -> u16 {
+    #[inline]
+    pub const fn area(self) -> u16 {
         self.width * self.height
     }
 
-    pub fn left(self) -> u16 {
+    #[inline]
+    pub const fn left(self) -> u16 {
         self.x
     }
 
-    pub fn right(self) -> u16 {
+    #[inline]
+    pub const fn right(self) -> u16 {
         self.x.saturating_add(self.width)
     }
 
-    pub fn top(self) -> u16 {
+    #[inline]
+    pub const fn top(self) -> u16 {
         self.y
     }
 
-    pub fn bottom(self) -> u16 {
+    #[inline]
+    pub const fn bottom(self) -> u16 {
         self.y.saturating_add(self.height)
     }
 
-    pub fn inner(self, margin: &Margin) -> Rect {
+    #[inline]
+    pub const fn inner(self, margin: &Margin) -> Rect {
         if self.width < 2 * margin.horizontal || self.height < 2 * margin.vertical {
-            Rect::default()
+            Rect {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            }
         } else {
             Rect {
                 x: self.x + margin.horizontal,
@@ -484,7 +528,8 @@ impl Rect {
         }
     }
 
-    pub fn union(self, other: Rect) -> Rect {
+    #[inline]
+    pub const fn union(self, other: Rect) -> Rect {
         let x1 = min(self.x, other.x);
         let y1 = min(self.y, other.y);
         let x2 = max(self.x + self.width, other.x + other.width);
@@ -497,7 +542,8 @@ impl Rect {
         }
     }
 
-    pub fn intersection(self, other: Rect) -> Rect {
+    #[inline]
+    pub const fn intersection(self, other: Rect) -> Rect {
         let x1 = max(self.x, other.x);
         let y1 = max(self.y, other.y);
         let x2 = min(self.x + self.width, other.x + other.width);
@@ -510,7 +556,8 @@ impl Rect {
         }
     }
 
-    pub fn intersects(self, other: Rect) -> bool {
+    #[inline]
+    pub const fn intersects(self, other: Rect) -> bool {
         self.x < other.x + other.width
             && self.x + self.width > other.x
             && self.y < other.y + other.height
