@@ -1,10 +1,54 @@
 use std::cell::RefCell;
 use std::cmp::{max, min};
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hash, Hasher};
 
 use cassowary::strength::{REQUIRED, WEAK};
 use cassowary::WeightedRelation::*;
 use cassowary::{Constraint as CassowaryConstraint, Expression, Solver, Variable};
+
+macro_rules! hash_layout {
+    ($self:expr, $area:expr) => {{
+        let mut to_hash = ahash::AHasher::default();
+        $area.hash(&mut to_hash);
+        $self.margin.hash(&mut to_hash);
+        $self.expand_to_fill.hash(&mut to_hash);
+        $self.direction.hash(&mut to_hash);
+        $self.constraints.iter().copied().for_each(|f| match f {
+            Constraint::Max(max) => to_hash.write_u16(max),
+            Constraint::Min(min) => to_hash.write_u16(min),
+            Constraint::Ratio(left, right) => {
+                to_hash.write_u32(left);
+                to_hash.write_u32(right);
+            }
+            Constraint::Length(length) => to_hash.write_u16(length),
+            Constraint::Percentage(percentage) => to_hash.write_u16(percentage),
+        });
+        to_hash.finish()
+    }};
+}
+
+#[derive(Clone, Copy)]
+#[repr(transparent)]
+struct CustomHash(u64);
+
+impl Default for CustomHash {
+    fn default() -> Self {
+        Self(0)
+    }
+}
+
+impl std::hash::Hasher for CustomHash {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        for byte in bytes.iter() {
+            self.0 = self.0.wrapping_shl(8) + (*byte as u64);
+        }
+    }
+}
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Corner {
@@ -59,43 +103,40 @@ pub enum Alignment {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Layout {
+pub struct Layout<'a> {
     direction: Direction,
     margin: Margin,
-    constraints: Vec<Constraint>,
+    constraints: &'a [Constraint],
     /// Whether the last chunk of the computed layout should be expanded to fill the available
     /// space.
     expand_to_fill: bool,
 }
 
 thread_local! {
-    static LAYOUT_CACHE: RefCell<HashMap<(Rect, Layout), Vec<Rect>>> = RefCell::new(HashMap::new());
+    static LAYOUT_CACHE: RefCell<HashMap<u64, Vec<Rect>, BuildHasherDefault<CustomHash>>> = RefCell::new(HashMap::default());
 }
 
-impl Default for Layout {
-    fn default() -> Layout {
+impl<'a> Default for Layout<'a> {
+    fn default() -> Layout<'a> {
         Layout {
             direction: Direction::Vertical,
             margin: Margin {
                 horizontal: 0,
                 vertical: 0,
             },
-            constraints: Vec::new(),
+            constraints: &[],
             expand_to_fill: true,
         }
     }
 }
 
-impl Layout {
-    pub fn constraints<C>(mut self, constraints: C) -> Layout
-    where
-        C: Into<Vec<Constraint>>,
-    {
-        self.constraints = constraints.into();
+impl<'a> Layout<'a> {
+    pub fn constraints(mut self, constraints: &'a [Constraint]) -> Layout<'a> {
+        self.constraints = constraints;
         self
     }
 
-    pub fn margin(mut self, margin: u16) -> Layout {
+    pub fn margin(mut self, margin: u16) -> Layout<'a> {
         self.margin = Margin {
             horizontal: margin,
             vertical: margin,
@@ -103,22 +144,22 @@ impl Layout {
         self
     }
 
-    pub fn horizontal_margin(mut self, horizontal: u16) -> Layout {
+    pub fn horizontal_margin(mut self, horizontal: u16) -> Layout<'a> {
         self.margin.horizontal = horizontal;
         self
     }
 
-    pub fn vertical_margin(mut self, vertical: u16) -> Layout {
+    pub fn vertical_margin(mut self, vertical: u16) -> Layout<'a> {
         self.margin.vertical = vertical;
         self
     }
 
-    pub fn direction(mut self, direction: Direction) -> Layout {
+    pub fn direction(mut self, direction: Direction) -> Layout<'a> {
         self.direction = direction;
         self
     }
 
-    pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout {
+    pub(crate) fn expand_to_fill(mut self, expand_to_fill: bool) -> Layout<'a> {
         self.expand_to_fill = expand_to_fill;
         self
     }
@@ -183,18 +224,34 @@ impl Layout {
     ///     ]
     /// );
     /// ```
-    pub fn split(&self, area: Rect) -> Vec<Rect> {
+
+    pub fn split(self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?
         LAYOUT_CACHE.with(|c| {
             c.borrow_mut()
-                .entry((area, self.clone()))
+                .entry(hash_layout!(self, area))
                 .or_insert_with(|| split(area, self))
                 .clone()
         })
     }
+
+    pub fn split_ref(self, area: Rect) -> &'static Vec<Rect> {
+        LAYOUT_CACHE.with(|c| {
+            // SAFETY:
+            // "c" is stored in a static variable
+            // and can therefore have a static lifetime
+            unsafe {
+                std::mem::transmute::<_, &'static Vec<Rect>>(
+                    c.borrow_mut()
+                        .entry(hash_layout!(self, area))
+                        .or_insert_with(|| split(area, self)),
+                )
+            }
+        })
+    }
 }
 
-fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
+fn split(area: Rect, layout: Layout) -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
     let elements = layout
@@ -488,6 +545,54 @@ mod tests {
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
+    }
+
+    #[bench]
+    fn bench_vertical_split_by_height(b: &mut test::Bencher) {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 10,
+            height: 10,
+        };
+
+        b.iter(|| {
+            Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(
+                    [
+                        Constraint::Percentage(10),
+                        Constraint::Max(5),
+                        Constraint::Min(1),
+                    ]
+                    .as_ref(),
+                )
+                .split(target)
+        });
+    }
+
+    #[bench]
+    fn bench_vertical_split_by_height_ref(b: &mut test::Bencher) {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 10,
+            height: 10,
+        };
+
+        b.iter(|| {
+            Layout::default()
+                .direction(Direction::Vertical)
+                .constraints(
+                    [
+                        Constraint::Percentage(10),
+                        Constraint::Max(5),
+                        Constraint::Min(1),
+                    ]
+                    .as_ref(),
+                )
+                .split_ref(target)
+        });
     }
 
     #[test]

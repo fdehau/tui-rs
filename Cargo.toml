@@ -10,7 +10,14 @@ keywords = ["tui", "terminal", "dashboard"]
 repository = "https://github.com/fdehau/tui-rs"
 readme = "README.md"
 license = "MIT"
-exclude = ["assets/*", ".github", "Makefile.toml", "CONTRIBUTING.md", "*.log", "tags"]
+exclude = [
+  "assets/*",
+  ".github",
+  "Makefile.toml",
+  "CONTRIBUTING.md",
+  "*.log",
+  "tags",
+]
 autoexamples = true
 edition = "2021"
 
@@ -25,8 +32,9 @@ cassowary = "0.3"
 unicode-segmentation = "1.2"
 unicode-width = "0.1"
 termion = { version = "1.5", optional = true }
+ahash = "*"
 crossterm = { version = "0.22", optional = true }
-serde = { version = "1", optional = true, features = ["derive"]}
+serde = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 rand = "0.8"

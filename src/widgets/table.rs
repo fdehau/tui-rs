@@ -282,7 +282,7 @@ impl<'a> Table<'a> {
         }
         let mut chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints(constraints)
+            .constraints(&constraints)
             .expand_to_fill(false)
             .split(Rect {
                 x: 0,

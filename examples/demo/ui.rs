@@ -119,7 +119,7 @@ where
         vec![Constraint::Percentage(100)]
     };
     let chunks = Layout::default()
-        .constraints(constraints)
+        .constraints(&constraints)
         .direction(Direction::Horizontal)
         .split(area);
     {
@@ -386,7 +386,7 @@ where
 {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
+        .constraints(&[Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .split(area);
     let colors = [
         Color::Reset,
