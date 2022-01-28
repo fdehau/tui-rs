@@ -256,18 +256,16 @@ impl<'a> Layout<'a> {
     /// );
     /// ```
 
-    pub fn split(&self, area: Rect) -> &'static Vec<Rect> {
+    pub fn split(&self, area: Rect) -> Vec<Rect> {
         LAYOUT_CACHE.with(|c| {
             // SAFETY:
             // "c" is stored in a static variable
             // and can therefore have a static lifetime
-            unsafe {
-                std::mem::transmute::<_, &'static Vec<Rect>>(
-                    c.borrow_mut()
-                        .entry(hash_layout!(self, area))
-                        .or_insert_with(|| split(area, self)),
-                )
-            }
+
+            c.borrow_mut()
+                .entry(hash_layout!(self, area))
+                .or_insert_with(|| split(area, self))
+                .clone()
         })
     }
 }
