@@ -612,6 +612,12 @@ impl Rect {
 mod tests {
     use super::*;
 
+    const CHUNKS: Layout = Layout::new().direction(Direction::Vertical).constraints(&[
+        Constraint::Percentage(10),
+        Constraint::Max(5),
+        Constraint::Min(1),
+    ]);
+
     #[test]
     fn test_vertical_split_by_height() {
         let target = Rect {
@@ -621,17 +627,7 @@ mod tests {
             height: 10,
         };
 
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Max(5),
-                    Constraint::Min(1),
-                ]
-                .as_ref(),
-            )
-            .split(target);
+        let chunks = CHUNKS.split(target);
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));

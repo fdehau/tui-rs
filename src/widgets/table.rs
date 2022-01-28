@@ -280,7 +280,7 @@ impl<'a> Table<'a> {
         if !self.widths.is_empty() {
             constraints.pop();
         }
-        let mut chunks = Layout::default()
+        let layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(&constraints)
             .expand_to_fill(false)
@@ -289,10 +289,12 @@ impl<'a> Table<'a> {
                 y: 0,
                 width: max_width,
                 height: 1,
-            })
-            .to_vec();
+            });
+        let chunks: &[Rect];
         if has_selection {
-            chunks.remove(0);
+            chunks = &layout[1..];
+        } else {
+            chunks = layout;
         }
         chunks.iter().step_by(2).map(|c| c.width).collect()
     }
