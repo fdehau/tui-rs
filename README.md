@@ -70,7 +70,7 @@ The library comes with the following list of widgets:
   * [Canvas (with line, point cloud, map)](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/canvas.rs)
   * [Tabs](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/tabs.rs)
 
-Click on each item to see the source of the example. Run the examples with with 
+Click on each item to see the source of the example. Run the examples with with
 cargo (e.g. to run the gauge example `cargo run --example gauge`), and quit by pressing `q`.
 
 You can run all examples by running `cargo make run-examples` (require
@@ -108,6 +108,7 @@ You can run all examples by running `cargo make run-examples` (require
 * [joshuto](https://github.com/kamiyaa/joshuto)
 * [adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui)
 * [hoard](https://github.com/Hyde46/hoard)
+* [hwatch](https://github.com/blacknon/hwatch)
 
 ### Alternatives
 
