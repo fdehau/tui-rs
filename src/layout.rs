@@ -271,6 +271,7 @@ impl<'a> Layout<'a> {
 
             (vec.as_ptr(), vec.len())
         });
+
     // SAFETY: We know 3 things about the vec variable
     // we are deriving this slice from
     //
@@ -286,7 +287,7 @@ impl<'a> Layout<'a> {
     // we know that the HashMap will consume it. And because
     // we never remove any values from the HashMap anywhere
     // in the code base we know that our data will never be
-    // dropped unless the variable associated with it does
+    // dropped unless the variable associated with it is
     // as well. However, Because our variable is static we
     // know it will never drop
     //
@@ -312,7 +313,8 @@ impl<'a> Layout<'a> {
     //
     //
     // It is for the reasons that I have stated above that
-    // I believe that the use of this function in this very
+    // I believe that the use of the core::slice::from_raw_parts()
+    // function in this very
     // specific way will not lead to undefined behaviour or
     // safety concerns.
 
