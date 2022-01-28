@@ -143,6 +143,13 @@ thread_local! {
 impl<'a> Default for Layout<'a> {
     #[inline]
     fn default() -> Layout<'a> {
+        Layout::new()
+    }
+}
+
+impl<'a> Layout<'a> {
+    #[inline]
+    pub const fn new() -> Layout<'a> {
         Layout {
             direction: Direction::Vertical,
             margin: Margin {
@@ -153,9 +160,7 @@ impl<'a> Default for Layout<'a> {
             expand_to_fill: true,
         }
     }
-}
 
-impl<'a> Layout<'a> {
     #[inline]
     pub const fn constraints(mut self, constraints: &'a [Constraint]) -> Layout<'a> {
         self.constraints = constraints;
@@ -256,17 +261,20 @@ impl<'a> Layout<'a> {
     /// );
     /// ```
 
-    pub fn split(&self, area: Rect) -> Vec<Rect> {
-        LAYOUT_CACHE.with(|c| {
+    pub fn split(&self, area: Rect) -> &'static [Rect] {
+        let vec = LAYOUT_CACHE.with(|c| {
             // SAFETY:
             // "c" is stored in a static variable
             // and can therefore have a static lifetime
+            let mut b = c.borrow_mut();
 
-            c.borrow_mut()
+            let vec = b
                 .entry(hash_layout!(self, area))
-                .or_insert_with(|| split(area, self))
-                .clone()
-        })
+                .or_insert_with(|| split(area, self));
+
+            (vec.as_ptr(), vec.len())
+        });
+        unsafe { core::slice::from_raw_parts(vec.0, vec.1) }
     }
 }
 

@@ -290,7 +290,7 @@ impl<'a> Table<'a> {
                 width: max_width,
                 height: 1,
             })
-            .clone();
+            .to_vec();
         if has_selection {
             chunks.remove(0);
         }
