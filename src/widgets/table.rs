@@ -289,7 +289,8 @@ impl<'a> Table<'a> {
                 y: 0,
                 width: max_width,
                 height: 1,
-            });
+            })
+            .clone();
         if has_selection {
             chunks.remove(0);
         }

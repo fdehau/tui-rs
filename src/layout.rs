@@ -212,7 +212,7 @@ impl<'a> Layout<'a> {
     ///     });
     /// assert_eq!(
     ///     chunks,
-    ///     vec![
+    ///     &vec![
     ///         Rect {
     ///             x: 2,
     ///             y: 2,
@@ -239,7 +239,7 @@ impl<'a> Layout<'a> {
     ///     });
     /// assert_eq!(
     ///     chunks,
-    ///     vec![
+    ///     &vec![
     ///         Rect {
     ///             x: 0,
     ///             y: 0,
@@ -256,19 +256,7 @@ impl<'a> Layout<'a> {
     /// );
     /// ```
 
-    pub fn split(&self, area: Rect) -> Vec<Rect> {
-        // TODO: Maybe use a fixed size cache ?
-        LAYOUT_CACHE.with(|c| {
-            c.borrow_mut()
-                .entry(hash_layout!(self, area))
-                .or_insert_with(|| split(area, self))
-                .clone()
-        })
-    }
-
-    /// Much faster than
-
-    pub fn split_ref(&self, area: Rect) -> &'static Vec<Rect> {
+    pub fn split(&self, area: Rect) -> &'static Vec<Rect> {
         LAYOUT_CACHE.with(|c| {
             // SAFETY:
             // "c" is stored in a static variable
@@ -619,32 +607,7 @@ mod tests {
                 .as_ref(),
             );
 
-        b.iter(|| layout.split_ref(target));
-    }
-
-    #[test]
-    fn test_vertical_split_by_height_ref() {
-        let target = Rect {
-            x: 2,
-            y: 2,
-            width: 10,
-            height: 10,
-        };
-
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Max(5),
-                    Constraint::Min(1),
-                ]
-                .as_ref(),
-            )
-            .split_ref(target);
-
-        assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
-        chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
+        b.iter(|| layout.split(target));
     }
 
     #[test]
