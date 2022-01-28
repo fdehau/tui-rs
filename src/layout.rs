@@ -212,7 +212,7 @@ impl<'a> Layout<'a> {
     ///     });
     /// assert_eq!(
     ///     chunks,
-    ///     &vec![
+    ///     vec![
     ///         Rect {
     ///             x: 2,
     ///             y: 2,
@@ -239,7 +239,7 @@ impl<'a> Layout<'a> {
     ///     });
     /// assert_eq!(
     ///     chunks,
-    ///     &vec![
+    ///     vec![
     ///         Rect {
     ///             x: 0,
     ///             y: 0,
