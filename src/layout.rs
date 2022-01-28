@@ -271,6 +271,51 @@ impl<'a> Layout<'a> {
 
             (vec.as_ptr(), vec.len())
         });
+    // SAFETY: We know 3 things about the vec variable
+    // we are deriving this slice from
+    //
+    // 1. It has the 'static lifetime.
+    //
+    // Because it's stored in a static variable
+    // we also know that our variable has the
+    // 'static lifetime.
+    //
+    // 2. It will never drop.
+    //
+    // Because the split() function produces an owned Vec,
+    // we know that the HashMap will consume it. And because
+    // we never remove any values from the HashMap anywhere
+    // in the code base we know that our data will never be
+    // dropped unless the variable associated with it does
+    // as well. However, Because our variable is static we
+    // know it will never drop
+    //
+    // 3. It will never move
+    //
+    // Because our variable is stored in a static variable
+    // we know it can never be moved
+    //
+    // 
+    // We are returning it as a reference to a slice for 2 reasons
+    //
+    // 1. So it cannot be mutated
+    //
+    // We do not intend for the user to manipulate the 
+    // cache directly, so therefore we must ensure that
+    // our output is immutable.
+    //
+    // 2. So the variable cannot be dropped elsewhere
+    //
+    // Had we returned a Vec generated from Vec::from_raw_parts
+    // we would have to wrap it in a std::mem::ManuallyDrop to
+    // make sure that the Vec wasn't unexpectedly deallocated
+    //
+    //
+    // It is for the reasons that I have stated above that
+    // I believe that the use of this function in this very
+    // specific way will not lead to undefined behaviour or
+    // safety concerns.
+
         unsafe { core::slice::from_raw_parts(vec.0, vec.1) }
     }
 }
