@@ -256,7 +256,7 @@ impl<'a> Layout<'a> {
     /// );
     /// ```
 
-    pub fn split(self, area: Rect) -> Vec<Rect> {
+    pub fn split(&self, area: Rect) -> Vec<Rect> {
         // TODO: Maybe use a fixed size cache ?
         LAYOUT_CACHE.with(|c| {
             c.borrow_mut()
@@ -266,7 +266,9 @@ impl<'a> Layout<'a> {
         })
     }
 
-    pub fn split_ref(self, area: Rect) -> &'static Vec<Rect> {
+    /// Much faster than
+
+    pub fn split_ref(&self, area: Rect) -> &'static Vec<Rect> {
         LAYOUT_CACHE.with(|c| {
             // SAFETY:
             // "c" is stored in a static variable
@@ -282,7 +284,7 @@ impl<'a> Layout<'a> {
     }
 }
 
-fn split(area: Rect, layout: Layout) -> Vec<Rect> {
+fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
     let mut solver = Solver::new();
     let mut vars: HashMap<Variable, (usize, usize)> = HashMap::new();
     let elements = layout
@@ -595,6 +597,29 @@ mod tests {
 
         assert_eq!(target.height, chunks.iter().map(|r| r.height).sum::<u16>());
         chunks.windows(2).for_each(|w| assert!(w[0].y <= w[1].y));
+    }
+
+    #[bench]
+    fn bench_vertical_split_by_height(b: &mut test::Bencher) {
+        let target = Rect {
+            x: 2,
+            y: 2,
+            width: 10,
+            height: 10,
+        };
+
+        let layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Percentage(10),
+                    Constraint::Max(5),
+                    Constraint::Min(1),
+                ]
+                .as_ref(),
+            );
+
+        b.iter(|| layout.split_ref(target));
     }
 
     #[test]
