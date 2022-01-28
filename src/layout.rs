@@ -263,9 +263,6 @@ impl<'a> Layout<'a> {
 
     pub fn split(&self, area: Rect) -> &'static [Rect] {
         let vec = LAYOUT_CACHE.with(|c| {
-            // SAFETY:
-            // "c" is stored in a static variable
-            // and can therefore have a static lifetime
             let mut b = c.borrow_mut();
 
             let vec = b
