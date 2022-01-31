@@ -113,10 +113,10 @@ fn draw_charts<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
-    let constraints = if app.show_chart {
-        vec![Constraint::Percentage(50), Constraint::Percentage(50)]
+    let constraints: &[Constraint] = if app.show_chart {
+        &[Constraint::Percentage(50), Constraint::Percentage(50)]
     } else {
-        vec![Constraint::Percentage(100)]
+        &[Constraint::Percentage(100)]
     };
     let chunks = Layout::default()
         .constraints(&constraints)
