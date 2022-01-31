@@ -119,7 +119,7 @@ where
         &[Constraint::Percentage(100)]
     };
     let chunks = Layout::default()
-        .constraints(&constraints)
+        .constraints(constraints)
         .direction(Direction::Horizontal)
         .split(area);
     {
