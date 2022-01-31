@@ -143,13 +143,13 @@ thread_local! {
 impl<'a> Default for Layout<'a> {
     #[inline]
     fn default() -> Layout<'a> {
-        Layout::new()
+        Layout::default()
     }
 }
 
 impl<'a> Layout<'a> {
     #[inline]
-    pub const fn new() -> Layout<'a> {
+    pub const fn default() -> Layout<'a> {
         Layout {
             direction: Direction::Vertical,
             margin: Margin {
@@ -612,11 +612,13 @@ impl Rect {
 mod tests {
     use super::*;
 
-    const CHUNKS: Layout = Layout::new().direction(Direction::Vertical).constraints(&[
-        Constraint::Percentage(10),
-        Constraint::Max(5),
-        Constraint::Min(1),
-    ]);
+    const CHUNKS: Layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(&[
+            Constraint::Percentage(10),
+            Constraint::Max(5),
+            Constraint::Min(1),
+        ]);
 
     #[test]
     fn test_vertical_split_by_height() {
