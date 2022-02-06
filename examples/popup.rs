@@ -73,11 +73,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
         .split(size);
 
-    let text = if app.show_popup {
-        "Press p to close the popup"
-    } else {
-        "Press p to show the popup"
-    };
+    let text = "Press q to close the app. Press p to toggle the popup";
     let paragraph = Paragraph::new(Span::styled(
         text,
         Style::default().add_modifier(Modifier::SLOW_BLINK),
