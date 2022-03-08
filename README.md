@@ -78,6 +78,7 @@ You can run all examples by running `cargo make run-examples` (require
 
 ### Third-party widgets
 
+* [tree-widget](https://github.com/EdJoPaTo/tui-rs-tree-widget)
 * [tui-logger](https://github.com/gin66/tui-logger)
 
 ### Apps using tui
@@ -108,6 +109,7 @@ You can run all examples by running `cargo make run-examples` (require
 * [joshuto](https://github.com/kamiyaa/joshuto)
 * [adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui)
 * [hoard](https://github.com/Hyde46/hoard)
+* [mqttui](https://github.com/EdJoPaTo/mqttui)
 
 ### Alternatives
 
