@@ -65,6 +65,10 @@ name = "list"
 required-features = ["crossterm"]
 
 [[example]]
+name = "panic"
+required-features = ["crossterm"]
+
+[[example]]
 name = "paragraph"
 required-features = ["crossterm"]
 
