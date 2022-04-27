@@ -115,6 +115,7 @@ You can run all examples by running `cargo make run-examples` (require
 * [meteo-tui](https://github.com/16arpi/meteo-tui): french weather via the command line.
 * [picterm](https://github.com/ksk001100/picterm): preview images in your terminal.
 * [gobang](https://github.com/TaKO8Ki/gobang): a cross-platform TUI database management tool.
+* [trippy](https://github.com/fujiapple852/trippy): a network diagnostic tool.
 
 ### Alternatives
 
