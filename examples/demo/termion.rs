@@ -33,7 +33,6 @@ pub fn run(tick_rate: Duration, enhanced_graphics: bool) -> Result<(), Box<dyn E
     write!(terminal.backend_mut(), "{}", ToMainScreen)?;
     terminal.show_cursor()?;
 
-    println!("bonsoir");
     Ok(())
 }
 
