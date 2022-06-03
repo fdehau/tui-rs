@@ -10,7 +10,7 @@ use termion::{
     event::Key,
     input::{MouseTerminal, TermRead},
     raw::IntoRawMode,
-    screen::{AlternateScreen, ToAlternateScreen, ToMainScreen},
+    screen::{ToAlternateScreen, ToMainScreen},
 };
 use tui::{
     backend::{Backend, TermionBackend},
@@ -26,12 +26,16 @@ pub fn run(tick_rate: Duration, enhanced_graphics: bool) -> Result<(), Box<dyn E
 
     // create app and run it
     let app = App::new("Termion demo", enhanced_graphics);
-    run_app(&mut terminal, app, tick_rate)?;
+    let res = run_app(&mut terminal, app, tick_rate);
 
     // restore terminal
     terminal.backend().suspend_raw_mode()?;
     write!(terminal.backend_mut(), "{}", ToMainScreen)?;
     terminal.show_cursor()?;
+
+    if let Err(err) = res {
+        println!("{:?}", err);
+    }
 
     Ok(())
 }
