@@ -14,7 +14,7 @@ pub enum Corner {
     BottomLeft,
 }
 
-#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+#[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Horizontal,
     Vertical,
