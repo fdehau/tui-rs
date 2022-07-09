@@ -79,6 +79,7 @@ You can run all examples by running `cargo make run-examples` (require
 ### Third-party widgets
 
 * [tui-logger](https://github.com/gin66/tui-logger)
+* [tui-textarea](https://github.com/rhysd/tui-textarea): Simple yet powerful multi-line text editor widget supporting several key shortcuts, undo/redo, text search, etc.
 
 ### Apps using tui
 
