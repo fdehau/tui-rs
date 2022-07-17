@@ -3,6 +3,7 @@ use crate::{
     style::{Color, Modifier, Style},
     text::{Span, Spans},
 };
+use smol_str::SmolStr;
 use std::cmp::min;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
@@ -10,7 +11,9 @@ use unicode_width::UnicodeWidthStr;
 /// A buffer cell
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cell {
-    pub symbol: String,
+    /// Symbol represents single Unicode grapheme cluster in the cell. To avoid heap allocation,
+    /// [`SmolStr`] is used instead of [`String`].
+    pub symbol: SmolStr,
     pub fg: Color,
     pub bg: Color,
     pub modifier: Modifier,
@@ -18,14 +21,14 @@ pub struct Cell {
 
 impl Cell {
     pub fn set_symbol(&mut self, symbol: &str) -> &mut Cell {
-        self.symbol.clear();
-        self.symbol.push_str(symbol);
+        self.symbol = SmolStr::new(symbol);
         self
     }
 
     pub fn set_char(&mut self, ch: char) -> &mut Cell {
-        self.symbol.clear();
-        self.symbol.push(ch);
+        let mut buf = [0; 4];
+        let ch = ch.encode_utf8(&mut buf);
+        self.symbol = SmolStr::new(ch);
         self
     }
 
@@ -59,8 +62,7 @@ impl Cell {
     }
 
     pub fn reset(&mut self) {
-        self.symbol.clear();
-        self.symbol.push(' ');
+        self.symbol = SmolStr::new(" ");
         self.fg = Color::Reset;
         self.bg = Color::Reset;
         self.modifier = Modifier::empty();
@@ -97,7 +99,7 @@ impl Default for Cell {
 /// assert_eq!(buf.get(0, 2).symbol, "x");
 /// buf.set_string(3, 0, "string", Style::default().fg(Color::Red).bg(Color::White));
 /// assert_eq!(buf.get(5, 0), &Cell{
-///     symbol: String::from("r"),
+///     symbol: "r".into(),
 ///     fg: Color::Red,
 ///     bg: Color::White,
 ///     modifier: Modifier::empty()

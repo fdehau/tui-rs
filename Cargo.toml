@@ -27,6 +27,7 @@ unicode-width = "0.1"
 termion = { version = "1.5", optional = true }
 crossterm = { version = "0.23", optional = true }
 serde = { version = "1", optional = true, features = ["derive"]}
+smol_str = "0.1"
 
 [dev-dependencies]
 rand = "0.8"
