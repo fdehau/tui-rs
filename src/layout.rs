@@ -260,6 +260,16 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     Constraint::Min(v) => elements[i].width | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].width | LE(WEAK) | f64::from(v),
                 });
+
+                match *size {
+                    Constraint::Min(v) => {
+                        ccs.push(elements[i].width | EQ(WEAK) | f64::from(v));
+                    }
+                    Constraint::Max(v) => {
+                        ccs.push(elements[i].width | EQ(WEAK) | f64::from(v));
+                    }
+                    _ => {}
+                }
             }
         }
         Direction::Vertical => {
@@ -282,6 +292,16 @@ fn split(area: Rect, layout: &Layout) -> Vec<Rect> {
                     Constraint::Min(v) => elements[i].height | GE(WEAK) | f64::from(v),
                     Constraint::Max(v) => elements[i].height | LE(WEAK) | f64::from(v),
                 });
+
+                match *size {
+                    Constraint::Min(v) => {
+                        ccs.push(elements[i].height | EQ(WEAK) | f64::from(v));
+                    }
+                    Constraint::Max(v) => {
+                        ccs.push(elements[i].height | EQ(WEAK) | f64::from(v));
+                    }
+                    _ => {}
+                }
             }
         }
     }
