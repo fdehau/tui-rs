@@ -110,6 +110,17 @@ impl<'a> Span<'a> {
         }
     }
 
+    /// Create a span with given style and mask
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use tui::text::Span;
+    /// # use tui::style::{Color, Modifier, Style};
+    /// let style = Style::default();
+    /// Span::masked("Cool password", style, 'x');
+    /// Span::masked(String::from("You cannot see this"), style, '*');
+    /// ```
     pub fn masked<T>(content: T, style: Style, mask: char) -> Span<'a>
     where
         T: Into<Cow<'a, str>>,
@@ -151,6 +162,7 @@ impl<'a> Span<'a> {
     ///                 add_modifier: Modifier::empty(),
     ///                 sub_modifier: Modifier::empty(),
     ///             },
+    ///             mask: None,
     ///         },
     ///         StyledGrapheme {
     ///             symbol: "e",
@@ -160,6 +172,7 @@ impl<'a> Span<'a> {
     ///                 add_modifier: Modifier::empty(),
     ///                 sub_modifier: Modifier::empty(),
     ///             },
+    ///             mask: None,
     ///         },
     ///         StyledGrapheme {
     ///             symbol: "x",
@@ -169,6 +182,7 @@ impl<'a> Span<'a> {
     ///                 add_modifier: Modifier::empty(),
     ///                 sub_modifier: Modifier::empty(),
     ///             },
+    ///             mask: None,
     ///         },
     ///         StyledGrapheme {
     ///             symbol: "t",
@@ -178,6 +192,7 @@ impl<'a> Span<'a> {
     ///                 add_modifier: Modifier::empty(),
     ///                 sub_modifier: Modifier::empty(),
     ///             },
+    ///             mask: None,
     ///         },
     ///     ],
     ///     styled_graphemes.collect::<Vec<StyledGrapheme>>()
