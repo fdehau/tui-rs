@@ -56,6 +56,7 @@ use unicode_width::UnicodeWidthStr;
 pub struct StyledGrapheme<'a> {
     pub symbol: &'a str,
     pub style: Style,
+    pub mask: Option<char>,
 }
 
 /// A string where all graphemes have the same style.
@@ -63,6 +64,7 @@ pub struct StyledGrapheme<'a> {
 pub struct Span<'a> {
     pub content: Cow<'a, str>,
     pub style: Style,
+    pub mask: Option<char>,
 }
 
 impl<'a> Span<'a> {
@@ -82,6 +84,7 @@ impl<'a> Span<'a> {
         Span {
             content: content.into(),
             style: Style::default(),
+            mask: None,
         }
     }
 
@@ -102,6 +105,18 @@ impl<'a> Span<'a> {
     {
         Span {
             content: content.into(),
+            style,
+            mask: None,
+        }
+    }
+
+    pub fn masked<T>(content: T, style: Style, mask: char) -> Span<'a>
+        where
+        T: Into<Cow<'a, str>>,
+    {
+        Span {
+            content: content.into(),
+            mask: Some(mask),
             style,
         }
     }
@@ -176,6 +191,7 @@ impl<'a> Span<'a> {
             .map(move |g| StyledGrapheme {
                 symbol: g,
                 style: base_style.patch(self.style),
+                mask: self.mask,
             })
             .filter(|s| s.symbol != "\n")
     }
