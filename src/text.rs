@@ -111,7 +111,7 @@ impl<'a> Span<'a> {
     }
 
     pub fn masked<T>(content: T, style: Style, mask: char) -> Span<'a>
-        where
+    where
         T: Into<Cow<'a, str>>,
     {
         Span {

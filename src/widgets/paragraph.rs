@@ -177,7 +177,12 @@ impl<'a> Widget for Paragraph<'a> {
             if y >= self.scroll.0 {
                 let mut x = get_line_offset(current_line_width, text_area.width, self.alignment);
 
-                for StyledGrapheme { symbol, style, mask } in current_line {
+                for StyledGrapheme {
+                    symbol,
+                    style,
+                    mask,
+                } in current_line
+                {
                     let to_render_symbol = if symbol.is_empty() {
                         // If the symbol is empty, the last char which rendered last time will
                         // leave on the line. It's a quick fix.
@@ -185,20 +190,23 @@ impl<'a> Widget for Paragraph<'a> {
                     } else {
                         match mask {
                             None => symbol.to_string(),
-                            Some(masker) => if false {
-                                // FIXME:
-                                // TODO: Only one of if/else branch is to be left
-                                // should we do:
-                                // - masker.repeat(symbol.len()) or,
-                                // - makser
-                                std::iter::repeat(masker)
-                                    .take(symbol.len())
-                                    .collect()
-                                } else { String::from(*masker) },
+                            Some(masker) => {
+                                if false {
+                                    // FIXME:
+                                    // TODO: Only one of if/else branch is to be left
+                                    // should we do:
+                                    // - masker.repeat(symbol.len()) or,
+                                    // - makser
+                                    std::iter::repeat(masker).take(symbol.len()).collect()
+                                } else {
+                                    String::from(*masker)
+                                }
+                            }
                         }
                     };
                     buf.get_mut(text_area.left() + x, text_area.top() + y - self.scroll.0)
-                        .set_symbol(to_render_symbol.as_str()).set_style(*style);
+                        .set_symbol(to_render_symbol.as_str())
+                        .set_style(*style);
                     x += symbol.width() as u16;
                 }
             }
