@@ -102,8 +102,29 @@ where
     }
 
     /// Render a boxed ['Widget'] with unknown size (['?Sized'])
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::iter::zip;
+    /// # use tui::Terminal;
+    /// # use tui::backend::TestBackend;
+    /// # use tui::layout::{Constraint, Layout, Rect};
+    /// # use tui::widgets::Block;
+    /// # let backend = TestBackend::new(5, 5);
+    /// # let mut terminal = Terminal::new(backend).unwrap();
+    ///
+    /// let r = Rect::new(0,0,16,16);
+    /// let widgets = [Box::new(Block::default())].repeat(4);
+    /// let rects = Layout::default().constraints([Constraint::Ratio(1,4)].repeat(4).as_ref()).split();
+    ///
+    /// let mut frame = terminal.get_frame();
+    /// for (widget,rect) in zip(widgets, rects) {
+    ///     frame.render_widget_dynamic(widget, rect);
+    /// }
+    /// ```
     pub fn render_widget_dynamic(&mut self, widget : Box<dyn Widget>, area: Rect)
     {
+
         widget.render_dynamic(area, self.terminal.current_buffer_mut());
     }
 
