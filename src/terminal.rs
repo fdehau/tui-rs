@@ -101,6 +101,10 @@ where
         widget.render(area, self.terminal.current_buffer_mut());
     }
 
+    pub fn render_widget_dynamic(&mut self, widget : &dyn Widget, area: Rect) {
+        widget.render(area, self.terminal.current_buffer_mut());
+    }
+
     /// Render a [`StatefulWidget`] to the current buffer using [`StatefulWidget::render`].
     ///
     /// The last argument should be an instance of the [`StatefulWidget::State`] associated to the
