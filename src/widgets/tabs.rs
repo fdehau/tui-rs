@@ -126,4 +126,8 @@ impl<'a> Widget for Tabs<'a> {
             x = pos.0;
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }

@@ -235,6 +235,10 @@ impl<'a> Widget for Block<'a> {
             buf.set_spans(title_x, title_y, &title, title_area_width);
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }
 
 #[cfg(test)]

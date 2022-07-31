@@ -216,4 +216,8 @@ impl<'a> Widget for BarChart<'a> {
             );
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }

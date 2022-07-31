@@ -131,6 +131,10 @@ impl<'a> Widget for Sparkline<'a> {
             }
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }
 
 #[cfg(test)]

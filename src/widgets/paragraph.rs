@@ -194,4 +194,8 @@ impl<'a> Widget for Paragraph<'a> {
             }
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }

@@ -482,6 +482,10 @@ impl<'a> Widget for Table<'a> {
         let mut state = TableState::default();
         StatefulWidget::render(self, area, buf, &mut state);
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        Widget::render(*self, area, buf);
+    }
 }
 
 #[cfg(test)]

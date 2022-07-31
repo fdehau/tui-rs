@@ -142,6 +142,10 @@ impl<'a> Widget for Gauge<'a> {
         // set the span
         buf.set_span(label_col, label_row, &label, clamped_label_width);
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }
 
 fn get_unicode_block<'a>(frac: f64) -> &'a str {
@@ -286,6 +290,10 @@ impl<'a> Widget for LineGauge<'a> {
                     sub_modifier: self.gauge_style.sub_modifier,
                 });
         }
+    }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
     }
 }
 

@@ -500,4 +500,8 @@ where
             buf.set_spans(x, y, &label.spans, canvas_area.right() - x);
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }

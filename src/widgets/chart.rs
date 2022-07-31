@@ -615,6 +615,10 @@ impl<'a> Widget for Chart<'a> {
             buf.set_spans(x, y, &title, width);
         }
     }
+
+    fn render_dynamic(self: Box<Self>, area: Rect, buf: &mut Buffer) {
+        self.render(area, buf);
+    }
 }
 
 #[cfg(test)]
