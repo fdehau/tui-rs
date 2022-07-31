@@ -101,7 +101,8 @@ where
         widget.render(area, self.terminal.current_buffer_mut());
     }
 
-    pub fn render_widget_dynamic<W>(&mut self, widget : Box<dyn Widget>, area: Rect)
+    /// Render a boxed ['Widget'] with unknown size (['?Sized'])
+    pub fn render_widget_dynamic(&mut self, widget : Box<dyn Widget>, area: Rect)
     {
         widget.render_dynamic(area, self.terminal.current_buffer_mut());
     }
