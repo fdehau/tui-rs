@@ -89,6 +89,7 @@ pub struct Paragraph<'a> {
 pub struct Wrap {
     /// Should leading whitespace be trimmed
     pub trim: bool,
+    pub break_words: bool,
 }
 
 impl<'a> Paragraph<'a> {
@@ -162,15 +163,21 @@ impl<'a> Widget for Paragraph<'a> {
                 }))
         });
 
-        let mut line_composer: Box<dyn LineComposer> = if let Some(Wrap { trim }) = self.wrap {
-            Box::new(WordWrapper::new(&mut styled, text_area.width, trim))
-        } else {
-            let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
-            if let Alignment::Left = self.alignment {
-                line_composer.set_horizontal_offset(self.scroll.1);
-            }
-            line_composer
-        };
+        let mut line_composer: Box<dyn LineComposer> =
+            if let Some(Wrap { trim, break_words }) = self.wrap {
+                Box::new(WordWrapper::new(
+                    &mut styled,
+                    text_area.width,
+                    trim,
+                    break_words,
+                ))
+            } else {
+                let mut line_composer = Box::new(LineTruncator::new(&mut styled, text_area.width));
+                if let Alignment::Left = self.alignment {
+                    line_composer.set_horizontal_offset(self.scroll.1);
+                }
+                line_composer
+            };
         let mut y = 0;
         while let Some((current_line, current_line_width)) = line_composer.next_line() {
             if y >= self.scroll.0 {

@@ -25,7 +25,10 @@ fn widgets_paragraph_can_wrap_its_content() {
                 let paragraph = Paragraph::new(text)
                     .block(Block::default().borders(Borders::ALL))
                     .alignment(alignment)
-                    .wrap(Wrap { trim: true });
+                    .wrap(Wrap {
+                        trim: true,
+                        break_words: false,
+                    });
                 f.render_widget(paragraph, size);
             })
             .unwrap();
@@ -91,7 +94,10 @@ fn widgets_paragraph_renders_double_width_graphemes() {
             let text = vec![Spans::from(s)];
             let paragraph = Paragraph::new(text)
                 .block(Block::default().borders(Borders::ALL))
-                .wrap(Wrap { trim: true });
+                .wrap(Wrap {
+                    trim: true,
+                    break_words: false,
+                });
             f.render_widget(paragraph, size);
         })
         .unwrap();
@@ -123,7 +129,10 @@ fn widgets_paragraph_renders_mixed_width_graphemes() {
             let text = vec![Spans::from(s)];
             let paragraph = Paragraph::new(text)
                 .block(Block::default().borders(Borders::ALL))
-                .wrap(Wrap { trim: true });
+                .wrap(Wrap {
+                    trim: true,
+                    break_words: false,
+                });
             f.render_widget(paragraph, size);
         })
         .unwrap();
