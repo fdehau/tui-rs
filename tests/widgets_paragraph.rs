@@ -83,7 +83,7 @@ fn widgets_paragraph_can_wrap_its_content() {
 }
 
 #[test]
-fn widgets_paragraph_can_wrap_its_content_with_word_break() {
+fn widgets_paragraph_can_wrap_its_content_with_word_break_enabled() {
     let test_case = |alignment, expected| {
         let backend = TestBackend::new(20, 10);
         let mut terminal = Terminal::new(backend).unwrap();

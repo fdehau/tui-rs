@@ -40,7 +40,7 @@ fn get_line_offset(line_width: u16, text_area_width: u16, alignment: Alignment) 
 ///     .block(Block::default().title("Paragraph").borders(Borders::ALL))
 ///     .style(Style::default().fg(Color::White).bg(Color::Black))
 ///     .alignment(Alignment::Center)
-///     .wrap(Wrap { trim: true });
+///     .wrap(Wrap { trim: true, break_words: false });
 /// ```
 #[derive(Debug, Clone)]
 pub struct Paragraph<'a> {
@@ -70,7 +70,7 @@ pub struct Paragraph<'a> {
 ///     - Here is another point that is long enough to wrap"#);
 ///
 /// // With leading spaces trimmed (window width of 30 chars):
-/// Paragraph::new(bullet_points.clone()).wrap(Wrap { trim: true });
+/// Paragraph::new(bullet_points.clone()).wrap(Wrap { trim: true, break_words: false });
 /// // Some indented points:
 /// // - First thing goes here and is
 /// // long so that it wraps
@@ -78,7 +78,7 @@ pub struct Paragraph<'a> {
 /// // is long enough to wrap
 ///
 /// // But without trimming, indentation is preserved:
-/// Paragraph::new(bullet_points).wrap(Wrap { trim: false });
+/// Paragraph::new(bullet_points).wrap(Wrap { trim: false, break_words: false });
 /// // Some indented points:
 /// //     - First thing goes here
 /// // and is long so that it wraps
@@ -89,6 +89,7 @@ pub struct Paragraph<'a> {
 pub struct Wrap {
     /// Should leading whitespace be trimmed
     pub trim: bool,
+    /// Should words at the end of lines be broken
     pub break_words: bool,
 }
 
