@@ -717,7 +717,7 @@ fn widgets_table_should_render_even_if_empty() {
 }
 
 #[test]
-fn widgets_table_columns_dont_panic() {
+fn widgets_table_columns_do_not_panic() {
     let test_case = |state: &mut TableState, table: Table, width: u16| {
         let backend = TestBackend::new(width, 8);
         let mut terminal = Terminal::new(backend).unwrap();
