@@ -438,7 +438,7 @@ mod test {
         assert_eq!(line_truncator, vec!["                    "]);
     }
 
-    /// Tests an input starting with a letter, folowed by spaces - some of the behaviour is
+    /// Tests an input starting with a letter, followed by spaces - some of the behaviour is
     /// incidental.
     #[test]
     fn line_composer_char_plus_lots_of_spaces() {
