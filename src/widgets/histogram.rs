@@ -8,7 +8,6 @@ use crate::{
 use std::cmp::min;
 use unicode_width::UnicodeWidthStr;
 
-
 /// A bar chart specialized for showing histograms
 ///
 /// # Examples
@@ -91,7 +90,7 @@ impl<'a> Histogram<'a> {
 
         // initialize buckets
         self.values = Vec::with_capacity(n_buckets as usize);
-        for v in 0 .. n_buckets {
+        for v in 0..n_buckets {
             self.values.push(format!("{}", v * bucket_size));
         }
 
@@ -164,33 +163,18 @@ impl<'a> Widget for Histogram<'a> {
             return;
         }
 
-        // BarChart calculates max_index as:
-        //  max_index = chart_area.width / (bar_width + bar_gap)
-        // => chart_area.width = max_index * (bar_width + bar_gap)
-        // => chart_area.width / max_index = bar_width + bar_gap
-        // => bar_width = (chart_area.width / max_index) - bar_gap 
         let n_bars = self.buckets.len() as u16;
-        //let bar_width: u16 = chart_area.width / n_bars - self.bar_gap;
-        let bar_width: u16 = (chart_area.width - (n_bars+1) * self.bar_gap) / n_bars;
+        let bar_width: u16 = (chart_area.width - (n_bars + 1) * self.bar_gap) / n_bars;
 
         let max = self
             .max
             .unwrap_or_else(|| self.buckets.iter().map(|t| *t).max().unwrap_or_default());
 
-        /* 
-        let max_index = min(
-            (chart_area.width / (bar_width + self.bar_gap)) as usize,
-            self.data.len(),
-        );
-        */
         let mut data = self
             .buckets
             .iter()
             .take(n_bars as usize)
-            //.take(max_index)
-            .map(|&v| {
-                    v * u64::from(chart_area.height - 1) * 8 / std::cmp::max(max, 1)
-            })
+            .map(|&v| v * u64::from(chart_area.height - 1) * 8 / std::cmp::max(max, 1))
             .collect::<Vec<u64>>();
         for j in (0..chart_area.height - 1).rev() {
             for (i, d) in data.iter_mut().enumerate() {

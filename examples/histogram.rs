@@ -12,18 +12,17 @@ use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Histogram, Block, Borders},
+    widgets::{Block, Borders, Histogram},
     Frame, Terminal,
 };
 
-use rand::{Rng, rngs::ThreadRng, thread_rng};
+use rand::{rngs::ThreadRng, thread_rng, Rng};
 
 struct App {
     data: Vec<u64>,
     size: usize,
-    rng: ThreadRng
+    rng: ThreadRng,
 }
-
 
 impl App {
     fn new(size: usize) -> App {
@@ -31,12 +30,12 @@ impl App {
         App {
             data,
             rng: thread_rng(),
-            size
+            size,
         }
     }
 
     fn on_tick(&mut self) {
-        for i in (0 .. self.size) {
+        for i in (0..self.size) {
             self.data[i] = self.rng.gen_range(0..100);
         }
     }
@@ -109,5 +108,4 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .bar_style(Style::default().fg(Color::Yellow))
         .value_style(Style::default().fg(Color::Black).bg(Color::Yellow));
     f.render_widget(histogram, chunks[0]);
-
 }
