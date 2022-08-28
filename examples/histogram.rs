@@ -11,7 +11,7 @@ use std::{
 use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     widgets::{Block, Borders, Histogram},
     Frame, Terminal,
 };
@@ -35,7 +35,7 @@ impl App {
     }
 
     fn on_tick(&mut self) {
-        for i in (0..self.size) {
+        for i in 0..self.size {
             self.data[i] = self.rng.gen_range(0..100);
         }
     }

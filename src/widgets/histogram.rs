@@ -5,7 +5,6 @@ use crate::{
     symbols,
     widgets::{Block, Widget},
 };
-use std::cmp::min;
 use unicode_width::UnicodeWidthStr;
 
 /// A bar chart specialized for showing histograms
@@ -48,10 +47,6 @@ pub struct Histogram<'a> {
     /// buckets[1] counts items where bucket_size <= x < 2*bucket_size
     /// etc.
     buckets: Vec<u64>,
-    /// the size of each bucket
-    bucket_size: u64,
-    /// the number of buckets
-    n_buckets: u64,
     /// Value necessary for a bar to reach the maximum height (if no value is specified,
     /// the maximum value in the data is taken as reference)
     max: Option<u64>,
@@ -69,8 +64,6 @@ impl<'a> Default for Histogram<'a> {
             bar_style: Style::default(),
             bar_gap: 1,
             bar_set: symbols::bar::NINE_LEVELS,
-            bucket_size: 0,
-            n_buckets: 0,
             buckets: Vec::new(),
             value_style: Default::default(),
             label_style: Default::default(),
