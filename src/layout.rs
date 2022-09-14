@@ -51,7 +51,7 @@ pub struct Margin {
     pub horizontal: u16,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Alignment {
     Left,
     Center,
@@ -361,7 +361,7 @@ impl Element {
     }
 }
 
-/// A simple rectangle used in the computation of the layout and to give widgets an hint about the
+/// A simple rectangle used in the computation of the layout and to give widgets a hint about the
 /// area they are supposed to render to.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct Rect {
