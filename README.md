@@ -26,6 +26,8 @@ comes from the terminal emulator than the library itself.
 Moreover, the library does not provide any input handling nor any event system and
 you may rely on the previously cited libraries to achieve such features.
 
+**I'm actively looking for help maintaining this crate. See [this issue](https://github.com/fdehau/tui-rs/issues/654)**
+
 ### Rust version requirements
 
 Since version 0.17.0, `tui` requires **rustc version 1.56.1 or greater**.
@@ -45,8 +47,8 @@ cargo run --example demo --no-default-features --features=termion --release -- -
 
 where `tick-rate` is the UI refresh rate in ms.
 
-The UI code is in [examples/demo/ui.rs](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/demo/ui.rs) while the
-application state is in [examples/demo/app.rs](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/demo/app.rs).
+The UI code is in [examples/demo/ui.rs](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/demo/ui.rs) while the
+application state is in [examples/demo/app.rs](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/demo/app.rs).
 
 If the user interface contains glyphs that are not displayed correctly by your terminal, you may want to run
 the demo without those symbols:
@@ -59,16 +61,16 @@ cargo run --example demo --release -- --tick-rate 200 --enhanced-graphics false
 
 The library comes with the following list of widgets:
 
-  * [Block](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/block.rs)
-  * [Gauge](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/gauge.rs)
-  * [Sparkline](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/sparkline.rs)
-  * [Chart](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/chart.rs)
-  * [BarChart](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/barchart.rs)
-  * [List](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/list.rs)
-  * [Table](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/table.rs)
-  * [Paragraph](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/paragraph.rs)
-  * [Canvas (with line, point cloud, map)](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/canvas.rs)
-  * [Tabs](https://github.com/fdehau/tui-rs/blob/v0.17.0/examples/tabs.rs)
+  * [Block](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/block.rs)
+  * [Gauge](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/gauge.rs)
+  * [Sparkline](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/sparkline.rs)
+  * [Chart](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/chart.rs)
+  * [BarChart](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/barchart.rs)
+  * [List](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/list.rs)
+  * [Table](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/table.rs)
+  * [Paragraph](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/paragraph.rs)
+  * [Canvas (with line, point cloud, map)](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/canvas.rs)
+  * [Tabs](https://github.com/fdehau/tui-rs/blob/v0.19.0/examples/tabs.rs)
 
 Click on each item to see the source of the example. Run the examples with with 
 cargo (e.g. to run the gauge example `cargo run --example gauge`), and quit by pressing `q`.
@@ -79,6 +81,8 @@ You can run all examples by running `cargo make run-examples` (require
 ### Third-party widgets
 
 * [tui-logger](https://github.com/gin66/tui-logger)
+* [tui-textarea](https://github.com/rhysd/tui-textarea): simple yet powerful multi-line text editor widget supporting several key shortcuts, undo/redo, text search, etc.
+* [tui-rs-tree-widgets](https://github.com/EdJoPaTo/tui-rs-tree-widget): widget for tree data structures.
 
 ### Apps using tui
 
@@ -108,6 +112,17 @@ You can run all examples by running `cargo make run-examples` (require
 * [joshuto](https://github.com/kamiyaa/joshuto)
 * [adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui)
 * [hoard](https://github.com/Hyde46/hoard)
+* [tokio-console](https://github.com/tokio-rs/console): a diagnostics and debugging tool for asynchronous Rust programs.
+* [hwatch](https://github.com/blacknon/hwatch): a alternative watch command that records the result of command execution and can display its history and diffs.
+* [ytui-music](https://github.com/sudipghimire533/ytui-music): listen to music from youtube inside your terminal.
+* [mqttui](https://github.com/EdJoPaTo/mqttui): subscribe or publish to a MQTT Topic quickly from the terminal.
+* [meteo-tui](https://github.com/16arpi/meteo-tui): french weather via the command line.
+* [picterm](https://github.com/ksk001100/picterm): preview images in your terminal.
+* [gobang](https://github.com/TaKO8Ki/gobang): a cross-platform TUI database management tool.
+* [oxker](https://github.com/mrjackwills/oxker): a simple tui to view & control docker containers.
+* [trippy](https://github.com/fujiapple852/trippy): a network diagnostic tool.
+* [cotp](https://github.com/replydev/cotp): a trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality.
+* [hg-tui](https://github.com/kaixinbaba/hg-tui): view [hellogithub.com](https://hellogithub.com/) website on the terminal.
 
 ### Alternatives
 
