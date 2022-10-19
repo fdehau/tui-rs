@@ -4,6 +4,14 @@ use crate::{
 };
 
 /// Shape to draw a line from (x1, y1) to (x2, y2) with the given color
+/// 
+/// The X Axis represents the count of columns of the Line.
+/// 
+/// The Y Axis represents the count of rows of the Line.
+/// 
+/// The Line is always drawn from the top left to the bottom and to the right of the container.
+/// 
+/// And when it is drawn, it will calculate the distance between the two points
 #[derive(Debug, Clone)]
 pub struct Line {
     pub x1: f64,

@@ -4,6 +4,12 @@ use crate::{
 };
 
 /// A shape to draw a group of points with the given color
+/// 
+/// The X Axis represents the count of columns of the container.
+/// 
+/// The Y Axis represents the count of rows of the container.
+/// 
+/// The first value of the coordinate is the X axis, the second value is the Y axis.
 #[derive(Debug, Clone)]
 pub struct Points<'a> {
     pub coords: &'a [(f64, f64)],

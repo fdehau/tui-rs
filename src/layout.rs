@@ -374,6 +374,12 @@ pub struct Rect {
 impl Rect {
     /// Creates a new rect, with width and height limited to keep the area under max u16.
     /// If clipped, aspect ratio will be preserved.
+    /// 
+    /// The X Axis represents the count of columns of the Rect.
+    /// 
+    /// The Y Axis represents the count of rows of the Rect.
+    /// 
+    /// The Rect is always drawn from the top left to the bottom and to the right of the container.
     pub fn new(x: u16, y: u16, width: u16, height: u16) -> Rect {
         let max_area = u16::max_value();
         let (clipped_width, clipped_height) =

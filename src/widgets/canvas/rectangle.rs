@@ -4,6 +4,12 @@ use crate::{
 };
 
 /// Shape to draw a rectangle from a `Rect` with the given color
+/// 
+/// The X Axis represents the count of columns of the Rectangle.
+/// 
+/// The Y Axis represents the count of rows of the Rectangle.
+/// 
+/// The Rectangle is always drawn from the top left to the bottom and to the right of the container.
 #[derive(Debug, Clone)]
 pub struct Rectangle {
     pub x: f64,
