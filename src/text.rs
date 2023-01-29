@@ -292,10 +292,16 @@ impl<'a> Text<'a> {
     where
         T: Into<Cow<'a, str>>,
     {
+        let lines: Vec<_> = match content.into() {
+            Cow::Borrowed(s) => s.lines().map(Spans::from).collect(),
+            Cow::Owned(s) => s.lines().map(|l| Spans::from(l.to_owned())).collect(),
+        };
+
         Text {
-            lines: match content.into() {
-                Cow::Borrowed(s) => s.lines().map(Spans::from).collect(),
-                Cow::Owned(s) => s.lines().map(|l| Spans::from(l.to_owned())).collect(),
+            lines: if lines.len() == 0 {
+                vec![Spans::from("")]
+            } else {
+                lines
             },
         }
     }
