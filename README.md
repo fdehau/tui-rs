@@ -30,7 +30,7 @@ you may rely on the previously cited libraries to achieve such features.
 
 ### Rust version requirements
 
-Since version 0.17.0, `tui` requires **rustc version 1.56.1 or greater**.
+Since version 0.17.0, `tui` requires **rustc version 1.58.1 or greater**.
 
 ### [Documentation](https://docs.rs/tui)
 
