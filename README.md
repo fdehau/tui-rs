@@ -123,6 +123,7 @@ You can run all examples by running `cargo make run-examples` (require
 * [trippy](https://github.com/fujiapple852/trippy): a network diagnostic tool.
 * [cotp](https://github.com/replydev/cotp): a trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality.
 * [hg-tui](https://github.com/kaixinbaba/hg-tui): view [hellogithub.com](https://hellogithub.com/) website on the terminal.
+* [repgrep](https://github.com/acheronfail/repgrep): An interactive replacer for [ripgrep](https://github.com/BurntSushi/ripgrep) on the command line
 
 ### Alternatives
 
