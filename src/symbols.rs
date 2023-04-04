@@ -230,6 +230,89 @@ pub enum Marker {
     Block,
     /// Up to 8 points per cell
     Braille,
+    /// extra markers from 'block'
+    ExtraBlock(Block),
+    /// extra markers from 'bar'
+    ExtraBar(Bar),
+    /// extra markers from 'line'
+    ExtraLine(Line),
+    
+}
+#[derive(Debug, Clone, Copy)]
+pub enum Block {
     /// One point per cell completely filled
     FULL,
+    SevenEights,
+    ThreeQuarters,
+    FiveEighths,
+    HALF,
+    ThreeEighths,
+    OneQuarter,
+    OneEighth,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Bar {
+    /// One point per cell completely filled
+    FULL,
+    SevenEights,
+    ThreeQuarters,
+    FiveEighths,
+    HALF,
+    ThreeEighths,
+    OneQuarter,
+    OneEighth,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Line {
+    /// One point per cell completely filled
+    VERTICAL,
+    DoubleVertical,
+    ThickVertical,
+
+    HORIZONTAL,
+    DoubleHorizontal,
+    ThickHorizontal,
+
+    TopRight,
+    DoubleTopRight,
+    ThickTopRight,
+    RoundedTopRight,
+
+    TopLeft,
+    DoubleTopLeft,
+    ThickTopLeft,
+    RoundedTopLeft,
+
+    BottomRight,
+    DoubleBottomRight,
+    ThickBottomRight,
+    RoundedBottomRight,
+
+    BottomLeft,
+    DoubleBottomLeft,
+    ThickBottomLeft,
+    RoundedBottomLeft,
+
+    VerticalLeft,
+    DoubleVerticalLeft,
+    ThickVerticalLeft,
+
+    VerticalRight,
+    DoubleVerticalRight,
+    ThickVerticalRight,
+
+    HorizontalDown,
+    DoubleHorizontalDown,
+    ThickHorizontalDown,
+
+    HorizontalUp,
+    DoubleHorizontalUp,
+    ThickHorizontalUp,
+
+    CROSS,
+    DoubleCross,
+    ThickCross,
+    
 }
