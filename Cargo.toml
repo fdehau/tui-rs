@@ -7,7 +7,7 @@ A library to build rich terminal user interfaces or dashboards
 """
 documentation = "https://docs.rs/tui/0.19.0/tui/"
 keywords = ["tui", "terminal", "dashboard"]
-repository = "https://github.com/fdehau/tui-rs"
+repository = "https://github.com/V8gaming/tui-rs"
 readme = "README.md"
 license = "MIT"
 exclude = ["assets/*", ".github", "Makefile.toml", "CONTRIBUTING.md", "*.log", "tags"]
