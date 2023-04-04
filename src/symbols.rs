@@ -231,15 +231,15 @@ pub enum Marker {
     /// Up to 8 points per cell
     Braille,
     /// extra markers from 'block'
-    ExtraBlock(Block),
+    Blocks(Block),
     /// extra markers from 'bar'
-    ExtraBar(Bar),
+    Bars(Bar),
     /// extra markers from 'line'
-    ExtraLine(Line),
+    Lines(Line),
     
 }
 #[derive(Debug, Clone, Copy)]
-pub enum Block {
+pub enum Blocks {
     /// One point per cell completely filled
     FULL,
     SevenEights,
@@ -252,7 +252,7 @@ pub enum Block {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Bar {
+pub enum Bars {
     /// One point per cell completely filled
     FULL,
     SevenEights,
@@ -265,7 +265,7 @@ pub enum Bar {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Line {
+pub enum Lines {
     /// One point per cell completely filled
     VERTICAL,
     DoubleVertical,

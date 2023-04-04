@@ -265,7 +265,7 @@ impl<'a> Context<'a> {
             symbols::Marker::Block => Box::new(CharGrid::new(width, height, '▄')),
             symbols::Marker::Braille => Box::new(BrailleGrid::new(width, height)),
             // added FULL so I can graph a 'background'
-            symbols::Marker::ExtraBlock(marker) => {
+            symbols::Marker::Blocks(marker) => {
                 match marker {
                     symbols::Block::FULL => Box::new(CharGrid::new(width, height+2, '█')),
                     symbols::Block::SevenEights => Box::new(CharGrid::new(width, height, '▉')),
@@ -278,7 +278,7 @@ impl<'a> Context<'a> {
 
                 }
             }
-            symbols::Marker::ExtraBar(marker) => {
+            symbols::Marker::Bars(marker) => {
                 match marker {
                     symbols::Bar::FULL => Box::new(CharGrid::new(width, height+2, '█')),
                     symbols::Bar::SevenEights => Box::new(CharGrid::new(width, height, '▇')),
@@ -291,7 +291,7 @@ impl<'a> Context<'a> {
 
                 }
             }
-            symbols::Marker::ExtraLine(marker ) => {
+            symbols::Marker::Lines(marker ) => {
                 match marker {
                     symbols::Line::VERTICAL => Box::new(CharGrid::new(width, height, '│')),
                     symbols::Line::DoubleVertical => Box::new(CharGrid::new(width, height, '║')),
