@@ -264,6 +264,8 @@ impl<'a> Context<'a> {
             symbols::Marker::Dot => Box::new(CharGrid::new(width, height, '•')),
             symbols::Marker::Block => Box::new(CharGrid::new(width, height, '▄')),
             symbols::Marker::Braille => Box::new(BrailleGrid::new(width, height)),
+            // added FULL so I can graph a 'background'
+            symbols::Marker::FULL => Box::new(CharGrid::new(width, height +2, '█'))
         };
         Context {
             x_bounds,

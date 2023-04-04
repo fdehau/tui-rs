@@ -230,4 +230,6 @@ pub enum Marker {
     Block,
     /// Up to 8 points per cell
     Braille,
+    /// One point per cell completely filled
+    FULL,
 }
