@@ -108,9 +108,9 @@ impl SinSignal {
 }
 
 impl Iterator for SinSignal {
-    type Item = (f64, f64);
+    type Item = (f64, f64, bool);
     fn next(&mut self) -> Option<Self::Item> {
-        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale);
+        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale, true);
         self.x += self.interval;
         Some(point)
     }

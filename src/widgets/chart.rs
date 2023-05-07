@@ -95,6 +95,8 @@ pub enum GraphType {
     Scatter,
     /// Draw each point and lines between each point using the same marker
     Line,
+    /// Draw each point and lines between each point using the same marker, with a boolean if the line is rendered
+    Svg,
 }
 
 /// A group of data points
@@ -103,7 +105,7 @@ pub struct Dataset<'a> {
     /// Name of the dataset (used in the legend if shown)
     name: Cow<'a, str>,
     /// A reference to the actual data
-    data: &'a [(f64, f64)],
+    data: &'a [(f64, f64, bool)],
     /// Symbol used for each points of this dataset
     marker: symbols::Marker,
     /// Determines graph type used for drawing points
@@ -133,7 +135,7 @@ impl<'a> Dataset<'a> {
         self
     }
 
-    pub fn data(mut self, data: &'a [(f64, f64)]) -> Dataset<'a> {
+    pub fn data(mut self, data: &'a [(f64, f64, bool)]) -> Dataset<'a> {
         self.data = data;
         self
     }
@@ -629,7 +631,7 @@ mod tests {
 
     #[test]
     fn it_should_hide_the_legend() {
-        let data = [(0.0, 5.0), (1.0, 6.0), (3.0, 7.0)];
+        let data = [(0.0, 5.0, true), (1.0, 6.0, true), (3.0, 7.0, true)];
         let cases = [
             LegendTestCase {
                 chart_area: Rect::new(0, 0, 100, 100),

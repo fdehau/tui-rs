@@ -18,15 +18,21 @@ use tui::{
     Frame, Terminal,
 };
 
-const DATA: [(f64, f64); 5] = [(0.0, 0.0), (1.0, 1.0), (2.0, 2.0), (3.0, 3.0), (4.0, 4.0)];
-const DATA2: [(f64, f64); 7] = [
-    (0.0, 0.0),
-    (10.0, 1.0),
-    (20.0, 0.5),
-    (30.0, 1.5),
-    (40.0, 1.0),
-    (50.0, 2.5),
-    (60.0, 3.0),
+const DATA: [(f64, f64, bool); 5] = [
+    (0.0, 0.0, true), 
+    (1.0, 1.0, true), 
+    (2.0, 2.0, true), 
+    (3.0, 3.0, true), 
+    (4.0, 4.0, true)
+];
+const DATA2: [(f64, f64, bool); 7] = [
+    (0.0, 0.0, true),
+    (10.0, 1.0, true),
+    (20.0, 0.5, true),
+    (30.0, 1.5, true),
+    (40.0, 1.0, true),
+    (50.0, 2.5, true),
+    (60.0, 3.0, true),
 ];
 
 #[derive(Clone)]
@@ -49,9 +55,9 @@ impl SinSignal {
 }
 
 impl Iterator for SinSignal {
-    type Item = (f64, f64);
+    type Item = (f64, f64, bool);
     fn next(&mut self) -> Option<Self::Item> {
-        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale);
+        let point = (self.x, (self.x * 1.0 / self.period).sin() * self.scale, true);
         self.x += self.interval;
         Some(point)
     }
@@ -59,9 +65,9 @@ impl Iterator for SinSignal {
 
 struct App {
     signal1: SinSignal,
-    data1: Vec<(f64, f64)>,
+    data1: Vec<(f64, f64, bool)>,
     signal2: SinSignal,
-    data2: Vec<(f64, f64)>,
+    data2: Vec<(f64, f64, bool)>,
     window: [f64; 2],
 }
 
@@ -69,8 +75,8 @@ impl App {
     fn new() -> App {
         let mut signal1 = SinSignal::new(0.2, 3.0, 18.0);
         let mut signal2 = SinSignal::new(0.1, 2.0, 10.0);
-        let data1 = signal1.by_ref().take(200).collect::<Vec<(f64, f64)>>();
-        let data2 = signal2.by_ref().take(200).collect::<Vec<(f64, f64)>>();
+        let data1 = signal1.by_ref().take(200).collect::<Vec<(f64, f64, bool)>>();
+        let data2 = signal2.by_ref().take(200).collect::<Vec<(f64, f64, bool)>>();
         App {
             signal1,
             data1,

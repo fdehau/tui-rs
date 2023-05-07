@@ -40,7 +40,7 @@ fn widgets_chart_can_render_on_small_areas() {
                 let datasets = vec![Dataset::default()
                     .marker(symbols::Marker::Braille)
                     .style(Style::default().fg(Color::Magenta))
-                    .data(&[(0.0, 0.0)])];
+                    .data(&[(0.0, 0.0, true)])];
                 let chart = Chart::new(datasets)
                     .block(Block::default().title("Plot").borders(Borders::ALL))
                     .x_axis(
@@ -265,7 +265,7 @@ fn widgets_chart_can_have_axis_with_zero_length_bounds() {
             let datasets = vec![Dataset::default()
                 .marker(symbols::Marker::Braille)
                 .style(Style::default().fg(Color::Magenta))
-                .data(&[(0.0, 0.0)])];
+                .data(&[(0.0, 0.0, true)])];
             let chart = Chart::new(datasets)
                 .block(Block::default().title("Plot").borders(Borders::ALL))
                 .x_axis(
@@ -302,9 +302,9 @@ fn widgets_chart_handles_overflows() {
                 .marker(symbols::Marker::Braille)
                 .style(Style::default().fg(Color::Magenta))
                 .data(&[
-                    (1_588_298_471.0, 1.0),
-                    (1_588_298_473.0, 0.0),
-                    (1_588_298_496.0, 1.0),
+                    (1_588_298_471.0, 1.0, true),
+                    (1_588_298_473.0, 0.0, true),
+                    (1_588_298_496.0, 1.0, true),
                 ])];
             let chart = Chart::new(datasets)
                 .block(Block::default().title("Plot").borders(Borders::ALL))
@@ -379,34 +379,34 @@ fn widgets_chart_can_have_a_legend() {
                     .name("Dataset 1")
                     .style(Style::default().fg(Color::Blue))
                     .data(&[
-                        (0.0, 0.0),
-                        (10.0, 1.0),
-                        (20.0, 2.0),
-                        (30.0, 3.0),
-                        (40.0, 4.0),
-                        (50.0, 5.0),
-                        (60.0, 6.0),
-                        (70.0, 7.0),
-                        (80.0, 8.0),
-                        (90.0, 9.0),
-                        (100.0, 10.0),
+                        (0.0, 0.0, true),
+                        (10.0, 1.0, true),
+                        (20.0, 2.0, true),
+                        (30.0, 3.0, true),
+                        (40.0, 4.0, true),
+                        (50.0, 5.0, true),
+                        (60.0, 6.0, true),
+                        (70.0, 7.0, true),
+                        (80.0, 8.0, true),
+                        (90.0, 9.0, true),
+                        (100.0, 10.0, true),
                     ])
                     .graph_type(Line),
                 Dataset::default()
                     .name("Dataset 2")
                     .style(Style::default().fg(Color::Green))
                     .data(&[
-                        (0.0, 10.0),
-                        (10.0, 9.0),
-                        (20.0, 8.0),
-                        (30.0, 7.0),
-                        (40.0, 6.0),
-                        (50.0, 5.0),
-                        (60.0, 4.0),
-                        (70.0, 3.0),
-                        (80.0, 2.0),
-                        (90.0, 1.0),
-                        (100.0, 0.0),
+                        (0.0, 10.0, true),
+                        (10.0, 9.0, true),
+                        (20.0, 8.0, true),
+                        (30.0, 7.0, true),
+                        (40.0, 6.0, true),
+                        (50.0, 5.0, true),
+                        (60.0, 4.0, true),
+                        (70.0, 3.0, true),
+                        (80.0, 2.0, true),
+                        (90.0, 1.0, true),
+                        (100.0, 0.0, true),
                     ])
                     .graph_type(Line),
             ];
