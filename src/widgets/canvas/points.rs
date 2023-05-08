@@ -18,8 +18,7 @@ impl<'a> Shape for Points<'a> {
                     painter.paint(x, y, self.color);
                 }
             } else if let Some((x, y)) = painter.get_point(*x, *y) {
-                println!("false");
-                painter.paint(x, y, Color::Reset);
+                //painter.paint(x, y, Color::Reset);
             }
 
         }
