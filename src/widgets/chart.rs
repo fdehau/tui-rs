@@ -559,13 +559,18 @@ impl<'a> Widget for Chart<'a> {
                     });
                     if let GraphType::Line = dataset.graph_type {
                         for data in dataset.data.windows(2) {
-                            ctx.draw(&Line {
-                                x1: data[0].0,
-                                y1: data[0].1,
-                                x2: data[1].0,
-                                y2: data[1].1,
-                                color: dataset.style.fg.unwrap_or(Color::Reset),
-                            })
+                            if !data[0].2 || !data[1].2 {
+                                continue;
+                            } else {
+                                ctx.draw(&Line {
+                                    x1: data[0].0,
+                                    y1: data[0].1,
+                                    x2: data[1].0,
+                                    y2: data[1].1,
+                                    color: dataset.style.fg.unwrap_or(Color::Reset),
+                                })
+                            }
+
                         }
                     }
                 })

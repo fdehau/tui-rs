@@ -12,7 +12,6 @@ pub struct Points<'a> {
 
 impl<'a> Shape for Points<'a> {
     fn draw(&self, painter: &mut Painter) {
-        println!("{:?}", self.coords);
         for (x, y, drawed) in self.coords {
             if *drawed {
                 if let Some((x, y)) = painter.get_point(*x, *y) {
