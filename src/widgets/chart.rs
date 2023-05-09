@@ -559,7 +559,7 @@ impl<'a> Widget for Chart<'a> {
                     });
                     if let GraphType::Line = dataset.graph_type {
                         for data in dataset.data.windows(2) {
-                            if !data[0].2 {
+                            if !data[1].2 {
                                 continue;
                             } else {
                                 ctx.draw(&Line {
