@@ -85,44 +85,47 @@ You can run all examples by running `cargo make run-examples` (require
 * [tui-rs-tree-widgets](https://github.com/EdJoPaTo/tui-rs-tree-widget): widget for tree data structures.
 
 ### Apps using tui
+#### 💻 Development Tools:
+- [desed](https://github.com/SoptikHa2/desed): Debugging tool for sed scripts.
+- [gitui](https://github.com/extrawurst/gitui): Terminal UI for Git.
+- [gobang](https://github.com/TaKO8Ki/gobang): Cross-platform TUI database management tool.
+- [joshuto](https://github.com/kamiyaa/joshuto): Ranger-like terminal file manager written in Rust.
 
-* [spotify-tui](https://github.com/Rigellute/spotify-tui)
-* [bandwhich](https://github.com/imsnif/bandwhich)
-* [kmon](https://github.com/orhun/kmon)
-* [gpg-tui](https://github.com/orhun/gpg-tui)
-* [ytop](https://github.com/cjbassi/ytop)
-* [zenith](https://github.com/bvaisvil/zenith)
-* [bottom](https://github.com/ClementTsang/bottom)
-* [oha](https://github.com/hatoo/oha)
-* [gitui](https://github.com/extrawurst/gitui)
-* [rust-sadari-cli](https://github.com/24seconds/rust-sadari-cli)
-* [desed](https://github.com/SoptikHa2/desed)
-* [diskonaut](https://github.com/imsnif/diskonaut)
-* [tickrs](https://github.com/tarkah/tickrs)
-* [rusty-krab-manager](https://github.com/aryakaul/rusty-krab-manager)
-* [termchat](https://github.com/lemunozm/termchat)
-* [taskwarrior-tui](https://github.com/kdheepak/taskwarrior-tui)
-* [gping](https://github.com/orf/gping/)
-* [Vector](https://vector.dev)
-* [KDash](https://github.com/kdash-rs/kdash)
-* [xplr](https://github.com/sayanarijit/xplr)
-* [minesweep](https://github.com/cpcloud/minesweep-rs)
-* [Battleship.rs](https://github.com/deepu105/battleship-rs)
-* [termscp](https://github.com/veeso/termscp)
-* [joshuto](https://github.com/kamiyaa/joshuto)
-* [adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui)
-* [hoard](https://github.com/Hyde46/hoard)
-* [tokio-console](https://github.com/tokio-rs/console): a diagnostics and debugging tool for asynchronous Rust programs.
-* [hwatch](https://github.com/blacknon/hwatch): a alternative watch command that records the result of command execution and can display its history and diffs.
-* [ytui-music](https://github.com/sudipghimire533/ytui-music): listen to music from youtube inside your terminal.
-* [mqttui](https://github.com/EdJoPaTo/mqttui): subscribe or publish to a MQTT Topic quickly from the terminal.
-* [meteo-tui](https://github.com/16arpi/meteo-tui): french weather via the command line.
-* [picterm](https://github.com/ksk001100/picterm): preview images in your terminal.
-* [gobang](https://github.com/TaKO8Ki/gobang): a cross-platform TUI database management tool.
-* [oxker](https://github.com/mrjackwills/oxker): a simple tui to view & control docker containers.
-* [trippy](https://github.com/fujiapple852/trippy): a network diagnostic tool.
-* [cotp](https://github.com/replydev/cotp): a trustworthy, encrypted, command-line TOTP/HOTP authenticator app with import functionality.
-* [hg-tui](https://github.com/kaixinbaba/hg-tui): view [hellogithub.com](https://hellogithub.com/) website on the terminal.
+#### 🕹️ Games and Entertainment:
+- [Battleship.rs](https://github.com/deepu105/battleship-rs): Terminal-based Battleship game.
+- [minesweep](https://github.com/cpcloud/minesweep-rs): Terminal-based Minesweeper game.
+
+#### 🚀 Productivity and Utilities:
+- [diskonaut](https://github.com/imsnif/diskonaut): Terminal-based disk space navigator.
+- [taskwarrior-tui](https://github.com/kdheepak/taskwarrior-tui): TUI for the Taskwarrior command-line task manager.
+- [meteo-tui](https://github.com/16arpi/meteo-tui): French weather app in the command line.
+- [tickrs](https://github.com/tarkah/tickrs): Stock market ticker in the terminal.
+
+#### 🎼 Music and Media:
+- [spotify-tui](https://github.com/Rigellute/spotify-tui): Spotify client for the terminal.
+- [ytui-music](https://github.com/sudipghimire533/ytui-music): Listen to music from YouTube in the terminal.
+
+#### 🌐 Networking and Internet:
+- [adsb_deku/radar](https://github.com/wcampbell0x2a/adsb_deku#radar-tui): TUI for displaying ADS-B data from aircraft.
+- [bandwhich](https://github.com/imsnif/bandwhich): Displays network utilization by process.
+- [gping](https://github.com/orf/gping/): Ping tool with a graph.
+- [mqttui](https://github.com/EdJoPaTo/mqttui): MQTT client for subscribing or publishing to topics.
+- [oha](https://github.com/hatoo/oha): Top-like monitoring tool for HTTP(S) traffic.
+- [trippy](https://github.com/fujiapple852/trippy): Network diagnostic tool.
+
+#### 👨‍💻 System Administration:
+- [bottom](https://github.com/ClementTsang/bottom): Cross-platform graphical process/system monitor.
+- [kmon](https://github.com/orhun/kmon): Linux Kernel Manager and Activity Monitor.
+- [oxker](https://github.com/mrjackwills/oxker): Simple TUI to view & control docker containers.
+- [xplr](https://github.com/sayanarijit/xplr): Hackable, minimal, and fast TUI file explorer.
+- [ytop](https://github.com/cjbassi/ytop): TUI system monitor for Linux.
+- [zenith](https://github.com/bvaisvil/zenith): Cross-platform monitoring tool for system stats.
+
+#### 🌌 Other Categories:
+- [cotp](https://github.com/replydev/cotp): Command-line TOTP/HOTP authenticator app.
+- [hg-tui](https://github.com/kaixinbaba/hg-tui): TUI for viewing the hellogithub.com website.
+- [hwatch](https://github.com/blacknon/hwatch): Alternative watch command with command history and diffs.
+
 
 ### Alternatives
 
