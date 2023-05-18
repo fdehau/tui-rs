@@ -317,6 +317,12 @@ where
         Ok(())
     }
 
+    /// Mark the underlying buffer dirty, forcing a full redraw on the next draw call.
+    pub fn mark_dirty(&mut self) {
+        // Mark all cells in the back buffer dirty
+        self.buffers[1 - self.current].mark_dirty();
+    }
+
     /// Queries the real size of the backend.
     pub fn size(&self) -> io::Result<Rect> {
         self.backend.size()

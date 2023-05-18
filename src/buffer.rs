@@ -65,6 +65,11 @@ impl Cell {
         self.bg = Color::Reset;
         self.modifier = Modifier::empty();
     }
+    /// Marks cell dirty so it has to be redrawn
+    pub fn mark_dirty(&mut self) {
+        self.reset();
+        self.symbol.clear();
+    }
 }
 
 impl Default for Cell {
@@ -361,6 +366,12 @@ impl Buffer {
             self.content.resize(length, Default::default());
         }
         self.area = area;
+    }
+    /// Marks entire buffer dirty
+    pub fn mark_dirty(&mut self) {
+        for c in &mut self.content {
+            c.mark_dirty();
+        }
     }
 
     /// Reset all cells in the buffer
