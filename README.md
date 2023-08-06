@@ -1,5 +1,7 @@
 # tui-rs
 
+⚠️ **August 2023: This crate is no longer maintained. See https://github.com/ratatui-org/ratatui for an actively maintained fork.** ⚠️
+
 [![Build Status](https://github.com/fdehau/tui-rs/workflows/CI/badge.svg)](https://github.com/fdehau/tui-rs/actions?query=workflow%3ACI+)
 [![Crate Status](https://img.shields.io/crates/v/tui.svg)](https://crates.io/crates/tui)
 [![Docs Status](https://docs.rs/tui/badge.svg)](https://docs.rs/crate/tui/)
